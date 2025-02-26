@@ -1,0 +1,16 @@
+{
+  "id": "3257355",
+  "name": "no name",
+  "font_family": "element-icons",
+  "css_prefix_text": "el-icon-",
+  "description": "",
+  "glyphs": [
+    {
+      "icon_id": "1010",
+      "name": "扬声器",
+      "font_class": "yangshengqi",
+      "unicode": "e600",
+      "unicode_decimal": 58880
+    }
+  ]
+}
