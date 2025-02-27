@@ -1,0 +1,48 @@
+<template>
+  <div class="system">
+    <div class="system-content">
+      <div class="title">用户协议</div>
+      <div class="title">隐私政策</div>
+      <div class="title">产品说明</div>
+      <div class="title">联系我们</div>
+    </div>
+  </div>
+</template>
+
+<script>
+export default {
+  name: 'system'
+}
+</script>
+
+<style scoped>
+.system {
+  width: 100%;
+  height: 100%;
+  min-height: 700px;
+  padding: 40px;
+  box-sizing: border-box;
+}
+
+.system-content {
+  width: 100%;
+  height: 100%;
+  background-color: #ffffff;
+  border-radius: 10px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 20px;
+}
+
+.title {
+  width: 400px;
+  height: 60px;
+  line-height: 60px;
+  border-radius: 10px;
+  border: 1px solid #BBBBBB;
+  text-align: center;
+  color: #101010;
+}
+</style>
