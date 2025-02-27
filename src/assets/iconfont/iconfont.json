@@ -1,10 +1,24 @@
 {
   "id": "3257355",
-  "name": "no name",
+  "name": "offline-deployment",
   "font_family": "element-icons",
   "css_prefix_text": "el-icon-",
   "description": "",
   "glyphs": [
+    {
+      "icon_id": "1447738",
+      "name": "播放",
+      "font_class": "play",
+      "unicode": "e618",
+      "unicode_decimal": 58904
+    },
+    {
+      "icon_id": "17654824",
+      "name": "暂停",
+      "font_class": "pause",
+      "unicode": "e637",
+      "unicode_decimal": 58935
+    },
     {
       "icon_id": "1010",
       "name": "扬声器",

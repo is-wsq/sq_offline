@@ -6,11 +6,11 @@
           <div class="voice-type">系统音色</div>
           <div class="voice-list">
             <div class="voice-item" v-for="(item, index) in systemSounds" :key="index"
-                 :class="{'active': item.code === selectSound.code}"
-                 @click="selectSound = item">
+                 :class="{'active': item.code === activeSound.code}"
+                 @click="activeSound = item" @contextmenu.stop="handleContextMenu(item,$event)">
               <div class="voice-icon">
                 <el-image style="width: 20px;height: 20px;"
-                          :src="require(item.isPlay?'/public/pause.png' : '/public/play.png')"></el-image>
+                          :src="item.isPlay?'/stop.png' : '/play.png'"></el-image>
               </div>
               <div style="width: 70px;margin-left: 10px;font-size: 14px;color: #101010">{{ item.name }}</div>
             </div>
@@ -35,31 +35,31 @@
               </el-upload>
             </div>
             <div class="voice-item" v-for="(item, index) in cloneSounds" :key="index"
-                 :class="{'active': item.code === selectSound.code}"
-                 @click="selectSound = item" @contextmenu.stop="handleContextMenu(item,$event)">
+                 :class="{'active': item.code === activeSound.code}"
+                 @click="activeSound = item" @contextmenu.stop="handleContextMenu(item,$event)">
               <div class="voice-icon">
                 <el-image style="width: 20px;height: 20px;"
-                          :src="item.isPlay?'/pause.png' : '/play.png'"></el-image>
+                          :src="item.isPlay?'/stop.png' : '/play.png'"></el-image>
               </div>
               <div style="width: 70px;margin-left: 10px;font-size: 14px;color: #101010">{{ item.name }}</div>
             </div>
           </div>
         </el-col>
       </el-row>
-      <el-menu :style="menuStyle" v-if="rightMenuVisible">
-        <el-menu-item @click="listen">
+      <div :style="menuStyle" v-if="rightMenuVisible">
+        <div class="right-item" @click="listen">
           <i class="el-icon-yangshengqi menu-icon"></i>
           <span style="margin-top: 2px">试听</span>
-        </el-menu-item>
-        <el-menu-item @click="rename">
+        </div>
+        <div class="right-item" @click="rename" v-if="selectedItem.type === 'clone'">
           <i class="el-icon-edit-outline menu-icon"></i>
           <span style="margin-top: 2px">重命名</span>
-        </el-menu-item>
-        <el-menu-item @click="deleteItem">
+        </div>
+        <div class="right-item" @click="deleteItem" v-if="selectedItem.type === 'clone'">
           <i class="el-icon-delete-solid menu-icon"></i>
           <span style="margin-top: 2px">删除</span>
-        </el-menu-item>
-      </el-menu>
+        </div>
+      </div>
     </div>
     <div class="voice-footer">
       请上传格式为mp3\xxx\xxx的音频进行声音克隆，建议音频时长为3分钟。请在无遮挡场景进行录制，背景选取纯色无杂物最佳，面部表情丰富，适当添加无指向性手部动作。
@@ -69,6 +69,7 @@
 
 <script>
 import {RightMenuMixin} from "@/mixins/RightMenuMixin";
+import {getAction} from "@/api/api";
 
 export default {
   name: 'Voice',
@@ -76,39 +77,58 @@ export default {
   data() {
     return {
       figures: [],
-      selectSound: {},
+      activeSound: {},
       sound: {},
-      systemSounds: [
-        {id: 1, name: '女声', code: 'xiaoyan', isPlay: false},
-        {id: 1, name: '女声', code: 'xiaoyan', isPlay: false},
-        {id: 1, name: '女声', code: 'xiaoyan', isPlay: false},
-        {id: 1, name: '女声', code: 'xiaoyan', isPlay: false},
-        {id: 1, name: '女声', code: 'xiaoyan', isPlay: false},
-        {id: 1, name: '女声', code: 'xiaoyan', isPlay: false},
-        {id: 1, name: '女声', code: 'xiaoyan', isPlay: false},
-        {id: 1, name: '女声', code: 'xiaoyan', isPlay: false},
-        {id: 1, name: '女声', code: 'xiaoyan', isPlay: false},
-        {id: 1, name: '女声', code: 'xiaoyan', isPlay: false},
-        {id: 1, name: '女声', code: 'xiaoyan', isPlay: false},
-      ],
-      cloneSounds: [
-        {id: 1, name: '男声', code: 'xiaoyan', isPlay: false},
-        {id: 1, name: '男声', code: 'xiaoyan', isPlay: false},
-        {id: 1, name: '男声', code: 'xiaoyan', isPlay: false},
-        {id: 1, name: '男声', code: 'xiaoyan', isPlay: false},
-        {id: 1, name: '男声', code: 'xiaoyan', isPlay: false},
-        {id: 1, name: '男声', code: 'xiaoyan', isPlay: false},
-        {id: 1, name: '男声', code: 'xiaoyan', isPlay: false},
-        {id: 1, name: '男声', code: 'xiaoyan', isPlay: false},
-        {id: 1, name: '男声', code: 'xiaoyan', isPlay: false},
-        {id: 1, name: '男声', code: 'xiaoyan', isPlay: false},
-      ],
-      isPlay: false,
+      systemSounds: [],
+      cloneSounds: [],
+      userId: 4,
+      audio: null,
     }
   },
+  mounted() {
+    this.querySounds();
+  },
   methods: {
+    querySounds() {
+      getAction('timbre/query', {userId: this.userId}).then(res => {
+        if (res.data.status === 'success') {
+          this.systemSounds = res.data.data.systems;
+          this.systemSounds.forEach(item => {
+            item.isPlay = false;
+          });
+          this.cloneSounds = res.data.data.clones;
+          this.cloneSounds.forEach(item => {
+            item.isPlay = false;
+          });
+          this.voices = this.systemSounds.concat(this.cloneSounds);
+        } else {
+          this.$message.error('获取声音列表失败。');
+        }
+      })
+    },
     listen() {
-      console.log(this.selectedItem)
+      let voice = this.selectedItem;
+      if (voice.isPlay) {
+        this.audio.pause();
+        this.updateStatus(voice,false);
+      } else {
+        this.audio = new Audio(voice.filepath);
+        this.audio.play();
+        this.updateStatus(voice,true);
+        this.audio.onended = () => {
+          this.updateStatus(voice,false);
+        };
+      }
+    },
+    updateStatus(voice,status) {
+      if (voice.type ==='system') {
+        let index = this.systemSounds.findIndex(item => item.code === voice.code)
+        this.systemSounds[index].isPlay = status;
+      } else {
+        let index = this.cloneSounds.findIndex(item => item.code === voice.code)
+        this.cloneSounds[index].isPlay = status;
+      }
+      this.$forceUpdate();
     },
     rename() {
       console.log(this.selectedItem)
