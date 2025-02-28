@@ -6,6 +6,34 @@
   "description": "",
   "glyphs": [
     {
+      "icon_id": "7636785",
+      "name": "视频",
+      "font_class": "video",
+      "unicode": "e635",
+      "unicode_decimal": 58933
+    },
+    {
+      "icon_id": "29522794",
+      "name": "1C添加人员",
+      "font_class": "figure",
+      "unicode": "e693",
+      "unicode_decimal": 59027
+    },
+    {
+      "icon_id": "37054442",
+      "name": "数字人",
+      "font_class": "shuziren",
+      "unicode": "e6ba",
+      "unicode_decimal": 59066
+    },
+    {
+      "icon_id": "39192512",
+      "name": "直播数字人",
+      "font_class": "voice",
+      "unicode": "e890",
+      "unicode_decimal": 59536
+    },
+    {
       "icon_id": "1447738",
       "name": "播放",
       "font_class": "play",

@@ -1,8 +1,8 @@
 @font-face {
   font-family: "element-icons"; /* Project id 3257355 */
-  src: url('iconfont.woff2?t=1740639355697') format('woff2'),
-       url('iconfont.woff?t=1740639355697') format('woff'),
-       url('iconfont.ttf?t=1740639355697') format('truetype');
+  src: url('iconfont.woff2?t=1740714454881') format('woff2'),
+       url('iconfont.woff?t=1740714454881') format('woff'),
+       url('iconfont.ttf?t=1740714454881') format('truetype');
 }
 
 .element-icons {
@@ -11,6 +11,22 @@
   font-style: normal;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+.el-icon-video:before {
+  content: "\e635";
+}
+
+.el-icon-figure:before {
+  content: "\e693";
+}
+
+.el-icon-shuziren:before {
+  content: "\e6ba";
+}
+
+.el-icon-voice:before {
+  content: "\e890";
 }
 
 .el-icon-play:before {

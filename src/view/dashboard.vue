@@ -4,34 +4,19 @@
       <el-aside class="aside">
         <span style="font-size: 20px;font-weight: bold;color: #5478FE">奇点</span>
         <div class="aside-menu">
-          <div class="menu-item" :class="{'active': active === '1', 'inactive': active !== '1'}"
-               title="克隆形象" @click="changeActive('1','/')">
-            <i class="el-icon-user-solid"
-               :style="{ 'color': active === '1'? '#FFFFFF' : '#8F92A1', 'font-size': '20px' }">
-            </i>
-          </div>
-          <div class="menu-item" :class="{'active': active === '2', 'inactive': active !== '2'}"
-               title="克隆声音" @click="changeActive('2','/voice')">
-            <i class="el-icon-s-home"
-               :style="{ 'color': active === '2'? '#FFFFFF' : '#8F92A1', 'font-size': '20px' }">
-            </i>
-          </div>
-          <div class="menu-item" :class="{'active': active === '3', 'inactive': active !== '3'}"
-               title="生成视频" @click="changeActive('3','/video')">
-            <i class="el-icon-document"
-               :style="{ 'color': active === '3'? '#FFFFFF' : '#8F92A1', 'font-size': '20px' }">
-            </i>
-          </div>
-          <div class="menu-item" :class="{'active': active === '4', 'inactive': active !== '4'}"
-               title="关于我们" @click="changeActive('4','/system')">
-            <i class="el-icon-s-tools"
-               :style="{ 'color': active === '4'? '#FFFFFF' : '#8F92A1', 'font-size': '20px' }">
-            </i>
+          <div v-for="(menu, index) in menus" :key="index" class="menu-group" :style="{'background-color': active === index? '#e3eaff' : '#ffffff'}">
+            <div class="menu-item" :class="{'active': active === index, 'inactive': active !== index}"
+                 title="克隆形象" @click="changeActive(index,menu.path)">
+              <i :class="menu.class"
+                 :style="{ 'color': active === index? '#FFFFFF' : '#8F92A1', 'font-size': '20px' }">
+              </i>
+            </div>
+            <div style="font-size: 12px;color: #6D7177;margin-top: 5px">{{ menu.name }}</div>
           </div>
         </div>
       </el-aside>
       <el-main class="main">
-        <router-view />
+        <router-view/>
       </el-main>
     </el-container>
   </div>
@@ -40,30 +25,34 @@
 <script>
 
 export default {
-  components: {
-
-  },
+  components: {},
   data() {
     return {
-      active: "1",
+      active: 0,
+      menus: [
+        {name: "克隆形象", path: "/", class: 'el-icon-figure'},
+        {name: "克隆声音", path: "/voice", class: 'el-icon-voice'},
+        {name: "生成视频", path: "/video", class: 'el-icon-video'},
+        {name: "关于我们", path: "/system", class: 'el-icon-s-tools'},
+      ]
     };
   },
   mounted() {
     switch (this.$route.path) {
       case "/":
-        this.active = "1";
+        this.active = 0;
         break;
       case "/voice":
-        this.active = "2";
+        this.active = 1;
         break;
-        case "/video":
-        this.active = "3";
+      case "/video":
+        this.active = 2;
         break;
       case "/system":
-        this.active = "4";
+        this.active = 3;
         break;
       default:
-        this.active = "1";
+        this.active = 0;
         break;
     }
   },
@@ -95,13 +84,23 @@ export default {
 }
 
 .aside-menu {
-  height: 40%;
+  height: 500px;
   width: 100%;
   margin: auto 0;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: space-between;
+}
+
+.menu-group {
+  width: 75px;
+  height: 75px;
+  display: flex;
+  border-radius: 10px;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
 }
 
 .menu-item {
