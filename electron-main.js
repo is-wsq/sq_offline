@@ -19,8 +19,8 @@ app.on('ready', () => {
     mainWindow.removeMenu();
 
     // 加载 Vue 项目生成的 HTML 文件
-    // mainWindow.loadURL('https://live.tellai.tech:5003/');
-    mainWindow.loadURL('http://192.168.0.109:8081/');
+    mainWindow.loadURL('https://live.tellai.tech/');
+    // mainWindow.loadURL('http://192.168.0.109:8081/');
 
     mainWindow.on('closed', () => {
         mainWindow = null;
