@@ -3,16 +3,16 @@
     <div class="figures-content">
       <div class="figures-list">
         <div v-for="(item,index) in figures" :key="index" @contextmenu.stop="handleContextMenu(item,$event)">
-          <el-image class="figures-img" :src="item.url" fit="cover"></el-image>
+          <el-image class="figures-img" :src="item.path" fit="cover"></el-image>
+          <div style="width: 100%;text-align: center">{{ item.name }}</div>
         </div>
       </div>
       <div style="text-align: center;margin-top: 10px">
         <el-upload
             class="avatar-uploader"
-            action=""
+            action="https://u480621-aa32-189366b9.cqa1.seetacloud.com/figure/train"
             :show-file-list="false"
-            accept=".mp4, .avi, .mov"
-            :data="extraData"
+            accept=".mp4, .mov"
             :on-success="uploadSuccess"
             :before-upload="beforeUpload">
           <el-button class="figures-btn">添加形象</el-button>
@@ -37,49 +37,97 @@
         :visible.sync="dialogVisible"
         :before-close="beforeClose">
       <div style="width: 100%;text-align: center;position: relative;">
-        <video style="width: 300px;" ref="video" :src="src" @click="controlVideo"></video>
+        <video style="width: 300px;border-radius: 20px" ref="video" :src="src"></video>
+        <div style="position: absolute;top: 50%;left: 50%;transform: translate(-50%, -50%);">
+          <i class="el-icon-play control-icon" @click="controlVideo" v-if="!isPlaying"></i>
+<!--          <i class="el-icon-pause control-icon" @click="controlVideo" v-else></i>-->
+        </div>
       </div>
     </el-dialog>
+    <el-drawer
+      title="重命名形象名称"
+      :visible.sync="drawer"
+      direction="rtl"
+    >
+      <div style="width: 100%;text-align: center">
+        <el-form ref="form" style="width: 70%;margin: 0 auto">
+          <el-form-item label="新名称" prop="newName">
+            <el-input v-model="newName" placeholder="请输入新名称"></el-input>
+          </el-form-item>
+          <el-form-item>
+            <el-button type="primary" @click="onSave">保存</el-button>
+          </el-form-item>
+        </el-form>
+      </div>
+    </el-drawer>
     <div class="figures-footer">
-      请上传格式为mp4\xxx\xxx的视频进行形象克隆，建议视频时长为5分钟。请在无遮挡场景进行录制，确保面部清晰出镜，面部表情丰富，适当添加无指向性手部动作。
+      请上传格式为mp4\mov的视频进行形象克隆，建议视频时长为5分钟。请在无遮挡场景进行录制，确保面部清晰出镜，面部表情丰富，适当添加无指向性手部动作。
     </div>
   </div>
 </template>
 
 <script>
 import {RightMenuMixin} from "@/mixins/RightMenuMixin";
+import {delAction, getAction, postAction} from "@/api/api";
 
 export default {
   name: 'figures',
   mixins: [RightMenuMixin],
   data() {
     return {
-      figures: [
-        {id: 1, name: '形象1', url: '/images/1.jpg', src: 'https://qiniu-web-assets.dcloud.net.cn/unidoc/zh/2minute-demo.mp4'},
-        {id: 2, name: '形象2', url: '/images/4.jpg', src: 'https://www.w3schools.com/html/mov_bbb.mp4'},
-        {id: 3, name: '形象3', url: '/images/7.jpg', src: 'https://www.html5rocks.com/en/tutorials/video/basics/devstories.mp4'},
-        {id: 4, name: '形象4', url: '/images/11.jpg', src: 'https://www.quirksmode.org/html5/videos/big_buck_bunny.mp4'},
-        {id: 5, name: '形象5', url: '/images/12.jpg', src: 'https://www.learningcontainer.com/wp-content/uploads/2020/05/sample-mp4-file.mp4'},
-        {id: 6, name: '形象6', url: '/images/13.jpg', src: 'https://www.sample-videos.com/video/mp4/720/big_buck_bunny_720p_1mb.mp4'},
-        {id: 7, name: '形象7', url: '/images/16.jpg', src: 'https://www.sample-videos.com/video/mp4/720/big_buck_bunny_720p_10mb.mp4'},
-        {id: 8, name: '形象8', url: '/images/20.jpg', src: 'https://www.sample-videos.com/video/mp4/1080/big_buck_bunny_1080p_20mb.mp4'},
-      ],
+      figures: [],
       dialogVisible: false,
+      drawer: false,
       src: '',
       isPlaying: false,
-      extraData: {}
+      figureId: null,
+      newName: '',
     }
   },
+  mounted() {
+    this.queryFigures();
+  },
   methods: {
+    queryFigures() {
+      getAction('/figure/queryAvailable').then(res => {
+        if (res.data.status === 'success') {
+          this.figures = res.data.data;
+        }
+      })
+    },
     preview() {
-      this.src = this.selectedItem.src;
+      this.src = this.selectedItem.filepath;
       this.dialogVisible = true;
     },
     rename() {
-      console.log(this.selectedItem)
+      this.figureId = this.selectedItem.id;
+      this.newName = ''
+      this.drawer = true;
+    },
+    onSave() {
+      let params = {
+        figureId: this.figureId,
+        name: this.newName
+      }
+      postAction('/figure/update_name', params).then(res => {
+        if (res.data.status === 'success') {
+          this.$message.success('重命名成功');
+          this.queryFigures();
+        } else {
+          this.$message.error(res.data.message);
+        }
+        this.drawer = false;
+      })
     },
     deleteItem() {
-      console.log(this.selectedItem)
+      delAction('/figure/delete', {figureId: this.selectedItem.id}).then(res => {
+        if (res.data.status === 'success') {
+          this.$message.success('删除成功');
+          this.queryFigures();
+        } else {
+          this.$message.error(res.data.message);
+        }
+      })
     },
     controlVideo() {
       const video = this.$refs.video;
@@ -105,12 +153,8 @@ export default {
         background: 'rgba(0, 0, 0, 0.7)'
       });
     },
-    uploadSuccess(response) {
-      if(response.status ==='success') {
-
-      }else {
-        this.$message.error(response.message);
-      }
+    uploadSuccess() {
+      this.queryFigures();
       this.loading.close();
       this.loading = null;
     }
@@ -129,13 +173,13 @@ export default {
   align-items: center;
 }
 
-.figures >>> .el-dialog{
+.figures >>> .el-dialog {
   background-color: #79777700 !important;
   box-shadow: none !important;
   width: 500px;
 }
 
-.figures >>> .el-dialog__headerbtn .el-dialog__close{
+.figures >>> .el-dialog__headerbtn .el-dialog__close {
   font-size: 24px;
   color: #9A9A9A;
 }
@@ -154,6 +198,7 @@ export default {
   height: calc(100% - 50px);
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  grid-template-rows: 180px;
   gap: 50px;
   justify-items: center;
   overflow: auto;
@@ -168,6 +213,13 @@ export default {
 .figures-btn {
   background-color: #6286ED;
   color: #fff;
+}
+
+.control-icon {
+  font-size: 30px;
+  color: #fff;
+  cursor: pointer;
+  filter: drop-shadow(0px 0px 10px #292929);
 }
 
 .figures-footer {

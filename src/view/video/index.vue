@@ -5,7 +5,7 @@
       <div v-for="item in templates" :key="item.id" style="border-radius: 10px;width: 160px" @click="figure = item"
            :style="{'background-color': item.id === figure.id? '#e0e7fb' : '#FFFFFF'}">
         <div>
-          <el-image class="template-img" :src="item.url" fit="cover"></el-image>
+          <el-image class="template-img" :src="item.path" fit="cover"></el-image>
         </div>
         <div class="template-name">{{ item.name }}
         </div>
@@ -26,7 +26,7 @@
         <div class="popover-content">
           <el-row>
             <el-col :span="12" v-for="voice in voices" :key="voice.id">
-              <div class="voice-item" :class="{'active': voice.code === sound.code}" @click="sound = voice">
+              <div class="voice-item" :class="{'active': voice.id === sound.id}" @click="sound = voice">
                 <div class="voice-icon" @click="previewAudio(voice)">
                   <el-image style="width: 20px;height: 20px;" :src="voice.isPlay?'/stop.png' : '/play.png'"></el-image>
                 </div>
@@ -52,60 +52,54 @@
       </el-input>
       <span class="text-tips" v-if="!isFocus && text === ''">请输入视频口播文案</span>
     </div>
-    <el-button class="generate-btn">生成视频</el-button>
+    <el-button class="generate-btn" @click="generateVideo">生成视频</el-button>
   </div>
 </template>
 
 <script>
-import {getAction} from "@/api/api";
+import {getAction, postAction} from "@/api/api";
+import axios from "axios";
 
 export default {
   name: 'Video',
   data() {
     return {
       isPlay: false,
-      userId: 4,
       templateStyle: {
         height: '205px',
         overflow: 'hidden',
       },
       templateHigh: false,
-      templates: [
-        {id: 1, name: '形象1', url: '/images/1.jpg'},
-        {id: 2, name: '形象2', url: '/images/4.jpg'},
-        {id: 3, name: '形象3', url: '/images/7.jpg'},
-        {id: 4, name: '形象4', url: '/images/11.jpg'},
-        {id: 5, name: '形象5', url: '/images/12.jpg'},
-        {id: 6, name: '形象6', url: '/images/13.jpg'},
-        {id: 7, name: '形象7', url: '/images/16.jpg'},
-        {id: 8, name: '形象8', url: '/images/20.jpg'},
-        {id: 9, name: '形象8', url: '/images/20.jpg'},
-        {id: 10, name: '形象8', url: '/images/20.jpg'},
-        {id: 11, name: '形象8', url: '/images/20.jpg'},
-        {id: 12, name: '形象8', url: '/images/20.jpg'},
-        {id: 13, name: '形象8', url: '/images/20.jpg'},
-        {id: 14, name: '形象8', url: '/images/20.jpg'},
-        {id: 15, name: '形象8', url: '/images/20.jpg'},
-        {id: 16, name: '形象8', url: '/images/20.jpg'},
-      ],
+      templates: [],
+      figure: {},
       voices: [],
-      figure: {id: 1, name: '形象1', url: '/images/1.jpg'},
       sound: {},
       text: '',
       audio: null,
       testAudio: null,
       isFocus: false,
+      loading: false,
     }
   },
   mounted() {
     this.querySounds();
+    this.queryFigures();
   },
   methods: {
-    querySounds() {
-      getAction('timbre/query', {userId: this.userId}).then(res => {
+    queryFigures() {
+      getAction('/figure/queryAvailable').then(res => {
         if (res.data.status === 'success') {
-          let data = res.data.data
-          this.voices = data.systems.concat(data.clones);
+          this.templates = res.data.data;
+          if (this.templates.length > 0) {
+            this.figure = this.templates[0];
+          }
+        }
+      })
+    },
+    querySounds() {
+      getAction('timbre/query', ).then(res => {
+        if (res.data.status === 'success') {
+          this.voices = res.data.data;
           this.voices.forEach(voice => {
             voice.isPlay = false;
           });
@@ -156,10 +150,57 @@ export default {
       }
     },
     updateStatus(voice, status) {
-      let index = this.voices.findIndex(item => item.code === voice.code)
+      let index = this.voices.findIndex(item => item.id === voice.id)
       this.voices[index].isPlay = status;
       this.$forceUpdate();
     },
+    generateVideo() {
+      let params = {
+        video_id: this.figure.video_id,
+        timbre_id: this.sound.voice_id,
+        text: this.text,
+      }
+      this.loading = this.$loading({
+        lock: true,
+        text: '视频生成中，预计需要3~15分钟，请耐心等待...',
+        spinner: 'el-icon-loading',
+        background: 'rgba(0, 0, 0, 0.7)'
+      });
+      postAction('/result/inference',params).then(res => {
+        if (res.data.status ==='success') {
+          this.$message.success('视频生成成功');
+          this.downloadVideo(res.data.video_show_path);
+        }else {
+          this.$message.error('视频生成失败');
+        }
+        this.loading.close();
+        this.loading = null;
+      })
+    },
+    async downloadVideo(path) {
+      try {
+        const response = await axios.get(path, {
+          responseType: 'blob', // 重要，确保获取二进制数据
+        });
+
+        // 创建 Blob 对象
+        const blob = new Blob([response.data], { type: 'video/mp4' });
+        const blobUrl = window.URL.createObjectURL(blob);
+
+        // 创建下载链接
+        const a = document.createElement('a');
+        a.href = blobUrl;
+        a.download = path.split('/').pop(); // 自定义下载文件名
+        document.body.appendChild(a);
+        a.click();
+
+        // 清理 URL 对象
+        window.URL.revokeObjectURL(blobUrl);
+        document.body.removeChild(a);
+      } catch (error) {
+        console.error('下载视频失败:', error);
+      }
+    }
   }
 }
 </script>
@@ -190,6 +231,7 @@ export default {
   box-sizing: border-box;
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  grid-template-rows: 185px;
   gap: 20px;
   position: relative;
 }
