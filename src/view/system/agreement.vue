@@ -28,8 +28,8 @@ export default {
   computed: {
     docUrl() {
       this.type === "声音克隆协议"
-       ? (this.docFile = "https://live.tellai.tech/files/timbre-clone.doc")
-       : (this.docFile = "https://live.tellai.tech/files/figure-clone.doc");
+       ? (this.docFile = "https://live.tellai.tech/files/timbre-clone.docx")
+       : (this.docFile = "https://live.tellai.tech/files/figure-clone.docx");
       return `https://docs.google.com/gview?url=${encodeURIComponent(this.docFile)}&embedded=true`;
     },
   },
