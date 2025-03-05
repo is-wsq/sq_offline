@@ -10,7 +10,7 @@
       <div style="text-align: center;margin-top: 10px">
         <el-upload
             class="avatar-uploader"
-            action="https://u480621-aa32-189366b9.cqa1.seetacloud.com/figure/train"
+            action="http://127.0.0.1:6006/figure/train"
             :show-file-list="false"
             accept=".mp4, .mov"
             :on-success="uploadSuccess"

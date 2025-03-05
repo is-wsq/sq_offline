@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 // 创建一个 Axios 实例
-const baseURL = 'https://u480621-aa32-189366b9.cqa1.seetacloud.com';
+const baseURL = 'http://127.0.0.1:6006';
 // const baseURL = 'https://live.tellai.tech/api/dhuman_live';
 // const baseURL = 'http://192.168.0.117:5006';
 const instance = axios.create({

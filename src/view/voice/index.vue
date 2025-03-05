@@ -20,7 +20,7 @@
           <div class="voice-list">
             <div class="voice-item">
               <el-upload
-                  action="https://u480621-aa32-189366b9.cqa1.seetacloud.com/timbre/clone"
+                  action="http://127.0.0.1:6006/timbre/clone"
                   :show-file-list="false"
                   accept=".mp3, .wav"
                   :on-success="uploadSuccess"
