@@ -49,5 +49,6 @@ export default {
   border: 1px solid #BBBBBB;
   text-align: center;
   color: #101010;
+  cursor: pointer;
 }
 </style>

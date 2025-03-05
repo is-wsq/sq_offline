@@ -23,7 +23,6 @@
 </template>
 
 <script>
-
 export default {
   components: {},
   data() {
@@ -114,7 +113,7 @@ export default {
 }
 
 .main {
-  padding: 0;
+  padding: 20px;
   background-color: rgb(239, 239, 239, 1%);
   height: 100vh;
   overflow: auto
