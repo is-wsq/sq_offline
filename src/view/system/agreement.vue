@@ -32,8 +32,8 @@ export default {
     docUrl() {
       this.loading = true;
       this.type === "声音复刻协议"
-       ? (this.docFile = "https://live.tellai.tech/files/timbre-clone.docx")
-       : (this.docFile = "https://live.tellai.tech/files/figure-clone.docx");
+       ? (this.docFile = "https://live.tellai.tech/files/timbre.docx")
+       : (this.docFile = "https://live.tellai.tech/files/figure.docx");
       return `https://docs.google.com/gview?url=${encodeURIComponent(this.docFile)}&embedded=true`;
     },
   },
