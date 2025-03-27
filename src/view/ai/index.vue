@@ -2,11 +2,10 @@
   <div class="ai">
     <div class="ai-content">
       <div style="display: flex;height: 40px;align-items: center">
-        <el-switch :width="50" v-model="modelOpen" active-color="#6286ED" disabled></el-switch>
+        <el-switch :width="50" v-model="modelOpen" active-color="#6286ED" @change="switchChange"></el-switch>
         <span style="margin-left: 20px;font-size: 16px;color: #6D7177">模型开关</span>
       </div>
-      <el-button class="enter-service" type="primary" @click="startService" v-if="!modelOpen">进入服务</el-button>
-      <el-button class="enter-service" type="danger" @click="stopService" v-else>停止服务</el-button>
+      <el-button class="enter-service" @click="enterService">进入服务</el-button>
     </div>
     <div style="margin-top: 74px;color: #6D7177;font-size: 16px;line-height: 27px">
       请开启模型后再点击 “进入服务” 使用AI大模型，使用完毕后请关闭模型开关释放资源。
@@ -28,6 +27,16 @@ export default {
     }
   },
   methods: {
+    enterService() {
+
+    },
+    switchChange(val) {
+      if (val) {
+        this.startService()
+      }else {
+        this.stopService()
+      }
+    },
     startService() {
       let params = {
         model_name: 'hf-mirror.com/unsloth/QwQ-32B-GGUF:Q3_K_M'
@@ -37,7 +46,6 @@ export default {
           axios.post('http://127.0.0.1:8080/load_model', params).then(result => {
             if (result.data.status === 'success') {
               this.$message.success('模型加载成功')
-              this.modelOpen = true
             }else {
               this.$message.error(result.data.message)
             }
@@ -55,7 +63,6 @@ export default {
         if (res.data.status ==='success') {
           console.log('模型卸载成功')
           this.$message.success('模型卸载成功')
-          this.modelOpen = false
         }else {
           console.log(res.data)
           this.$message.error(res.data.message)
@@ -92,8 +99,15 @@ export default {
   margin-top: 50px;
   width: 150px;
   height: 44px;
+  background-color: #6286ED;
   border-radius: 15px;
+  color: #FFFFFF;
   font-size: 16px;
+}
+
+.enter-service:hover {
+  background-color: #6286ED;
+  color: #FFFFFF;
 }
 </style>
 
