@@ -17,7 +17,7 @@
 </template>
 
 <script>
-import {postAction} from "@/api/api";
+import {getAction, postAction} from "@/api/api";
 import axios from "axios";
 
 export default {
@@ -26,9 +26,15 @@ export default {
       modelOpen: false
     }
   },
+  async mounted() {
+    this.modelOpen = await this.queryServiceStatus()
+  },
   methods: {
     enterService() {
 
+    },
+    queryServiceStatus() {
+      return false
     },
     switchChange(val) {
       if (val) {
