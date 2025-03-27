@@ -29,7 +29,8 @@ export default {
     return {
       active: 0,
       menus: [
-        {name: "克隆形象", path: "/", class: 'el-icon-figure'},
+        {name: "AI大模型", path: "/", class: 'el-icon-robot'},
+        {name: "克隆形象", path: "/figures", class: 'el-icon-figure'},
         {name: "克隆声音", path: "/voice", class: 'el-icon-voice'},
         {name: "生成视频", path: "/video", class: 'el-icon-video'},
         {name: "关于我们", path: "/system", class: 'el-icon-s-tools'},
@@ -41,14 +42,17 @@ export default {
       case "/":
         this.active = 0;
         break;
-      case "/voice":
+      case "/figures":
         this.active = 1;
         break;
-      case "/video":
+      case "/voice":
         this.active = 2;
         break;
-      case "/system":
+      case "/video":
         this.active = 3;
+        break;
+      case "/system":
+        this.active = 4;
         break;
       default:
         this.active = 0;

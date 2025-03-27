@@ -3,6 +3,7 @@ import Router from 'vue-router';
 Vue.use(Router);
 import LogIn from '../view/login/Login.vue';
 import Register from '../view/login/Register.vue';
+import ai from '@/view/ai/index.vue';
 import figures from '@/view/figures/index.vue';
 import voice from '../view/voice/index.vue';
 import video from '../view/video/index.vue';
@@ -12,6 +13,11 @@ import agreement from '../view/system/agreement.vue';
 const routes = [
     {
         path: '/',
+        name: 'ai',
+        component: ai
+    },
+    {
+        path: '/figures',
         name: 'figures',
         component: figures
     },
