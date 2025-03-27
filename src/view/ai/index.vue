@@ -2,7 +2,7 @@
   <div class="ai">
     <div class="ai-content">
       <div style="display: flex;height: 40px;align-items: center">
-        <el-switch :width="50" v-model="modelOpen" active-color="#6286ED"></el-switch>
+        <el-switch :width="50" v-model="modelOpen" active-color="#6286ED" disabled></el-switch>
         <span style="margin-left: 20px;font-size: 16px;color: #6D7177">模型开关</span>
       </div>
       <el-button class="enter-service" type="primary" @click="startService" v-if="!modelOpen">进入服务</el-button>
@@ -37,6 +37,7 @@ export default {
           axios.post('http://127.0.0.1:8080/load_model', params).then(result => {
             if (result.data.status === 'success') {
               this.$message.success('模型加载成功')
+              this.modelOpen = true
             }else {
               this.$message.error(result.data.message)
             }
@@ -54,6 +55,7 @@ export default {
         if (res.data.status ==='success') {
           console.log('模型卸载成功')
           this.$message.success('模型卸载成功')
+          this.modelOpen = false
         }else {
           console.log(res.data)
           this.$message.error(res.data.message)
