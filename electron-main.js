@@ -8,6 +8,7 @@ app.on('ready', () => {
     mainWindow = new BrowserWindow({
         width: 1200,
         height: 800,
+        show: false,
         icon: path.join(__dirname, 'public/favicon.ico'),
         webPreferences: {
             preload: path.join(__dirname, 'preload.js'), // 如果需要
@@ -19,8 +20,12 @@ app.on('ready', () => {
     mainWindow.removeMenu();
 
     // 加载 Vue 项目生成的 HTML 文件
-    mainWindow.loadURL('https://live.tellai.tech/');
-    // mainWindow.loadURL('http://192.168.0.109:8081/');
+    const indexPath = path.join(__dirname, 'dist', 'index.html');
+    mainWindow.loadFile(indexPath);
+
+    mainWindow.webContents.once('did-finish-load', () => {
+        mainWindow.show();
+    });
 
     mainWindow.on('closed', () => {
         mainWindow = null;

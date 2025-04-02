@@ -3,8 +3,8 @@ import Router from 'vue-router';
 Vue.use(Router);
 import LogIn from '../view/login/Login.vue';
 import Register from '../view/login/Register.vue';
-import ai from '@/view/ai/index.vue';
-import figures from '@/view/figures/index.vue';
+import ai from '../view/ai/index.vue';
+import figures from '../view/figures/index.vue';
 import voice from '../view/voice/index.vue';
 import video from '../view/video/index.vue';
 import system from '../view/system/index.vue';
@@ -54,7 +54,7 @@ const routes = [
 ];
 
 const router = new Router({
-    mode: 'history',
+    mode: 'hash',
     routes
 });
 
