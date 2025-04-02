@@ -20,11 +20,12 @@
           <div class="voice-list">
             <div class="voice-item">
               <el-upload
-                  action="http://127.0.0.1:6006/timbre/clone"
-                  :show-file-list="false"
-                  accept=".mp3, .wav"
-                  :on-success="uploadSuccess"
-                  :before-upload="beforeUpload"
+                action="http://127.0.0.1:6006/timbre/clone"
+                :show-file-list="false"
+                accept=".mp3, .wav"
+                :on-success="uploadSuccess"
+                :on-error="uploadError"
+                :before-upload="beforeUpload"
               >
                 <div style="display: flex;justify-content: center;align-items: center;height: 80px;">
                   <div class="voice-icon" style="background-color: pink !important;">
@@ -99,13 +100,13 @@ export default {
       cloneSounds: [],
       audio: null,
       newName: '',
-      loading: null,
       drawer: false,
       soundId: null,
+      isLoading: false,
     }
   },
   mounted() {
-    this.querySounds();
+    // this.querySounds();
   },
   methods: {
     querySounds() {
@@ -184,18 +185,33 @@ export default {
         }
       })
     },
+    generateUniqueId() {
+      return Date.now() + Math.random().toString(36).substr(2, 16);
+    },
     beforeUpload() {
-      this.loading = this.$loading({
-        lock: true,
-        text: '音频上传克隆中，请耐心等待...',
-        spinner: 'el-icon-loading',
-        background: 'rgba(0, 0, 0, 0.7)'
-      });
+      if (this.isLoading) {
+        return
+      }
+      this.isLoading = true;
+      this.task = {
+        type: 'voice',
+        id: this.generateUniqueId(),
+        status: 'running'
+      }
+      this.$store.dispatch('task/addTask', this.task);
+      let content = `已创建音色克隆任务，音色克隆成功后会自动更新音色列表`
+      this.$alert(content, '任务创建提醒');
     },
     uploadSuccess() {
+      this.$store.dispatch('task/removeTask', this.task.id);
+      this.$notify({title: '克隆成功', message: '音色克隆任务已完成！', type: 'success'})
+      this.isLoading = false;
       this.querySounds()
-      this.loading.close();
-      this.loading = null;
+    },
+    uploadError() {
+      this.$store.dispatch('task/removeTask', this.task.id);
+      this.$notify({title: '克隆失败', message: '音色克隆任务失败！', type: 'error'})
+      this.isLoading = false;
     }
   },
 }

@@ -14,6 +14,7 @@
             :show-file-list="false"
             accept=".mp4, .mov"
             :on-success="uploadSuccess"
+            :on-error="uploadError"
             :before-upload="beforeUpload">
           <el-button class="figures-btn">添加形象</el-button>
         </el-upload>
@@ -82,6 +83,8 @@ export default {
       isPlaying: false,
       figureId: null,
       newName: '',
+      isLoading: false,
+      task: {}
     }
   },
   mounted() {
@@ -145,18 +148,33 @@ export default {
       video.pause();
       this.dialogVisible = false;
     },
+    generateUniqueId() {
+      return Date.now() + Math.random().toString(36).substr(2, 16);
+    },
     beforeUpload() {
-      this.loading = this.$loading({
-        lock: true,
-        text: '视频上传中，请耐心等待...',
-        spinner: 'el-icon-loading',
-        background: 'rgba(0, 0, 0, 0.7)'
-      });
+      if (this.isLoading) {
+        return
+      }
+      this.isLoading = true;
+      this.task = {
+        type: 'figures',
+        id: this.generateUniqueId(),
+        status: 'running'
+      }
+      this.$store.dispatch('task/addTask', this.task);
+      let content = `已创建形象克隆任务，形象克隆成功后会自动更新形象列表`
+      this.$alert(content, '任务创建提醒');
     },
     uploadSuccess() {
+      this.$store.dispatch('task/removeTask', this.task.id);
+      this.$notify({title: '克隆成功', message: '形象克隆任务已完成！', type: 'success'})
+      this.isLoading = false;
       this.queryFigures();
-      this.loading.close();
-      this.loading = null;
+    },
+    uploadError() {
+      this.$store.dispatch('task/removeTask', this.task.id);
+      this.$notify({title: '克隆失败', message: '形象克隆任务失败！', type: 'error'})
+      this.isLoading = false;
     }
   }
 }

@@ -78,7 +78,6 @@ export default {
       audio: null,
       testAudio: null,
       isFocus: false,
-      loading: false,
     }
   },
   mounted() {
@@ -97,7 +96,7 @@ export default {
       })
     },
     querySounds() {
-      getAction('timbre/query', ).then(res => {
+      getAction('timbre/query').then(res => {
         if (res.data.status === 'success') {
           this.voices = res.data.data;
           this.voices.forEach(voice => {
@@ -154,27 +153,35 @@ export default {
       this.voices[index].isPlay = status;
       this.$forceUpdate();
     },
+    generateUniqueId() {
+      return Date.now() + Math.random().toString(36).substr(2, 16);
+    },
     generateVideo() {
+      let task = {
+        type: 'video',
+        id: this.generateUniqueId(),
+        status: 'running'
+      }
+      this.$store.dispatch('task/addTask', task);
+      let content = `已创建视频生成任务，视频生成成功后会自动下载到本地`
+      this.$alert(content, '任务创建提醒');
+
       let params = {
         video_id: this.figure.video_id,
         timbre_id: this.sound.voice_id,
         text: this.text,
       }
-      this.loading = this.$loading({
-        lock: true,
-        text: '视频生成中，预计需要3~15分钟，请耐心等待...',
-        spinner: 'el-icon-loading',
-        background: 'rgba(0, 0, 0, 0.7)'
-      });
-      postAction('/result/inference',params).then(res => {
-        if (res.data.status ==='success') {
-          this.$message.success('视频生成成功');
-          this.downloadVideo(res.data.video_show_path);
-        }else {
-          this.$message.error('视频生成失败');
+      postAction('/result/inference', params).then(res => {
+        if (res.status === 'success') {
+          this.$store.dispatch('task/removeTask', task.id);
+          let message = `${task.id}视频生成任务已完成！`
+          this.$notify({title: '生成成功', message: message, type: 'success'})
+          this.downloadVideo(res.data.video_path);
+        } else {
+          this.$store.dispatch('task/removeTask', task.id);
+          let message = `${task.id}视频生成任务失败！`
+          this.$notify({title: '生成失败', message: message, type: 'error'})
         }
-        this.loading.close();
-        this.loading = null;
       })
     },
     async downloadVideo(path) {
@@ -184,7 +191,7 @@ export default {
         });
 
         // 创建 Blob 对象
-        const blob = new Blob([response.data], { type: 'video/mp4' });
+        const blob = new Blob([response.data], {type: 'video/mp4'});
         const blobUrl = window.URL.createObjectURL(blob);
 
         // 创建下载链接
