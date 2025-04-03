@@ -2,19 +2,29 @@
   <div class="figures">
     <div class="figures-content">
       <div class="figures-list">
-        <div v-for="(item,index) in figures" :key="index" @contextmenu.stop="handleContextMenu(item,$event)">
-          <el-image class="figures-img" :src="item.picture" fit="cover"></el-image>
-          <div style="width: 100%;text-align: center">{{ item.name }}</div>
+        <div
+          v-for="(item, index) in figures"
+          :key="index"
+          @contextmenu.stop="handleContextMenu(item, $event)"
+        >
+          <el-image
+            class="figures-img"
+            :src="item.picture"
+            fit="cover"
+          ></el-image>
+          <div style="width: 100%; text-align: center">{{ item.name }}</div>
         </div>
       </div>
-      <div style="text-align: center;margin-top: 10px">
+      <div style="text-align: center; margin-top: 10px">
         <el-upload
-            class="avatar-uploader"
-            action="http://127.0.0.1:6006/figure/clone"
-            :show-file-list="false"
-            accept=".mp4, .mov"
-            :on-success="uploadSuccess"
-            :before-upload="beforeUpload">
+          class="avatar-uploader"
+          action="http://127.0.0.1:6006/figure/clone"
+          :show-file-list="false"
+          accept=".mp4, .mov"
+          :on-success="uploadSuccess"
+          :on-error="uploadError"
+          :before-upload="beforeUpload"
+        >
           <el-button class="figures-btn">添加形象</el-button>
         </el-upload>
       </div>
@@ -33,24 +43,33 @@
         </div>
       </div>
     </div>
-    <el-dialog
-        :visible.sync="dialogVisible"
-        :before-close="beforeClose">
-      <div style="width: 100%;text-align: center;position: relative;">
-        <video style="width: 300px;border-radius: 20px" ref="video" :src="src"></video>
-        <div style="position: absolute;top: 50%;left: 50%;transform: translate(-50%, -50%);">
-          <i class="el-icon-play control-icon" @click="controlVideo" v-if="!isPlaying"></i>
-<!--          <i class="el-icon-pause control-icon" @click="controlVideo" v-else></i>-->
+    <el-dialog :visible.sync="dialogVisible" :before-close="beforeClose">
+      <div style="width: 100%; text-align: center; position: relative">
+        <video
+          style="width: 300px; border-radius: 20px"
+          ref="video"
+          :src="src"
+        ></video>
+        <div
+          style="
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+          "
+        >
+          <i
+            class="el-icon-play control-icon"
+            @click="controlVideo"
+            v-if="!isPlaying"
+          ></i>
+          <!--          <i class="el-icon-pause control-icon" @click="controlVideo" v-else></i>-->
         </div>
       </div>
     </el-dialog>
-    <el-drawer
-      title="重命名形象名称"
-      :visible.sync="drawer"
-      direction="rtl"
-    >
-      <div style="width: 100%;text-align: center">
-        <el-form ref="form" style="width: 70%;margin: 0 auto">
+    <el-drawer title="重命名形象名称" :visible.sync="drawer" direction="rtl">
+      <div style="width: 100%; text-align: center">
+        <el-form ref="form" style="width: 70%; margin: 0 auto">
           <el-form-item label="新名称" prop="newName">
             <el-input v-model="newName" placeholder="请输入新名称"></el-input>
           </el-form-item>
@@ -67,49 +86,53 @@
 </template>
 
 <script>
-import {RightMenuMixin} from "@/mixins/RightMenuMixin";
-import {delAction, getAction, postAction} from "@/api/api";
-import {mapGetters} from "vuex";
+import { RightMenuMixin } from "@/mixins/RightMenuMixin";
+import { delAction, getAction, postAction } from "@/api/api";
+import { mapGetters } from "vuex";
 import axios from "axios";
 
 export default {
-  name: 'figures',
+  name: "figures",
   mixins: [RightMenuMixin],
   data() {
     return {
       figures: [],
       dialogVisible: false,
       drawer: false,
-      src: '',
+      src: "",
       isPlaying: false,
       figureId: null,
-      newName: '',
-    }
+      newName: "",
+    };
   },
   computed: {
-    ...mapGetters('task', ['allTasks']), // 获取任务列表
+    ...mapGetters("task", ["allTasks"]), // 获取任务列表
     voiceTasks() {
-      return this.allTasks.filter(item => item.type === 'figures')
-    }
+      return this.allTasks.filter((item) => item.type === "figures");
+    },
   },
   watch: {
     voiceTasks: {
       handler() {
-        this.queryFigures()
+        this.queryFigures();
       },
-      deep: true
-    }
+      deep: true,
+    },
   },
   mounted() {
     this.queryFigures();
   },
   methods: {
     queryFigures() {
-      getAction('/figure/query_success').then(res => {
-        if (res.data.status === 'success') {
-          this.figures = res.data.data;
-        }
-      })
+      getAction("/figure/query_success")
+        .then((res) => {
+          if (res.data.status === "success") {
+            this.figures = res.data.data;
+          }
+        })
+        .catch((err) => {
+          this.$message.error("获取形象列表失败，请稍后重试！");
+        });
     },
     preview() {
       this.src = this.selectedItem.filepath;
@@ -117,33 +140,41 @@ export default {
     },
     rename() {
       this.figureId = this.selectedItem.id;
-      this.newName = ''
+      this.newName = "";
       this.drawer = true;
     },
     onSave() {
       let params = {
         figure_id: this.figureId,
-        name: this.newName
-      }
-      postAction('/figure/update_name', params).then(res => {
-        if (res.data.status === 'success') {
-          this.$message.success('重命名成功');
-          this.queryFigures();
-        } else {
-          this.$message.error(res.data.message);
-        }
-        this.drawer = false;
-      })
+        name: this.newName,
+      };
+      postAction("/figure/update_name", params)
+        .then((res) => {
+          if (res.data.status === "success") {
+            this.$message.success("重命名成功");
+            this.queryFigures();
+          } else {
+            this.$message.error(res.data.message);
+          }
+          this.drawer = false;
+        })
+        .catch((err) => {
+          this.$message.error("重命名失败，请稍后重试！");
+        });
     },
     deleteItem() {
-      delAction('/figure/delete', {figure_id: this.selectedItem.id}).then(res => {
-        if (res.data.status === 'success') {
-          this.$message.success('删除成功');
-          this.queryFigures();
-        } else {
-          this.$message.error(res.data.message);
-        }
-      })
+      delAction("/figure/delete", { figure_id: this.selectedItem.id })
+        .then((res) => {
+          if (res.data.status === "success") {
+            this.$message.success("删除成功");
+            this.queryFigures();
+          } else {
+            this.$message.error(res.data.message);
+          }
+        })
+        .catch((err) => {
+          this.$message.error("删除失败，请稍后重试！");
+        });
     },
     controlVideo() {
       const video = this.$refs.video;
@@ -163,27 +194,46 @@ export default {
     },
     beforeUpload(file) {
       this.task = {
-        type: 'figures',
+        type: "figures",
         id: file.uid,
         name: file.name,
-        status: 'running'
-      }
-      this.$store.dispatch('task/addTask', this.task);
-      let content = `已创建${file.name}形象克隆任务，形象克隆成功后会自动更新形象列表`
-      this.$alert(content, '任务创建提醒');
+        status: "running",
+      };
+      this.$store.dispatch("task/addTask", this.task);
+      let content = `已创建${file.name}形象克隆任务，形象克隆成功后会自动更新形象列表`;
+      this.$alert(content, "任务创建提醒");
     },
-    uploadSuccess(res,file) {
-      if (res.status === 'success') {
-        this.$store.dispatch('task/removeTask', this.task.id);
-        this.$notify({title: '克隆成功', message: `${file.name}形象克隆任务已完成！`, duration: 0, type: 'success'})
+    uploadError(file) {
+      this.$store.dispatch("task/removeTask", this.task.id);
+      this.$notify({
+        title: "克隆失败",
+        message: `${file.name}形象克隆任务失败！`,
+        duration: 0,
+        type: "error",
+      });
+    },
+    uploadSuccess(res, file) {
+      if (res.status === "success") {
+        this.$store.dispatch("task/removeTask", this.task.id);
+        this.$notify({
+          title: "克隆成功",
+          message: `${file.name}形象克隆任务已完成！`,
+          duration: 0,
+          type: "success",
+        });
         this.queryFigures();
-      }else {
-        this.$store.dispatch('task/removeTask', this.task.id);
-        this.$notify({title: '克隆失败', message: `${file.name}形象克隆任务失败！`, duration: 0, type: 'error'})
+      } else {
+        this.$store.dispatch("task/removeTask", this.task.id);
+        this.$notify({
+          title: "克隆失败",
+          message: `${file.name}形象克隆任务失败！`,
+          duration: 0,
+          type: "error",
+        });
       }
     },
-  }
-}
+  },
+};
 </script>
 
 <style scoped>
@@ -205,7 +255,7 @@ export default {
 
 .figures >>> .el-dialog__headerbtn .el-dialog__close {
   font-size: 24px;
-  color: #9A9A9A;
+  color: #9a9a9a;
 }
 
 .figures-content {
@@ -235,7 +285,7 @@ export default {
 }
 
 .figures-btn {
-  background-color: #6286ED;
+  background-color: #6286ed;
   color: #fff;
 }
 
@@ -250,7 +300,6 @@ export default {
   width: 80%;
   height: 80px;
   margin-top: 20px;
-  color: #6D7177;
+  color: #6d7177;
 }
 </style>
-
