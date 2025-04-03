@@ -10,7 +10,7 @@
       <div style="text-align: center;margin-top: 10px">
         <el-upload
             class="avatar-uploader"
-            action="http://192.168.0.122:6006/figure/clone"
+            action="http://127.0.0.1:6006/figure/clone"
             :show-file-list="false"
             accept=".mp4, .mov"
             :on-success="uploadSuccess"

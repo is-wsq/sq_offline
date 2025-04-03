@@ -20,7 +20,7 @@
           <div class="voice-list">
             <div class="voice-item">
               <el-upload
-                action="http://192.168.0.122:6006/timbres/clone"
+                action="http://127.0.0.1:6006/timbres/clone"
                 :show-file-list="false"
                 accept=".mp3, .wav"
                 :on-success="uploadSuccess"
