@@ -1,14 +1,18 @@
 import axios from 'axios';
 
 // 创建一个 Axios 实例
-const baseURL = 'http://127.0.0.1:6006';
-// const baseURL = 'https://live.tellai.tech/api/dhuman_live';
-// const baseURL = 'http://192.168.0.117:5006';
-const instance = axios.create({
-    baseURL: baseURL, // 设置你的基础 URL
-    timeout: 1800000, // 设置请求超时
-    headers: {'Content-Type': 'application/json'}
-});
+// const baseURL = 'http://127.0.0.1:6006';
+const baseURL = 'http://192.168.0.122:6006';
+
+const createInstance = (timeout = 60000) => {
+    return axios.create({
+        baseURL: baseURL, // 设置你的基础 URL
+        timeout: timeout, // 设置请求超时
+        headers: {'Content-Type': 'application/json'}
+    })
+}
+
+let instance = createInstance();
 
 // 请求拦截器
 instance.interceptors.request.use(
@@ -36,19 +40,23 @@ instance.interceptors.response.use(
     }
 );
 
-const getAction = (url, params = {}) => {
+const getAction = (url, params = {}, timeout = 60000) => {
+    instance = createInstance(timeout);
     return instance.get(url, {params});
 };
 
-const postAction = (url, data = {}, headers = {}) => {
-    return instance.post(url, data, headers);
+const postAction = (url, data = {}, timeout = 60000) => {
+    instance = createInstance(timeout);
+    return instance.post(url, data);
 };
 
-const putAction = (url, data = {}) => {
+const putAction = (url, data = {}, timeout = 60000) => {
+    instance = createInstance(timeout);
     return instance.put(url, data);
 };
 
-const delAction = (url, params = {}) => {
+const delAction = (url, params = {}, timeout = 60000) => {
+    instance = createInstance(timeout);
     return instance.delete(url, {params});
 };
 

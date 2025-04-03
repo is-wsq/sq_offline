@@ -5,7 +5,7 @@
       <div v-for="item in templates" :key="item.id" style="border-radius: 10px;width: 160px" @click="figure = item"
            :style="{'background-color': item.id === figure.id? '#e0e7fb' : '#FFFFFF'}">
         <div>
-          <el-image class="template-img" :src="item.path" fit="cover"></el-image>
+          <el-image class="template-img" :src="item.picture" fit="cover"></el-image>
         </div>
         <div class="template-name">{{ item.name }}
         </div>
@@ -59,6 +59,7 @@
 <script>
 import {getAction, postAction} from "@/api/api";
 import axios from "axios";
+import {mapGetters} from "vuex";
 
 export default {
   name: 'Video',
@@ -80,13 +81,28 @@ export default {
       isFocus: false,
     }
   },
+  computed: {
+    ...mapGetters('task', ['allTasks']), // 获取任务列表
+    voiceAndFigureTasks() {
+      return this.allTasks.filter(item => (item.type === 'figures' || item.type === 'voice'))
+    }
+  },
+  watch: {
+    voiceAndFigureTasks: {
+      handler() {
+        this.querySounds();
+        this.queryFigures()
+      },
+      deep: true
+    }
+  },
   mounted() {
     this.querySounds();
     this.queryFigures();
   },
   methods: {
     queryFigures() {
-      getAction('/figure/queryAvailable').then(res => {
+      getAction('/figure/query_success').then(res => {
         if (res.data.status === 'success') {
           this.templates = res.data.data;
           if (this.templates.length > 0) {
@@ -96,7 +112,7 @@ export default {
       })
     },
     querySounds() {
-      getAction('timbre/query').then(res => {
+      getAction('/timbres/query_success').then(res => {
         if (res.data.status === 'success') {
           this.voices = res.data.data;
           this.voices.forEach(voice => {
@@ -168,15 +184,15 @@ export default {
 
       let params = {
         video_id: this.figure.video_id,
-        timbre_id: this.sound.voice_id,
+        voice_id: this.sound.voice_id,
         text: this.text,
       }
-      postAction('/result/inference', params).then(res => {
-        if (res.status === 'success') {
+      postAction('/figure/generate_video', params,18000000).then(res => {
+        if (res.data.status === 'success') {
           this.$store.dispatch('task/removeTask', task.id);
           let message = `${task.id}视频生成任务已完成！`
           this.$notify({title: '生成成功', message: message, type: 'success'})
-          this.downloadVideo(res.data.video_path);
+          this.downloadVideo(res.data.data.video_path);
         } else {
           this.$store.dispatch('task/removeTask', task.id);
           let message = `${task.id}视频生成任务失败！`

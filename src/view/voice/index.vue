@@ -20,11 +20,10 @@
           <div class="voice-list">
             <div class="voice-item">
               <el-upload
-                action="http://127.0.0.1:6006/timbre/clone"
+                action="http://192.168.0.122:6006/timbres/clone"
                 :show-file-list="false"
                 accept=".mp3, .wav"
                 :on-success="uploadSuccess"
-                :on-error="uploadError"
                 :before-upload="beforeUpload"
               >
                 <div style="display: flex;justify-content: center;align-items: center;height: 80px;">
@@ -87,6 +86,7 @@
 <script>
 import {RightMenuMixin} from "@/mixins/RightMenuMixin";
 import {delAction, getAction, postAction} from "@/api/api";
+import {mapGetters} from "vuex";
 
 export default {
   name: 'Voice',
@@ -102,15 +102,29 @@ export default {
       newName: '',
       drawer: false,
       soundId: null,
-      isLoading: false,
+      task: {}
+    }
+  },
+  computed: {
+    ...mapGetters('task', ['allTasks']), // 获取任务列表
+    voiceTasks() {
+      return this.allTasks.filter(item => item.type === 'voice')
+    }
+  },
+  watch: {
+    voiceTasks: {
+      handler() {
+        this.querySounds()
+      },
+      deep: true
     }
   },
   mounted() {
-    // this.querySounds();
+    this.querySounds();
   },
   methods: {
     querySounds() {
-      getAction('timbre/query').then(res => {
+      getAction('/timbres/query_success').then(res => {
         if (res.data.status === 'success') {
           this.systemSounds = [];
           this.cloneSounds = [];
@@ -162,10 +176,10 @@ export default {
     },
     onSave() {
       let params = {
-        id: this.soundId,
+        timbre_id: this.soundId,
         name: this.newName,
       }
-      postAction('/timbre/updateName', params).then(res => {
+      postAction('/timbres/update_name', params).then(res => {
         if (res.data.status === 'success') {
           this.$message.success('重命名成功。');
           this.querySounds();
@@ -176,7 +190,8 @@ export default {
       })
     },
     deleteItem() {
-      delAction('/timbre/delete', {id: this.selectedItem.id}).then(res => {
+      delAction(`/timbres/${this.selectedItem.id}`).then(res => {
+      // delAction('/timbre/delete', {timbre_id: this.selectedItem.id}).then(res => {
         if (res.data.status === 'success') {
           this.$message.success('删除成功。');
           this.querySounds();
@@ -185,33 +200,26 @@ export default {
         }
       })
     },
-    generateUniqueId() {
-      return Date.now() + Math.random().toString(36).substr(2, 16);
-    },
-    beforeUpload() {
-      if (this.isLoading) {
-        return
-      }
-      this.isLoading = true;
+    beforeUpload(file) {
       this.task = {
         type: 'voice',
-        id: this.generateUniqueId(),
+        id: file.uid,
+        name: file.name,
         status: 'running'
       }
       this.$store.dispatch('task/addTask', this.task);
-      let content = `已创建音色克隆任务，音色克隆成功后会自动更新音色列表`
+      let content = `已创建${file.name}音色克隆任务，音色克隆成功后会自动更新音色列表`
       this.$alert(content, '任务创建提醒');
     },
-    uploadSuccess() {
-      this.$store.dispatch('task/removeTask', this.task.id);
-      this.$notify({title: '克隆成功', message: '音色克隆任务已完成！', type: 'success'})
-      this.isLoading = false;
-      this.querySounds()
-    },
-    uploadError() {
-      this.$store.dispatch('task/removeTask', this.task.id);
-      this.$notify({title: '克隆失败', message: '音色克隆任务失败！', type: 'error'})
-      this.isLoading = false;
+    uploadSuccess(res,file) {
+      if (res.status === 'success') {
+        this.$store.dispatch('task/removeTask', this.task.id);
+        this.$notify({title: '克隆成功', message: `${file.name}音色克隆任务已完成！`, duration: 0, type: 'success'})
+        this.querySounds()
+      }else {
+        this.$store.dispatch('task/removeTask', this.task.id);
+        this.$notify({title: '克隆失败', message: `${file.name}音色克隆任务失败！`, duration: 0, type: 'error'})
+      }
     }
   },
 }

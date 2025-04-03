@@ -3,18 +3,17 @@
     <div class="figures-content">
       <div class="figures-list">
         <div v-for="(item,index) in figures" :key="index" @contextmenu.stop="handleContextMenu(item,$event)">
-          <el-image class="figures-img" :src="item.path" fit="cover"></el-image>
+          <el-image class="figures-img" :src="item.picture" fit="cover"></el-image>
           <div style="width: 100%;text-align: center">{{ item.name }}</div>
         </div>
       </div>
       <div style="text-align: center;margin-top: 10px">
         <el-upload
             class="avatar-uploader"
-            action="http://127.0.0.1:6006/figure/train"
+            action="http://192.168.0.122:6006/figure/clone"
             :show-file-list="false"
             accept=".mp4, .mov"
             :on-success="uploadSuccess"
-            :on-error="uploadError"
             :before-upload="beforeUpload">
           <el-button class="figures-btn">添加形象</el-button>
         </el-upload>
@@ -70,6 +69,8 @@
 <script>
 import {RightMenuMixin} from "@/mixins/RightMenuMixin";
 import {delAction, getAction, postAction} from "@/api/api";
+import {mapGetters} from "vuex";
+import axios from "axios";
 
 export default {
   name: 'figures',
@@ -83,8 +84,20 @@ export default {
       isPlaying: false,
       figureId: null,
       newName: '',
-      isLoading: false,
-      task: {}
+    }
+  },
+  computed: {
+    ...mapGetters('task', ['allTasks']), // 获取任务列表
+    voiceTasks() {
+      return this.allTasks.filter(item => item.type === 'figures')
+    }
+  },
+  watch: {
+    voiceTasks: {
+      handler() {
+        this.queryFigures()
+      },
+      deep: true
     }
   },
   mounted() {
@@ -92,7 +105,7 @@ export default {
   },
   methods: {
     queryFigures() {
-      getAction('/figure/queryAvailable').then(res => {
+      getAction('/figure/query_success').then(res => {
         if (res.data.status === 'success') {
           this.figures = res.data.data;
         }
@@ -109,7 +122,7 @@ export default {
     },
     onSave() {
       let params = {
-        figureId: this.figureId,
+        figure_id: this.figureId,
         name: this.newName
       }
       postAction('/figure/update_name', params).then(res => {
@@ -123,7 +136,7 @@ export default {
       })
     },
     deleteItem() {
-      delAction('/figure/delete', {figureId: this.selectedItem.id}).then(res => {
+      delAction('/figure/delete', {figure_id: this.selectedItem.id}).then(res => {
         if (res.data.status === 'success') {
           this.$message.success('删除成功');
           this.queryFigures();
@@ -148,34 +161,27 @@ export default {
       video.pause();
       this.dialogVisible = false;
     },
-    generateUniqueId() {
-      return Date.now() + Math.random().toString(36).substr(2, 16);
-    },
-    beforeUpload() {
-      if (this.isLoading) {
-        return
-      }
-      this.isLoading = true;
+    beforeUpload(file) {
       this.task = {
         type: 'figures',
-        id: this.generateUniqueId(),
+        id: file.uid,
+        name: file.name,
         status: 'running'
       }
       this.$store.dispatch('task/addTask', this.task);
-      let content = `已创建形象克隆任务，形象克隆成功后会自动更新形象列表`
+      let content = `已创建${file.name}形象克隆任务，形象克隆成功后会自动更新形象列表`
       this.$alert(content, '任务创建提醒');
     },
-    uploadSuccess() {
-      this.$store.dispatch('task/removeTask', this.task.id);
-      this.$notify({title: '克隆成功', message: '形象克隆任务已完成！', type: 'success'})
-      this.isLoading = false;
-      this.queryFigures();
+    uploadSuccess(res,file) {
+      if (res.status === 'success') {
+        this.$store.dispatch('task/removeTask', this.task.id);
+        this.$notify({title: '克隆成功', message: `${file.name}形象克隆任务已完成！`, duration: 0, type: 'success'})
+        this.queryFigures();
+      }else {
+        this.$store.dispatch('task/removeTask', this.task.id);
+        this.$notify({title: '克隆失败', message: `${file.name}形象克隆任务失败！`, duration: 0, type: 'error'})
+      }
     },
-    uploadError() {
-      this.$store.dispatch('task/removeTask', this.task.id);
-      this.$notify({title: '克隆失败', message: '形象克隆任务失败！', type: 'error'})
-      this.isLoading = false;
-    }
   }
 }
 </script>

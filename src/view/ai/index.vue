@@ -34,7 +34,7 @@ export default {
 
     },
     async queryServiceStatus() {
-      return axios.get('http://127.0.0.1:11434/api/ps').then(res => {
+      return axios.get('http://192.168.0.122:11434/api/ps').then(res => {
         return res.data.models.length > 0;
       })
     },
@@ -52,7 +52,7 @@ export default {
       }
       postAction('stop_docker_service').then(res => {
         if (res.data.status === 'success') {
-          axios.post('http://127.0.0.1:11434/api/generate', params).then(result => {
+          axios.post('http://192.168.0.122:11434/api/generate', params).then(result => {
             if (result.data.done) {
               this.$message.success('模型加载成功')
             }else {
@@ -69,7 +69,7 @@ export default {
         model: 'hf-mirror.com/unsloth/QwQ-32B-GGUF:Q3_K_M',
         keep_alive: 0
       }
-      axios.post('http://127.0.0.1:11434/api/generate', params).then(res => {
+      axios.post('http://192.168.0.122:11434/api/generate', params).then(res => {
         if (res.data.done) {
           this.$message.success('模型卸载成功')
         }else {
