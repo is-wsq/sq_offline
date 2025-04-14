@@ -18,7 +18,6 @@
     <div class="video-title">声音选择</div>
     <div class="voice-card">
       <div class="play-btn" @click="listenAudio">
-<!--        <el-image style="width: 20px; height: 20px" :src="isPlay ? '/stop.png' : '/play.png'"></el-image>-->
         <i :class="isPlay ? 'el-icon-pause' : 'el-icon-play'" style="font-size: 13px; color: #6286ed"></i>
       </div>
       <el-popover placement="right" trigger="click">
@@ -27,7 +26,6 @@
             <el-col :span="12" v-for="voice in voices" :key="voice.id">
               <div class="voice-item" :class="{ active: voice.id === sound.id }" @click="sound = voice">
                 <div class="voice-icon" @click="previewAudio(voice)">
-<!--                  <el-image style="width: 20px; height: 20px" :src="voice.isPlay ? '/stop.png' : '/play.png'"></el-image>-->
                   <i :class="voice.isPlay ? 'el-icon-pause' : 'el-icon-play'" style="font-size: 13px; color: #6286ed"></i>
                 </div>
                 <div class="voice-name">{{ voice.name }}</div>
@@ -37,7 +35,6 @@
         </div>
         <div class="sound" slot="reference">
           <div class="sound-name">{{ sound.name }}</div>
-<!--          <el-image style="width: 20px; height: 20px; cursor: pointer" src="/more.png"></el-image>-->
           <i class="el-icon-a-ze-bars1" style="font-size: 20px; color: #9a9a9a"></i>
         </div>
       </el-popover>
@@ -187,7 +184,6 @@ export default {
     },
     verify() {
       getAction('/verify/activation').then(res => {
-        console.log(res)
         if (res.data.status === 'success'){
           this.generateVideo()
         }else {
@@ -229,7 +225,7 @@ export default {
           this.downloadVideo(res.data.data.video_path);
         } else {
           this.$store.dispatch("task/removeTask", task.id);
-          let message = `${task.id}视频生成任务失败！`;
+          let message = `${task.id}视频生成任务失败,${res.data.message}`;
           this.$notify({
             title: "生成失败",
             message: message,
@@ -240,7 +236,7 @@ export default {
       })
       .catch((error) => {
         this.$store.dispatch("task/removeTask", task.id);
-        let message = `${task.id}视频生成任务失败！`;
+        let message = `${task.id}视频生成任务失败,${error}`;
         this.$notify({
           title: "生成失败",
           message: message,
@@ -253,28 +249,6 @@ export default {
       let downloadPath = localStorage.getItem('downloadPath') || 'D:\\Downloads'
       window.electronAPI.downloadFile(path, downloadPath)
       this.$message.success(`视频已保存到${downloadPath}`)
-      // try {
-      //   const response = await axios.get(path, {
-      //     responseType: "blob", // 重要，确保获取二进制数据
-      //   });
-      //
-      //   // 创建 Blob 对象
-      //   const blob = new Blob([response.data], { type: "video/mp4" });
-      //   const blobUrl = window.URL.createObjectURL(blob);
-      //
-      //   // 创建下载链接
-      //   const a = document.createElement("a");
-      //   a.href = blobUrl;
-      //   a.download = path.split("/").pop(); // 自定义下载文件名
-      //   document.body.appendChild(a);
-      //   a.click();
-      //
-      //   // 清理 URL 对象
-      //   window.URL.revokeObjectURL(blobUrl);
-      //   document.body.removeChild(a);
-      // } catch (error) {
-      //   console.error("下载视频失败:", error);
-      // }
     },
   },
 };

@@ -50,7 +50,7 @@
             <div class="voice-item" v-for="(item, index) in cloneSounds" :key="index"
                  @contextmenu.stop="handleContextMenu(item,$event)">
               <div class="voice-icon" @click="textAudio(item)">
-                <el-image style="width: 20px;height: 20px;" :src="item.isPlay?'/stop.png' : '/play.png'"></el-image>
+                <i :class="item.isPlay ? 'el-icon-pause' : 'el-icon-play'" style="font-size: 13px; color: #6286ed"></i>
               </div>
               <div :title="item.name" class="voice-name">{{ item.name }}</div>
             </div>
@@ -217,7 +217,6 @@ export default {
     },
     deleteItem() {
       delAction(`/timbres/${this.selectedItem.id}`).then((res) => {
-        // delAction('/timbre/delete', {timbre_id: this.selectedItem.id}).then(res => {
         if (res.data.status === "success") {
           this.$message.success("删除成功。");
           this.querySounds();
@@ -258,7 +257,7 @@ export default {
       });
     },
     uploadSuccess(res, file) {
-      if (res.data.status === "success") {
+      if (res.status === "success") {
         this.$store.dispatch("task/removeTask", file.uid);
         this.$notify({
           title: "克隆成功",
@@ -271,7 +270,7 @@ export default {
         this.$store.dispatch("task/removeTask", file.uid);
         this.$notify({
           title: "克隆失败",
-          message: `${file.name}音色克隆任务失败！`,
+          message: `${file.name}音色克隆任务失败,${res.data}`,
           duration: 0,
           type: "error",
         });

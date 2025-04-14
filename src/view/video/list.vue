@@ -39,7 +39,7 @@
       </div>
       <el-dialog :visible.sync="dialogVisible" :before-close="beforeClose">
         <div style="width: 100%; text-align: center; position: relative">
-          <video style="width: 300px; border-radius: 20px" ref="video" :src="src"></video>
+          <video style="width: 300px; border-radius: 20px" ref="video" :src="src" @ended="isPlaying = false"></video>
           <div style="position: absolute;top: 50%;left: 50%;transform: translate(-50%, -50%);">
             <i class="el-icon-play control-icon" @click="controlVideo" v-if="!isPlaying"></i>
           </div>
@@ -65,7 +65,6 @@
 import {RightMenuMixin} from "@/mixins/RightMenuMixin";
 import {mapGetters} from "vuex";
 import {delAction, getAction, postAction} from "@/api/api";
-import axios from "axios";
 
 export default {
   mixins: [RightMenuMixin],
@@ -82,6 +81,7 @@ export default {
       dialogVisible: false,
       src: "",
       isPlaying: false,
+      downloadFilePath: ''
     }
   },
   computed: {
@@ -142,7 +142,7 @@ export default {
       let self = this
       window.electronAPI.selectFolder().then((path) => {
         if (path) {
-          window.electronAPI.downloadFile(this.selectedItem.video_path, path)
+          window.electronAPI.downloadFile(self.downloadFilePath, path)
           self.$message.success(`视频已另存为${path}`)
         }
       })
@@ -171,7 +171,6 @@ export default {
       });
     },
     preview(item) {
-      console.log(item.video_path)
       this.src = item.video_path;
       this.dialogVisible = true;
     },
@@ -248,5 +247,12 @@ export default {
 .video-list >>> .el-dialog__headerbtn .el-dialog__close {
   font-size: 24px;
   color: #9a9a9a;
+}
+
+.control-icon {
+  font-size: 30px;
+  color: #fff;
+  cursor: pointer;
+  filter: drop-shadow(0px 0px 10px #292929);
 }
 </style>

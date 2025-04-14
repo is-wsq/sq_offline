@@ -52,10 +52,9 @@
     </div>
     <el-dialog :visible.sync="dialogVisible" :before-close="beforeClose">
       <div style="width: 100%; text-align: center; position: relative">
-        <video style="width: 300px; border-radius: 20px" ref="video" :src="src"></video>
+        <video style="width: 300px; border-radius: 20px" ref="video" :src="src" @ended="isPlaying = false"></video>
         <div style="position: absolute;top: 50%;left: 50%;transform: translate(-50%, -50%);">
           <i class="el-icon-play control-icon" @click="controlVideo" v-if="!isPlaying"></i>
-          <!--          <i class="el-icon-pause control-icon" @click="controlVideo" v-else></i>-->
         </div>
       </div>
     </el-dialog>
@@ -226,7 +225,7 @@ export default {
       });
     },
     uploadSuccess(res, file) {
-      if (res.data.status === "success") {
+      if (res.status === "success") {
         this.$store.dispatch("task/removeTask", file.uid);
         this.$notify({
           title: "克隆成功",
@@ -239,7 +238,7 @@ export default {
         this.$store.dispatch("task/removeTask", file.uid);
         this.$notify({
           title: "克隆失败",
-          message: `${file.name}形象克隆任务失败！`,
+          message: `${file.name}形象克隆任务失败,${res.data}`,
           duration: 0,
           type: "error",
         });
