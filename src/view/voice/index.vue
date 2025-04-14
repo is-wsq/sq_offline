@@ -229,16 +229,24 @@ export default {
         this.$message.error("删除失败，请稍后重试！");
       });
     },
-    beforeUpload(file) {
-      this.task = {
-        type: "voice",
-        id: file.uid,
-        name: file.name,
-        status: "running",
-      };
-      this.$store.dispatch("task/addTask", this.task);
-      let content = `已创建${file.name}音色克隆任务，音色克隆成功后会自动更新音色列表`;
-      this.$alert(content, "任务创建提醒");
+    async beforeUpload(file) {
+      return getAction('/verify/activation').then(res => {
+        if (res.data.status === 'success'){
+          this.task = {
+            type: "voice",
+            id: file.uid,
+            name: file.name,
+            status: "running",
+          };
+          this.$store.dispatch("task/addTask", this.task);
+          let content = `已创建${file.name}音色克隆任务，音色克隆成功后会自动更新音色列表`;
+          this.$alert(content, "任务创建提醒");
+          return false;
+        }else {
+          this.$alert(res.data.message, "验证失败");
+          return Promise.reject('验证失败，停止上传');
+        }
+      })
     },
     uploadError(file) {
       this.$store.dispatch("task/removeTask", file.uid);

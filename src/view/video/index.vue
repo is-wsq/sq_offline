@@ -48,7 +48,7 @@
       </el-input>
       <span class="text-tips" v-if="!isFocus && text === ''">请输入视频口播文案</span>
     </div>
-    <el-button type="success" class="generate-btn" @click="generateVideo">生成视频</el-button>
+    <el-button type="success" class="generate-btn" @click="verify">生成视频</el-button>
   </div>
 </template>
 
@@ -185,6 +185,16 @@ export default {
       let seconds = String(data.getSeconds()).padStart(2, "0");
       return  year + month + day + hours + minutes + seconds
     },
+    verify() {
+      getAction('/verify/activation').then(res => {
+        console.log(res)
+        if (res.data.status === 'success'){
+          this.generateVideo()
+        }else {
+          this.$alert(res.data.message, "验证失败");
+        }
+      })
+    },
     generateVideo() {
       let name = this.setName()
       let task = {
@@ -242,6 +252,7 @@ export default {
     async downloadVideo(path) {
       let downloadPath = localStorage.getItem('downloadPath') || 'D:\\Downloads'
       window.electronAPI.downloadFile(path, downloadPath)
+      this.$message.success(`视频已保存到${downloadPath}`)
       // try {
       //   const response = await axios.get(path, {
       //     responseType: "blob", // 重要，确保获取二进制数据
