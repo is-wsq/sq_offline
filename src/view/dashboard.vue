@@ -2,7 +2,7 @@
   <div class="home">
     <el-container>
       <el-aside class="aside">
-        <span style="font-size: 20px;font-weight: bold;color: #5478FE">奇点</span>
+        <span style="font-size: 20px;margin-bottom: 20px;font-weight: bold;color: #5478FE">奇点</span>
         <div class="aside-menu">
           <div v-for="(menu, index) in menus" :key="index" class="menu-group" :style="{'background-color': active === index? '#e3eaff' : '#ffffff'}">
             <div class="menu-item" :class="{'active': active === index, 'inactive': active !== index}"
@@ -23,6 +23,8 @@
 </template>
 
 <script>
+import axios from "axios";
+
 export default {
   components: {},
   data() {
@@ -33,39 +35,51 @@ export default {
         {name: "克隆形象", path: "/figures", class: 'el-icon-figure'},
         {name: "克隆声音", path: "/voice", class: 'el-icon-voice'},
         {name: "生成视频", path: "/video", class: 'el-icon-video'},
+        {name: "视频列表", path: "/videoList", class: 'el-icon-view-list'},
         {name: "关于我们", path: "/system", class: 'el-icon-s-tools'},
-      ]
+      ],
     };
   },
-  mounted() {
-    switch (this.$route.path) {
-      case "/":
-        this.active = 0;
-        break;
-      case "/figures":
-        this.active = 1;
-        break;
-      case "/voice":
-        this.active = 2;
-        break;
-      case "/video":
-        this.active = 3;
-        break;
-      case "/system":
-        this.active = 4;
-        break;
-      default:
-        this.active = 0;
-        break;
+  async mounted() {
+    this.updateActiveFromRoute()
+  },
+  watch: {
+    $route(to) {
+      this.updateActiveFromRoute();
     }
   },
   methods: {
-    changeActive(type, path) {
+    async queryServiceStatus() {
+      return axios.get("http://127.0.0.1:11434/api/ps").then((res) => {
+        return res.data.models.length > 0;
+      })
+      .catch((err) => {
+        return false;
+      });
+    },
+    async changeActive(type, path) {
       if (this.active === type)
         return;
+      if (this.active === 0 && await this.queryServiceStatus()) {
+        this.$message.error("请先关闭AI大模型服务");
+        return;
+      }
       this.active = type;
       this.$router.push({path: path})
     },
+    updateActiveFromRoute() {
+      for (let i = 0; i < this.menus.length; i++) {
+        if (this.$route.path === this.menus[i].path) {
+          this.active = i;
+          break;
+        }
+      }
+      console.log('跳转后的active', this.active)
+    },
+  },
+  beforeRouteUpdate(to, from, next) {
+    this.updateActiveFromRoute()
+    next()
   }
 }
 </script>
@@ -87,7 +101,7 @@ export default {
 }
 
 .aside-menu {
-  height: 500px;
+  height: 700px;
   width: 100%;
   margin: auto 0;
   display: flex;

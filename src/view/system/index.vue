@@ -5,6 +5,12 @@
       <div class="title">隐私政策</div>
       <div class="title">产品说明</div>
       <div class="title">联系我们</div>
+      <el-form :inline="true" label-width="100px">
+        <el-form-item label="保存路径">
+          <el-input v-model="downloadPath" placeholder="请选择视频下载保存路径" style="width: 400px;" readonly />
+          <el-button @click="chooseFolder" icon="el-icon-folder-opened">选择</el-button>
+        </el-form-item>
+      </el-form>
     </div>
   </div>
 </template>
@@ -12,7 +18,23 @@
 <script>
 export default {
   name: 'system',
+  data() {
+    return {
+      downloadPath: ''
+    }
+  },
+  mounted() {
+    this.downloadPath = localStorage.getItem('downloadPath') || 'D:\\Downloads'
+  },
   methods: {
+    chooseFolder() {
+      window.electronAPI.selectFolder().then((path) => {
+        if (path) {
+          this.downloadPath = path
+          localStorage.setItem('downloadPath', path)
+        }
+      })
+    },
     goto(path) {
       this.$router.push(path)
     }

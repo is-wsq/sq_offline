@@ -2,17 +2,23 @@
   <div class="figures">
     <div class="figures-content">
       <div class="figures-list">
-        <div
-          v-for="(item, index) in figures"
-          :key="index"
-          @contextmenu.stop="handleContextMenu(item, $event)"
-        >
-          <el-image
-            class="figures-img"
-            :src="item.picture"
-            fit="cover"
-          ></el-image>
-          <div style="width: 100%; text-align: center">{{ item.name }}</div>
+        <div v-for="item in figureTasks" :key="item.id">
+          <div class="image-wrapper shining">
+            <el-image
+              style="width: 180px; height: 236px; border-radius: 12px;filter: blur(15px);opacity: 0.8"
+              :src="require('/public/images/4.jpg')"
+              fit="cover"
+            ></el-image>
+            <div class="shine-layer"></div>
+          </div>
+          <div style="display: flex;align-items: center;justify-content: center">
+            <div>形象克隆中</div>
+            <div style="width: 10px;text-align: left;margin-left: 5px;font-size: 20px">{{ dot }}</div>
+          </div>
+        </div>
+        <div v-for="(item, index) in figures" :key="index" @contextmenu.stop="handleContextMenu(item, $event)" @click="selectItem(item)">
+          <el-image class="figures-img" :src="item.picture" fit="cover"></el-image>
+          <div style="width: 100%; text-align: center;line-height: 23px">{{ item.name }}</div>
         </div>
       </div>
       <div style="text-align: center; margin-top: 10px">
@@ -25,7 +31,7 @@
           :on-error="uploadError"
           :before-upload="beforeUpload"
         >
-          <el-button class="figures-btn">添加形象</el-button>
+          <el-button type="primary">添加形象</el-button>
         </el-upload>
       </div>
       <div :style="menuStyle" v-if="rightMenuVisible">
@@ -45,24 +51,9 @@
     </div>
     <el-dialog :visible.sync="dialogVisible" :before-close="beforeClose">
       <div style="width: 100%; text-align: center; position: relative">
-        <video
-          style="width: 300px; border-radius: 20px"
-          ref="video"
-          :src="src"
-        ></video>
-        <div
-          style="
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-          "
-        >
-          <i
-            class="el-icon-play control-icon"
-            @click="controlVideo"
-            v-if="!isPlaying"
-          ></i>
+        <video style="width: 300px; border-radius: 20px" ref="video" :src="src"></video>
+        <div style="position: absolute;top: 50%;left: 50%;transform: translate(-50%, -50%);">
+          <i class="el-icon-play control-icon" @click="controlVideo" v-if="!isPlaying"></i>
           <!--          <i class="el-icon-pause control-icon" @click="controlVideo" v-else></i>-->
         </div>
       </div>
@@ -80,15 +71,15 @@
       </div>
     </el-drawer>
     <div class="figures-footer">
-      请上传格式为mp4\mov的视频进行形象克隆，建议视频时长为5分钟。请在无遮挡场景进行录制，确保面部清晰出镜，面部表情丰富，适当添加无指向性手部动作。
+      上传的视频文件格式需为：mp4、mov、MP4、MOV格式；上传的视频文件的时长最少应不低于30秒，最长不超过600秒；上传的文件大小最大不能超过500M；上传的视频内容必须符合数字人形象训练规范，包含单个人物形象，脸部无遮挡
     </div>
   </div>
 </template>
 
 <script>
-import { RightMenuMixin } from "@/mixins/RightMenuMixin";
-import { delAction, getAction, postAction } from "@/api/api";
-import { mapGetters } from "vuex";
+import {RightMenuMixin} from "@/mixins/RightMenuMixin";
+import {delAction, getAction, postAction} from "@/api/api";
+import {mapGetters} from "vuex";
 import axios from "axios";
 
 export default {
@@ -103,16 +94,19 @@ export default {
       isPlaying: false,
       figureId: null,
       newName: "",
+      dotCount: 1,
+      dotTimer: null,
+      dot: '.'
     };
   },
   computed: {
     ...mapGetters("task", ["allTasks"]), // 获取任务列表
-    voiceTasks() {
+    figureTasks() {
       return this.allTasks.filter((item) => item.type === "figures");
     },
   },
   watch: {
-    voiceTasks: {
+    figureTasks: {
       handler() {
         this.queryFigures();
       },
@@ -121,18 +115,31 @@ export default {
   },
   mounted() {
     this.queryFigures();
+    this.startDotAnimation();
+  },
+  beforeDestroy() {
+    clearInterval(this.dotTimer);
   },
   methods: {
+    startDotAnimation() {
+      this.dotTimer = setInterval(() => {
+        this.dotCount = this.dotCount % 3 + 1;
+        this.dot = '.'.repeat(this.dotCount);
+      }, 1000);
+    },
     queryFigures() {
-      getAction("/figure/query_success")
-        .then((res) => {
-          if (res.data.status === "success") {
-            this.figures = res.data.data;
-          }
-        })
-        .catch((err) => {
-          this.$message.error("获取形象列表失败，请稍后重试！");
-        });
+      getAction("/figure/query_success").then((res) => {
+        if (res.data.status === "success") {
+          this.figures = res.data.data;
+        }
+      })
+      .catch((err) => {
+        this.$message.error("获取形象列表失败，请稍后重试！");
+      });
+    },
+    selectItem(item) {
+      this.selectedItem = item;
+      this.preview()
     },
     preview() {
       this.src = this.selectedItem.filepath;
@@ -148,33 +155,31 @@ export default {
         figure_id: this.figureId,
         name: this.newName,
       };
-      postAction("/figure/update_name", params)
-        .then((res) => {
-          if (res.data.status === "success") {
-            this.$message.success("重命名成功");
-            this.queryFigures();
-          } else {
-            this.$message.error(res.data.message);
-          }
-          this.drawer = false;
-        })
-        .catch((err) => {
-          this.$message.error("重命名失败，请稍后重试！");
-        });
+      postAction("/figure/update_name", params).then((res) => {
+        if (res.data.status === "success") {
+          this.$message.success("重命名成功");
+          this.queryFigures();
+        } else {
+          this.$message.error(res.data.message);
+        }
+        this.drawer = false;
+      })
+      .catch((err) => {
+        this.$message.error("重命名失败，请稍后重试！");
+      });
     },
     deleteItem() {
-      delAction("/figure/delete", { figure_id: this.selectedItem.id })
-        .then((res) => {
-          if (res.data.status === "success") {
-            this.$message.success("删除成功");
-            this.queryFigures();
-          } else {
-            this.$message.error(res.data.message);
-          }
-        })
-        .catch((err) => {
-          this.$message.error("删除失败，请稍后重试！");
-        });
+      delAction("/figure/delete", {figure_id: this.selectedItem.id}).then((res) => {
+        if (res.data.status === "success") {
+          this.$message.success("删除成功");
+          this.queryFigures();
+        } else {
+          this.$message.error(res.data.message);
+        }
+      })
+      .catch((err) => {
+        this.$message.error("删除失败，请稍后重试！");
+      });
     },
     controlVideo() {
       const video = this.$refs.video;
@@ -204,7 +209,7 @@ export default {
       this.$alert(content, "任务创建提醒");
     },
     uploadError(file) {
-      this.$store.dispatch("task/removeTask", this.task.id);
+      this.$store.dispatch("task/removeTask", file.uid);
       this.$notify({
         title: "克隆失败",
         message: `${file.name}形象克隆任务失败！`,
@@ -213,8 +218,8 @@ export default {
       });
     },
     uploadSuccess(res, file) {
-      if (res.status === "success") {
-        this.$store.dispatch("task/removeTask", this.task.id);
+      if (res.data.status === "success") {
+        this.$store.dispatch("task/removeTask", file.uid);
         this.$notify({
           title: "克隆成功",
           message: `${file.name}形象克隆任务已完成！`,
@@ -223,7 +228,7 @@ export default {
         });
         this.queryFigures();
       } else {
-        this.$store.dispatch("task/removeTask", this.task.id);
+        this.$store.dispatch("task/removeTask", file.uid);
         this.$notify({
           title: "克隆失败",
           message: `${file.name}形象克隆任务失败！`,
@@ -259,7 +264,7 @@ export default {
 }
 
 .figures-content {
-  width: calc(90% + 80px);
+  width: 90%;
   height: calc(100% - 180px);
   padding: 40px;
   margin-top: 80px;
@@ -271,22 +276,17 @@ export default {
 .figures-list {
   height: calc(100% - 50px);
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-  grid-template-rows: 180px;
-  gap: 50px;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  grid-template-rows: 270px;
+  gap: 20px;
   justify-items: center;
   overflow: auto;
 }
 
 .figures-img {
-  width: 150px;
-  height: 150px;
-  border-radius: 20px;
-}
-
-.figures-btn {
-  background-color: #6286ed;
-  color: #fff;
+  width: 180px;
+  height: 240px;
+  border-radius: 12px;
 }
 
 .control-icon {

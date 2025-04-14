@@ -2,59 +2,33 @@
   <div class="video">
     <div class="video-title">角色选择</div>
     <div class="video-template" ref="template" :style="templateStyle">
-      <div
-        v-for="item in templates"
-        :key="item.id"
-        style="border-radius: 10px; width: 160px"
-        @click="figure = item"
-        :style="{
-          'background-color': item.id === figure.id ? '#e0e7fb' : '#FFFFFF',
-        }"
-      >
+      <div v-for="item in templates" :key="item.id"
+        style="border-radius: 10px; width: 130px" @click="figure = item"
+        :style="{ 'background-color': item.id === figure.id ? '#e0e7fb' : '#FFFFFF' }">
         <div>
-          <el-image
-            class="template-img"
-            :src="item.picture"
-            fit="cover"
-          ></el-image>
+          <el-image class="template-img" :src="item.picture" fit="cover"></el-image>
         </div>
         <div class="template-name">{{ item.name }}</div>
       </div>
     </div>
     <div class="more-btn">
-      <i
-        class="el-icon-arrow-down more"
-        @click="showMore"
-        v-if="!templateHigh"
-      ></i>
-      <i
-        class="el-icon-arrow-up more"
-        @click="showMore"
-        v-if="templateHigh"
-      ></i>
+      <i class="el-icon-arrow-down more" @click="showMore" v-if="!templateHigh"></i>
+      <i class="el-icon-arrow-up more" @click="showMore" v-if="templateHigh"></i>
     </div>
     <div class="video-title">声音选择</div>
     <div class="voice-card">
       <div class="play-btn" @click="listenAudio">
-        <el-image
-          style="width: 20px; height: 20px"
-          :src="isPlay ? '/stop.png' : '/play.png'"
-        ></el-image>
+<!--        <el-image style="width: 20px; height: 20px" :src="isPlay ? '/stop.png' : '/play.png'"></el-image>-->
+        <i :class="isPlay ? 'el-icon-pause' : 'el-icon-play'" style="font-size: 13px; color: #6286ed"></i>
       </div>
       <el-popover placement="right" trigger="click">
         <div class="popover-content">
           <el-row>
             <el-col :span="12" v-for="voice in voices" :key="voice.id">
-              <div
-                class="voice-item"
-                :class="{ active: voice.id === sound.id }"
-                @click="sound = voice"
-              >
+              <div class="voice-item" :class="{ active: voice.id === sound.id }" @click="sound = voice">
                 <div class="voice-icon" @click="previewAudio(voice)">
-                  <el-image
-                    style="width: 20px; height: 20px"
-                    :src="voice.isPlay ? '/stop.png' : '/play.png'"
-                  ></el-image>
+<!--                  <el-image style="width: 20px; height: 20px" :src="voice.isPlay ? '/stop.png' : '/play.png'"></el-image>-->
+                  <i :class="voice.isPlay ? 'el-icon-pause' : 'el-icon-play'" style="font-size: 13px; color: #6286ed"></i>
                 </div>
                 <div class="voice-name">{{ voice.name }}</div>
               </div>
@@ -63,28 +37,18 @@
         </div>
         <div class="sound" slot="reference">
           <div class="sound-name">{{ sound.name }}</div>
-          <el-image
-            style="width: 20px; height: 20px; cursor: pointer"
-            src="/more.png"
-          ></el-image>
+<!--          <el-image style="width: 20px; height: 20px; cursor: pointer" src="/more.png"></el-image>-->
+          <i class="el-icon-a-ze-bars1" style="font-size: 20px; color: #9a9a9a"></i>
         </div>
       </el-popover>
     </div>
     <div class="video-title">口播文案</div>
     <div class="text-card">
-      <el-input
-        type="textarea"
-        style="height: 100%; width: 100%"
-        @focus="isFocus = true"
-        @blur="isFocus = false"
-        v-model="text"
-      >
+      <el-input type="textarea" style="height: 100%; width: 100%" @focus="isFocus = true" @blur="isFocus = false" v-model="text">
       </el-input>
-      <span class="text-tips" v-if="!isFocus && text === ''"
-        >请输入视频口播文案</span
-      >
+      <span class="text-tips" v-if="!isFocus && text === ''">请输入视频口播文案</span>
     </div>
-    <el-button class="generate-btn" @click="generateVideo">生成视频</el-button>
+    <el-button type="success" class="generate-btn" @click="generateVideo">生成视频</el-button>
   </div>
 </template>
 
@@ -99,7 +63,7 @@ export default {
     return {
       isPlay: false,
       templateStyle: {
-        height: "205px",
+        height: "215px",
         overflow: "hidden",
       },
       templateHigh: false,
@@ -136,44 +100,42 @@ export default {
   },
   methods: {
     queryFigures() {
-      getAction("/figure/query_success")
-        .then((res) => {
-          if (res.data.status === "success") {
-            this.templates = res.data.data;
-            if (this.templates.length > 0) {
-              this.figure = this.templates[0];
-            }
+      getAction("/figure/query_success").then((res) => {
+        if (res.data.status === "success") {
+          this.templates = res.data.data;
+          if (this.templates.length > 0) {
+            this.figure = this.templates[0];
           }
-        })
-        .catch((error) => {
-          console.error("获取角色列表失败:", error);
-        });
+        }
+      })
+      .catch((error) => {
+        console.error("获取角色列表失败:", error);
+      });
     },
     querySounds() {
-      getAction("/timbres/query_success")
-        .then((res) => {
-          if (res.data.status === "success") {
-            this.voices = res.data.data;
-            this.voices.forEach((voice) => {
-              voice.isPlay = false;
-            });
-            if (this.voices.length > 0) this.sound = this.voices[0];
-          } else {
-            this.$message.error("获取声音列表失败。");
-          }
-        })
-        .catch((error) => {
-          console.error("获取声音列表失败:", error);
-        });
+      getAction("/timbres/query_success").then((res) => {
+        if (res.data.status === "success") {
+          this.voices = res.data.data;
+          this.voices.forEach((voice) => {
+            voice.isPlay = false;
+          });
+          if (this.voices.length > 0) this.sound = this.voices[0];
+        } else {
+          this.$message.error("获取声音列表失败。");
+        }
+      })
+      .catch((error) => {
+        console.error("获取声音列表失败:", error);
+      });
     },
     showMore() {
       if (!this.templateHigh) {
-        this.templateStyle.height = 410 + "px";
+        this.templateStyle.height = 430 + "px";
         this.templateStyle.overflow = "auto";
         this.templateHigh = true;
       } else {
         this.$refs.template.scrollTop = 0;
-        this.templateStyle.height = 205 + "px";
+        this.templateStyle.height = 215 + "px";
         this.templateStyle.overflow = "hidden";
         this.templateHigh = false;
       }
@@ -223,61 +185,73 @@ export default {
       let content = `已创建视频生成任务，视频生成成功后会自动下载到本地`;
       this.$alert(content, "任务创建提醒");
 
+      setTimeout(() => {
+        this.$router.push({path: '/videoList'})
+      },500)
+
       let params = {
         video_id: this.figure.video_id,
         voice_id: this.sound.voice_id,
         text: this.text,
       };
-      postAction("/figure/generate_video", params, 18000000)
-        .then((res) => {
-          if (res.data.status === "success") {
-            this.$store.dispatch("task/removeTask", task.id);
-            let message = `${task.id}视频生成任务已完成！`;
-            this.$notify({
-              title: "生成成功",
-              message: message,
-              type: "success",
-            });
-            this.downloadVideo(res.data.data.video_path);
-          } else {
-            this.$store.dispatch("task/removeTask", task.id);
-            let message = `${task.id}视频生成任务失败！`;
-            this.$notify({
-              title: "生成失败",
-              message: message,
-              type: "error",
-            });
-          }
-        })
-        .catch((error) => {
+      postAction("/figure/generate_video", params, 18000000).then((res) => {
+        if (res.data.status === "success") {
+          this.$store.dispatch("task/removeTask", task.id);
+          let message = `${task.id}视频生成任务已完成！`;
+          this.$notify({
+            title: "生成成功",
+            message: message,
+            duration: 0,
+            type: "success",
+          });
+          this.downloadVideo(res.data.data.video_path);
+        } else {
           this.$store.dispatch("task/removeTask", task.id);
           let message = `${task.id}视频生成任务失败！`;
-          this.$notify({ title: "生成失败", message: message, type: "error" });
+          this.$notify({
+            title: "生成失败",
+            message: message,
+            duration: 0,
+            type: "error",
+          });
+        }
+      })
+      .catch((error) => {
+        this.$store.dispatch("task/removeTask", task.id);
+        let message = `${task.id}视频生成任务失败！`;
+        this.$notify({
+          title: "生成失败",
+          message: message,
+          duration: 0,
+          type: "error"
         });
+      });
     },
     async downloadVideo(path) {
-      try {
-        const response = await axios.get(path, {
-          responseType: "blob", // 重要，确保获取二进制数据
-        });
-
-        // 创建 Blob 对象
-        const blob = new Blob([response.data], { type: "video/mp4" });
-        const blobUrl = window.URL.createObjectURL(blob);
-
-        // 创建下载链接
-        const a = document.createElement("a");
-        a.href = blobUrl;
-        a.download = path.split("/").pop(); // 自定义下载文件名
-        document.body.appendChild(a);
-        a.click();
-
-        // 清理 URL 对象
-        window.URL.revokeObjectURL(blobUrl);
-        document.body.removeChild(a);
-      } catch (error) {
-        console.error("下载视频失败:", error);
-      }
+      let downloadPath = localStorage.getItem('downloadPath') || 'D:\\Downloads'
+      window.electronAPI.downloadFile(path, downloadPath)
+      // try {
+      //   const response = await axios.get(path, {
+      //     responseType: "blob", // 重要，确保获取二进制数据
+      //   });
+      //
+      //   // 创建 Blob 对象
+      //   const blob = new Blob([response.data], { type: "video/mp4" });
+      //   const blobUrl = window.URL.createObjectURL(blob);
+      //
+      //   // 创建下载链接
+      //   const a = document.createElement("a");
+      //   a.href = blobUrl;
+      //   a.download = path.split("/").pop(); // 自定义下载文件名
+      //   document.body.appendChild(a);
+      //   a.click();
+      //
+      //   // 清理 URL 对象
+      //   window.URL.revokeObjectURL(blobUrl);
+      //   document.body.removeChild(a);
+      // } catch (error) {
+      //   console.error("下载视频失败:", error);
+      // }
     },
   },
 };
@@ -308,15 +282,15 @@ export default {
   padding-bottom: 0 !important;
   box-sizing: border-box;
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-  grid-template-rows: 185px;
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  grid-template-rows: 195px;
   gap: 20px;
   position: relative;
 }
 
 .template-img {
-  width: 150px;
-  height: 150px;
+  width: 120px;
+  height: 160px;
   margin: 5px;
   border-radius: 10px;
 }
@@ -324,7 +298,7 @@ export default {
 .template-name {
   font-size: 15px;
   color: #1e1f20;
-  width: 150px;
+  width: 120px;
   text-align: center;
 }
 
@@ -454,8 +428,6 @@ export default {
 
 .generate-btn {
   width: 126px;
-  background-color: #77c285;
-  color: #ffffff;
   border-radius: 10px;
   margin-top: 30px !important;
   margin-left: calc(50% - 63px);

@@ -11,6 +11,9 @@ export default {
   name: 'App',
   components: {
     dashboard
+  },
+  created() {
+    // localStorage.removeItem('tasks')
   }
 }
 </script>
@@ -49,6 +52,54 @@ body {
   color: #6D7177 !important;
   font-size: 14px !important;
   margin-right: 10px !important;
+}
+
+.el-button--primary {
+  background-color: #6286ED !important;
+  border-color: #6286ED !important;
+  color: #fff !important;
+}
+
+.image-wrapper {
+  position: relative;
+  display: inline-block;
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.shine-layer {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -60px;
+  width: 20px;
+  height: 100%;
+  background: linear-gradient(
+      to right,
+      rgba(255, 255, 255, 0) 0%,
+      rgba(255, 255, 255, 0.4) 40%,
+      rgba(255, 255, 255, 0.7) 50%,
+      rgba(255, 255, 255, 0.4) 60%,
+      rgba(255, 255, 255, 0) 100%
+  );
+  filter: blur(20px); /* 拖尾模糊 */
+  opacity: 1;
+  pointer-events: none;
+  border-radius: 12px;
+  z-index: 2;
+}
+
+.shining .shine-layer {
+  animation: shine-move 2s linear infinite;
+}
+
+@keyframes shine-move {
+  0% {
+    left: -100%;
+  }
+  100% {
+    left: 120%;
+  }
 }
 
 /* 定义整个滚动条的宽度和高度 */

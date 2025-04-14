@@ -1,6 +1,7 @@
-const {app, BrowserWindow, ipcMain} = require('electron');
+const {app, BrowserWindow, ipcMain,dialog,ipcRenderer  } = require('electron');
 const path = require('path');
 const fs = require('fs');
+const http = require('http');
 
 let mainWindow;
 
@@ -17,7 +18,7 @@ app.on('ready', () => {
         }
     });
 
-    mainWindow.removeMenu();
+    // mainWindow.removeMenu();
 
     // 加载 Vue 项目生成的 HTML 文件
     const indexPath = path.join(__dirname, 'dist', 'index.html');
@@ -35,6 +36,31 @@ app.on('ready', () => {
 app.on('window-all-closed', () => {
     if (process.platform !== 'darwin') app.quit();
 });
+
+ipcMain.handle('dialog:selectFolder', async () => {
+    const result = await dialog.showOpenDialog({
+        properties: ['openDirectory']
+    })
+    if (!result.canceled) {
+        return result.filePaths[0]
+    }
+})
+
+ipcMain.on('download-video', (event, { url, path: savePath }) => {
+    const fileName = path.basename(url)
+    const fullPath = path.join(savePath, fileName)
+    const file = fs.createWriteStream(fullPath)
+
+    http.get(url, (response) => {
+        response.pipe(file)
+        file.on('finish', () => {
+            file.close()
+            console.log('✅ 视频已保存到: ' + fullPath)
+        })
+    }).on('error', (err) => {
+        console.error('❌ 下载失败:', err.message)
+    })
+})
 
 ipcMain.handle('save-file', async (event, fileInfo) => {
     try {

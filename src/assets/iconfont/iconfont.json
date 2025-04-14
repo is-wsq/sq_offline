@@ -6,6 +6,20 @@
   "description": "",
   "glyphs": [
     {
+      "icon_id": "42492610",
+      "name": "ze-bars 1",
+      "font_class": "a-ze-bars1",
+      "unicode": "e660",
+      "unicode_decimal": 58976
+    },
+    {
+      "icon_id": "40067710",
+      "name": "view-list",
+      "font_class": "view-list",
+      "unicode": "ea33",
+      "unicode_decimal": 59955
+    },
+    {
       "icon_id": "27029066",
       "name": "antOutline-robot",
       "font_class": "robot",

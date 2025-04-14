@@ -5,17 +5,10 @@
         <el-col :span="12" style="height: 100%">
           <div class="voice-type">系统音色</div>
           <div class="voice-list">
-            <div
-              class="voice-item"
-              v-for="(item, index) in systemSounds"
-              :key="index"
-              @contextmenu.stop="handleContextMenu(item, $event)"
-            >
+            <div class="voice-item" v-for="(item, index) in systemSounds" :key="index"
+                 @contextmenu.stop="handleContextMenu(item, $event)">
               <div class="voice-icon" @click="textAudio(item)">
-                <el-image
-                  style="width: 20px; height: 20px"
-                  :src="item.isPlay ? '/stop.png' : '/play.png'"
-                ></el-image>
+                <el-image style="width: 20px; height: 20px" :src="item.isPlay ? '/stop.png' : '/play.png'"></el-image>
               </div>
               <div :title="item.name" class="voice-name">{{ item.name }}</div>
             </div>
@@ -33,48 +26,31 @@
                 :on-error="uploadError"
                 :before-upload="beforeUpload"
               >
-                <div
-                  style="
-                    display: flex;
-                    justify-content: center;
-                    align-items: center;
-                    height: 80px;
-                  "
-                >
-                  <div
-                    class="voice-icon"
-                    style="background-color: pink !important"
-                  >
-                    <i
-                      class="el-icon-plus"
-                      style="font-size: 15px; color: red"
-                    ></i>
+                <div style="display: flex;justify-content: center;align-items: center;height: 80px;">
+                  <div class="voice-icon" style="background-color: pink !important">
+                    <i class="el-icon-plus" style="font-size: 15px; color: red"></i>
                   </div>
-                  <div
-                    style="
-                      width: 80px;
-                      margin-left: 10px;
-                      font-size: 14px;
-                      color: #101010;
-                      text-align: left;
-                    "
-                  >
-                    上传音频
-                  </div>
+                  <div style="width: 80px;margin-left: 10px;font-size: 14px;color: #101010;text-align: left">上传音频</div>
                 </div>
               </el-upload>
             </div>
-            <div
-              class="voice-item"
-              v-for="(item, index) in cloneSounds"
-              :key="index"
-              @contextmenu.stop="handleContextMenu(item, $event)"
-            >
+            <div class="voice-item" v-for="task in voiceTasks" :key="task.id">
+              <div class="voice-icon" style="background-color: rgba(187, 187, 187, 0.25) !important;">
+                <div class="dot-spinner">
+                  <div class="dot" v-for="n in 8" :key="n"
+                       :style="{ transform: 'rotate(' + (n * 45) + 'deg) translate(0, -9px)', animationDelay: (n * 0.1) + 's' }"
+                  ></div>
+                </div>
+              </div>
+              <div class="voice-name" style="display: flex">
+                <div>音色克隆中</div>
+                <div style="width: 10px;text-align: left;margin-left: 5px;font-size: 20px">{{ dot }}</div>
+              </div>
+            </div>
+            <div class="voice-item" v-for="(item, index) in cloneSounds" :key="index"
+                 @contextmenu.stop="handleContextMenu(item,$event)">
               <div class="voice-icon" @click="textAudio(item)">
-                <el-image
-                  style="width: 20px; height: 20px"
-                  :src="item.isPlay ? '/stop.png' : '/play.png'"
-                ></el-image>
+                <el-image style="width: 20px;height: 20px;" :src="item.isPlay?'/stop.png' : '/play.png'"></el-image>
               </div>
               <div :title="item.name" class="voice-name">{{ item.name }}</div>
             </div>
@@ -86,19 +62,11 @@
           <i class="el-icon-yangshengqi menu-icon"></i>
           <span style="margin-top: 2px">试听</span>
         </div>
-        <div
-          class="right-item"
-          @click="rename"
-          v-if="selectedItem.type === 'clone'"
-        >
+        <div class="right-item" @click="rename" v-if="selectedItem.type === 'clone'">
           <i class="el-icon-edit-outline menu-icon"></i>
           <span style="margin-top: 2px">重命名</span>
         </div>
-        <div
-          class="right-item"
-          @click="deleteItem"
-          v-if="selectedItem.type === 'clone'"
-        >
+        <div class="right-item" @click="deleteItem" v-if="selectedItem.type === 'clone'">
           <i class="el-icon-delete-solid menu-icon"></i>
           <span style="margin-top: 2px">删除</span>
         </div>
@@ -142,7 +110,10 @@ export default {
       drawer: false,
       soundId: null,
       task: {},
-    };
+      dotCount: 1,
+      dotTimer: null,
+      dot: '.',
+    }
   },
   computed: {
     ...mapGetters("task", ["allTasks"]), // 获取任务列表
@@ -160,29 +131,38 @@ export default {
   },
   mounted() {
     this.querySounds();
+    this.startDotAnimation();
+  },
+  beforeDestroy() {
+    clearInterval(this.dotTimer);
   },
   methods: {
+    startDotAnimation() {
+      this.dotTimer = setInterval(() => {
+        this.dotCount = this.dotCount % 3 + 1;
+        this.dot = '.'.repeat(this.dotCount);
+      }, 1000);
+    },
     querySounds() {
-      getAction("/timbres/query_success")
-        .then((res) => {
-          if (res.data.status === "success") {
-            this.systemSounds = [];
-            this.cloneSounds = [];
-            res.data.data.forEach((item) => {
-              item.isPlay = false;
-              if (item.type === "system") {
-                this.systemSounds.push(item);
-              } else {
-                this.cloneSounds.push(item);
-              }
-            });
-          } else {
-            this.$message.error("获取声音列表失败。");
-          }
-        })
-        .catch((err) => {
-          this.$message.error("获取声音列表失败，请稍后重试！");
-        });
+      getAction("/timbres/query_success").then((res) => {
+        if (res.data.status === "success") {
+          this.systemSounds = [];
+          this.cloneSounds = [];
+          res.data.data.forEach((item) => {
+            item.isPlay = false;
+            if (item.type === "system") {
+              this.systemSounds.push(item);
+            } else {
+              this.cloneSounds.push(item);
+            }
+          });
+        } else {
+          this.$message.error("获取声音列表失败。");
+        }
+      })
+      .catch((err) => {
+        this.$message.error("获取声音列表失败，请稍后重试！");
+      });
     },
     textAudio(item) {
       this.selectedItem = item;
@@ -222,34 +202,32 @@ export default {
         timbre_id: this.soundId,
         name: this.newName,
       };
-      postAction("/timbres/update_name", params)
-        .then((res) => {
-          if (res.data.status === "success") {
-            this.$message.success("重命名成功。");
-            this.querySounds();
-          } else {
-            this.$message.error(res.data.message);
-          }
-          this.drawer = false;
-        })
-        .catch((err) => {
-          this.$message.error("重命名失败，请稍后重试！");
-        });
+      postAction("/timbres/update_name", params).then((res) => {
+        if (res.data.status === "success") {
+          this.$message.success("重命名成功。");
+          this.querySounds();
+        } else {
+          this.$message.error(res.data.message);
+        }
+        this.drawer = false;
+      })
+      .catch((err) => {
+        this.$message.error("重命名失败，请稍后重试！");
+      });
     },
     deleteItem() {
-      delAction(`/timbres/${this.selectedItem.id}`)
-        .then((res) => {
-          // delAction('/timbre/delete', {timbre_id: this.selectedItem.id}).then(res => {
-          if (res.data.status === "success") {
-            this.$message.success("删除成功。");
-            this.querySounds();
-          } else {
-            this.$message.error(res.data.message);
-          }
-        })
-        .catch((err) => {
-          this.$message.error("删除失败，请稍后重试！");
-        });
+      delAction(`/timbres/${this.selectedItem.id}`).then((res) => {
+        // delAction('/timbre/delete', {timbre_id: this.selectedItem.id}).then(res => {
+        if (res.data.status === "success") {
+          this.$message.success("删除成功。");
+          this.querySounds();
+        } else {
+          this.$message.error(res.data.message);
+        }
+      })
+      .catch((err) => {
+        this.$message.error("删除失败，请稍后重试！");
+      });
     },
     beforeUpload(file) {
       this.task = {
@@ -263,7 +241,7 @@ export default {
       this.$alert(content, "任务创建提醒");
     },
     uploadError(file) {
-      this.$store.dispatch("task/removeTask", this.task.id);
+      this.$store.dispatch("task/removeTask", file.uid);
       this.$notify({
         title: "克隆失败",
         message: `${file.name}音色克隆任务失败！`,
@@ -272,8 +250,8 @@ export default {
       });
     },
     uploadSuccess(res, file) {
-      if (res.status === "success") {
-        this.$store.dispatch("task/removeTask", this.task.id);
+      if (res.data.status === "success") {
+        this.$store.dispatch("task/removeTask", file.uid);
         this.$notify({
           title: "克隆成功",
           message: `${file.name}音色克隆任务已完成！`,
@@ -282,7 +260,7 @@ export default {
         });
         this.querySounds();
       } else {
-        this.$store.dispatch("task/removeTask", this.task.id);
+        this.$store.dispatch("task/removeTask", file.uid);
         this.$notify({
           title: "克隆失败",
           message: `${file.name}音色克隆任务失败！`,
@@ -304,6 +282,11 @@ export default {
   flex-direction: column;
   justify-content: center;
   align-items: center;
+}
+
+.voice >>> .el-loading-spinner .circular {
+  width: 25px !important;
+  height: 25px !important;
 }
 
 .voice-content {
@@ -355,13 +338,40 @@ export default {
 
 .voice-icon {
   width: 42px;
-  height: 37px;
+  height: 40px;
   display: flex;
   justify-content: center;
   align-items: center;
   cursor: pointer;
   background-color: #c7d4f8;
   border-radius: 10px;
+}
+
+.dot-spinner {
+  position: relative;
+  width: 24px;
+  height: 24px;
+}
+
+.dot {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 3px;
+  height: 3px;
+  background-color: #4c8df1;
+  border-radius: 50%;
+  transform-origin: 0 0;
+  animation: fade 1s linear infinite;
+}
+
+@keyframes fade {
+  0%, 100% {
+    opacity: 0.2;
+  }
+  50% {
+    opacity: 1;
+  }
 }
 
 .voice-name {

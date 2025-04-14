@@ -1,16 +1,25 @@
 <template>
   <div class="ai">
     <div class="ai-content">
-      <div style="display: flex; height: 40px; align-items: center">
+      <div style="display: flex; height: 40px; align-items: center;width: 60%">
+        <span style="margin-right: 20px; font-size: 16px; color: #6d7177">模型选择</span>
+        <el-select v-model="model" placeholder="请选择">
+          <el-option
+            v-for="item in options"
+            :key="item.value"
+            :label="item.label"
+            :value="item.value">
+          </el-option>
+        </el-select>
+      </div>
+      <div style="display: flex; height: 40px; align-items: center;width: 60%;margin-top: 40px">
+        <span style="margin-right: 20px; font-size: 16px; color: #6d7177">模型开关</span>
         <el-switch
           :width="50"
           v-model="modelOpen"
           active-color="#6286ED"
           @change="switchChange"
         ></el-switch>
-        <span style="margin-left: 20px; font-size: 16px; color: #6d7177"
-          >模型开关</span
-        >
       </div>
       <el-button class="enter-service" @click="enterService"
         >进入服务</el-button
@@ -40,6 +49,12 @@ import axios from "axios";
 export default {
   data() {
     return {
+      model: 'deepseek-r1:32b',
+      options: [
+        {label: "DeepSeek R1", value: "deepseek-r1:32b"},
+        {label: "QwQ int4", value: "qwq:latest"},
+        {label: "QwQ int3", value: "hf-mirror.com/unsloth/QwQ-32B-GGUF:Q3_K_M"},
+      ],
       modelOpen: false,
     };
   },
@@ -73,7 +88,7 @@ export default {
     },
     startService() {
       let params = {
-        model: "hf-mirror.com/unsloth/QwQ-32B-GGUF:Q3_K_M",
+        model: this.model,
         keep_alive: -1,
       };
       postAction("stop_docker_service")
@@ -140,6 +155,10 @@ export default {
   flex-direction: column;
   justify-content: center;
   align-items: center;
+}
+
+.ai >>> .el-input__inner {
+  border-radius: 15px;
 }
 
 .enter-service {
