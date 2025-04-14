@@ -10,11 +10,12 @@
               fit="cover"
             ></el-image>
             <div class="shine-layer"></div>
+            <div class="figure-progress">
+              <div>形象克隆中</div>
+              <div style="width: 10px;text-align: left;margin-left: 5px;font-size: 22px">{{ dot }}</div>
+            </div>
           </div>
-          <div style="display: flex;align-items: center;justify-content: center">
-            <div>形象克隆中</div>
-            <div style="width: 10px;text-align: left;margin-left: 5px;font-size: 20px">{{ dot }}</div>
-          </div>
+          <div style="width: 100%; text-align: center;line-height: 23px">{{ item.name }}</div>
         </div>
         <div v-for="(item, index) in figures" :key="index" @contextmenu.stop="handleContextMenu(item, $event)" @click="selectItem(item)">
           <el-image class="figures-img" :src="item.picture" fit="cover"></el-image>
@@ -71,7 +72,7 @@
       </div>
     </el-drawer>
     <div class="figures-footer">
-      上传的视频文件格式需为：mp4、mov、MP4、MOV格式；上传的视频文件的时长最少应不低于30秒，最长不超过600秒；上传的文件大小最大不能超过500M；上传的视频内容必须符合数字人形象训练规范，包含单个人物形象，脸部无遮挡
+      上传的视频文件格式需为：mp4、mov、MP4、MOV格式；上传的视频文件的时长最少应不低于30秒，最长不超过600秒；上传的视频内容必须符合数字人形象训练规范，包含单个人物形象，脸部无遮挡
     </div>
   </div>
 </template>
@@ -281,6 +282,17 @@ export default {
   gap: 20px;
   justify-items: center;
   overflow: auto;
+}
+
+.figure-progress {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
 }
 
 .figures-img {
