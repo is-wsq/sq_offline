@@ -81,7 +81,8 @@ export default {
       dialogVisible: false,
       src: "",
       isPlaying: false,
-      downloadFilePath: ''
+      downloadFilePath: '',
+      selectedId: ''
     }
   },
   computed: {
@@ -126,7 +127,7 @@ export default {
         cancelButtonText: '取消',
         type: 'warning'
       }).then(() => {
-        delAction(`/video_record/delete/${this.selectedItem.id}`).then(res => {
+        delAction(`/video_record/delete/${this.selectedId}`).then(res => {
           if (res.data.status ==='success') {
             this.$message.success('删除成功');
             this.queryVideos();
@@ -148,7 +149,7 @@ export default {
       })
     },
     rename() {
-      this.videoId = this.selectedItem.id;
+      this.videoId = this.selectedId;
       this.newName = "";
       this.drawer = true;
     },

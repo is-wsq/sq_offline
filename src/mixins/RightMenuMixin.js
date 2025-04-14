@@ -19,6 +19,7 @@ export const RightMenuMixin = {
             e.preventDefault();
             this.rightMenuVisible = true;
             this.selectedItem = item
+            this.selectedId = item.id
             this.downloadFilePath = item.video_path || ''
             this.menuStyle.left = e.clientX + 'px'
             this.menuStyle.top = e.clientY + 'px'
