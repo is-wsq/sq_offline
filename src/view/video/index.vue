@@ -175,10 +175,22 @@ export default {
     generateUniqueId() {
       return Date.now() + Math.random().toString(36).substr(2, 16);
     },
+    setName() {
+      let data = new Date();
+      let year = data.getFullYear();
+      let month = String(data.getMonth() + 1).padStart(2, "0");
+      let day = String(data.getDate()).padStart(2, "0");
+      let hours = String(data.getHours()).padStart(2, "0");
+      let minutes = String(data.getMinutes()).padStart(2, "0");
+      let seconds = String(data.getSeconds()).padStart(2, "0");
+      return  year + month + day + hours + minutes + seconds
+    },
     generateVideo() {
+      let name = this.setName()
       let task = {
         type: "video",
         id: this.generateUniqueId(),
+        name: name,
         status: "running",
       };
       this.$store.dispatch("task/addTask", task);

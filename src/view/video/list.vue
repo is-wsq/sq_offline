@@ -5,15 +5,20 @@
       <div v-for="item in videoTasks" :key="item.id" style="text-align: center">
         <div class="image-wrapper shining">
           <el-image
-            style="width: 180px; height: 236px; border-radius: 12px;filter: blur(15px);opacity: 0.8"
+            style="width: 180px; height: 240px; border-radius: 12px;filter: blur(15px);opacity: 0.8"
             :src="require('/public/images/4.jpg')"
             fit="cover"
           ></el-image>
           <div class="shine-layer"></div>
+          <div class="list-progress">
+            <div>视频生成中</div>
+            <div style="width: 10px;text-align: left;margin-left: 5px;font-size: 22px">{{ dot }}</div>
+          </div>
         </div>
         <div style="display: flex;align-items: center;justify-content: center;margin-top: 5px">
-          <div>视频生成中</div>
-          <div style="width: 10px;text-align: left;margin-left: 5px;font-size: 20px">{{ dot }}</div>
+          {{ item.name }}
+<!--          <div>视频生成中</div>-->
+<!--          <div style="width: 10px;text-align: left;margin-left: 5px;font-size: 20px">{{ dot }}</div>-->
         </div>
       </div>
       <div style="text-align: center;border-radius: 12px;padding: 5px 0" v-for="item in videoList" :key="item.id"
@@ -183,6 +188,17 @@ export default {
   grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
   grid-auto-rows: 280px;
   overflow: auto;
+}
+
+.list-progress {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
 }
 
 .activeClass {
