@@ -21,18 +21,9 @@
           @change="switchChange"
         ></el-switch>
       </div>
-      <el-button class="enter-service" @click="enterService"
-        >进入服务</el-button
-      >
+      <el-button class="enter-service" @click="enterService">进入服务</el-button>
     </div>
-    <div
-      style="
-        margin-top: 74px;
-        color: #6d7177;
-        font-size: 16px;
-        line-height: 27px;
-      "
-    >
+    <div style="margin-top: 74px;color: #6d7177;font-size: 16px;line-height: 27px;">
       请开启模型后再点击 “进入服务”
       使用AI大模型，使用完毕后请关闭模型开关释放资源。
     </div>
@@ -49,19 +40,25 @@ import axios from "axios";
 export default {
   data() {
     return {
-      model: 'deepseek-r1:32b',
-      options: [
-        {label: "DeepSeek R1", value: "deepseek-r1:32b"},
-        {label: "QwQ int4", value: "qwq:latest"},
-        {label: "QwQ int3", value: "hf-mirror.com/unsloth/QwQ-32B-GGUF:Q3_K_M"},
-      ],
+      model: '',
+      options: [],
       modelOpen: false,
+      loading: false,
     };
   },
   async mounted() {
+    this.queryModels()
     this.modelOpen = await this.queryServiceStatus();
   },
   methods: {
+    queryModels() {
+      getAction("/get_model_dict").then(res => {
+        if (res.data.status === "success") {
+          this.options = res.data.options
+          this.model = res.data.options[0].value || ''
+        }
+      })
+    },
     enterService() {
       if (this.modelOpen) {
         window.open("http://127.0.0.1:8080");
@@ -70,14 +67,12 @@ export default {
       }
     },
     async queryServiceStatus() {
-      return axios
-        .get("http://127.0.0.1:11434/api/ps")
-        .then((res) => {
-          return res.data.models.length > 0;
-        })
-        .catch((err) => {
-          return false;
-        });
+      return axios.get("http://127.0.0.1:11434/api/ps").then((res) => {
+        return res.data.models.length > 0;
+      })
+      .catch((err) => {
+        return false;
+      });
     },
     switchChange(val) {
       if (val) {
@@ -87,49 +82,69 @@ export default {
       }
     },
     startService() {
+      this.modelOpen = false
       let params = {
         model: this.model,
         keep_alive: -1,
       };
+      this.loading = this.$loading({
+        lock: true,
+        text: '模型服务启动中，请耐心等待...',
+        spinner: 'el-icon-loading',
+        background: 'rgba(0, 0, 0, 0.7)'
+      });
       postAction("stop_docker_service")
         .then((res) => {
           if (res.data.status === "success") {
-            axios
-              .post("http://127.0.0.1:11434/api/generate", params)
-              .then((result) => {
-                if (result.data.done) {
-                  this.$message.success("模型加载成功");
-                } else {
-                  this.$message.error(result.data.message);
-                }
-              });
+            axios.post("http://127.0.0.1:11434/api/generate", params).then((result) => {
+              if (result.data.done) {
+                this.modelOpen = true;
+                this.$message.success("模型加载成功");
+              } else {
+                this.modelOpen = false;
+                this.$message.error(result.data.message);
+              }
+              this.loading.close();
+              this.loading = null;
+            }).catch(err => {
+              this.loading.close();
+              this.loading = null;
+              this.modelOpen = false;
+              this.$message.error("模型加载失败，请稍后重试。");
+            });
           } else {
             this.modelOpen = false;
+            this.loading.close();
+            this.loading = null;
             this.$message.error("当前后台有任务在进行中，请稍后再试。");
           }
         })
         .catch((err) => {
           this.modelOpen = false;
+          this.loading.close();
+          this.loading = null;
           this.$message.error("当前后台有任务在进行中，请稍后再试。");
         });
     },
     stopService() {
       let params = {
-        model: "hf-mirror.com/unsloth/QwQ-32B-GGUF:Q3_K_M",
+        model: this.model,
         keep_alive: 0,
       };
-      axios
-        .post("http://127.0.0.1:11434/api/generate", params)
-        .then((res) => {
-          if (res.data.done) {
-            this.$message.success("模型卸载成功");
-          } else {
-            this.$message.error(res.data.message);
-          }
-        })
-        .catch((err) => {
-          this.$message.error("模型卸载失败，请稍后重试。");
-        });
+      this.modelOpen = true
+      axios.post("http://127.0.0.1:11434/api/generate", params).then((res) => {
+        if (res.data.done) {
+          this.modelOpen = false;
+          this.$message.success("模型卸载成功");
+        } else {
+          this.modelOpen = true;
+          this.$message.error(res.data.message);
+        }
+      })
+      .catch((err) => {
+        this.modelOpen = true;
+        this.$message.error("模型卸载失败，请稍后重试。");
+      });
     },
   },
 };
