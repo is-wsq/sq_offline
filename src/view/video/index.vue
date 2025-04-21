@@ -210,6 +210,7 @@ export default {
       let params = {
         video_id: this.figure.video_id,
         voice_id: this.sound.voice_id,
+        filename: name,
         text: this.text,
       };
       postAction("/figure/generate_video", params, 18000000).then((res) => {
@@ -222,7 +223,7 @@ export default {
             duration: 0,
             type: "success",
           });
-          this.downloadVideo(res.data.data.video_path, fileName);
+          this.downloadVideo(res.data.data.video_path, name);
         } else {
           this.$store.dispatch("task/removeTask", task.id);
           let message = `${task.id}视频生成任务失败,${res.data.message}`;
