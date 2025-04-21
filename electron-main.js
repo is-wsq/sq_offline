@@ -46,9 +46,9 @@ ipcMain.handle('dialog:selectFolder', async () => {
     }
 })
 
-ipcMain.on('download-video', (event, { url, path: savePath }) => {
-    const fileName = path.basename(url)
-    const fullPath = path.join(savePath, fileName)
+ipcMain.on('download-video', (event, { url, path: savePath, fileName }) => {
+    // const fileName = path.basename(url)
+    const fullPath = path.join(savePath, fileName + '.mp4')
     const file = fs.createWriteStream(fullPath)
 
     http.get(url, (response) => {

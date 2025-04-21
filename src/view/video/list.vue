@@ -82,6 +82,7 @@ export default {
       src: "",
       isPlaying: false,
       downloadFilePath: '',
+      downloadFileName: '',
       selectedId: ''
     }
   },
@@ -143,7 +144,7 @@ export default {
       let self = this
       window.electronAPI.selectFolder().then((path) => {
         if (path) {
-          window.electronAPI.downloadFile(self.downloadFilePath, path)
+          window.electronAPI.downloadFile(self.downloadFilePath, path, self.downloadFileName)
           self.$message.success(`视频已另存为${path}`)
         }
       })

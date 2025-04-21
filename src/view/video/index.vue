@@ -180,7 +180,7 @@ export default {
       let hours = String(data.getHours()).padStart(2, "0");
       let minutes = String(data.getMinutes()).padStart(2, "0");
       let seconds = String(data.getSeconds()).padStart(2, "0");
-      return  year + month + day + hours + minutes + seconds
+      return  year + '-' + month + '-' + day + '_' + hours + '-' + minutes + '-' + seconds
     },
     verify() {
       getAction('/verify/activation').then(res => {
@@ -222,7 +222,7 @@ export default {
             duration: 0,
             type: "success",
           });
-          this.downloadVideo(res.data.data.video_path);
+          this.downloadVideo(res.data.data.video_path, fileName);
         } else {
           this.$store.dispatch("task/removeTask", task.id);
           let message = `${task.id}视频生成任务失败,${res.data.message}`;
@@ -245,9 +245,9 @@ export default {
         });
       });
     },
-    async downloadVideo(path) {
+    async downloadVideo(path, fileName) {
       let downloadPath = localStorage.getItem('downloadPath') || 'D:\\Downloads'
-      window.electronAPI.downloadFile(path, downloadPath)
+      window.electronAPI.downloadFile(path, downloadPath, fileName)
       this.$message.success(`视频已保存到${downloadPath}`)
     },
   },
