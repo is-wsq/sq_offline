@@ -45,6 +45,10 @@
       </el-input>
       <span class="text-tips" v-if="!isFocus && text === ''">请输入视频口播文案</span>
     </div>
+    <div style="height: 50px;display: flex;align-items: center;">
+      <div style="margin-right: 20px;margin-left: 10px;font-size: 15px">视频倒序循环</div>
+      <el-switch :width="50" v-model="reverse" active-color="#6286ED"></el-switch>
+    </div>
     <el-button type="success" class="generate-btn" @click="verify">生成视频</el-button>
   </div>
 </template>
@@ -72,6 +76,7 @@ export default {
       audio: null,
       testAudio: null,
       isFocus: false,
+      reverse: true
     };
   },
   computed: {
@@ -211,6 +216,7 @@ export default {
         video_id: this.figure.video_id,
         voice_id: this.sound.voice_id,
         filename: name,
+        reverse: this.reverse,
         text: this.text,
       };
       postAction("/figure/generate_video", params, 18000000).then((res) => {
@@ -398,7 +404,7 @@ export default {
 
 .text-card {
   width: 100%;
-  height: calc(100% - 500px);
+  height: calc(100% - 530px);
   min-height: 300px;
   background-color: #ffffff;
   border-radius: 10px;
@@ -427,7 +433,7 @@ export default {
 .generate-btn {
   width: 126px;
   border-radius: 10px;
-  margin-top: 30px !important;
+  margin-top: 10px !important;
   margin-left: calc(50% - 63px);
 }
 </style>
