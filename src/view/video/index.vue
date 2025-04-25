@@ -76,7 +76,7 @@ export default {
       audio: null,
       testAudio: null,
       isFocus: false,
-      reverse: true
+      reverse: false
     };
   },
   computed: {
