@@ -1,47 +1,118 @@
 <template>
   <div class="video">
-    <div class="video-title">角色选择</div>
-    <div class="video-template" ref="template" :style="templateStyle">
-      <div v-for="item in templates" :key="item.id"
-        style="border-radius: 10px; width: 130px" @click="figure = item"
-        :style="{ 'background-color': item.id === figure.id ? '#e0e7fb' : '#FFFFFF' }">
-        <div>
+    <div class="video-header">
+      <div class="video-title">角色选择</div>
+      <div class="video-template" ref="template">
+        <div v-for="item in templates" :key="item.id" style="border-radius: 10px; width: 130px" @click="figure = item"
+             :style="{ 'background-color': item.id === figure.id ? '#e0e7fb' : '#FFFFFF' }">
           <el-image class="template-img" :src="item.picture" fit="cover"></el-image>
+          <div class="template-name">{{ item.name }}</div>
         </div>
-        <div class="template-name">{{ item.name }}</div>
       </div>
     </div>
-    <div class="more-btn">
-      <i class="el-icon-arrow-down more" @click="showMore" v-if="!templateHigh"></i>
-      <i class="el-icon-arrow-up more" @click="showMore" v-if="templateHigh"></i>
-    </div>
-    <div class="video-title">声音选择</div>
-    <div class="voice-card">
-      <div class="play-btn" @click="listenAudio">
-        <i :class="isPlay ? 'el-icon-pause' : 'el-icon-play'" style="font-size: 13px; color: #6286ed"></i>
-      </div>
-      <el-popover placement="right" trigger="click">
-        <div class="popover-content">
-          <el-row>
-            <el-col :span="12" v-for="voice in voices" :key="voice.id">
-              <div class="voice-item" :class="{ active: voice.id === sound.id }" @click="sound = voice">
-                <div class="voice-icon" @click="previewAudio(voice)">
-                  <i :class="voice.isPlay ? 'el-icon-pause' : 'el-icon-play'" style="font-size: 13px; color: #6286ed"></i>
-                </div>
-                <div class="voice-name">{{ voice.name }}</div>
+    <div style="display: flex;gap: 25px;margin-top: 10px">
+      <div style="flex: 1">
+        <div class="voice-card">
+          <div class="video-title" style="margin-bottom: 10px">声音选择</div>
+          <div style="display: flex;align-items: center;">
+            <div class="play-btn" @click="previewAudio(sound, -1)" v-if="audioIndex !== -1">
+              <i class="el-icon-play" style="font-size: 13px; color: #6286ed"></i>
+            </div>
+            <div class="play-btn" @click="stopAudio" v-else>
+              <i class="el-icon-pause" style="font-size: 13px; color: #6286ed"></i>
+            </div>
+            <el-popover placement="right" trigger="click" @hide="stopAudio">
+              <div class="popover-content">
+                <el-row>
+                  <el-col :span="12" v-for="(voice, index) in voices" :key="voice.id">
+                    <div class="voice-item" :class="{ active: voice.id === sound.id }" @click="sound = voice">
+                      <div class="voice-icon" @click="previewAudio(voice, index)" v-if="audioIndex !== index">
+                        <i class="el-icon-play" style="font-size: 13px; color: #6286ed"></i>
+                      </div>
+                      <div class="voice-icon" @click="stopAudio" v-else>
+                        <i class="el-icon-pause" style="font-size: 13px; color: #6286ed"></i>
+                      </div>
+                      <div class="voice-name">{{ voice.name }}</div>
+                    </div>
+                  </el-col>
+                </el-row>
               </div>
-            </el-col>
-          </el-row>
+              <div class="sound" slot="reference">
+                <div class="sound-name">{{ sound.name }}</div>
+                <i class="el-icon-a-ze-bars1" style="font-size: 20px; color: #9a9a9a"></i>
+              </div>
+            </el-popover>
+          </div>
         </div>
-        <div class="sound" slot="reference">
-          <div class="sound-name">{{ sound.name }}</div>
-          <i class="el-icon-a-ze-bars1" style="font-size: 20px; color: #9a9a9a"></i>
-        </div>
-      </el-popover>
+      </div>
+      <div style="flex: 1">
+<!--        <div class="voice-card">-->
+<!--          <div class="video-title" style="margin-bottom: 10px">背景音乐</div>-->
+<!--          <div style="display: flex;align-items: center;">-->
+<!--            <div class="play-btn" @click="listenAudio">-->
+<!--              <i class="el-icon-pause' : 'el-icon-play'" style="font-size: 13px; color: #6286ed"></i>-->
+<!--            </div> -->
+<!--            <div class="play-btn" @click="listenAudio">-->
+<!--              <i class="el-icon-pause' : 'el-icon-play'" style="font-size: 13px; color: #6286ed"></i>-->
+<!--            </div>-->
+<!--            <el-popover placement="top" trigger="click" style="width: 100%">-->
+<!--              <div class="popover-content">-->
+<!--                <el-row>-->
+<!--                  <el-col :span="12" v-for="voice in voices" :key="voice.id">-->
+<!--                    <div class="voice-item" :class="{ active: voice.id === sound.id }" @click="sound = voice">-->
+<!--                      <div class="voice-icon" @click="previewAudio(voice)">-->
+<!--                        <i :class="voice.isPlay ? 'el-icon-pause' : 'el-icon-play'" style="font-size: 13px; color: #6286ed"></i>-->
+<!--                      </div>-->
+<!--                      <div class="voice-name">{{ voice.name }}</div>-->
+<!--                    </div>-->
+<!--                  </el-col>-->
+<!--                </el-row>-->
+<!--              </div>-->
+<!--              <div class="sound" slot="reference">-->
+<!--                <div class="sound-name">{{ sound.name }}</div>-->
+<!--                <i class="el-icon-a-ze-bars1" style="font-size: 20px; color: #9a9a9a"></i>-->
+<!--              </div>-->
+<!--            </el-popover>-->
+<!--          </div>-->
+<!--        </div>-->
+      </div>
     </div>
-    <div class="video-title">口播文案</div>
+    <div style="height: 150px;margin-top: 10px;background: #ffffff;border-radius: 10px;padding: 15px;box-sizing: border-box;">
+      <div class="video-title" style="margin-bottom: 20px">字幕样式</div>
+      <div style="display: flex;align-items: center;height: 80px">
+        <div style="text-align: center">
+          <div style="font-size: 13px;height: 40px">字体颜色</div>
+          <el-color-picker v-model="font.color" size="small"></el-color-picker>
+        </div>
+        <div style="text-align: center;width: 300px">
+          <div style="font-size: 13px;height: 40px">字体样式</div>
+<!--          <div style="width: 80px; height: 40px;border-radius: 5px;margin: 0 auto;background-image: url('/images/font.png');background-position: center"></div>-->
+          <el-select v-model="font.font" placeholder="请选择">
+            <el-option
+                v-for="item in fontFamily"
+                :key="item.font_id"
+                :label="item.name"
+                :value="item.font_id"
+            >
+            <div style="display: flex; align-items: center;width: 300px">
+              <img :src="item.img_path" style="width: calc(100% - 50px); height: 20px; margin-right: 8px;" />
+              <span>{{ item.name }}</span>
+            </div>
+            </el-option>
+          </el-select>
+        </div>
+        <div>
+          <div style="font-size: 13px;height: 40px">字体大小</div>
+          <div style="display: flex">
+            <el-slider v-model="font.size" style="width: 180px" :min="5" :max="32"></el-slider>
+            <el-input-number v-model="font.size" controls-position="right" :min="5" :max="32" style="margin-left: 20px"></el-input-number>
+          </div>
+        </div>
+      </div>
+    </div>
     <div class="text-card">
-      <el-input type="textarea" style="height: 100%; width: 100%" @focus="isFocus = true" @blur="isFocus = false" v-model="text">
+      <div class="video-title" style="margin-bottom: 10px">口播文案</div>
+      <el-input type="textarea" style="height: calc(100% - 30px); width: 100%" @focus="isFocus = true" @blur="isFocus = false" v-model="text">
       </el-input>
       <span class="text-tips" v-if="!isFocus && text === ''">请输入视频口播文案</span>
     </div>
@@ -63,27 +134,29 @@ export default {
   data() {
     return {
       isPlay: false,
-      templateStyle: {
-        height: "215px",
-        overflow: "hidden",
-      },
-      templateHigh: false,
       templates: [],
       figure: {},
       voices: [],
       sound: {},
       text: "",
       audio: null,
+      audioIndex: null,
       testAudio: null,
       isFocus: false,
-      reverse: false
+      reverse: false,
+      font: {
+        color: '#000000',
+        size: 5,
+        font: '',
+      },
+      fontFamily: []
     };
   },
   computed: {
     ...mapGetters("task", ["allTasks"]), // 获取任务列表
     voiceAndFigureTasks() {
       return this.allTasks.filter(
-        (item) => item.type === "figures" || item.type === "voice"
+          (item) => item.type === "figures" || item.type === "voice"
       );
     },
   },
@@ -99,8 +172,21 @@ export default {
   mounted() {
     this.querySounds();
     this.queryFigures();
+    this.queryFontFamily()
+  },
+  beforeDestroy() {
+    this.stopAudio();
   },
   methods: {
+    queryFontFamily() {
+      getAction('/get_fonts').then(res => {
+        if (res.data.status === 'success') {
+          this.fontFamily = res.data.data
+        }
+      }).catch((error) => {
+        console.error("获取字体样式列表失败:", error);
+      });
+    },
     queryFigures() {
       getAction("/figure/query_success").then((res) => {
         if (res.data.status === "success") {
@@ -118,9 +204,6 @@ export default {
       getAction("/timbres/query_success").then((res) => {
         if (res.data.status === "success") {
           this.voices = res.data.data;
-          this.voices.forEach((voice) => {
-            voice.isPlay = false;
-          });
           if (this.voices.length > 0) this.sound = this.voices[0];
         } else {
           this.$message.error("获取声音列表失败。");
@@ -130,49 +213,25 @@ export default {
         console.error("获取声音列表失败:", error);
       });
     },
-    showMore() {
-      if (!this.templateHigh) {
-        this.templateStyle.height = 430 + "px";
-        this.templateStyle.overflow = "auto";
-        this.templateHigh = true;
-      } else {
-        this.$refs.template.scrollTop = 0;
-        this.templateStyle.height = 215 + "px";
-        this.templateStyle.overflow = "hidden";
-        this.templateHigh = false;
-      }
-    },
-    listenAudio() {
-      let self = this;
-      if (self.isPlay) {
-        self.isPlay = false;
-        self.testAudio.pause();
-      } else {
-        self.isPlay = true;
-        self.testAudio = new Audio(self.sound.filepath);
-        self.testAudio.play();
-        self.testAudio.onended = () => {
-          self.isPlay = false;
-        };
-      }
-    },
-    previewAudio(voice) {
-      if (voice.isPlay) {
-        this.audio.pause();
-        this.updateStatus(voice, false);
-      } else {
+    previewAudio(voice, index) {
+      this.stopAudio();
+
+      setTimeout(() => {
         this.audio = new Audio(voice.filepath);
         this.audio.play();
-        this.updateStatus(voice, true);
+        this.audioIndex = index;
         this.audio.onended = () => {
-          this.updateStatus(voice, false);
+          this.audio = null;
+          this.audioIndex = null;
         };
-      }
+      }, 100);
     },
-    updateStatus(voice, status) {
-      let index = this.voices.findIndex((item) => item.id === voice.id);
-      this.voices[index].isPlay = status;
-      this.$forceUpdate();
+    stopAudio() {
+      if (this.audio) {
+        this.audio.pause();
+        this.audio = null;
+        this.audioIndex = null;
+      }
     },
     generateUniqueId() {
       return Date.now() + Math.random().toString(36).substr(2, 16);
@@ -185,16 +244,25 @@ export default {
       let hours = String(data.getHours()).padStart(2, "0");
       let minutes = String(data.getMinutes()).padStart(2, "0");
       let seconds = String(data.getSeconds()).padStart(2, "0");
-      return  year + '-' + month + '-' + day + '_' + hours + '-' + minutes + '-' + seconds
+      return year + '-' + month + '-' + day + '_' + hours + '-' + minutes + '-' + seconds
     },
     verify() {
       getAction('/verify/activation').then(res => {
-        if (res.data.status === 'success'){
+        if (res.data.status === 'success') {
           this.generateVideo()
-        }else {
+        } else {
           this.$alert(res.data.message, "验证失败");
         }
       })
+    },
+    hexToRgb(hex) {
+      hex = hex.replace('#', '');
+
+      let r = parseInt(hex.substring(0, 2), 16);
+      let g = parseInt(hex.substring(2, 4), 16);
+      let b = parseInt(hex.substring(4, 6), 16);
+
+      return [r, g, b];
     },
     generateVideo() {
       let name = this.setName()
@@ -210,7 +278,7 @@ export default {
 
       setTimeout(() => {
         this.$router.push({path: '/videoList'})
-      },500)
+      }, 500)
 
       let params = {
         video_id: this.figure.video_id,
@@ -218,7 +286,13 @@ export default {
         filename: name,
         reverse: this.reverse,
         text: this.text,
+        subtitle_params: {
+          "font": this.font.font,
+          "fontsize": this.font.size,
+          "color": this.font.color,
+        }
       };
+      console.log(params)
       postAction("/figure/generate_video", params, 18000000).then((res) => {
         if (res.data.status === "success") {
           this.$store.dispatch("task/removeTask", task.id);
@@ -265,30 +339,33 @@ export default {
 .video {
   width: 100%;
   height: 100%;
-  min-height: 700px;
+  min-height: 800px;
   padding: 5px 40px;
   box-sizing: border-box;
   overflow: auto;
 }
 
 .video-title {
-  margin: 10px;
   color: #1e1f20;
   font-size: 15px;
 }
 
-.video-template {
-  width: 100%;
+.video-header {
   background-color: #ffffff;
-  border-top-left-radius: 10px;
-  border-top-right-radius: 10px;
-  padding: 20px;
-  padding-bottom: 0 !important;
+  border-radius: 10px;
+  padding: 15px;
   box-sizing: border-box;
+}
+
+.video-template {
+  height: 195px;
+  width: 100%;
+  overflow-y: auto;
+  overflow-x: hidden;
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
   grid-template-rows: 195px;
-  gap: 20px;
+  gap: 15px;
   position: relative;
 }
 
@@ -306,29 +383,12 @@ export default {
   text-align: center;
 }
 
-.more-btn {
-  height: 25px;
-  width: 100%;
-  text-align: right;
-  background-color: #ffffff;
-  border-bottom-left-radius: 10px;
-  border-bottom-right-radius: 10px;
-}
-
-.more {
-  color: #9a9a9a;
-  font-size: 20px;
-  margin-right: 10px;
-  margin-bottom: 10px;
-}
-
 .voice-card {
-  width: 300px;
+  width: 100%;
   background-color: #ffffff;
   border-radius: 10px;
-  display: flex;
-  align-items: center;
-  padding: 15px 30px;
+  padding: 15px;
+  box-sizing: border-box;
 }
 
 .play-btn {
@@ -346,7 +406,7 @@ export default {
 
 .popover-content {
   width: 350px;
-  height: 350px;
+  height: 250px;
   border-radius: 10px;
   overflow: auto;
 }
@@ -404,11 +464,12 @@ export default {
 
 .text-card {
   width: 100%;
-  height: calc(100% - 530px);
-  min-height: 300px;
+  height: calc(100% - 620px);
+  margin-top: 10px;
+  min-height: 180px;
   background-color: #ffffff;
   border-radius: 10px;
-  padding: 20px;
+  padding: 15px;
   box-sizing: border-box;
   position: relative;
 }
@@ -432,8 +493,51 @@ export default {
 
 .generate-btn {
   width: 126px;
-  border-radius: 10px;
-  margin-top: 10px !important;
+  border-radius: 4px;
   margin-left: calc(50% - 63px);
+}
+
+.video >>> .el-slider__button {
+  height: 18px;
+  width: 4px;
+  border-radius: 2px;
+  border: none;
+  background-color: #E4E7ED;
+}
+
+.video >>> .el-slider__button-wrapper {
+  height: 33px;
+}
+
+.video >>> .el-slider__runway {
+  height: 3px;
+}
+
+.video >>> .el-slider__bar {
+  height: 3px;
+}
+
+.video >>> .el-input__inner {
+  height: 30px;
+  line-height: 30px;
+  padding-right: 35px !important;
+}
+
+.video >>> .el-input-number {
+  width: 80px
+}
+
+.video >>> .el-input-number__decrease {
+  width: 20px;
+  height: 15px !important;
+  line-height: 15px !important;
+  bottom: 5px !important;
+}
+
+.video >>> .el-input-number__increase {
+  width: 20px;
+  height: 14px !important;
+  line-height: 14px !important;
+  top: 5px !important;
 }
 </style>
