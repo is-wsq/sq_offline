@@ -286,13 +286,13 @@ export default {
         filename: name,
         reverse: this.reverse,
         text: this.text,
+        with_subtitle: true,
         subtitle_params: {
           "font": this.font.font,
           "fontsize": this.font.size,
           "color": this.font.color,
         }
       };
-      console.log(params)
       postAction("/figure/generate_video", params, 18000000).then((res) => {
         if (res.data.status === "success") {
           this.$store.dispatch("task/removeTask", task.id);
