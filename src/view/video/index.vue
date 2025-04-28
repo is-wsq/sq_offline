@@ -78,7 +78,12 @@
       </div>
     </div>
     <div style="height: 150px;margin-top: 10px;background: #ffffff;border-radius: 10px;padding: 15px;box-sizing: border-box;">
-      <div class="video-title" style="margin-bottom: 20px">字幕样式</div>
+      <div style="margin-bottom: 20px;display: flex;align-items: center">
+        <div class="video-title">字幕样式</div>
+        <div class="video-title" style="margin-left: 50px;margin-right: 10px">添加字幕</div>
+        <el-switch :width="50" v-model="withSubtitle" active-color="#6286ED"></el-switch>
+        <div style="margin-left: 20px;font-size: 13px;color: #9a9a9a">需开启添加字幕功能后，以下设置才会生效</div>
+      </div>
       <div style="display: flex;align-items: center;height: 80px">
         <div style="text-align: center">
           <div style="font-size: 13px;height: 40px">字体颜色</div>
@@ -86,26 +91,25 @@
         </div>
         <div style="text-align: center;width: 300px">
           <div style="font-size: 13px;height: 40px">字体样式</div>
-<!--          <div style="width: 80px; height: 40px;border-radius: 5px;margin: 0 auto;background-image: url('/images/font.png');background-position: center"></div>-->
-          <el-select v-model="font.font" placeholder="请选择">
+          <el-select v-model="font.font" placeholder="请选择" style="height: 35px">
             <el-option
-                v-for="item in fontFamily"
-                :key="item.font_id"
-                :label="item.name"
-                :value="item.font_id"
+              v-for="item in fontFamily"
+              :key="item.font_id"
+              :label="item.name"
+              :value="item.font_id"
             >
-            <div style="display: flex; align-items: center;width: 300px">
-              <img :src="item.img_path" style="width: calc(100% - 50px); height: 20px; margin-right: 8px;" />
+            <div style="display: flex; align-items: center">
+              <img :src="item.img_path" style="width: 90px; height: 30px; margin-right: 8px;" />
               <span>{{ item.name }}</span>
             </div>
             </el-option>
           </el-select>
         </div>
         <div>
-          <div style="font-size: 13px;height: 40px">字体大小</div>
+          <div style="font-size: 13px;height: 35px">字体大小</div>
           <div style="display: flex">
-            <el-slider v-model="font.size" style="width: 180px" :min="5" :max="32"></el-slider>
-            <el-input-number v-model="font.size" controls-position="right" :min="5" :max="32" style="margin-left: 20px"></el-input-number>
+            <el-slider v-model="font.size" style="width: 180px" :min="5" :max="100"></el-slider>
+            <el-input-number v-model="font.size" controls-position="right" :min="5" :max="100" style="margin-left: 20px"></el-input-number>
           </div>
         </div>
       </div>
@@ -144,9 +148,10 @@ export default {
       testAudio: null,
       isFocus: false,
       reverse: false,
+      withSubtitle: false,
       font: {
         color: '#000000',
-        size: 5,
+        size: 24,
         font: '',
       },
       fontFamily: []
@@ -182,6 +187,9 @@ export default {
       getAction('/get_fonts').then(res => {
         if (res.data.status === 'success') {
           this.fontFamily = res.data.data
+          if (this.fontFamily.length > 0) {
+            this.font.font = this.fontFamily[0].font_id
+          }
         }
       }).catch((error) => {
         console.error("获取字体样式列表失败:", error);
@@ -286,7 +294,7 @@ export default {
         filename: name,
         reverse: this.reverse,
         text: this.text,
-        with_subtitle: true,
+        with_subtitle: this.withSubtitle,
         subtitle_params: {
           "font": this.font.font,
           "fontsize": this.font.size,
@@ -539,5 +547,9 @@ export default {
   height: 14px !important;
   line-height: 14px !important;
   top: 5px !important;
+}
+
+.video >>> .el-input__icon {
+  line-height: 30px;
 }
 </style>
