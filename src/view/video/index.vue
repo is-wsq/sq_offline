@@ -112,9 +112,9 @@
           <div style="font-size: 13px;height: 35px">字体大小</div>
           <div style="display: flex">
             <el-slider v-model="subtitleParams.fontsize" style="width: 170px" :min="5" :max="50"
-                       @change="saveSubtitleParams('fontsize')"></el-slider>
+                       @change="saveSubtitleParams('font_size')"></el-slider>
             <el-input-number v-model="subtitleParams.fontsize" controls-position="right" :min="5" :max="50"
-                             style="margin-left: 10px" @change="saveSubtitleParams('fontsize')"></el-input-number>
+                             style="margin-left: 10px" @change="saveSubtitleParams('font_size')"></el-input-number>
           </div>
         </div>
         <div style="text-align: center">
@@ -136,7 +136,7 @@
     </div>
     <div style="height: 50px;display: flex;align-items: center;">
       <div style="margin-right: 20px;margin-left: 10px;font-size: 15px">视频倒序循环</div>
-      <el-switch :width="50" v-model="reverse" active-color="#6286ED" @change="switchReverse"></el-switch>
+      <el-switch :width="50" v-model="reverse" @change="switchReverse"></el-switch>
     </div>
     <el-button type="primary" class="generate-btn" @click="verify">生成视频</el-button>
   </div>
@@ -164,13 +164,6 @@ export default {
       reverse: false,
       withSubtitle: false,
       subtitleParams: {},
-      defSubtitleParams: {
-        color: '#ffffff',
-        fontsize: 24,
-        font: 'SJxingkai-C-Regular',
-        background_color: '#404040',
-        stroke_color: '#000000'
-      },
       fontFamily: []
     };
   },
@@ -202,14 +195,13 @@ export default {
   },
   methods: {
     initParams() {
-      this.withSubtitle = sessionStorage.getItem("with_subtitle") || false
-      this.reverse = sessionStorage.getItem("reverse") || false
-      this.subtitleParams = JSON.parse(sessionStorage.getItem("subtitle_params")) || this.defSubtitleParams
-      this.subtitleParams.color = this.subtitleParams.color || '#ffffff'
-      this.subtitleParams.fontsize = this.subtitleParams.fontsize || 24
-      this.subtitleParams.font = this.subtitleParams.font || 'SJxingkai-C-Regular'
-      this.subtitleParams.background_color = this.subtitleParams.background_color || '#404040'
-      this.subtitleParams.stroke_color = this.subtitleParams.stroke_color || '#000000'
+      this.withSubtitle = sessionStorage.getItem("with_subtitle") === 'true'
+      this.reverse = sessionStorage.getItem("reverse") === 'true'
+      this.subtitleParams.fontsize = parseInt(sessionStorage.getItem("font_size")) || 24
+      this.subtitleParams.color = sessionStorage.getItem("color") || '#ffffff'
+      this.subtitleParams.font = sessionStorage.getItem("font") || 'SJxingkai-C-Regular'
+      this.subtitleParams.background_color = sessionStorage.getItem("background_color") || '#404040'
+      this.subtitleParams.stroke_color = sessionStorage.getItem("stroke_color") || '#000000'
     },
     queryFontFamily() {
       getAction('/get_fonts').then(res => {
@@ -381,10 +373,13 @@ export default {
       sessionStorage.setItem("with_subtitle", this.withSubtitle)
     },
     saveSubtitleParams(key) {
-      let params = sessionStorage.getItem("subtitle_params") ?
-          JSON.parse(sessionStorage.getItem("subtitle_params")) : {}
-      params[key] = this.subtitleParams[key]
-      sessionStorage.setItem("subtitle_params", JSON.stringify(params))
+      let value
+      if (key === 'font_size') {
+        value = this.subtitleParams['fontsize']
+      }else {
+        value = this.subtitleParams[key]
+      }
+      sessionStorage.setItem(key, value)
     },
     switchReverse() {
       sessionStorage.setItem("reverse", this.reverse)
