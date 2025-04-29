@@ -3,7 +3,8 @@
     <div class="video-header">
       <div class="video-title">角色选择</div>
       <div class="video-template" ref="template">
-        <div v-for="item in templates" :key="item.id" style="border-radius: 10px; width: 130px" @click="figure = item"
+        <div v-for="item in templates" :key="item.id" style="border-radius: 10px; width: 130px"
+             @click="selectFigure(item)"
              :style="{ 'background-color': item.id === figure.id ? '#e0e7fb' : '#FFFFFF' }">
           <el-image class="template-img" :src="item.picture" fit="cover"></el-image>
           <div class="template-name">{{ item.name }}</div>
@@ -25,7 +26,7 @@
               <div class="popover-content">
                 <el-row>
                   <el-col :span="12" v-for="(voice, index) in voices" :key="voice.id">
-                    <div class="voice-item" :class="{ active: voice.id === sound.id }" @click="sound = voice">
+                    <div class="voice-item" :class="{ active: voice.id === sound.id }" @click="selectVoice(voice)">
                       <div class="voice-icon" @click="previewAudio(voice, index)" v-if="audioIndex !== index">
                         <i class="el-icon-play" style="font-size: 13px; color: #6286ed"></i>
                       </div>
@@ -46,92 +47,105 @@
         </div>
       </div>
       <div style="flex: 1">
-<!--        <div class="voice-card">-->
-<!--          <div class="video-title" style="margin-bottom: 10px">背景音乐</div>-->
-<!--          <div style="display: flex;align-items: center;">-->
-<!--            <div class="play-btn" @click="listenAudio">-->
-<!--              <i class="el-icon-pause' : 'el-icon-play'" style="font-size: 13px; color: #6286ed"></i>-->
-<!--            </div> -->
-<!--            <div class="play-btn" @click="listenAudio">-->
-<!--              <i class="el-icon-pause' : 'el-icon-play'" style="font-size: 13px; color: #6286ed"></i>-->
-<!--            </div>-->
-<!--            <el-popover placement="top" trigger="click" style="width: 100%">-->
-<!--              <div class="popover-content">-->
-<!--                <el-row>-->
-<!--                  <el-col :span="12" v-for="voice in voices" :key="voice.id">-->
-<!--                    <div class="voice-item" :class="{ active: voice.id === sound.id }" @click="sound = voice">-->
-<!--                      <div class="voice-icon" @click="previewAudio(voice)">-->
-<!--                        <i :class="voice.isPlay ? 'el-icon-pause' : 'el-icon-play'" style="font-size: 13px; color: #6286ed"></i>-->
-<!--                      </div>-->
-<!--                      <div class="voice-name">{{ voice.name }}</div>-->
-<!--                    </div>-->
-<!--                  </el-col>-->
-<!--                </el-row>-->
-<!--              </div>-->
-<!--              <div class="sound" slot="reference">-->
-<!--                <div class="sound-name">{{ sound.name }}</div>-->
-<!--                <i class="el-icon-a-ze-bars1" style="font-size: 20px; color: #9a9a9a"></i>-->
-<!--              </div>-->
-<!--            </el-popover>-->
-<!--          </div>-->
-<!--        </div>-->
+        <!--        <div class="voice-card">-->
+        <!--          <div class="video-title" style="margin-bottom: 10px">背景音乐</div>-->
+        <!--          <div style="display: flex;align-items: center;">-->
+        <!--            <div class="play-btn" @click="listenAudio">-->
+        <!--              <i class="el-icon-pause' : 'el-icon-play'" style="font-size: 13px; color: #6286ed"></i>-->
+        <!--            </div> -->
+        <!--            <div class="play-btn" @click="listenAudio">-->
+        <!--              <i class="el-icon-pause' : 'el-icon-play'" style="font-size: 13px; color: #6286ed"></i>-->
+        <!--            </div>-->
+        <!--            <el-popover placement="top" trigger="click" style="width: 100%">-->
+        <!--              <div class="popover-content">-->
+        <!--                <el-row>-->
+        <!--                  <el-col :span="12" v-for="voice in voices" :key="voice.id">-->
+        <!--                    <div class="voice-item" :class="{ active: voice.id === sound.id }" @click="sound = voice">-->
+        <!--                      <div class="voice-icon" @click="previewAudio(voice)">-->
+        <!--                        <i :class="voice.isPlay ? 'el-icon-pause' : 'el-icon-play'" style="font-size: 13px; color: #6286ed"></i>-->
+        <!--                      </div>-->
+        <!--                      <div class="voice-name">{{ voice.name }}</div>-->
+        <!--                    </div>-->
+        <!--                  </el-col>-->
+        <!--                </el-row>-->
+        <!--              </div>-->
+        <!--              <div class="sound" slot="reference">-->
+        <!--                <div class="sound-name">{{ sound.name }}</div>-->
+        <!--                <i class="el-icon-a-ze-bars1" style="font-size: 20px; color: #9a9a9a"></i>-->
+        <!--              </div>-->
+        <!--            </el-popover>-->
+        <!--          </div>-->
+        <!--        </div>-->
       </div>
     </div>
-    <div style="height: 150px;margin-top: 10px;background: #ffffff;border-radius: 10px;padding: 15px;box-sizing: border-box;">
+    <div
+        style="height: 150px;margin-top: 10px;background: #ffffff;border-radius: 10px;padding: 15px;box-sizing: border-box;">
       <div style="margin-bottom: 20px;display: flex;align-items: center">
         <div class="video-title">字幕样式</div>
         <div class="video-title" style="margin-left: 50px;margin-right: 10px">添加字幕</div>
-        <el-switch :width="50" v-model="withSubtitle" active-color="#6286ED"></el-switch>
+        <el-switch :width="50" v-model="withSubtitle" @change="switchSubtitle"></el-switch>
         <div style="margin-left: 20px;font-size: 13px;color: #9a9a9a">需开启添加字幕功能后，以下设置才会生效</div>
       </div>
-      <div style="display: flex;align-items: center;height: 80px">
+      <div style="display: flex;gap: 30px;align-items: center;height: 80px">
         <div style="text-align: center">
           <div style="font-size: 13px;height: 40px">字体颜色</div>
-          <el-color-picker v-model="font.color" size="small"></el-color-picker>
+          <el-color-picker v-model="subtitleParams.color" size="small" @change="saveSubtitleParams('color')"></el-color-picker>
         </div>
-        <div style="text-align: center;width: 300px">
+        <div style="text-align: center">
           <div style="font-size: 13px;height: 40px">字体样式</div>
-          <el-select v-model="font.font" placeholder="请选择" style="height: 35px">
+          <el-select v-model="subtitleParams.font" placeholder="请选择" style="height: 35px;width: 180px"
+                     @change="saveSubtitleParams('font')">
             <el-option
-              v-for="item in fontFamily"
-              :key="item.font_id"
-              :label="item.name"
-              :value="item.font_id"
+                v-for="item in fontFamily"
+                :key="item.font_id"
+                :label="item.name"
+                :value="item.font_id"
             >
-            <div style="display: flex; align-items: center">
-              <img :src="item.img_path" style="width: 90px; height: 30px; margin-right: 8px;" />
-              <span>{{ item.name }}</span>
-            </div>
+              <div style="display: flex; align-items: center">
+                <img :src="item.img_path" style="width: 150px; height: 50px; margin-right: 8px;"/>
+                <span>{{ item.name }}</span>
+              </div>
             </el-option>
           </el-select>
         </div>
         <div>
           <div style="font-size: 13px;height: 35px">字体大小</div>
           <div style="display: flex">
-            <el-slider v-model="font.size" style="width: 180px" :min="5" :max="100"></el-slider>
-            <el-input-number v-model="font.size" controls-position="right" :min="5" :max="100" style="margin-left: 20px"></el-input-number>
+            <el-slider v-model="subtitleParams.fontsize" style="width: 170px" :min="5" :max="50"
+                       @change="saveSubtitleParams('fontsize')"></el-slider>
+            <el-input-number v-model="subtitleParams.fontsize" controls-position="right" :min="5" :max="50"
+                             style="margin-left: 10px" @change="saveSubtitleParams('fontsize')"></el-input-number>
           </div>
+        </div>
+        <div style="text-align: center">
+          <div style="font-size: 13px;height: 40px">背景颜色</div>
+          <el-color-picker v-model="subtitleParams.background_color" size="small" @change="saveSubtitleParams('background_color')"></el-color-picker>
+        </div>
+        <div style="text-align: center">
+          <div style="font-size: 13px;height: 40px">描边颜色</div>
+          <el-color-picker v-model="subtitleParams.stroke_color" size="small" @change="saveSubtitleParams('stroke_color')"></el-color-picker>
         </div>
       </div>
     </div>
     <div class="text-card">
       <div class="video-title" style="margin-bottom: 10px">口播文案</div>
-      <el-input type="textarea" style="height: calc(100% - 30px); width: 100%" @focus="isFocus = true" @blur="isFocus = false" v-model="text">
+      <el-input type="textarea" style="height: calc(100% - 30px); width: 100%" @focus="isFocus = true"
+                @blur="isFocus = false" v-model="text">
       </el-input>
       <span class="text-tips" v-if="!isFocus && text === ''">请输入视频口播文案</span>
     </div>
     <div style="height: 50px;display: flex;align-items: center;">
       <div style="margin-right: 20px;margin-left: 10px;font-size: 15px">视频倒序循环</div>
-      <el-switch :width="50" v-model="reverse" active-color="#6286ED"></el-switch>
+      <el-switch :width="50" v-model="reverse" active-color="#6286ED" @change="switchReverse"></el-switch>
     </div>
-    <el-button type="success" class="generate-btn" @click="verify">生成视频</el-button>
+    <el-button type="primary" class="generate-btn" @click="verify">生成视频</el-button>
   </div>
 </template>
 
 <script>
-import { getAction, postAction } from "@/api/api";
+import {getAction, postAction} from "@/api/api";
 import axios from "axios";
-import { mapGetters } from "vuex";
+import {mapGetters} from "vuex";
 
 export default {
   name: "Video",
@@ -149,10 +163,13 @@ export default {
       isFocus: false,
       reverse: false,
       withSubtitle: false,
-      font: {
-        color: '#000000',
-        size: 24,
-        font: '',
+      subtitleParams: {},
+      defSubtitleParams: {
+        color: '#ffffff',
+        fontsize: 24,
+        font: 'SJxingkai-C-Regular',
+        background_color: '#404040',
+        stroke_color: '#000000'
       },
       fontFamily: []
     };
@@ -178,18 +195,24 @@ export default {
     this.querySounds();
     this.queryFigures();
     this.queryFontFamily()
+    this.initParams()
   },
   beforeDestroy() {
     this.stopAudio();
   },
   methods: {
+    initParams() {
+      this.withSubtitle = sessionStorage.getItem("with_subtitle") || false
+      this.reverse = sessionStorage.getItem("reverse") || false
+      this.subtitleParams = JSON.parse(sessionStorage.getItem("subtitle_params")) || this.defSubtitleParams
+    },
     queryFontFamily() {
       getAction('/get_fonts').then(res => {
         if (res.data.status === 'success') {
           this.fontFamily = res.data.data
-          if (this.fontFamily.length > 0) {
-            this.font.font = this.fontFamily[0].font_id
-          }
+          this.fontFamily.forEach(item => {
+            item.img_path = item.img_path.replace('http://127.0.0.1', 'http://192.168.0.122')
+          })
         }
       }).catch((error) => {
         console.error("获取字体样式列表失败:", error);
@@ -198,26 +221,36 @@ export default {
     queryFigures() {
       getAction("/figure/query_success").then((res) => {
         if (res.data.status === "success") {
-          this.templates = res.data.data;
-          if (this.templates.length > 0) {
-            this.figure = this.templates[0];
+          if (res.data.data.length > 0) {
+            this.templates = res.data.data;
+            let figure = JSON.parse(sessionStorage.getItem("setting_figure"))
+            if (figure && this.templates.some(item => item.id === figure.id)) {
+              this.figure = figure
+            }else {
+              this.figure = this.templates[0];
+            }
           }
         }
-      })
-      .catch((error) => {
+      }).catch((error) => {
         console.error("获取角色列表失败:", error);
       });
     },
     querySounds() {
       getAction("/timbres/query_success").then((res) => {
         if (res.data.status === "success") {
-          this.voices = res.data.data;
-          if (this.voices.length > 0) this.sound = this.voices[0];
+          if (res.data.data.length > 0) {
+            this.voices = res.data.data;
+            let sound = JSON.parse(sessionStorage.getItem("setting_voice"))
+            if (sound && this.voices.some(item => item.id === sound.id)) {
+              this.sound = sound
+            }else {
+              this.sound = this.voices[0];
+            }
+          }
         } else {
           this.$message.error("获取声音列表失败。");
         }
-      })
-      .catch((error) => {
+      }).catch((error) => {
         console.error("获取声音列表失败:", error);
       });
     },
@@ -295,11 +328,7 @@ export default {
         reverse: this.reverse,
         text: this.text,
         with_subtitle: this.withSubtitle,
-        subtitle_params: {
-          "font": this.font.font,
-          "fontsize": this.font.size,
-          "color": this.font.color,
-        }
+        subtitle_params: this.subtitleParams,
       };
       postAction("/figure/generate_video", params, 18000000).then((res) => {
         if (res.data.status === "success") {
@@ -322,8 +351,7 @@ export default {
             type: "error",
           });
         }
-      })
-      .catch((error) => {
+      }).catch((error) => {
         this.$store.dispatch("task/removeTask", task.id);
         let message = `${task.id}视频生成任务失败,${error}`;
         this.$notify({
@@ -339,6 +367,26 @@ export default {
       window.electronAPI.downloadFile(path, downloadPath, fileName)
       this.$message.success(`视频已保存到${downloadPath}`)
     },
+    selectFigure(item) {
+      this.figure = item
+      sessionStorage.setItem("setting_figure", JSON.stringify(item))
+    },
+    selectVoice(voice) {
+      this.sound = voice
+      sessionStorage.setItem("setting_voice", JSON.stringify(voice))
+    },
+    switchSubtitle() {
+      sessionStorage.setItem("with_subtitle", this.withSubtitle)
+    },
+    saveSubtitleParams(key) {
+      let params = sessionStorage.getItem("subtitle_params") ?
+          JSON.parse(sessionStorage.getItem("subtitle_params")) : {}
+      params[key] = this.subtitleParams[key]
+      sessionStorage.setItem("subtitle_params", JSON.stringify(params))
+    },
+    switchReverse() {
+      sessionStorage.setItem("reverse", this.reverse)
+    }
   },
 };
 </script>
@@ -551,5 +599,10 @@ export default {
 
 .video >>> .el-input__icon {
   line-height: 30px;
+}
+
+.el-select-dropdown__item {
+  height: 52px;
+  line-height: 52px;
 }
 </style>
