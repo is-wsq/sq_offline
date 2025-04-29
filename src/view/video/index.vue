@@ -373,6 +373,7 @@ export default {
       sessionStorage.setItem("with_subtitle", this.withSubtitle)
     },
     saveSubtitleParams(key) {
+      this.$forceUpdate()
       let value
       if (key === 'font_size') {
         value = this.subtitleParams['fontsize']
