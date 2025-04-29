@@ -210,9 +210,6 @@ export default {
       getAction('/get_fonts').then(res => {
         if (res.data.status === 'success') {
           this.fontFamily = res.data.data
-          this.fontFamily.forEach(item => {
-            item.img_path = item.img_path.replace('http://127.0.0.1', 'http://192.168.0.122')
-          })
         }
       }).catch((error) => {
         console.error("获取字体样式列表失败:", error);
