@@ -205,6 +205,11 @@ export default {
       this.withSubtitle = sessionStorage.getItem("with_subtitle") || false
       this.reverse = sessionStorage.getItem("reverse") || false
       this.subtitleParams = JSON.parse(sessionStorage.getItem("subtitle_params")) || this.defSubtitleParams
+      this.subtitleParams.color = this.subtitleParams.color || '#ffffff'
+      this.subtitleParams.fontsize = this.subtitleParams.fontsize || 24
+      this.subtitleParams.font = this.subtitleParams.font || 'SJxingkai-C-Regular'
+      this.subtitleParams.background_color = this.subtitleParams.background_color || '#404040'
+      this.subtitleParams.stroke_color = this.subtitleParams.stroke_color || '#000000'
     },
     queryFontFamily() {
       getAction('/get_fonts').then(res => {
