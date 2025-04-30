@@ -22,18 +22,35 @@
           <div style="width: 100%; text-align: center;line-height: 23px">{{ item.name }}</div>
         </div>
       </div>
-      <div style="text-align: center; margin-top: 10px">
-        <el-upload
-          class="avatar-uploader"
-          action="http://127.0.0.1:6006/figure/clone"
-          :show-file-list="false"
-          accept=".mp4, .mov"
-          :on-success="uploadSuccess"
-          :on-error="uploadError"
-          :before-upload="beforeUpload"
-        >
-          <el-button type="primary">添加形象</el-button>
-        </el-upload>
+      <div style="display: flex;margin-top: 30px;gap: 100px">
+        <div style="text-align: end;flex: 1">
+          <el-upload
+              class="avatar-uploader"
+              action="http://127.0.0.1:6006/figure/clone"
+              :show-file-list="false"
+              accept=".mp4, .mov"
+              :on-success="uploadSuccess"
+              :on-error="uploadError"
+              :before-upload="beforeUpload"
+              :data="{ lip_sync: false }"
+          >
+            <el-button type="primary">上传素材</el-button>
+          </el-upload>
+        </div>
+        <div style="flex: 1">
+          <el-upload
+              class="avatar-uploader"
+              action="http://127.0.0.1:6006/figure/clone"
+              :show-file-list="false"
+              accept=".mp4, .mov"
+              :on-success="uploadSuccess"
+              :on-error="uploadError"
+              :before-upload="beforeUpload"
+              :data="{ lip_sync: true }"
+          >
+            <el-button type="primary">添加形象</el-button>
+          </el-upload>
+        </div>
       </div>
       <div :style="menuStyle" v-if="rightMenuVisible">
         <div class="right-item" @click="preview">
@@ -273,15 +290,14 @@ export default {
 .figures-content {
   width: 90%;
   height: calc(100% - 180px);
-  padding: 40px;
-  margin-top: 80px;
+  padding: 30px 40px;
   box-sizing: border-box;
   background-color: #f5f5f5;
   border-radius: 20px;
 }
 
 .figures-list {
-  height: calc(100% - 50px);
+  height: calc(100% - 80px);
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
   grid-template-rows: 270px;

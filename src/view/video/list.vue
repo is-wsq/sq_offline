@@ -213,7 +213,7 @@ export default {
 
 .list-content {
   width: 90%;
-  height: calc(100% - 200px);
+  height: calc(100% - 100px);
   padding: 40px;
   box-sizing: border-box;
   background-color: #f5f5f5;

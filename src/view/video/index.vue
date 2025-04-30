@@ -89,7 +89,8 @@
       <div style="display: flex;gap: 30px;align-items: center;height: 80px">
         <div style="text-align: center">
           <div style="font-size: 13px;height: 40px">字体颜色</div>
-          <el-color-picker v-model="subtitleParams.color" size="small" @change="saveSubtitleParams('color')"></el-color-picker>
+          <el-color-picker v-model="subtitleParams.color" size="small"
+                           @change="saveSubtitleParams('color')"></el-color-picker>
         </div>
         <div style="text-align: center">
           <div style="font-size: 13px;height: 40px">字体样式</div>
@@ -118,12 +119,20 @@
           </div>
         </div>
         <div style="text-align: center">
-          <div style="font-size: 13px;height: 40px">背景颜色</div>
-          <el-color-picker v-model="subtitleParams.background_color" size="small" @change="saveSubtitleParams('background_color')"></el-color-picker>
+          <div style="font-size: 13px;height: 40px">描边颜色</div>
+          <el-color-picker v-model="subtitleParams.stroke_color" size="small"
+                           @change="saveSubtitleParams('stroke_color')"></el-color-picker>
         </div>
         <div style="text-align: center">
-          <div style="font-size: 13px;height: 40px">描边颜色</div>
-          <el-color-picker v-model="subtitleParams.stroke_color" size="small" @change="saveSubtitleParams('stroke_color')"></el-color-picker>
+          <div style="font-size: 13px;height: 40px">开启字幕背景</div>
+          <div style="height: 35px;">
+            <el-switch :width="50" v-model="use_background" @change="switchUseBackground" style="margin-top: 5px"></el-switch>
+          </div>
+        </div>
+        <div style="text-align: center">
+          <div style="font-size: 13px;height: 40px">背景颜色</div>
+          <el-color-picker v-model="subtitleParams.background_color" show-alpha size="small"
+                           @change="saveSubtitleParams('background_color')"></el-color-picker>
         </div>
       </div>
     </div>
@@ -163,6 +172,7 @@ export default {
       isFocus: false,
       reverse: false,
       withSubtitle: false,
+      use_background: false,
       subtitleParams: {},
       fontFamily: []
     };
@@ -197,10 +207,11 @@ export default {
     initParams() {
       this.withSubtitle = sessionStorage.getItem("with_subtitle") === 'true'
       this.reverse = sessionStorage.getItem("reverse") === 'true'
+      this.use_background = sessionStorage.getItem("use_background") === 'true'
       this.subtitleParams.fontsize = parseInt(sessionStorage.getItem("font_size")) || 24
       this.subtitleParams.color = sessionStorage.getItem("color") || '#ffffff'
       this.subtitleParams.font = sessionStorage.getItem("font") || 'SJxingkai-C-Regular'
-      this.subtitleParams.background_color = sessionStorage.getItem("background_color") || '#404040'
+      this.subtitleParams.background_color = sessionStorage.getItem("background_color") || 'rgba(64,64,64,0.6)'
       this.subtitleParams.stroke_color = sessionStorage.getItem("stroke_color") || '#000000'
     },
     queryFontFamily() {
@@ -220,7 +231,7 @@ export default {
             let figure = JSON.parse(sessionStorage.getItem("setting_figure"))
             if (figure && this.templates.some(item => item.id === figure.id)) {
               this.figure = figure
-            }else {
+            } else {
               this.figure = this.templates[0];
             }
           }
@@ -237,7 +248,7 @@ export default {
             let sound = JSON.parse(sessionStorage.getItem("setting_voice"))
             if (sound && this.voices.some(item => item.id === sound.id)) {
               this.sound = sound
-            }else {
+            } else {
               this.sound = this.voices[0];
             }
           }
@@ -290,31 +301,23 @@ export default {
         }
       })
     },
-    hexToRgb(hex) {
-      hex = hex.replace('#', '');
-
-      let r = parseInt(hex.substring(0, 2), 16);
-      let g = parseInt(hex.substring(2, 4), 16);
-      let b = parseInt(hex.substring(4, 6), 16);
-
-      return [r, g, b];
-    },
     generateVideo() {
       let name = this.setName()
-      let task = {
-        type: "video",
-        id: this.generateUniqueId(),
-        name: name,
-        status: "running",
-      };
-      this.$store.dispatch("task/addTask", task);
-      let content = `已创建视频生成任务，视频生成成功后会自动下载到本地`;
-      this.$alert(content, "任务创建提醒");
+      // let task = {
+      //   type: "video",
+      //   id: this.generateUniqueId(),
+      //   name: name,
+      //   status: "running",
+      // };
+      // this.$store.dispatch("task/addTask", task);
+      // let content = `已创建视频生成任务，视频生成成功后会自动下载到本地`;
+      // this.$alert(content, "任务创建提醒");
+      //
+      // setTimeout(() => {
+      //   this.$router.push({path: '/videoList'})
+      // }, 500)
 
-      setTimeout(() => {
-        this.$router.push({path: '/videoList'})
-      }, 500)
-
+      let background_colors = this.subtitleParams.background_color.replace(/rgba|\(|\)|\s/g, '').split(',');
       let params = {
         video_id: this.figure.video_id,
         voice_id: this.sound.voice_id,
@@ -322,39 +325,48 @@ export default {
         reverse: this.reverse,
         text: this.text,
         with_subtitle: this.withSubtitle,
-        subtitle_params: this.subtitleParams,
+        subtitle_params: {
+          font: this.subtitleParams.font,
+          fontsize: this.subtitleParams['fontsize'],
+          color: this.subtitleParams.color,
+          stroke_color: this.subtitleParams.stroke_color,
+          use_background: this.use_background,
+          background_color: background_colors.slice(0, 3).map(Number),
+          background_opacity: Number(background_colors[3])
+        },
       };
-      postAction("/figure/generate_video", params, 18000000).then((res) => {
-        if (res.data.status === "success") {
-          this.$store.dispatch("task/removeTask", task.id);
-          let message = `${task.id}视频生成任务已完成！`;
-          this.$notify({
-            title: "生成成功",
-            message: message,
-            duration: 0,
-            type: "success",
-          });
-          this.downloadVideo(res.data.data.video_path, name);
-        } else {
-          this.$store.dispatch("task/removeTask", task.id);
-          let message = `${task.id}视频生成任务失败,${res.data.message}`;
-          this.$notify({
-            title: "生成失败",
-            message: message,
-            duration: 0,
-            type: "error",
-          });
-        }
-      }).catch((error) => {
-        this.$store.dispatch("task/removeTask", task.id);
-        let message = `${task.id}视频生成任务失败,${error}`;
-        this.$notify({
-          title: "生成失败",
-          message: message,
-          duration: 0,
-          type: "error"
-        });
-      });
+      console.log(params)
+      // postAction("/figure/generate_video", params, 18000000).then((res) => {
+      //   if (res.data.status === "success") {
+      //     this.$store.dispatch("task/removeTask", task.id);
+      //     let message = `${task.id}视频生成任务已完成！`;
+      //     this.$notify({
+      //       title: "生成成功",
+      //       message: message,
+      //       duration: 0,
+      //       type: "success",
+      //     });
+      //     this.downloadVideo(res.data.data.video_path, name);
+      //   } else {
+      //     this.$store.dispatch("task/removeTask", task.id);
+      //     let message = `${task.id}视频生成任务失败,${res.data.message}`;
+      //     this.$notify({
+      //       title: "生成失败",
+      //       message: message,
+      //       duration: 0,
+      //       type: "error",
+      //     });
+      //   }
+      // }).catch((error) => {
+      //   this.$store.dispatch("task/removeTask", task.id);
+      //   let message = `${task.id}视频生成任务失败,${error}`;
+      //   this.$notify({
+      //     title: "生成失败",
+      //     message: message,
+      //     duration: 0,
+      //     type: "error"
+      //   });
+      // });
     },
     async downloadVideo(path, fileName) {
       let downloadPath = localStorage.getItem('downloadPath') || 'D:\\Downloads'
@@ -372,12 +384,15 @@ export default {
     switchSubtitle() {
       sessionStorage.setItem("with_subtitle", this.withSubtitle)
     },
+    switchUseBackground() {
+      sessionStorage.setItem("use_background", this.use_background)
+    },
     saveSubtitleParams(key) {
       this.$forceUpdate()
       let value
       if (key === 'font_size') {
         value = this.subtitleParams['fontsize']
-      }else {
+      } else {
         value = this.subtitleParams[key]
       }
       sessionStorage.setItem(key, value)

@@ -18,7 +18,7 @@ app.on('ready', () => {
         }
     });
 
-    mainWindow.removeMenu();
+    // mainWindow.removeMenu();
 
     // 加载 Vue 项目生成的 HTML 文件
     const indexPath = path.join(__dirname, 'dist', 'index.html');

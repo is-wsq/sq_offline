@@ -81,6 +81,16 @@ export default {
         this.stopService();
       }
     },
+    startWebui() {
+      let params = {
+        model: this.model,
+      }
+      postAction('start_webui',params).then(res => {
+        console.log(res)
+      }).catch(err => {
+        this.$message.error(`webui模型开启失败，${err}`);
+      })
+    },
     startService() {
       this.modelOpen = false
       let params = {
@@ -96,6 +106,7 @@ export default {
       postAction("stop_docker_service")
         .then((res) => {
           if (res.data.status === "success") {
+            this.startWebui();
             axios.post("http://127.0.0.1:11434/api/generate", params).then((result) => {
               if (result.data.done) {
                 this.modelOpen = true;
