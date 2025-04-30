@@ -146,6 +146,8 @@
     <div style="height: 50px;display: flex;align-items: center;">
       <div style="margin-right: 20px;margin-left: 10px;font-size: 15px">视频倒序循环</div>
       <el-switch :width="50" v-model="reverse" @change="switchReverse"></el-switch>
+      <div style="margin-right: 20px;margin-left: 50px;font-size: 15px">是否数字人</div>
+      <el-switch :width="50" v-model="lip_sync" @change="switchLipSync"></el-switch>
     </div>
     <el-button type="primary" class="generate-btn" @click="verify">生成视频</el-button>
   </div>
@@ -174,7 +176,8 @@ export default {
       withSubtitle: false,
       use_background: false,
       subtitleParams: {},
-      fontFamily: []
+      fontFamily: [],
+      lip_sync: false,
     };
   },
   computed: {
@@ -208,6 +211,7 @@ export default {
       this.withSubtitle = sessionStorage.getItem("with_subtitle") === 'true'
       this.reverse = sessionStorage.getItem("reverse") === 'true'
       this.use_background = sessionStorage.getItem("use_background") === 'true'
+      this.lip_sync = sessionStorage.getItem("lip_sync") === 'true'
       this.subtitleParams.fontsize = parseInt(sessionStorage.getItem("font_size")) || 24
       this.subtitleParams.color = sessionStorage.getItem("color") || '#ffffff'
       this.subtitleParams.font = sessionStorage.getItem("font") || 'SJxingkai-C-Regular'
@@ -303,19 +307,19 @@ export default {
     },
     generateVideo() {
       let name = this.setName()
-      // let task = {
-      //   type: "video",
-      //   id: this.generateUniqueId(),
-      //   name: name,
-      //   status: "running",
-      // };
-      // this.$store.dispatch("task/addTask", task);
-      // let content = `已创建视频生成任务，视频生成成功后会自动下载到本地`;
-      // this.$alert(content, "任务创建提醒");
-      //
-      // setTimeout(() => {
-      //   this.$router.push({path: '/videoList'})
-      // }, 500)
+      let task = {
+        type: "video",
+        id: this.generateUniqueId(),
+        name: name,
+        status: "running",
+      };
+      this.$store.dispatch("task/addTask", task);
+      let content = `已创建视频生成任务，视频生成成功后会自动下载到本地`;
+      this.$alert(content, "任务创建提醒");
+
+      setTimeout(() => {
+        this.$router.push({path: '/videoList'})
+      }, 500)
 
       let background_colors = this.subtitleParams.background_color.replace(/rgba|\(|\)|\s/g, '').split(',');
       let params = {
@@ -335,38 +339,37 @@ export default {
           background_opacity: Number(background_colors[3])
         },
       };
-      console.log(params)
-      // postAction("/figure/generate_video", params, 18000000).then((res) => {
-      //   if (res.data.status === "success") {
-      //     this.$store.dispatch("task/removeTask", task.id);
-      //     let message = `${task.id}视频生成任务已完成！`;
-      //     this.$notify({
-      //       title: "生成成功",
-      //       message: message,
-      //       duration: 0,
-      //       type: "success",
-      //     });
-      //     this.downloadVideo(res.data.data.video_path, name);
-      //   } else {
-      //     this.$store.dispatch("task/removeTask", task.id);
-      //     let message = `${task.id}视频生成任务失败,${res.data.message}`;
-      //     this.$notify({
-      //       title: "生成失败",
-      //       message: message,
-      //       duration: 0,
-      //       type: "error",
-      //     });
-      //   }
-      // }).catch((error) => {
-      //   this.$store.dispatch("task/removeTask", task.id);
-      //   let message = `${task.id}视频生成任务失败,${error}`;
-      //   this.$notify({
-      //     title: "生成失败",
-      //     message: message,
-      //     duration: 0,
-      //     type: "error"
-      //   });
-      // });
+      postAction("/figure/generate_video", params, 18000000).then((res) => {
+        if (res.data.status === "success") {
+          this.$store.dispatch("task/removeTask", task.id);
+          let message = `${task.id}视频生成任务已完成！`;
+          this.$notify({
+            title: "生成成功",
+            message: message,
+            duration: 0,
+            type: "success",
+          });
+          this.downloadVideo(res.data.data.video_path, name);
+        } else {
+          this.$store.dispatch("task/removeTask", task.id);
+          let message = `${task.id}视频生成任务失败,${res.data.message}`;
+          this.$notify({
+            title: "生成失败",
+            message: message,
+            duration: 0,
+            type: "error",
+          });
+        }
+      }).catch((error) => {
+        this.$store.dispatch("task/removeTask", task.id);
+        let message = `${task.id}视频生成任务失败,${error}`;
+        this.$notify({
+          title: "生成失败",
+          message: message,
+          duration: 0,
+          type: "error"
+        });
+      });
     },
     async downloadVideo(path, fileName) {
       let downloadPath = localStorage.getItem('downloadPath') || 'D:\\Downloads'
@@ -399,7 +402,10 @@ export default {
     },
     switchReverse() {
       sessionStorage.setItem("reverse", this.reverse)
-    }
+    },
+    switchLipSync() {
+      sessionStorage.setItem("lip_sync", this.lip_sync)
+    },
   },
 };
 </script>
