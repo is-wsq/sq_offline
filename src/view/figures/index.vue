@@ -26,7 +26,7 @@
         <div style="text-align: end;flex: 1">
           <el-upload
               class="avatar-uploader"
-              action="http://127.0.0.1:6006/figure/clone"
+              action="http://127.0.0.1:6006/figure/clone_only"
               :show-file-list="false"
               accept=".mp4, .mov"
               :on-success="uploadSuccess"

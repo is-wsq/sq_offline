@@ -138,24 +138,28 @@ export default {
         });
     },
     stopService() {
-      let params = {
-        model: this.model,
-        keep_alive: 0,
-      };
-      this.modelOpen = true
-      axios.post("http://127.0.0.1:11434/api/generate", params).then((res) => {
-        if (res.data.done) {
-          this.modelOpen = false;
-          this.$message.success("模型卸载成功");
-        } else {
-          this.modelOpen = true;
-          this.$message.error(res.data.message);
+      axios.get("http://127.0.0.1:11434/api/ps").then((res) => {
+        if (res.data.models.length > 0) {
+          let params = {
+            model: res.data.models[0].model,
+            keep_alive: 0,
+          };
+          this.modelOpen = true
+          axios.post("http://127.0.0.1:11434/api/generate", params).then((res) => {
+            if (res.data.done) {
+              this.modelOpen = false;
+              this.$message.success("模型卸载成功");
+            } else {
+              this.modelOpen = true;
+              this.$message.error(res.data.message);
+            }
+          })
+          .catch((err) => {
+            this.modelOpen = true;
+            this.$message.error("模型卸载失败，请稍后重试。");
+          });
         }
       })
-      .catch((err) => {
-        this.modelOpen = true;
-        this.$message.error("模型卸载失败，请稍后重试。");
-      });
     },
   },
 };

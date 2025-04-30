@@ -288,6 +288,10 @@ export default {
       })
     },
     previewAudio(voice, index) {
+      if (voice.id === 'default') {
+        this.$message.warning("无音频预览");
+        return;
+      }
       this.stopAudio();
 
       setTimeout(() => {
@@ -349,6 +353,7 @@ export default {
       let params = {
         video_id: this.figure.video_id,
         voice_id: this.sound.voice_id,
+        bgm_id: this.bgm.id,
         filename: name,
         reverse: this.reverse,
         text: this.text,
