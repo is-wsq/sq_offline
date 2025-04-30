@@ -47,35 +47,38 @@
         </div>
       </div>
       <div style="flex: 1">
-        <!--        <div class="voice-card">-->
-        <!--          <div class="video-title" style="margin-bottom: 10px">背景音乐</div>-->
-        <!--          <div style="display: flex;align-items: center;">-->
-        <!--            <div class="play-btn" @click="listenAudio">-->
-        <!--              <i class="el-icon-pause' : 'el-icon-play'" style="font-size: 13px; color: #6286ed"></i>-->
-        <!--            </div> -->
-        <!--            <div class="play-btn" @click="listenAudio">-->
-        <!--              <i class="el-icon-pause' : 'el-icon-play'" style="font-size: 13px; color: #6286ed"></i>-->
-        <!--            </div>-->
-        <!--            <el-popover placement="top" trigger="click" style="width: 100%">-->
-        <!--              <div class="popover-content">-->
-        <!--                <el-row>-->
-        <!--                  <el-col :span="12" v-for="voice in voices" :key="voice.id">-->
-        <!--                    <div class="voice-item" :class="{ active: voice.id === sound.id }" @click="sound = voice">-->
-        <!--                      <div class="voice-icon" @click="previewAudio(voice)">-->
-        <!--                        <i :class="voice.isPlay ? 'el-icon-pause' : 'el-icon-play'" style="font-size: 13px; color: #6286ed"></i>-->
-        <!--                      </div>-->
-        <!--                      <div class="voice-name">{{ voice.name }}</div>-->
-        <!--                    </div>-->
-        <!--                  </el-col>-->
-        <!--                </el-row>-->
-        <!--              </div>-->
-        <!--              <div class="sound" slot="reference">-->
-        <!--                <div class="sound-name">{{ sound.name }}</div>-->
-        <!--                <i class="el-icon-a-ze-bars1" style="font-size: 20px; color: #9a9a9a"></i>-->
-        <!--              </div>-->
-        <!--            </el-popover>-->
-        <!--          </div>-->
-        <!--        </div>-->
+        <div class="voice-card">
+          <div class="video-title" style="margin-bottom: 10px">背景音乐</div>
+          <div style="display: flex;align-items: center;">
+            <div class="play-btn" @click="previewAudio(bgm, -2)" v-if="audioIndex !== -2">
+              <i class="el-icon-play" style="font-size: 13px; color: #6286ed"></i>
+            </div>
+            <div class="play-btn" @click="stopAudio" v-else>
+              <i class="el-icon-pause" style="font-size: 13px; color: #6286ed"></i>
+            </div>
+            <el-popover placement="bottom" trigger="click"  @hide="stopAudio">
+              <div class="popover-content">
+                <el-row>
+                  <el-col :span="12" v-for="(item, index) in bgmList" :key="item.id">
+                    <div class="voice-item" :class="{ active: item.id === bgm.id }" @click="selectBgm(item)">
+                      <div class="voice-icon" @click="previewAudio(item, 10000 + index)" v-if="audioIndex !== (10000 + index)">
+                        <i :class="item.isPlay ? 'el-icon-pause' : 'el-icon-play'" style="font-size: 13px; color: #6286ed"></i>
+                      </div>
+                      <div class="voice-icon" @click="stopAudio" v-else>
+                        <i class="el-icon-pause" style="font-size: 13px; color: #6286ed"></i>
+                      </div>
+                      <div class="voice-name">{{ item.name }}</div>
+                    </div>
+                  </el-col>
+                </el-row>
+              </div>
+              <div class="sound" slot="reference">
+                <div class="sound-name">{{ bgm.name }}</div>
+                <i class="el-icon-a-ze-bars1" style="font-size: 20px; color: #9a9a9a"></i>
+              </div>
+            </el-popover>
+          </div>
+        </div>
       </div>
     </div>
     <div
@@ -167,10 +170,11 @@ export default {
       figure: {},
       voices: [],
       sound: {},
+      bgmList: [],
+      bgm: {},
       text: "",
       audio: null,
       audioIndex: null,
-      testAudio: null,
       isFocus: false,
       reverse: false,
       withSubtitle: false,
@@ -201,6 +205,7 @@ export default {
     this.querySounds();
     this.queryFigures();
     this.queryFontFamily()
+    this.queryBgm()
     this.initParams()
   },
   beforeDestroy() {
@@ -262,6 +267,25 @@ export default {
       }).catch((error) => {
         console.error("获取声音列表失败:", error);
       });
+    },
+    queryBgm() {
+      getAction('/bgm/all').then(res => {
+        if (res.data.status === 'success') {
+          if (res.data.data.length > 0) {
+            this.bgmList = res.data.data
+            let bgm = JSON.parse(sessionStorage.getItem("setting_bgm"))
+            if (bgm && this.bgmList.some(item => item.id === bgm.id)) {
+              this.bgm = bgm
+            } else {
+              this.bgm = this.bgmList[0]
+            }
+          }
+        } else {
+          this.$message.error("获取背景音乐列表失败。");
+        }
+      }).catch((error) => {
+        console.error("获取背景音乐列表失败:", error);
+      })
     },
     previewAudio(voice, index) {
       this.stopAudio();
@@ -329,6 +353,7 @@ export default {
         reverse: this.reverse,
         text: this.text,
         with_subtitle: this.withSubtitle,
+        lip_sync: this.lip_sync,
         subtitle_params: {
           font: this.subtitleParams.font,
           fontsize: this.subtitleParams['fontsize'],
@@ -383,6 +408,10 @@ export default {
     selectVoice(voice) {
       this.sound = voice
       sessionStorage.setItem("setting_voice", JSON.stringify(voice))
+    },
+    selectBgm(item) {
+      this.bgm = item
+      sessionStorage.setItem("setting_bgm", JSON.stringify(item))
     },
     switchSubtitle() {
       sessionStorage.setItem("with_subtitle", this.withSubtitle)
