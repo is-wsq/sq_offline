@@ -2,7 +2,7 @@ const {app, BrowserWindow, ipcMain,dialog,ipcRenderer  } = require('electron');
 const path = require('path');
 const fs = require('fs');
 const http = require('http');
-const { execFile } = require('child_process')
+const { spawn  } = require('child_process')
 
 let mainWindow;
 
@@ -35,15 +35,10 @@ app.on('ready', () => {
         console.log('监听窗口关闭')
 
         const batPath = "D:\\video\\start_backend.bat";
+        const batProcess = spawn('cmd.exe', ['/c', batPath]);
 
-        execFile(batPath, (error, stdout, stderr) => {
-            if (error) {
-                console.error('Failed to run BAT:', error);
-            } else {
-                console.log('BAT output:', stdout);
-            }
-
-            // 执行完后，移除监听并关闭窗口
+        batProcess.on('close', (code) => {
+            console.log(`子进程退出，代码：${code}`);
             mainWindow.removeAllListeners('close');
             mainWindow.close();
         });
