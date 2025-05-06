@@ -8,7 +8,7 @@
             <div class="voice-item" v-for="(item, index) in systemSounds" :key="index"
                  @contextmenu.stop="handleContextMenu(item, $event)">
               <div class="voice-icon" @click="textAudio(item)">
-                <el-image style="width: 20px; height: 20px" :src="item.isPlay ? '/stop.png' : '/play.png'"></el-image>
+                <i :class="item.isPlay ? 'el-icon-pause' : 'el-icon-play'" style="font-size: 13px; color: #6286ed"></i>
               </div>
               <div :title="item.name" class="voice-name">{{ item.name }}</div>
             </div>

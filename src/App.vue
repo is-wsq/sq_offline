@@ -18,12 +18,16 @@ export default {
   methods: {
     handleBeforeUnload(e) {
       console.log(1111)
-      this._beforeUnload_time = new Date().getTime()
-      e = e || window.event
-      if (e) {
-        e.returnValue = '关闭提示'
-      }
-      return '关闭提示'
+      this.$alert('关闭提示', '提示', {
+        confirmButtonText: '确定',
+      })
+      window.electronAPI.closeWindow()
+      // this._beforeUnload_time = new Date().getTime()
+      // e = e || window.event
+      // if (e) {
+      //   e.returnValue = '关闭提示'
+      // }
+      // return '关闭提示'
     },
   },
   mounted() {

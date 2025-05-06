@@ -37,6 +37,10 @@ app.on('window-all-closed', () => {
     if (process.platform !== 'darwin') app.quit();
 });
 
+ipcMain.handle('close-window', (event, directory) => {
+    mainWindow.close();
+})
+
 ipcMain.handle('dialog:selectFolder', async () => {
     const result = await dialog.showOpenDialog({
         properties: ['openDirectory']
