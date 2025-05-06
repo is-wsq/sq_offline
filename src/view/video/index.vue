@@ -390,7 +390,7 @@ export default {
           this.$notify({
             title: "生成成功",
             message: message,
-            duration: 0,
+            duration: 20000,
             type: "success",
           });
           this.downloadVideo(res.data.data.video_path, name);

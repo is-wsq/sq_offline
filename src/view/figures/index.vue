@@ -247,7 +247,7 @@ export default {
         this.$notify({
           title: "克隆成功",
           message: `${file.name}形象克隆任务已完成！`,
-          duration: 0,
+          duration: 20000,
           type: "success",
         });
         this.queryFigures();
