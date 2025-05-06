@@ -32,16 +32,12 @@ app.on('ready', () => {
     mainWindow.on('close', (e) => {
         // mainWindow = null;
         e.preventDefault();
-        console.log('监听窗口关闭')
 
         const batPath = "D:\\video\\start_backend.bat";
         const batProcess = spawn('cmd.exe', ['/c', batPath]);
 
-        batProcess.on('close', (code) => {
-            console.log(`子进程退出，代码：${code}`);
-            mainWindow.removeAllListeners('close');
-            mainWindow.close();
-        });
+        mainWindow.removeAllListeners('close');
+        mainWindow.close();
     });
 });
 
