@@ -14,6 +14,23 @@ export default {
   },
   created() {
     // localStorage.removeItem('tasks')
+  },
+  methods: {
+    handleBeforeUnload(e) {
+      console.log(1111)
+      this._beforeUnload_time = new Date().getTime()
+      e = e || window.event
+      if (e) {
+        e.returnValue = '关闭提示'
+      }
+      return '关闭提示'
+    },
+  },
+  mounted() {
+    window.addEventListener('beforeunload', this.handleBeforeUnload);
+  },
+  beforeDestroy() {
+    window.removeEventListener('beforeunload', this.handleBeforeUnload);
   }
 }
 </script>

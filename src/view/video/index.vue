@@ -1,17 +1,32 @@
 <template>
   <div class="video">
     <div class="video-header">
-      <div class="video-title">角色选择</div>
-      <div class="video-template" ref="template">
-        <div v-for="item in templates" :key="item.id" style="border-radius: 10px; width: 130px"
-             @click="selectFigure(item)"
-             :style="{ 'background-color': item.id === figure.id ? '#e0e7fb' : '#FFFFFF' }">
-          <el-image class="template-img" :src="item.picture" fit="cover"></el-image>
-          <div class="template-name">{{ item.name }}</div>
+      <div class="video-card">
+        <div class="video-card-list">
+          <div class="video-title">素材</div>
+          <div class="video-template">
+            <div v-for="item in materials" :key="item.id" style="border-radius: 10px; width: 130px"
+                 @click="selectFigure(item)"
+                 :style="{ 'background-color': item.id === figure.id ? '#e0e7fb' : '#FFFFFF' }">
+              <el-image class="template-img" :src="item.picture" fit="cover"></el-image>
+              <div class="template-name">{{ item.name }}</div>
+            </div>
+          </div>
+        </div>
+        <div class="video-card-list">
+          <div class="video-title">角色</div>
+          <div class="video-template">
+            <div v-for="item in figures" :key="item.id" style="border-radius: 10px; width: 130px"
+                 @click="selectFigure(item)"
+                 :style="{ 'background-color': item.id === figure.id ? '#e0e7fb' : '#FFFFFF' }">
+              <el-image class="template-img" :src="item.picture" fit="cover"></el-image>
+              <div class="template-name">{{ item.name }}</div>
+            </div>
+          </div>
         </div>
       </div>
     </div>
-    <div style="display: flex;gap: 25px;margin-top: 10px">
+    <div style="display: flex;gap: 10px;margin-top: 10px">
       <div style="flex: 1">
         <div class="voice-card">
           <div class="video-title" style="margin-bottom: 10px">声音选择</div>
@@ -149,8 +164,6 @@
     <div style="height: 50px;display: flex;align-items: center;">
       <div style="margin-right: 20px;margin-left: 10px;font-size: 15px">视频倒序循环</div>
       <el-switch :width="50" v-model="reverse" @change="switchReverse"></el-switch>
-      <div style="margin-right: 20px;margin-left: 50px;font-size: 15px">是否数字人</div>
-      <el-switch :width="50" v-model="lip_sync" @change="switchLipSync"></el-switch>
     </div>
     <el-button type="primary" class="generate-btn" @click="verify">生成视频</el-button>
   </div>
@@ -167,6 +180,8 @@ export default {
     return {
       isPlay: false,
       templates: [],
+      materials: [],
+      figures: [],
       figure: {},
       voices: [],
       sound: {},
@@ -181,7 +196,6 @@ export default {
       use_background: false,
       subtitleParams: {},
       fontFamily: [],
-      lip_sync: false,
     };
   },
   computed: {
@@ -216,7 +230,6 @@ export default {
       this.withSubtitle = sessionStorage.getItem("with_subtitle") === 'true'
       this.reverse = sessionStorage.getItem("reverse") === 'true'
       this.use_background = sessionStorage.getItem("use_background") === 'true'
-      this.lip_sync = sessionStorage.getItem("lip_sync") === 'true'
       this.subtitleParams.fontsize = parseInt(sessionStorage.getItem("font_size")) || 24
       this.subtitleParams.color = sessionStorage.getItem("color") || '#ffffff'
       this.subtitleParams.font = sessionStorage.getItem("font") || 'SJxingkai-C-Regular'
@@ -236,12 +249,13 @@ export default {
       getAction("/figure/query_success").then((res) => {
         if (res.data.status === "success") {
           if (res.data.data.length > 0) {
-            this.templates = res.data.data;
+            this.materials = res.data.data.filter(item => !item.lip_sync);
+            this.figures = res.data.data.filter(item =>  item.lip_sync);
             let figure = JSON.parse(sessionStorage.getItem("setting_figure"))
-            if (figure && this.templates.some(item => item.id === figure.id)) {
+            if (figure && res.data.data.some(item => item.id === figure.id)) {
               this.figure = figure
             } else {
-              this.figure = this.templates[0];
+              this.figure = res.data.data[0];
             }
           }
         }
@@ -358,7 +372,7 @@ export default {
         reverse: this.reverse,
         text: this.text,
         with_subtitle: this.withSubtitle,
-        lip_sync: this.lip_sync,
+        lip_sync: !!this.figure.lip_sync,
         subtitle_params: {
           font: this.subtitleParams.font,
           fontsize: this.subtitleParams['fontsize'],
@@ -437,9 +451,6 @@ export default {
     switchReverse() {
       sessionStorage.setItem("reverse", this.reverse)
     },
-    switchLipSync() {
-      sessionStorage.setItem("lip_sync", this.lip_sync)
-    },
   },
 };
 </script>
@@ -460,18 +471,30 @@ export default {
 }
 
 .video-header {
+
+}
+
+.video-card {
+  width: 100%;
+  display: flex;
+  gap: 10px;
+}
+
+.video-card-list {
+  flex: 1;
   background-color: #ffffff;
   border-radius: 10px;
-  padding: 15px;
+  padding: 5px 15px 15px 15px;
   box-sizing: border-box;
 }
 
 .video-template {
-  height: 195px;
   width: 100%;
-  overflow-y: auto;
-  overflow-x: hidden;
+  height: 195px;
+  margin-top: 7px;
   display: grid;
+  overflow-y: auto;
+  overflow-x: hidden;;
   grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
   grid-template-rows: 195px;
   gap: 15px;
