@@ -28,8 +28,10 @@ app.on('ready', () => {
         mainWindow.show();
     });
 
-    mainWindow.on('closed', () => {
-        mainWindow = null;
+    mainWindow.on('closed', (e) => {
+        // mainWindow = null;
+        e.preventDefault();
+        console.log('监听窗口关闭')
     });
 });
 
@@ -37,9 +39,10 @@ app.on('window-all-closed', () => {
     if (process.platform !== 'darwin') app.quit();
 });
 
-ipcMain.handle('close-window', (event, directory) => {
-    mainWindow.close();
-})
+// ipcMain.handle('close-window', (event, directory) => {
+//     execFile('C:\\path\\to\\your\\test.bat', (error, stdout, stderr))
+//     mainWindow.close();
+// })
 
 ipcMain.handle('dialog:selectFolder', async () => {
     const result = await dialog.showOpenDialog({

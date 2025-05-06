@@ -15,27 +15,18 @@ export default {
   created() {
     // localStorage.removeItem('tasks')
   },
-  methods: {
-    handleBeforeUnload(e) {
-      console.log(1111)
-      this.$alert('关闭提示', '提示', {
-        confirmButtonText: '确定',
-      })
-      window.electronAPI.closeWindow()
-      // this._beforeUnload_time = new Date().getTime()
-      // e = e || window.event
-      // if (e) {
-      //   e.returnValue = '关闭提示'
-      // }
-      // return '关闭提示'
-    },
-  },
-  mounted() {
-    window.addEventListener('beforeunload', this.handleBeforeUnload);
-  },
-  beforeDestroy() {
-    window.removeEventListener('beforeunload', this.handleBeforeUnload);
-  }
+  // methods: {
+  //   handleBeforeUnload(e) {
+  //     console.log(1111)
+  //     window.electronAPI.closeWindow()
+  //   },
+  // },
+  // mounted() {
+  //   window.addEventListener('beforeunload', this.handleBeforeUnload);
+  // },
+  // beforeDestroy() {
+  //   window.removeEventListener('beforeunload', this.handleBeforeUnload);
+  // }
 }
 </script>
 
