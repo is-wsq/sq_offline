@@ -15,18 +15,6 @@ export default {
   created() {
     // localStorage.removeItem('tasks')
   },
-  // methods: {
-  //   handleBeforeUnload(e) {
-  //     console.log(1111)
-  //     window.electronAPI.closeWindow()
-  //   },
-  // },
-  // mounted() {
-  //   window.addEventListener('beforeunload', this.handleBeforeUnload);
-  // },
-  // beforeDestroy() {
-  //   window.removeEventListener('beforeunload', this.handleBeforeUnload);
-  // }
 }
 </script>
 

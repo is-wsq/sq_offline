@@ -33,22 +33,30 @@ app.on('ready', () => {
         // mainWindow = null;
         e.preventDefault();
 
-        const batPath = "D:\\video\\start_backend.bat";
+        const batPath = "C:\\Users\\Administrator\\Desktop\\离线部署\\stop_backend.bat";
         const batProcess = spawn('cmd.exe', ['/c', batPath]);
 
-        mainWindow.removeAllListeners('close');
-        mainWindow.close();
+        batProcess.stdout.on('data', (data) => {
+            console.log(`stdout: ${data}`);
+        });
+
+        batProcess.stderr.on('data', (data) => {
+            console.error(`stderr: ${data}`);
+            mainWindow.removeAllListeners('close');
+            mainWindow.close();
+        });
+
+        batProcess.on('close', (code) => {
+            console.log(`子进程退出，代码：${code}`);
+            mainWindow.removeAllListeners('close');
+            mainWindow.close();
+        });
     });
 });
 
 app.on('window-all-closed', () => {
     if (process.platform !== 'darwin') app.quit();
 });
-
-// ipcMain.handle('close-window', (event, directory) => {
-//     execFile('C:\\path\\to\\your\\test.bat', (error, stdout, stderr))
-//     mainWindow.close();
-// })
 
 ipcMain.handle('dialog:selectFolder', async () => {
     const result = await dialog.showOpenDialog({
