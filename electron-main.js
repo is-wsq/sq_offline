@@ -70,6 +70,11 @@ ipcMain.handle('dialog:selectFolder', async () => {
 ipcMain.on('download-video', (event, { url, path: savePath, fileName }) => {
     // const fileName = path.basename(url)
     const fullPath = path.join(savePath, fileName + '.mp4')
+
+    if (!fs.existsSync(savePath)) {
+        fs.mkdirSync(savePath, { recursive: true })
+    }
+
     const file = fs.createWriteStream(fullPath)
 
     http.get(url, (response) => {
