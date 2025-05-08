@@ -99,7 +99,7 @@
         </div>
       </div>
     </div>
-    <div style="margin-top: 10px;border-radius: 10px;padding: 15px;box-sizing: border-box;background: #ffffff;position: relative">
+    <div class="voice-card" style="margin-top: 10px;position: relative">
       <div style="margin-bottom: 20px;display: flex;align-items: center;position: absolute;top: 15px;left: 85px">
         <el-switch :width="50" v-model="withSubtitle" @change="switchSubtitle"></el-switch>
         <div style="margin-left: 20px;font-size: 13px;color: #9a9a9a">需开启添加字幕功能后，以下设置才会生效</div>
@@ -158,6 +158,10 @@
         </el-collapse-item>
       </el-collapse>
     </div>
+    <div class="voice-card" style="margin-top: 10px;display: flex">
+      <div class="video-title" style="line-height: 30px;margin-right: 10px">视频名称</div>
+      <el-input style="width: 250px" v-model="video_name"></el-input>
+    </div>
     <div class="text-card">
       <div class="video-title" style="margin-bottom: 10px">口播文案</div>
       <el-input type="textarea" style="height: calc(100% - 30px); width: 100%" @focus="isFocus = true"
@@ -199,7 +203,8 @@ export default {
       use_background: false,
       subtitleParams: {},
       fontFamily: [],
-      activeNames: []
+      activeNames: [],
+      video_name: ''
     };
   },
   mounted() {
@@ -339,7 +344,7 @@ export default {
         video_id: this.figure.video_id,
         voice_id: this.sound.voice_id,
         bgm_id: this.bgm.id,
-        filename: name,
+        filename: this.video_name || name,
         reverse: this.reverse,
         text: this.text,
         with_subtitle: this.withSubtitle,
@@ -566,6 +571,11 @@ export default {
   padding: 15px;
   box-sizing: border-box;
   position: relative;
+}
+
+.video >>> .el-input__inner {
+  border: none;
+  background-color: #f9f9f9;
 }
 
 .video >>> .el-textarea__inner {
