@@ -117,9 +117,72 @@
       </div>
     </div>
     <div class="voice-card" style="margin-top: 10px;position: relative">
+      <div style="display: flex;align-items: center;position: absolute;top: 15px;left: 85px">
+        <el-switch :width="50" v-model="withTitle" @change="switchTitle"></el-switch>
+        <div style="margin-left: 20px;font-size: 13px;color: #9a9a9a">需开启添加字幕标题后，以下设置才会生效</div>
+      </div>
+      <el-collapse v-model="activeTitleNames">
+        <el-collapse-item title="字幕标题" name="1">
+          <div style="display: flex;margin-bottom: 10px">
+            <div style="font-size: 13px;line-height: 30px;margin-right: 10px">字幕标题</div>
+            <el-input placeholder="请输入" class="video-input" clearable v-model="subtitleNameParams.name"></el-input>
+          </div>
+          <div style="display: flex;gap: 30px;align-items: center;height: 80px">
+            <div style="text-align: center">
+              <div style="font-size: 13px;height: 40px">字体颜色</div>
+              <el-color-picker v-model="subtitleNameParams.name_color" size="small"
+                               @change="saveSubtitleNameParams('name_color')"></el-color-picker>
+            </div>
+            <div style="text-align: center">
+              <div style="font-size: 13px;height: 40px">字体样式</div>
+              <el-select v-model="subtitleNameParams.name_font" placeholder="请选择" style="height: 35px;width: 180px"
+                         @change="saveSubtitleNameParams('name_font')">
+                <el-option
+                    v-for="item in fontFamily"
+                    :key="item.font_id"
+                    :label="item.name"
+                    :value="item.font_id"
+                >
+                  <div style="display: flex; align-items: center">
+                    <img :src="item.img_path" style="width: 150px; height: 50px; margin-right: 8px;"/>
+                    <span>{{ item.name }}</span>
+                  </div>
+                </el-option>
+              </el-select>
+            </div>
+            <div>
+              <div style="font-size: 13px;height: 35px">字体大小</div>
+              <div style="display: flex">
+                <el-slider v-model="subtitleNameParams.name_fontsize" style="width: 170px" :min="5" :max="50"
+                           @change="saveSubtitleNameParams('name_fontsize')"></el-slider>
+                <el-input-number v-model="subtitleNameParams.name_fontsize" controls-position="right" :min="5" :max="50"
+                                 style="margin-left: 10px" @change="saveSubtitleNameParams('name_fontsize')"></el-input-number>
+              </div>
+            </div>
+            <div style="text-align: center">
+              <div style="font-size: 13px;height: 40px">描边颜色</div>
+              <el-color-picker v-model="subtitleNameParams.name_stroke_color" size="small"
+                               @change="saveSubtitleNameParams('name_stroke_color')"></el-color-picker>
+            </div>
+            <div style="text-align: center">
+              <div style="font-size: 13px;height: 40px">开启字幕背景</div>
+              <div style="height: 35px;">
+                <el-switch :width="50" v-model="name_use_background" @change="switchNameUseBackground" style="margin-top: 5px"></el-switch>
+              </div>
+            </div>
+            <div style="text-align: center">
+              <div style="font-size: 13px;height: 40px">背景颜色</div>
+              <el-color-picker v-model="subtitleNameParams.name_background_color" show-alpha size="small"
+                               @change="saveSubtitleNameParams('name_background_color')"></el-color-picker>
+            </div>
+          </div>
+        </el-collapse-item>
+      </el-collapse>
+    </div>
+    <div class="voice-card" style="margin-top: 10px;position: relative">
       <div style="margin-bottom: 20px;display: flex;align-items: center;position: absolute;top: 15px;left: 85px">
         <el-switch :width="50" v-model="withSubtitle" @change="switchSubtitle"></el-switch>
-        <div style="margin-left: 20px;font-size: 13px;color: #9a9a9a">需开启添加字幕功能后，以下设置才会生效</div>
+        <div style="margin-left: 20px;font-size: 13px;color: #9a9a9a">需开启添加字幕后，以下设置才会生效</div>
       </div>
       <el-collapse v-model="activeNames">
         <el-collapse-item title="字幕设置" name="1">
@@ -175,10 +238,6 @@
         </el-collapse-item>
       </el-collapse>
     </div>
-    <div class="voice-card" style="margin-top: 10px;display: flex">
-      <div class="video-title" style="line-height: 30px;margin-right: 10px">视频名称</div>
-      <el-input class="video-input" clearable v-model="video_name"></el-input>
-    </div>
     <div class="text-card">
       <div class="video-title" style="margin-bottom: 10px">口播文案</div>
       <el-input type="textarea" style="height: calc(100% - 30px); width: 100%" @focus="isFocus = true"
@@ -219,9 +278,13 @@ export default {
       withSubtitle: false,
       use_background: false,
       subtitleParams: {},
+      withTitle: false,
+      name_use_background: false,
+      subtitleNameParams: {},
       fontFamily: [],
+      activeTitleNames: [],
       activeNames: [],
-      video_name: ''
+      subtitle: ''
     };
   },
   mounted() {
@@ -237,14 +300,22 @@ export default {
   methods: {
     initParams() {
       this.withSubtitle = sessionStorage.getItem("with_subtitle") === 'true'
+      this.withTitle = sessionStorage.getItem("with_title") === 'true'
       this.reverse = sessionStorage.getItem("reverse") === 'true'
       this.bg_volume = Number(sessionStorage.getItem("bg_volume")) || 0.5
       this.use_background = sessionStorage.getItem("use_background") === 'true'
+      this.name_use_background = sessionStorage.getItem("name_use_background") === 'true'
       this.subtitleParams.fontsize = parseInt(sessionStorage.getItem("font_size")) || 24
       this.subtitleParams.color = sessionStorage.getItem("color") || '#ffffff'
       this.subtitleParams.font = sessionStorage.getItem("font") || 'SJxingkai-C-Regular'
       this.subtitleParams.background_color = sessionStorage.getItem("background_color") || 'rgba(64,64,64,0.6)'
       this.subtitleParams.stroke_color = sessionStorage.getItem("stroke_color") || '#000000'
+
+      this.subtitleNameParams.name_fontsize = parseInt(sessionStorage.getItem("name_fontsize")) || 24
+      this.subtitleNameParams.name_color = sessionStorage.getItem("name_color") || '#ffffff'
+      this.subtitleNameParams.name_font = sessionStorage.getItem("name_font") || 'SJxingkai-C-Regular'
+      this.subtitleNameParams.name_background_color = sessionStorage.getItem("name_background_color") || 'rgba(64,64,64,0.6)'
+      this.subtitleNameParams.name_stroke_color = sessionStorage.getItem("name_stroke_color") || '#000000'
     },
     queryFontFamily() {
       getAction('/get_fonts').then(res => {
@@ -355,16 +426,22 @@ export default {
       })
     },
     generateVideo() {
+      if (this.withTitle && this.subtitleNameParams.name === '') {
+        this.$message.error("开启字幕标题后，必须填写字幕标题内容");
+        return;
+      }
       let name = this.setName()
       let background_colors = this.subtitleParams.background_color.replace(/rgba|\(|\)|\s/g, '').split(',');
+      let name_background_colors = this.subtitleNameParams.name_background_color.replace(/rgba|\(|\)|\s/g, '').split(',');
       let params = {
         video_id: this.figure.video_id,
         voice_id: this.sound.voice_id,
         bgm_id: this.bgm.id,
-        filename: this.video_name || name,
+        filename: name,
         reverse: this.reverse,
         text: this.text,
         with_subtitle: this.withSubtitle,
+        with_title: this.withTitle,
         lip_sync: !!this.figure.lip_sync,
         subtitle_params: {
           font: this.subtitleParams.font,
@@ -374,6 +451,16 @@ export default {
           use_background: this.use_background,
           background_color: background_colors.slice(0, 3).map(Number),
           background_opacity: Number(background_colors[3])
+        },
+        title_params: {
+          title_text: this.subtitleNameParams.name,
+          font: this.subtitleNameParams.name_font,
+          fontsize: this.subtitleNameParams.name_fontsize,
+          color: this.subtitleNameParams.name_color,
+          stroke_color: this.subtitleNameParams.name_stroke_color,
+          use_background: this.name_use_background,
+          background_color: name_background_colors.slice(0, 3).map(Number),
+          background_opacity: Number(name_background_colors[3])
         },
       };
       postAction("/figure/generate_video", params).then((res) => {
@@ -434,11 +521,22 @@ export default {
     switchSubtitle() {
       sessionStorage.setItem("with_subtitle", this.withSubtitle)
     },
+    switchTitle() {
+      sessionStorage.setItem("with_title", this.withTitle)
+    },
     saveBgmVolume() {
       sessionStorage.setItem("bg_volume", this.bg_volume)
     },
     switchUseBackground() {
       sessionStorage.setItem("use_background", this.use_background)
+    },
+    switchNameUseBackground() {
+      sessionStorage.setItem("name_use_background", this.name_use_background)
+    },
+    saveSubtitleNameParams(key) {
+      this.$forceUpdate()
+      let value = this.subtitleNameParams[key]
+      sessionStorage.setItem(key, value)
     },
     saveSubtitleParams(key) {
       this.$forceUpdate()
