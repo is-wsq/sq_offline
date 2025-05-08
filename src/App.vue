@@ -32,7 +32,7 @@ export default {
   },
 
   beforeDestroy() {
-    // clearInterval(this.pollingTimer);
+    clearInterval(this.pollingTimer);
   }
 }
 </script>
