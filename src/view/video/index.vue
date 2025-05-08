@@ -96,11 +96,9 @@
         </div>
       </div>
     </div>
-    <div
-        style="height: 150px;margin-top: 10px;background: #ffffff;border-radius: 10px;padding: 15px;box-sizing: border-box;">
+    <div style="height: 150px;margin-top: 10px;background: #ffffff;border-radius: 10px;padding: 15px;box-sizing: border-box;">
       <div style="margin-bottom: 20px;display: flex;align-items: center">
-        <div class="video-title">字幕样式</div>
-        <div class="video-title" style="margin-left: 50px;margin-right: 10px">添加字幕</div>
+        <div class="video-title" style="margin-right: 10px">添加字幕</div>
         <el-switch :width="50" v-model="withSubtitle" @change="switchSubtitle"></el-switch>
         <div style="margin-left: 20px;font-size: 13px;color: #9a9a9a">需开启添加字幕功能后，以下设置才会生效</div>
       </div>
@@ -171,8 +169,6 @@
 
 <script>
 import {getAction, postAction} from "@/api/api";
-import axios from "axios";
-import {mapGetters} from "vuex";
 
 export default {
   name: "Video",
@@ -197,23 +193,6 @@ export default {
       subtitleParams: {},
       fontFamily: [],
     };
-  },
-  computed: {
-    ...mapGetters("task", ["allTasks"]), // 获取任务列表
-    voiceAndFigureTasks() {
-      return this.allTasks.filter(
-          (item) => item.type === "figures" || item.type === "voice"
-      );
-    },
-  },
-  watch: {
-    voiceAndFigureTasks: {
-      handler() {
-        this.querySounds();
-        this.queryFigures();
-      },
-      deep: true,
-    },
   },
   mounted() {
     this.querySounds();
@@ -325,9 +304,6 @@ export default {
         this.audioIndex = null;
       }
     },
-    generateUniqueId() {
-      return Date.now() + Math.random().toString(36).substr(2, 16);
-    },
     setName() {
       let data = new Date();
       let year = data.getFullYear();
@@ -349,20 +325,6 @@ export default {
     },
     generateVideo() {
       let name = this.setName()
-      let task = {
-        type: "video",
-        id: this.generateUniqueId(),
-        name: name,
-        status: "running",
-      };
-      this.$store.dispatch("task/addTask", task);
-      let content = `已创建视频生成任务，视频生成成功后会自动下载到本地`;
-      this.$alert(content, "任务创建提醒");
-
-      setTimeout(() => {
-        this.$router.push({path: '/videoList'})
-      }, 500)
-
       let background_colors = this.subtitleParams.background_color.replace(/rgba|\(|\)|\s/g, '').split(',');
       let params = {
         video_id: this.figure.video_id,
@@ -383,43 +345,31 @@ export default {
           background_opacity: Number(background_colors[3])
         },
       };
-      postAction("/figure/generate_video", params, 18000000).then((res) => {
+      postAction("/figure/generate_video", params).then((res) => {
         if (res.data.status === "success") {
-          this.$store.dispatch("task/removeTask", task.id);
-          let message = `${task.id}视频生成任务已完成！`;
-          this.$notify({
-            title: "生成成功",
-            message: message,
-            duration: 20000,
-            type: "success",
-          });
-          this.downloadVideo(res.data.data.video_path, name);
+          this.$alert('已创建视频生成任务，视频生成成功后会自动下载到本地', "任务创建提醒");
+
+          setTimeout(() => {
+            this.$router.push({path: '/videoList'})
+          }, 500)
         } else {
-          this.$store.dispatch("task/removeTask", task.id);
-          let message = `${task.id}视频生成任务失败,${res.data.message}`;
           this.$notify({
-            title: "生成失败",
-            message: message,
+            title: "创建失败",
+            message: `创建视频生成任务失败，${res.data.message}`,
             duration: 0,
             type: "error",
           });
         }
       }).catch((error) => {
-        this.$store.dispatch("task/removeTask", task.id);
-        let message = `${task.id}视频生成任务失败,${error}`;
         this.$notify({
-          title: "生成失败",
-          message: message,
+          title: "创建失败",
+          message: `创建视频生成任务失败，${error}`,
           duration: 0,
-          type: "error"
+          type: "error",
         });
       });
     },
-    async downloadVideo(path, fileName) {
-      let downloadPath = localStorage.getItem('downloadPath') || 'D:\\Downloads'
-      window.electronAPI.downloadFile(path, downloadPath, fileName)
-      this.$message.success(`视频已保存到${downloadPath}`)
-    },
+
     selectFigure(item) {
       this.figure = item
       sessionStorage.setItem("setting_figure", JSON.stringify(item))

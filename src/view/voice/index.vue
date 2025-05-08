@@ -5,7 +5,7 @@
         <el-col :span="12" style="height: 100%">
           <div class="voice-type">系统音色</div>
           <div class="voice-list">
-            <div class="voice-item" v-for="(item, index) in systemSounds" :key="index"
+            <div class="voice-item" v-for="(item, index) in systemVoice" :key="index"
                  @contextmenu.stop="handleContextMenu(item, $event)">
               <div class="voice-icon" @click="textAudio(item)">
                 <i :class="item.isPlay ? 'el-icon-pause' : 'el-icon-play'" style="font-size: 13px; color: #6286ed"></i>
@@ -34,7 +34,7 @@
                 </div>
               </el-upload>
             </div>
-            <div class="voice-item" v-for="task in voiceTasks" :key="task.id">
+            <div class="voice-item" v-for="task in processVoice" :key="task.id">
               <div class="voice-icon" style="background-color: rgba(187, 187, 187, 0.25) !important;">
                 <div class="dot-spinner">
                   <div class="dot" v-for="n in 8" :key="n"
@@ -47,7 +47,7 @@
                 <div style="width: 10px;text-align: left;margin-left: 5px;font-size: 20px">{{ dot }}</div>
               </div>
             </div>
-            <div class="voice-item" v-for="(item, index) in cloneSounds" :key="index"
+            <div class="voice-item" v-for="(item, index) in cloneVoice" :key="index"
                  @contextmenu.stop="handleContextMenu(item,$event)">
               <div class="voice-icon" @click="textAudio(item)">
                 <i :class="item.isPlay ? 'el-icon-pause' : 'el-icon-play'" style="font-size: 13px; color: #6286ed"></i>
@@ -100,11 +100,6 @@ export default {
   mixins: [RightMenuMixin],
   data() {
     return {
-      figures: [],
-      activeSound: {},
-      sound: {},
-      systemSounds: [],
-      cloneSounds: [],
       audio: null,
       newName: "",
       drawer: false,
@@ -116,22 +111,20 @@ export default {
     }
   },
   computed: {
-    ...mapGetters("task", ["allTasks"]), // 获取任务列表
-    voiceTasks() {
-      return this.allTasks.filter((item) => item.type === "voice");
+    ...mapGetters("task", ["voiceTasks"]), // 获取任务列表
+    processVoice() {
+      return this.voiceTasks.filter((item) => item.status === 'pending');
     },
-  },
-  watch: {
-    voiceTasks: {
-      handler() {
-        this.querySounds();
-      },
-      deep: true,
+    systemVoice() {
+      return this.voiceTasks.filter((item) => item.type === "system");
     },
+    cloneVoice() {
+      return this.voiceTasks.filter((item) => item.type === "clone" && item.status === "success");
+    }
   },
   mounted() {
-    this.querySounds();
     this.startDotAnimation();
+    this.$store.dispatch("task/pollVoiceTasks");
   },
   beforeDestroy() {
     clearInterval(this.dotTimer);
@@ -142,27 +135,6 @@ export default {
         this.dotCount = this.dotCount % 3 + 1;
         this.dot = '.'.repeat(this.dotCount);
       }, 1000);
-    },
-    querySounds() {
-      getAction("/timbres/query_success").then((res) => {
-        if (res.data.status === "success") {
-          this.systemSounds = [];
-          this.cloneSounds = [];
-          res.data.data.forEach((item) => {
-            item.isPlay = false;
-            if (item.type === "system") {
-              this.systemSounds.push(item);
-            } else {
-              this.cloneSounds.push(item);
-            }
-          });
-        } else {
-          this.$message.error("获取声音列表失败。");
-        }
-      })
-      .catch((err) => {
-        this.$message.error("获取声音列表失败，请稍后重试！");
-      });
     },
     textAudio(item) {
       this.selectedItem = item;
@@ -184,11 +156,11 @@ export default {
     },
     updateStatus(voice, status) {
       if (voice.type === "system") {
-        let index = this.systemSounds.findIndex((item) => item.id === voice.id);
-        this.systemSounds[index].isPlay = status;
+        let index = this.systemVoice.findIndex((item) => item.id === voice.id);
+        this.systemVoice[index].isPlay = status;
       } else {
-        let index = this.cloneSounds.findIndex((item) => item.id === voice.id);
-        this.cloneSounds[index].isPlay = status;
+        let index = this.cloneVoice.findIndex((item) => item.id === voice.id);
+        this.cloneVoice[index].isPlay = status;
       }
       this.$forceUpdate();
     },
@@ -205,7 +177,7 @@ export default {
       postAction("/timbres/update_name", params).then((res) => {
         if (res.data.status === "success") {
           this.$message.success("重命名成功。");
-          this.querySounds();
+          this.$store.dispatch("task/pollVoiceTasks");
         } else {
           this.$message.error(res.data.message);
         }
@@ -219,7 +191,7 @@ export default {
       delAction(`/timbres/${this.selectedItem.id}`).then((res) => {
         if (res.data.status === "success") {
           this.$message.success("删除成功。");
-          this.querySounds();
+          this.$store.dispatch("task/pollVoiceTasks");
         } else {
           this.$message.error(res.data.message);
         }
@@ -231,16 +203,7 @@ export default {
     async beforeUpload(file) {
       return getAction('/verify/activation').then(res => {
         if (res.data.status === 'success'){
-          this.task = {
-            type: "voice",
-            id: file.uid,
-            name: file.name,
-            status: "running",
-          };
-          this.$store.dispatch("task/addTask", this.task);
-          let content = `已创建${file.name}音色克隆任务，音色克隆成功后会自动更新音色列表`;
-          this.$alert(content, "任务创建提醒");
-          return false;
+          return true;
         }else {
           this.$alert(res.data.message, "验证失败");
           return Promise.reject('验证失败，停止上传');
@@ -248,32 +211,17 @@ export default {
       })
     },
     uploadError(file) {
-      this.$store.dispatch("task/removeTask", file.uid);
-      this.$notify({
-        title: "克隆失败",
-        message: `${file.name}音色克隆任务失败！`,
-        duration: 0,
-        type: "error",
-      });
+      let content = `创建${file.name}音色克隆任务失败`;
+      this.$alert(content, "任务创建提醒");
     },
     uploadSuccess(res, file) {
       if (res.status === "success") {
-        this.$store.dispatch("task/removeTask", file.uid);
-        this.$notify({
-          title: "克隆成功",
-          message: `${file.name}音色克隆任务已完成！`,
-          duration: 20000,
-          type: "success",
-        });
-        this.querySounds();
+        let content = `已创建${file.name}音色克隆任务，音色克隆成功后会自动更新音色列表`;
+        this.$alert(content, "任务创建提醒");
+        this.$store.dispatch("task/pollVoiceTasks");
       } else {
-        this.$store.dispatch("task/removeTask", file.uid);
-        this.$notify({
-          title: "克隆失败",
-          message: `${file.name}音色克隆任务失败,${res.data}`,
-          duration: 0,
-          type: "error",
-        });
+        let content = `创建${file.name}音色克隆任务失败，${res.data}`;
+        this.$alert(content, "任务创建提醒");
       }
     },
   },

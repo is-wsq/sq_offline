@@ -1,64 +1,157 @@
-const TASK_STORAGE_KEY = 'task_list'; // 存储任务列表的 key
+// store/modules/task.js
+import {getAction} from "@/api/api";
+import Vue from "vue";
 
 const state = {
-    tasks: []
+    videoTasks: [],
+    videoPreviousStatusMap: {},
+
+    voiceTasks: [],
+    voicePreviousStatusMap: {},
+
+    figureTasks: [],
+    figurePreviousStatusMap: {},
 };
 
 const mutations = {
-    ADD_TASK(state, task) {
-        state.tasks.push(task);
-        // 更新本地存储
-        // localStorage.setItem(TASK_STORAGE_KEY, JSON.stringify(state.tasks));
-        sessionStorage.setItem(TASK_STORAGE_KEY, JSON.stringify(state.tasks));
-        // uni.setStorageSync(TASK_STORAGE_KEY, state.tasks);
+    setVideoTasks(state, list) {
+        state.videoTasks = list;
     },
-    UPDATE_TASK(state, updatedTask) {
-        const index = state.tasks.findIndex((task) => task.id === updatedTask.id);
-        if (index !== -1) {
-            // state.tasks[index] = updatedTask;
-            state.tasks.splice(index, 1, updatedTask);
-            // 更新本地存储
-            // uni.setStorageSync(TASK_STORAGE_KEY, state.tasks);
-            // localStorage.setItem(TASK_STORAGE_KEY, JSON.stringify(state.tasks));
-            sessionStorage.setItem(TASK_STORAGE_KEY, JSON.stringify(state.tasks));
-        }
+    updatePreviousStatusMap(state, newMap) {
+        // ✅ 确保是直接替换整个对象
+        state.videoPreviousStatusMap = { ...newMap };
     },
-    REMOVE_TASK(state, id) {
-        state.tasks = state.tasks.filter(task => task.id !== id)
-        // uni.setStorageSync(TASK_STORAGE_KEY, state.tasks);
-        // localStorage.setItem(TASK_STORAGE_KEY, JSON.stringify(state.tasks));
-        sessionStorage.setItem(TASK_STORAGE_KEY, JSON.stringify(state.tasks));
+
+    setVoiceTasks(state, tasks) {
+        state.voiceTasks = tasks;
     },
-    SET_TASKS(state, tasks) {
-        state.tasks = tasks;
-        // 初始化时同步到本地存储
-        // uni.setStorageSync(TASK_STORAGE_KEY, tasks);
-        // localStorage.setItem(TASK_STORAGE_KEY, JSON.stringify(tasks));
-        sessionStorage.setItem(TASK_STORAGE_KEY, JSON.stringify(tasks));
-    }
+    updateVoicePreviousStatusMap(state, map) {
+        state.voicePreviousStatusMap = map;
+    },
+
+    setFigureTasks(state, tasks) {
+        state.figureTasks = tasks;
+    },
+    updateFigurePreviousStatusMap(state, map) {
+        state.figurePreviousStatusMap = map;
+    },
 };
 
 const actions = {
-    addTask({ commit }, task) {
-        commit('ADD_TASK', task);
+    async pollFigureTasks({ state, commit }) {
+        await getAction("/figure/query_success").then(res => {
+            if (res.data.status ==='success') {
+                const list = res.data.data;
+                list.forEach(figure => {
+                    const prev = state.figurePreviousStatusMap[figure.id];
+                    if (prev === "pending" && figure.status === "success") {
+                        Vue.prototype.$notify({
+                            title: "形象克隆成功",
+                            message: `《${figure.name}》形象克隆任务已完成`,
+                            type: "success",
+                            duration: 20000
+                        });
+                    }else if (prev === "pending" && figure.status === "failed") {
+                        Vue.prototype.$notify({
+                            title: "形象克隆失败",
+                            message: `《${figure.name}》形象克隆任务失败,${figure.message}`,
+                            duration: 0,
+                            type: "error",
+                        })
+                    }
+                });
+
+                const newStatusMap = {};
+                list.forEach(v => { newStatusMap[v.id] = v.status; });
+
+                commit("setFigureTasks", list);
+                commit("updateFigurePreviousStatusMap", newStatusMap);
+            }else {
+                this.$message.error(res.data.message);
+            }
+        })
     },
-    updateTask({ commit }, updatedTask) {
-        commit('UPDATE_TASK', updatedTask);
+
+    async pollVoiceTasks({ state, commit }) {
+        await getAction("/timbres/query_success").then(res => {
+            if (res.data.status ==='success') {
+                const list = res.data.data;
+                list.forEach(voice => {
+                    const prev = state.voicePreviousStatusMap[voice.id];
+                    if (prev === "pending" && voice.status === "success") {
+                        Vue.prototype.$notify({
+                            title: "语音合成成功",
+                            message: `《${voice.name}》语音合成任务已完成`,
+                            type: "success",
+                            duration: 20000
+                        });
+                    }else if (prev === "pending" && voice.status === "failed") {
+                        Vue.prototype.$notify({
+                            title: "语音合成失败",
+                            message: `《${voice.name}》语音合成任务失败,${voice.message}`,
+                            duration: 0,
+                            type: "error",
+                        })
+                    }
+                });
+
+                const newStatusMap = {};
+                list.forEach(v => { newStatusMap[v.id] = v.status; });
+
+                commit("setVoiceTasks", list);
+                commit("updateVoicePreviousStatusMap", newStatusMap);
+            }else {
+                this.$message.error(res.data.message);
+            }
+        })
     },
-    removeTask({ commit }, id) {
-        commit('REMOVE_TASK', id);
+
+    async pollVideoTasks({ state, commit }) {
+        await getAction("/video_record/query").then(res => {
+            if (res.data.status === 'success') {
+                const list = res.data.data;
+
+                const newStatusMap = {};
+                list.forEach(v => { newStatusMap[v.id] = v.status; });
+
+                list.forEach(video => {
+                    const prev = state.videoPreviousStatusMap[video.id];
+                    console.log('Vuex中的状态' + prev + '  -------------库中的状态  ' + video.status)
+                    if (prev === "pending" && video.status === "success") {
+                        Vue.prototype.$notify({
+                            title: "视频生成成功",
+                            message: `《${video.filename}》视频生成任务已完成`,
+                            type: "success",
+                            duration: 20000
+                        });
+                        // let downloadPath = localStorage.getItem('downloadPath') || 'D:\\Downloads'
+                        // window.electronAPI.downloadFile(video.video_path, downloadPath, video.filename)
+                        // Vue.prototype.$message.success(`视频已保存到${downloadPath}`)
+                    }else if (prev === "pending" && video.status === "failed") {
+                        Vue.prototype.$notify({
+                            title: "视频生成失败",
+                            message: `《${video.filename}》视频生成任务失败,${video.message}`,
+                            duration: 0,
+                            type: "error",
+                        })
+                    }
+                });
+
+                commit("setVideoTasks", list);
+                commit("updatePreviousStatusMap", newStatusMap);
+            }else {
+                Vue.prototype.$message.error(res.data.message);
+            }
+        }).catch(err => {
+            console.log(err)
+        })
     },
-    loadTasks({ commit }) {
-        // 从本地存储读取任务
-        // const tasks = uni.getStorageSync(TASK_STORAGE_KEY) || [];
-        // const tasks = JSON.parse(localStorage.getItem(TASK_STORAGE_KEY)) || [];
-        const tasks = [];
-        commit('SET_TASKS', tasks);
-    }
 };
 
 const getters = {
-    allTasks: (state) => state.tasks
+    videoTasks: (state) => state.videoTasks,
+    voiceTasks: (state) => state.voiceTasks,
+    figureTasks: (state) => state.figureTasks,
 };
 
 export default {

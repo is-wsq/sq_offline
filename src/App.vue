@@ -12,9 +12,28 @@ export default {
   components: {
     dashboard
   },
+  data() {
+    return {
+      pollingTimer: null
+    }
+  },
   created() {
     // localStorage.removeItem('tasks')
   },
+  mounted() {
+    this.$store.dispatch("task/pollVideoTasks");
+    this.$store.dispatch("task/pollVoiceTasks");
+    this.$store.dispatch("task/pollFigureTasks");
+    this.pollingTimer = setInterval(() => {
+      this.$store.dispatch("task/pollVideoTasks");
+      this.$store.dispatch("task/pollVoiceTasks");
+      this.$store.dispatch("task/pollFigureTasks");
+    }, 500000);
+  },
+
+  beforeDestroy() {
+    // clearInterval(this.pollingTimer);
+  }
 }
 </script>
 

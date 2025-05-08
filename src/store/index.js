@@ -6,11 +6,8 @@ Vue.use(Vuex);
 
 const store = new Vuex.Store({
     modules: {
-        task: taskModule // 注册任务模块
+        task: taskModule
     }
 });
-
-// 载入本地存储的任务数据
-store.dispatch('task/loadTasks');
 
 export default store;

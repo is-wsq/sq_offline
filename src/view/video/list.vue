@@ -1,7 +1,7 @@
 <template>
   <div class="video-list">
     <div class="list-content">
-      <div v-for="item in videoTasks" :key="item.id" style="text-align: center">
+      <div v-for="item in processList" :key="item.id" style="text-align: center">
         <div class="image-wrapper shining">
           <el-image
             style="width: 180px; height: 240px; border-radius: 12px;filter: blur(15px);opacity: 0.8"
@@ -15,7 +15,7 @@
           </div>
         </div>
         <div style="display: flex;align-items: center;justify-content: center;margin-top: 5px">
-          {{ item.name }}
+          {{ item.filename }}
         </div>
       </div>
       <div style="text-align: center;border-radius: 12px;padding: 5px 0;position: relative" v-for="item in videoList" :key="item.id"
@@ -70,7 +70,6 @@ export default {
   mixins: [RightMenuMixin],
   data() {
     return {
-      videoList: [],
       dotCount: 1,
       dotTimer: null,
       dot: '.',
@@ -87,22 +86,17 @@ export default {
     }
   },
   computed: {
-    ...mapGetters("task", ["allTasks"]), // 获取任务列表
-    videoTasks() {
-      return this.allTasks.filter((item) => item.type === "video");
+    ...mapGetters("task", ["videoTasks"]),
+    processList() {
+      return this.videoTasks.filter((item) => item.status === 'pending');
     },
-  },
-  watch: {
-    videoTasks: {
-      handler() {
-        this.queryVideos();
-      },
-      deep: true,
+    videoList() {
+      return this.videoTasks.filter((item) => item.status === 'success');
     },
   },
   mounted() {
     this.startDotAnimation();
-    this.queryVideos();
+    this.$store.dispatch("task/pollVideoTasks");
   },
   methods: {
     startDotAnimation() {
@@ -110,17 +104,6 @@ export default {
         this.dotCount = this.dotCount % 3 + 1;
         this.dot = '.'.repeat(this.dotCount);
       }, 1000);
-    },
-    queryVideos() {
-      getAction('/video_record/query').then(res => {
-        if (res.data.status === 'success') {
-          this.videoList = res.data.data;
-        }else {
-          this.$message.error(res.data.message);
-        }
-      }).catch(err => {
-        console.log(err)
-      })
     },
     deleteVideo() {
       this.$confirm('此操作将永久删除该文件, 是否继续?', '提示', {
@@ -131,7 +114,7 @@ export default {
         delAction(`/video_record/delete/${this.selectedId}`).then(res => {
           if (res.data.status ==='success') {
             this.$message.success('删除成功');
-            this.queryVideos();
+            this.$store.dispatch("task/pollVideoTasks");
           } else {
             this.$message.error(res.data.message);
           }
@@ -162,7 +145,7 @@ export default {
       postAction("/video_record/update_name", params).then((res) => {
         if (res.data.status === "success") {
           this.$message.success("重命名成功");
-          this.queryVideos();
+          this.$store.dispatch("task/pollVideoTasks");
         } else {
           this.$message.error(res.data.message);
         }

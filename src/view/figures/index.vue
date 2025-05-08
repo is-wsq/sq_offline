@@ -2,7 +2,7 @@
   <div class="figures">
     <div class="figures-content">
       <div class="figures-list">
-        <div v-for="item in figureTasks" :key="item.id">
+        <div v-for="item in processTasks" :key="item.id">
           <div class="image-wrapper shining">
             <el-image
               style="width: 180px; height: 236px; border-radius: 12px;filter: blur(15px);opacity: 0.8"
@@ -104,7 +104,6 @@ export default {
   mixins: [RightMenuMixin],
   data() {
     return {
-      figures: [],
       dialogVisible: false,
       drawer: false,
       src: "",
@@ -117,22 +116,17 @@ export default {
     };
   },
   computed: {
-    ...mapGetters("task", ["allTasks"]), // 获取任务列表
-    figureTasks() {
-      return this.allTasks.filter((item) => item.type === "figures");
+    ...mapGetters("task", ["figureTasks"]), // 获取任务列表
+    processTasks() {
+      return this.figureTasks.filter((item) => item.status === "pending");
     },
-  },
-  watch: {
-    figureTasks: {
-      handler() {
-        this.queryFigures();
-      },
-      deep: true,
+    figures() {
+      return this.figureTasks.filter((item) => item.type === "success");
     },
   },
   mounted() {
-    this.queryFigures();
     this.startDotAnimation();
+    this.$store.dispatch("task/pollFigureTasks");
   },
   beforeDestroy() {
     clearInterval(this.dotTimer);
@@ -143,16 +137,6 @@ export default {
         this.dotCount = this.dotCount % 3 + 1;
         this.dot = '.'.repeat(this.dotCount);
       }, 1000);
-    },
-    queryFigures() {
-      getAction("/figure/query_success").then((res) => {
-        if (res.data.status === "success") {
-          this.figures = res.data.data;
-        }
-      })
-      .catch((err) => {
-        this.$message.error("获取形象列表失败，请稍后重试！");
-      });
     },
     selectItem(item) {
       this.selectedItem = item;
@@ -175,7 +159,7 @@ export default {
       postAction("/figure/update_name", params).then((res) => {
         if (res.data.status === "success") {
           this.$message.success("重命名成功");
-          this.queryFigures();
+          this.$store.dispatch("task/pollFigureTasks");
         } else {
           this.$message.error(res.data.message);
         }
@@ -189,7 +173,7 @@ export default {
       delAction("/figure/delete", {figure_id: this.selectedItem.id}).then((res) => {
         if (res.data.status === "success") {
           this.$message.success("删除成功");
-          this.queryFigures();
+          this.$store.dispatch("task/pollFigureTasks");
         } else {
           this.$message.error(res.data.message);
         }
@@ -217,15 +201,7 @@ export default {
     async beforeUpload(file) {
       return getAction('/verify/activation').then(res => {
         if (res.data.status === 'success'){
-          this.task = {
-            type: "figures",
-            id: file.uid,
-            name: file.name,
-            status: "running",
-          };
-          this.$store.dispatch("task/addTask", this.task);
-          let content = `已创建${file.name}形象克隆任务，形象克隆成功后会自动更新形象列表`;
-          this.$alert(content, "任务创建提醒");
+          return true;
         }else {
           this.$alert(res.data.message, "验证失败");
           return Promise.reject('验证失败，停止上传');
@@ -233,32 +209,17 @@ export default {
       })
     },
     uploadError(file) {
-      this.$store.dispatch("task/removeTask", file.uid);
-      this.$notify({
-        title: "克隆失败",
-        message: `${file.name}形象克隆任务失败！`,
-        duration: 0,
-        type: "error",
-      });
+      let content = `创建${file.name}形象克隆任务失败`;
+      this.$alert(content, "任务创建提醒");
     },
     uploadSuccess(res, file) {
       if (res.status === "success") {
-        this.$store.dispatch("task/removeTask", file.uid);
-        this.$notify({
-          title: "克隆成功",
-          message: `${file.name}形象克隆任务已完成！`,
-          duration: 20000,
-          type: "success",
-        });
-        this.queryFigures();
+        let content = `已创建${file.name}形象克隆任务，形象克隆成功后会自动更新形象列表`;
+        this.$alert(content, "任务创建提醒");
+        this.$store.dispatch("task/pollFigureTasks");
       } else {
-        this.$store.dispatch("task/removeTask", file.uid);
-        this.$notify({
-          title: "克隆失败",
-          message: `${file.name}形象克隆任务失败,${res.data}`,
-          duration: 0,
-          type: "error",
-        });
+        let content = `创建${file.name}形象克隆任务失败，${res.data}`;
+        this.$alert(content, "任务创建提醒");
       }
     },
   },
