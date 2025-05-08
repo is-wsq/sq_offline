@@ -44,14 +44,14 @@ const actions = {
                 const list = res.data.data;
                 list.forEach(figure => {
                     const prev = state.figurePreviousStatusMap[figure.id];
-                    if (prev === "pending" && figure.status === "success") {
+                    if (prev === "ready" && figure.status === "success") {
                         Vue.prototype.$notify({
                             title: "形象克隆成功",
                             message: `《${figure.name}》形象克隆任务已完成`,
                             type: "success",
                             duration: 20000
                         });
-                    }else if (prev === "pending" && figure.status === "failed") {
+                    }else if (prev === "ready" && figure.status === "failed") {
                         Vue.prototype.$notify({
                             title: "形象克隆失败",
                             message: `《${figure.name}》形象克隆任务失败,${figure.message}`,
@@ -125,10 +125,7 @@ const actions = {
                             duration: 20000
                         });
 
-                        commit("setVideoTasks", list);
-                        commit("updatePreviousStatusMap", newStatusMap);
-
-                        let downloadPath = localStorage.getItem('downloadPath') || 'D:\\Downloads'
+                        let downloadPath = localStorage.getItem('downloadPath') || 'D:\\offline'
                         window.electronAPI.downloadFile(video.video_path, downloadPath, video.filename)
                         Vue.prototype.$message.success(`视频已保存到${downloadPath}`)
                     }else if (prev === "pending" && video.status === "failed") {
@@ -138,10 +135,11 @@ const actions = {
                             duration: 0,
                             type: "error",
                         })
-                        commit("setVideoTasks", list);
-                        commit("updatePreviousStatusMap", newStatusMap);
                     }
                 });
+
+                commit("setVideoTasks", list);
+                commit("updatePreviousStatusMap", newStatusMap);
             }else {
                 Vue.prototype.$message.error(res.data.message);
             }

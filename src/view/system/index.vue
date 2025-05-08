@@ -24,7 +24,7 @@ export default {
     }
   },
   mounted() {
-    this.downloadPath = localStorage.getItem('downloadPath') || 'D:\\Downloads'
+    this.downloadPath = localStorage.getItem('downloadPath') || 'D:\\offline'
   },
   methods: {
     chooseFolder() {

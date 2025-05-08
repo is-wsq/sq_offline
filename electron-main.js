@@ -30,27 +30,27 @@ app.on('ready', () => {
     });
 
     mainWindow.on('close', (e) => {
-        mainWindow = null;
-        // e.preventDefault();
-        //
-        // const batPath = "D:\\offline\\stop_backend.bat";
-        // const batProcess = spawn('cmd.exe', ['/c', batPath]);
-        //
-        // batProcess.stdout.on('data', (data) => {
-        //     console.log(`stdout: ${data}`);
-        // });
-        //
-        // batProcess.stderr.on('data', (data) => {
-        //     console.error(`stderr: ${data}`);
-        //     mainWindow.removeAllListeners('close');
-        //     mainWindow.close();
-        // });
-        //
-        // batProcess.on('close', (code) => {
-        //     console.log(`子进程退出，代码：${code}`);
-        //     mainWindow.removeAllListeners('close');
-        //     mainWindow.close();
-        // });
+        // mainWindow = null;
+        e.preventDefault();
+
+        const batPath = "D:\\offline\\stop_backend.bat";
+        const batProcess = spawn('cmd.exe', ['/c', 'start', '', batPath]);
+
+        batProcess.stdout.on('data', (data) => {
+            console.log(`stdout: ${data}`);
+        });
+
+        batProcess.stderr.on('data', (data) => {
+            console.error(`stderr: ${data}`);
+            mainWindow.removeAllListeners('close');
+            mainWindow.close();
+        });
+
+        batProcess.on('close', (code) => {
+            console.log(`子进程退出，代码：${code}`);
+            mainWindow.removeAllListeners('close');
+            mainWindow.close();
+        });
     });
 });
 

@@ -118,7 +118,7 @@ export default {
   computed: {
     ...mapGetters("task", ["figureTasks"]), // 获取任务列表
     processTasks() {
-      return this.figureTasks.filter((item) => item.status === "pending");
+      return this.figureTasks.filter((item) => item.status === "ready");
     },
     figures() {
       return this.figureTasks.filter((item) => item.status === "success");

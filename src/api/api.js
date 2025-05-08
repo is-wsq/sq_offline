@@ -2,7 +2,8 @@ import axios from 'axios';
 
 // 创建一个 Axios 实例
 const baseURL = 'http://127.0.0.1:6006';
-// const baseURL = 'http://192.168.0.122:6006';
+// const baseURL = 'http://192.168.0.116:6006';
+// const baseURL = 'http://172.23.237.30:6006';
 
 const createInstance = (timeout = 60000) => {
     return axios.create({
