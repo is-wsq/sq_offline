@@ -96,61 +96,64 @@
         </div>
       </div>
     </div>
-    <div style="height: 150px;margin-top: 10px;background: #ffffff;border-radius: 10px;padding: 15px;box-sizing: border-box;">
-      <div style="margin-bottom: 20px;display: flex;align-items: center">
-        <div class="video-title" style="margin-right: 10px">添加字幕</div>
+    <div style="margin-top: 10px;border-radius: 10px;padding: 15px;box-sizing: border-box;background: #ffffff;position: relative">
+      <div style="margin-bottom: 20px;display: flex;align-items: center;position: absolute;top: 15px;left: 85px">
         <el-switch :width="50" v-model="withSubtitle" @change="switchSubtitle"></el-switch>
         <div style="margin-left: 20px;font-size: 13px;color: #9a9a9a">需开启添加字幕功能后，以下设置才会生效</div>
       </div>
-      <div style="display: flex;gap: 30px;align-items: center;height: 80px">
-        <div style="text-align: center">
-          <div style="font-size: 13px;height: 40px">字体颜色</div>
-          <el-color-picker v-model="subtitleParams.color" size="small"
-                           @change="saveSubtitleParams('color')"></el-color-picker>
-        </div>
-        <div style="text-align: center">
-          <div style="font-size: 13px;height: 40px">字体样式</div>
-          <el-select v-model="subtitleParams.font" placeholder="请选择" style="height: 35px;width: 180px"
-                     @change="saveSubtitleParams('font')">
-            <el-option
-                v-for="item in fontFamily"
-                :key="item.font_id"
-                :label="item.name"
-                :value="item.font_id"
-            >
-              <div style="display: flex; align-items: center">
-                <img :src="item.img_path" style="width: 150px; height: 50px; margin-right: 8px;"/>
-                <span>{{ item.name }}</span>
+      <el-collapse v-model="activeNames">
+        <el-collapse-item title="字幕设置" name="1">
+          <div style="display: flex;gap: 30px;align-items: center;height: 80px">
+            <div style="text-align: center">
+              <div style="font-size: 13px;height: 40px">字体颜色</div>
+              <el-color-picker v-model="subtitleParams.color" size="small"
+                               @change="saveSubtitleParams('color')"></el-color-picker>
+            </div>
+            <div style="text-align: center">
+              <div style="font-size: 13px;height: 40px">字体样式</div>
+              <el-select v-model="subtitleParams.font" placeholder="请选择" style="height: 35px;width: 180px"
+                         @change="saveSubtitleParams('font')">
+                <el-option
+                    v-for="item in fontFamily"
+                    :key="item.font_id"
+                    :label="item.name"
+                    :value="item.font_id"
+                >
+                  <div style="display: flex; align-items: center">
+                    <img :src="item.img_path" style="width: 150px; height: 50px; margin-right: 8px;"/>
+                    <span>{{ item.name }}</span>
+                  </div>
+                </el-option>
+              </el-select>
+            </div>
+            <div>
+              <div style="font-size: 13px;height: 35px">字体大小</div>
+              <div style="display: flex">
+                <el-slider v-model="subtitleParams.fontsize" style="width: 170px" :min="5" :max="50"
+                           @change="saveSubtitleParams('font_size')"></el-slider>
+                <el-input-number v-model="subtitleParams.fontsize" controls-position="right" :min="5" :max="50"
+                                 style="margin-left: 10px" @change="saveSubtitleParams('font_size')"></el-input-number>
               </div>
-            </el-option>
-          </el-select>
-        </div>
-        <div>
-          <div style="font-size: 13px;height: 35px">字体大小</div>
-          <div style="display: flex">
-            <el-slider v-model="subtitleParams.fontsize" style="width: 170px" :min="5" :max="50"
-                       @change="saveSubtitleParams('font_size')"></el-slider>
-            <el-input-number v-model="subtitleParams.fontsize" controls-position="right" :min="5" :max="50"
-                             style="margin-left: 10px" @change="saveSubtitleParams('font_size')"></el-input-number>
+            </div>
+            <div style="text-align: center">
+              <div style="font-size: 13px;height: 40px">描边颜色</div>
+              <el-color-picker v-model="subtitleParams.stroke_color" size="small"
+                               @change="saveSubtitleParams('stroke_color')"></el-color-picker>
+            </div>
+            <div style="text-align: center">
+              <div style="font-size: 13px;height: 40px">开启字幕背景</div>
+              <div style="height: 35px;">
+                <el-switch :width="50" v-model="use_background" @change="switchUseBackground" style="margin-top: 5px"></el-switch>
+              </div>
+            </div>
+            <div style="text-align: center">
+              <div style="font-size: 13px;height: 40px">背景颜色</div>
+              <el-color-picker v-model="subtitleParams.background_color" show-alpha size="small"
+                               @change="saveSubtitleParams('background_color')"></el-color-picker>
+            </div>
           </div>
-        </div>
-        <div style="text-align: center">
-          <div style="font-size: 13px;height: 40px">描边颜色</div>
-          <el-color-picker v-model="subtitleParams.stroke_color" size="small"
-                           @change="saveSubtitleParams('stroke_color')"></el-color-picker>
-        </div>
-        <div style="text-align: center">
-          <div style="font-size: 13px;height: 40px">开启字幕背景</div>
-          <div style="height: 35px;">
-            <el-switch :width="50" v-model="use_background" @change="switchUseBackground" style="margin-top: 5px"></el-switch>
-          </div>
-        </div>
-        <div style="text-align: center">
-          <div style="font-size: 13px;height: 40px">背景颜色</div>
-          <el-color-picker v-model="subtitleParams.background_color" show-alpha size="small"
-                           @change="saveSubtitleParams('background_color')"></el-color-picker>
-        </div>
-      </div>
+        </el-collapse-item>
+      </el-collapse>
     </div>
     <div class="text-card">
       <div class="video-title" style="margin-bottom: 10px">口播文案</div>
@@ -192,6 +195,7 @@ export default {
       use_background: false,
       subtitleParams: {},
       fontFamily: [],
+      activeNames: []
     };
   },
   mounted() {
@@ -630,5 +634,27 @@ export default {
 .el-select-dropdown__item {
   height: 52px;
   line-height: 52px;
+}
+
+.video >>> .el-collapse {
+  border: none !important;
+  margin-top: 0 !important;
+}
+
+.video >>> .el-collapse-item__header {
+  height: 21px;
+  line-height: 21px;
+  border: none;
+  font-size: 15px;
+  color: #1e1f20;
+}
+
+.video >>> .el-collapse-item__content {
+  padding-bottom: 0;
+  margin-top: 15px;
+}
+
+.video >>> .el-collapse-item__wrap {
+  border: none !important;
 }
 </style>
