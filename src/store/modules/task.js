@@ -124,9 +124,13 @@ const actions = {
                             type: "success",
                             duration: 20000
                         });
-                        // let downloadPath = localStorage.getItem('downloadPath') || 'D:\\Downloads'
-                        // window.electronAPI.downloadFile(video.video_path, downloadPath, video.filename)
-                        // Vue.prototype.$message.success(`视频已保存到${downloadPath}`)
+
+                        commit("setVideoTasks", list);
+                        commit("updatePreviousStatusMap", newStatusMap);
+
+                        let downloadPath = localStorage.getItem('downloadPath') || 'D:\\Downloads'
+                        window.electronAPI.downloadFile(video.video_path, downloadPath, video.filename)
+                        Vue.prototype.$message.success(`视频已保存到${downloadPath}`)
                     }else if (prev === "pending" && video.status === "failed") {
                         Vue.prototype.$notify({
                             title: "视频生成失败",
@@ -134,11 +138,10 @@ const actions = {
                             duration: 0,
                             type: "error",
                         })
+                        commit("setVideoTasks", list);
+                        commit("updatePreviousStatusMap", newStatusMap);
                     }
                 });
-
-                commit("setVideoTasks", list);
-                commit("updatePreviousStatusMap", newStatusMap);
             }else {
                 Vue.prototype.$message.error(res.data.message);
             }

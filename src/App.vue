@@ -28,7 +28,7 @@ export default {
       this.$store.dispatch("task/pollVideoTasks");
       this.$store.dispatch("task/pollVoiceTasks");
       this.$store.dispatch("task/pollFigureTasks");
-    }, 500000);
+    }, 10000);
   },
 
   beforeDestroy() {

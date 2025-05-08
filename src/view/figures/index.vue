@@ -121,7 +121,7 @@ export default {
       return this.figureTasks.filter((item) => item.status === "pending");
     },
     figures() {
-      return this.figureTasks.filter((item) => item.type === "success");
+      return this.figureTasks.filter((item) => item.status === "success");
     },
   },
   mounted() {
