@@ -74,6 +74,23 @@
             <el-popover placement="bottom" trigger="click"  @hide="stopAudio">
               <div class="popover-content">
                 <el-row>
+                  <el-col :span="12">
+                    <div class="voice-item">
+                      <el-upload
+                        action="http://127.0.0.1:6006/bgm/upload"
+                        :show-file-list="false"
+                        accept=".mp3, .wav"
+                        :on-success="bgmUploadSuccess"
+                      >
+                        <div style="display: flex;align-items: center;height: 80px;">
+                          <div class="voice-icon" style="background-color: pink !important">
+                            <i class="el-icon-plus" style="font-size: 15px; color: red"></i>
+                          </div>
+                          <div class="voice-name" style="text-align: left">上传背景音乐</div>
+                        </div>
+                      </el-upload>
+                    </div>
+                  </el-col>
                   <el-col :span="12" v-for="(item, index) in bgmList" :key="item.id">
                     <div class="voice-item" :class="{ active: item.id === bgm.id }" @click="selectBgm(item)">
                       <div class="voice-icon" @click="previewAudio(item, 10000 + index)" v-if="audioIndex !== (10000 + index)">
@@ -134,7 +151,7 @@
               <div style="display: flex">
                 <el-slider v-model="subtitleParams.fontsize" style="width: 170px" :min="5" :max="50"
                            @change="saveSubtitleParams('font_size')"></el-slider>
-                <el-input-number class="input-number" v-model="subtitleParams.fontsize" controls-position="right" :min="5" :max="50"
+                <el-input-number v-model="subtitleParams.fontsize" controls-position="right" :min="5" :max="50"
                                  style="margin-left: 10px" @change="saveSubtitleParams('font_size')"></el-input-number>
               </div>
             </div>
@@ -383,6 +400,24 @@ export default {
         });
       });
     },
+    bgmUploadSuccess(res,file) {
+      if (res.status === "success") {
+        this.$notify({
+          title: "上传提示",
+          message: `${file.name}背景音乐上传成功`,
+          duration: 20000,
+          type: "success",
+        });
+        this.queryBgm()
+      } else {
+        this.$notify({
+          title: "上传提示",
+          message: `${file.name}背景音乐上传失败，${res.data}`,
+          duration: 0,
+          type: "error",
+        });
+      }
+    },
 
     selectFigure(item) {
       this.figure = item
@@ -578,11 +613,8 @@ export default {
 }
 
 .video-input >>> .el-input__inner {
-  height: 30px;
-  line-height: 30px;
   border: none;
   background-color: #f9f9f9;
-  padding-right: 35px !important;
 }
 
 .video >>> .el-textarea__inner {
@@ -628,7 +660,7 @@ export default {
   height: 3px;
 }
 
-.input-number >>> .el-input__inner {
+.video >>> .el-input__inner {
   height: 30px;
   line-height: 30px;
   padding-right: 35px !important;
