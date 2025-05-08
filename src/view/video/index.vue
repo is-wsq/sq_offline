@@ -134,7 +134,7 @@
               <div style="display: flex">
                 <el-slider v-model="subtitleParams.fontsize" style="width: 170px" :min="5" :max="50"
                            @change="saveSubtitleParams('font_size')"></el-slider>
-                <el-input-number v-model="subtitleParams.fontsize" controls-position="right" :min="5" :max="50"
+                <el-input-number class="input-number" v-model="subtitleParams.fontsize" controls-position="right" :min="5" :max="50"
                                  style="margin-left: 10px" @change="saveSubtitleParams('font_size')"></el-input-number>
               </div>
             </div>
@@ -160,7 +160,7 @@
     </div>
     <div class="voice-card" style="margin-top: 10px;display: flex">
       <div class="video-title" style="line-height: 30px;margin-right: 10px">视频名称</div>
-      <el-input style="width: 250px" v-model="video_name"></el-input>
+      <el-input class="video-input" clearable v-model="video_name"></el-input>
     </div>
     <div class="text-card">
       <div class="video-title" style="margin-bottom: 10px">口播文案</div>
@@ -573,9 +573,16 @@ export default {
   position: relative;
 }
 
-.video >>> .el-input__inner {
+.video-input {
+  width: calc(100% - 70px);
+}
+
+.video-input >>> .el-input__inner {
+  height: 30px;
+  line-height: 30px;
   border: none;
   background-color: #f9f9f9;
+  padding-right: 35px !important;
 }
 
 .video >>> .el-textarea__inner {
@@ -621,7 +628,7 @@ export default {
   height: 3px;
 }
 
-.video >>> .el-input__inner {
+.input-number >>> .el-input__inner {
   height: 30px;
   line-height: 30px;
   padding-right: 35px !important;
