@@ -92,6 +92,9 @@
                 <i class="el-icon-a-ze-bars1" style="font-size: 20px; color: #9a9a9a"></i>
               </div>
             </el-popover>
+            <div style="margin: 0 10px;font-size: 13px;color: #303133">音量</div>
+            <el-slider v-model="bg_volume" :step="0.1" style="width: 90px" :min="0.1" :max="1"
+                       @change="saveBgmVolume('bg_volume')"></el-slider>
           </div>
         </div>
       </div>
@@ -186,6 +189,7 @@ export default {
       sound: {},
       bgmList: [],
       bgm: {},
+      bg_volume: 0.5,
       text: "",
       audio: null,
       audioIndex: null,
@@ -212,6 +216,7 @@ export default {
     initParams() {
       this.withSubtitle = sessionStorage.getItem("with_subtitle") === 'true'
       this.reverse = sessionStorage.getItem("reverse") === 'true'
+      this.bg_volume = Number(sessionStorage.getItem("bg_volume")) || 0.5
       this.use_background = sessionStorage.getItem("use_background") === 'true'
       this.subtitleParams.fontsize = parseInt(sessionStorage.getItem("font_size")) || 24
       this.subtitleParams.color = sessionStorage.getItem("color") || '#ffffff'
@@ -389,6 +394,9 @@ export default {
     switchSubtitle() {
       sessionStorage.setItem("with_subtitle", this.withSubtitle)
     },
+    saveBgmVolume() {
+      sessionStorage.setItem("bg_volume", this.bg_volume)
+    },
     switchUseBackground() {
       sessionStorage.setItem("use_background", this.use_background)
     },
@@ -529,7 +537,7 @@ export default {
 }
 
 .sound {
-  width: 250px;
+  width: 200px;
   height: 35px;
   border-radius: 5px;
   margin-left: 10px;
