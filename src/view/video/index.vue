@@ -329,11 +329,12 @@ export default {
     queryFigures() {
       getAction("/figure/query_success").then((res) => {
         if (res.data.status === "success") {
-          if (res.data.data.length > 0) {
-            this.materials = res.data.data.filter(item => !item.lip_sync);
-            this.figures = res.data.data.filter(item =>  item.lip_sync);
+          let data = res.data.data.filter(item => item.status === "success");
+          if (data.length > 0) {
+            this.materials = data.filter(item => !item.lip_sync && item.status === "success");
+            this.figures = data.filter(item =>  item.lip_sync && item.status === "success");
             let figure = JSON.parse(sessionStorage.getItem("setting_figure"))
-            if (figure && res.data.data.some(item => item.id === figure.id)) {
+            if (figure && data.some(item => item.id === figure.id)) {
               this.figure = figure
             } else {
               this.figure = res.data.data[0];
@@ -347,8 +348,8 @@ export default {
     querySounds() {
       getAction("/timbres/query_success").then((res) => {
         if (res.data.status === "success") {
-          if (res.data.data.length > 0) {
-            this.voices = res.data.data;
+          this.voices = res.data.data.filter(item => item.status === "success");
+          if (this.voices.length > 0) {
             let sound = JSON.parse(sessionStorage.getItem("setting_voice"))
             if (sound && this.voices.some(item => item.id === sound.id)) {
               this.sound = sound
