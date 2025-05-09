@@ -14,14 +14,14 @@
             <div style="width: 10px;text-align: left;margin-left: 5px;font-size: 22px">{{ dot }}</div>
           </div>
         </div>
-        <div style="display: flex;align-items: center;justify-content: center;margin-top: 5px">
+        <div class="video-name" :title="item.filename">
           {{ item.filename }}
         </div>
       </div>
       <div style="text-align: center;border-radius: 12px;padding: 5px 0;position: relative" v-for="item in videoList" :key="item.id"
            :class="{'activeClass': item.id === selected.id}" @contextmenu.stop="handleContextMenu(item, $event)" @click="preview(item)">
         <el-image style="width: 180px;height: 240px;border-radius: 12px" :src="item.picture" fit="cover"></el-image>
-        <div style="margin-top: 5px;color: #1E1F20">{{ item.filename }}</div>
+        <div class="video-name" :title="item.filename">{{ item.filename }}</div>
       </div>
       <div :style="menuStyle" v-if="rightMenuVisible">
         <div class="right-item" @click="deleteVideo">
@@ -217,6 +217,15 @@ export default {
   align-items: center;
   justify-content: center;
   width: 100%;
+}
+
+.video-name {
+  text-align: center;
+  margin-top: 5px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: #1E1F20
 }
 
 .activeClass {

@@ -42,10 +42,7 @@
                   ></div>
                 </div>
               </div>
-              <div class="voice-name" style="display: flex">
-                <div>音色克隆中</div>
-                <div style="width: 10px;text-align: left;margin-left: 5px;font-size: 20px">{{ dot }}</div>
-              </div>
+              <div :title="task.name" class="voice-name">{{ task.name }}</div>
             </div>
             <div class="voice-item" v-for="(item, index) in cloneVoice" :key="index"
                  @contextmenu.stop="handleContextMenu(item,$event)">
@@ -105,9 +102,6 @@ export default {
       drawer: false,
       soundId: null,
       task: {},
-      dotCount: 1,
-      dotTimer: null,
-      dot: '.',
     }
   },
   computed: {
@@ -123,19 +117,9 @@ export default {
     }
   },
   mounted() {
-    this.startDotAnimation();
     this.$store.dispatch("task/pollVoiceTasks");
   },
-  beforeDestroy() {
-    clearInterval(this.dotTimer);
-  },
   methods: {
-    startDotAnimation() {
-      this.dotTimer = setInterval(() => {
-        this.dotCount = this.dotCount % 3 + 1;
-        this.dot = '.'.repeat(this.dotCount);
-      }, 1000);
-    },
     textAudio(item) {
       this.selectedItem = item;
       this.listen();

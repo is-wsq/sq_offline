@@ -24,11 +24,11 @@ export default {
     this.$store.dispatch("task/pollVideoTasks");
     this.$store.dispatch("task/pollVoiceTasks");
     this.$store.dispatch("task/pollFigureTasks");
-    this.pollingTimer = setInterval(() => {
-      this.$store.dispatch("task/pollVideoTasks");
-      this.$store.dispatch("task/pollVoiceTasks");
-      this.$store.dispatch("task/pollFigureTasks");
-    }, 10000);
+    // this.pollingTimer = setInterval(() => {
+    //   this.$store.dispatch("task/pollVideoTasks");
+    //   this.$store.dispatch("task/pollVoiceTasks");
+    //   this.$store.dispatch("task/pollFigureTasks");
+    // }, 10000);
   },
 
   beforeDestroy() {

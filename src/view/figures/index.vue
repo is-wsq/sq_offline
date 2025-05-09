@@ -15,11 +15,11 @@
               <div style="width: 10px;text-align: left;margin-left: 5px;font-size: 22px">{{ dot }}</div>
             </div>
           </div>
-          <div style="width: 100%; text-align: center;line-height: 23px">{{ item.name }}</div>
+          <div class="figure-name" :title="item.name">{{ item.name }}</div>
         </div>
         <div v-for="(item, index) in figures" :key="index" @contextmenu.stop="handleContextMenu(item, $event)" @click="selectItem(item)">
           <el-image class="figures-img" :src="item.picture" fit="cover"></el-image>
-          <div style="width: 100%; text-align: center;line-height: 23px">{{ item.name }}</div>
+          <div class="figure-name" :title="item.name">{{ item.name }}</div>
         </div>
       </div>
       <div style="display: flex;margin-top: 30px;gap: 100px">
@@ -235,6 +235,15 @@ export default {
   flex-direction: column;
   justify-content: center;
   align-items: center;
+}
+
+.figure-name {
+  width: 100%;
+  text-align: center;
+  line-height: 23px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .figures >>> .el-dialog {

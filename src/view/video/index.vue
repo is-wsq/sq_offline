@@ -9,7 +9,7 @@
                  @click="selectFigure(item)"
                  :style="{ 'background-color': item.id === figure.id ? '#e0e7fb' : '#FFFFFF' }">
               <el-image class="template-img" :src="item.picture" fit="cover"></el-image>
-              <div class="template-name">{{ item.name }}</div>
+              <div class="template-name" :title="item.name">{{ item.name }}</div>
             </div>
           </div>
         </div>
@@ -20,7 +20,7 @@
                  @click="selectFigure(item)"
                  :style="{ 'background-color': item.id === figure.id ? '#e0e7fb' : '#FFFFFF' }">
               <el-image class="template-img" :src="item.picture" fit="cover"></el-image>
-              <div class="template-name">{{ item.name }}</div>
+              <div class="template-name" :title="item.name">{{ item.name }}</div>
             </div>
           </div>
         </div>
@@ -48,7 +48,7 @@
                       <div class="voice-icon" @click="stopAudio" v-else>
                         <i class="el-icon-pause" style="font-size: 13px; color: #6286ed"></i>
                       </div>
-                      <div class="voice-name">{{ voice.name }}</div>
+                      <div class="voice-name" :title="voice.name">{{ voice.name }}</div>
                     </div>
                   </el-col>
                 </el-row>
@@ -99,7 +99,7 @@
                       <div class="voice-icon" @click="stopAudio" v-else>
                         <i class="el-icon-pause" style="font-size: 13px; color: #6286ed"></i>
                       </div>
-                      <div class="voice-name">{{ item.name }}</div>
+                      <div class="voice-name" :title="item.name">{{ item.name }}</div>
                     </div>
                   </el-col>
                 </el-row>
@@ -125,7 +125,7 @@
         <el-collapse-item title="字幕标题" name="1">
           <div style="display: flex;margin-bottom: 10px">
             <div style="font-size: 13px;line-height: 30px;margin-right: 10px">字幕标题</div>
-            <el-input placeholder="请输入" class="video-input" clearable v-model="subtitleNameParams.name"></el-input>
+            <el-input type="textarea" rows="3" placeholder="请输入" class="video-input" clearable v-model="subtitleNameParams.name"></el-input>
           </div>
           <div style="display: flex;gap: 30px;align-items: center;height: 80px">
             <div style="text-align: center">
@@ -305,13 +305,13 @@ export default {
       this.bg_volume = Number(sessionStorage.getItem("bg_volume")) || 0.5
       this.use_background = sessionStorage.getItem("use_background") === 'true'
       this.name_use_background = sessionStorage.getItem("name_use_background") === 'true'
-      this.subtitleParams.fontsize = parseInt(sessionStorage.getItem("font_size")) || 24
+      this.subtitleParams.fontsize = parseInt(sessionStorage.getItem("font_size")) || 5
       this.subtitleParams.color = sessionStorage.getItem("color") || '#ffffff'
       this.subtitleParams.font = sessionStorage.getItem("font") || 'SJxingkai-C-Regular'
       this.subtitleParams.background_color = sessionStorage.getItem("background_color") || 'rgba(64,64,64,0.6)'
       this.subtitleParams.stroke_color = sessionStorage.getItem("stroke_color") || '#000000'
 
-      this.subtitleNameParams.name_fontsize = parseInt(sessionStorage.getItem("name_fontsize")) || 24
+      this.subtitleNameParams.name_fontsize = parseInt(sessionStorage.getItem("name_fontsize")) || 10
       this.subtitleNameParams.name_color = sessionStorage.getItem("name_color") || '#ffffff'
       this.subtitleNameParams.name_font = sessionStorage.getItem("name_font") || 'SJxingkai-C-Regular'
       this.subtitleNameParams.name_background_color = sessionStorage.getItem("name_background_color") || 'rgba(64,64,64,0.6)'
@@ -614,6 +614,9 @@ export default {
   color: #1e1f20;
   width: 120px;
   text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .voice-card {
@@ -673,6 +676,9 @@ export default {
   margin-left: 10px;
   font-size: 14px;
   color: #101010;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .sound {
@@ -709,11 +715,6 @@ export default {
 
 .video-input {
   width: calc(100% - 70px);
-}
-
-.video-input >>> .el-input__inner {
-  border: none;
-  background-color: #f9f9f9;
 }
 
 .video >>> .el-textarea__inner {
