@@ -5,9 +5,9 @@
         <div v-for="item in processTasks" :key="item.id">
           <div class="image-wrapper shining">
             <el-image
-              style="width: 180px; height: 236px; border-radius: 12px;filter: blur(15px);opacity: 0.8"
-              :src="require('/public/images/4.jpg')"
-              fit="cover"
+                style="width: 180px; height: 236px; border-radius: 12px;filter: blur(15px);opacity: 0.8"
+                :src="require('/public/images/4.jpg')"
+                fit="cover"
             ></el-image>
             <div class="shine-layer"></div>
             <div class="figure-progress">
@@ -17,7 +17,8 @@
           </div>
           <div class="figure-name" :title="item.name">{{ item.name }}</div>
         </div>
-        <div v-for="(item, index) in figures" :key="index" @contextmenu.stop="handleContextMenu(item, $event)" @click="selectItem(item)">
+        <div v-for="(item, index) in figures" :key="index" @contextmenu.stop="handleContextMenu(item, $event)"
+             @click="selectItem(item)">
           <el-image class="figures-img" :src="item.picture" fit="cover"></el-image>
           <div class="figure-name" :title="item.name">{{ item.name }}</div>
         </div>
@@ -29,8 +30,8 @@
               action="http://127.0.0.1:6006/figure/clone_only"
               :show-file-list="false"
               accept=".mp4, .mov"
-              :on-success="uploadSuccess"
-              :on-error="uploadError"
+              :on-success="uploadMaterialsSuccess"
+              :on-error="uploadMaterialsError"
               :before-upload="beforeUpload"
               :data="{ lip_sync: false }"
           >
@@ -165,9 +166,9 @@ export default {
         }
         this.drawer = false;
       })
-      .catch((err) => {
-        this.$message.error("重命名失败，请稍后重试！");
-      });
+          .catch((err) => {
+            this.$message.error("重命名失败，请稍后重试！");
+          });
     },
     deleteItem() {
       delAction("/figure/delete", {figure_id: this.selectedItem.id}).then((res) => {
@@ -178,9 +179,9 @@ export default {
           this.$message.error(res.data.message);
         }
       })
-      .catch((err) => {
-        this.$message.error("删除失败，请稍后重试！");
-      });
+          .catch((err) => {
+            this.$message.error("删除失败，请稍后重试！");
+          });
     },
     controlVideo() {
       const video = this.$refs.video;
@@ -200,13 +201,38 @@ export default {
     },
     async beforeUpload(file) {
       return getAction('/verify/activation').then(res => {
-        if (res.data.status === 'success'){
+        if (res.data.status === 'success') {
           return true;
-        }else {
+        } else {
           this.$alert(res.data.message, "验证失败");
           return Promise.reject('验证失败，停止上传');
         }
       })
+    },
+    uploadMaterialsError(file) {
+      this.$notify({
+        title: "上传失败",
+        message: `上传素材${file.name}失败`,
+        duration: 0,
+        type: "error",
+      });
+    },
+    uploadMaterialsSuccess(res, file) {
+      if (res.status === "success") {
+        this.$notify({
+          title: "上传成功",
+          message: `上传素材${file.name}成功`,
+          duration: 20000,
+          type: "error",
+        });
+      } else {
+        this.$notify({
+          title: "上传失败",
+          message: `上传素材${file.name}失败，${res.data}`,
+          duration: 0,
+          type: "error",
+        });
+      }
     },
     uploadError(file) {
       let content = `创建${file.name}形象克隆任务失败`;
