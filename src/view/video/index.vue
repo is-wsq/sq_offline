@@ -239,11 +239,20 @@
       </el-collapse>
     </div>
     <div class="text-card">
-      <div class="video-title" style="margin-bottom: 10px">口播文案</div>
-      <el-input type="textarea" style="height: calc(100% - 30px); width: 100%" @focus="isFocus = true"
-                @blur="isFocus = false" v-model="text">
-      </el-input>
-      <span class="text-tips" v-if="!isFocus && text === ''">请输入视频口播文案</span>
+      <div style="display: flex">
+        <div class="video-title" style="flex: 1">口播文案</div>
+        <i class="el-icon-plus" style="font-size: 16px; color: #9a9a9a;margin-right: 5px" @click="text_count++"></i>
+      </div>
+      <div style="max-height: calc(100% - 15px);overflow-y: auto">
+        <div style="display: flex;align-items: center;position: relative;margin-top: 10px" v-for="item in text_count" :key="item">
+          <el-input type="textarea" rows="5" style="flex: 1" @focus="isFocus = true"
+                    @blur="isFocus = false" v-model="texts[item - 1]">
+          </el-input>
+          <i class="el-icon-minus" style="font-size: 16px; color: #9a9a9a;margin-right: 5px;margin-left: 20px" @click="minusText(item)" v-if="text_count > 1"></i>
+          <div style="width: 41px" v-if="text_count === 1"></div>
+          <span class="text-tips" v-if="!isFocus && !texts[item - 1]">请输入视频口播文案</span>
+        </div>
+      </div>
     </div>
     <div style="height: 50px;display: flex;align-items: center;">
       <div style="margin-right: 20px;margin-left: 10px;font-size: 15px">视频倒序循环</div>
@@ -284,7 +293,9 @@ export default {
       fontFamily: [],
       activeTitleNames: [],
       activeNames: [],
-      subtitle: ''
+      subtitle: '',
+      text_count: 1,
+      texts: []
     };
   },
   mounted() {
@@ -298,6 +309,11 @@ export default {
     this.stopAudio();
   },
   methods: {
+    minusText(item) {
+      this.text_count--;
+      this.texts.splice(item - 1, 1);
+      console.log(this.texts)
+    },
     initParams() {
       this.withSubtitle = sessionStorage.getItem("with_subtitle") === 'true'
       this.withTitle = sessionStorage.getItem("with_title") === 'true'
@@ -330,6 +346,9 @@ export default {
       getAction("/figure/query_success").then((res) => {
         if (res.data.status === "success") {
           let data = res.data.data.filter(item => item.status === "success");
+          data.forEach(figure => {
+            figure.picture = figure.picture.replace('http://127.0.0.1', 'http://192.168.0.116')
+          })
           if (data.length > 0) {
             this.materials = data.filter(item => !item.lip_sync && item.status === "success");
             this.figures = data.filter(item =>  item.lip_sync && item.status === "success");
@@ -703,14 +722,13 @@ export default {
 
 .text-card {
   width: 100%;
-  height: calc(100% - 620px);
+  height: calc(100% - 570px);
   margin-top: 10px;
   min-height: 180px;
   background-color: #ffffff;
   border-radius: 10px;
   padding: 15px;
   box-sizing: border-box;
-  position: relative;
 }
 
 .video-input {
