@@ -490,9 +490,9 @@ export default {
       getAction("/figure/query_success").then((res) => {
         if (res.data.status === "success") {
           let data = res.data.data.filter(item => item.status === "success");
-          data.forEach(figure => {
-            figure.picture = figure.picture.replace('http://127.0.0.1', 'http://192.168.0.116')
-          })
+          // data.forEach(figure => {
+          //   figure.picture = figure.picture.replace('http://127.0.0.1', 'http://192.168.0.116')
+          // })
           if (data.length > 0) {
             this.materials = data.filter(item => !item.lip_sync && item.status === "success");
             this.figures = data.filter(item => item.lip_sync && item.status === "success");
