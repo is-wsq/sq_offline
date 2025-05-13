@@ -238,7 +238,7 @@ export default {
 }
 
 .figure-name {
-  width: 100%;
+  width: 180px;
   text-align: center;
   line-height: 23px;
   white-space: nowrap;
