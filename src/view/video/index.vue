@@ -3,9 +3,9 @@
     <div class="video-header">
       <div class="video-card">
         <div class="video-card-list">
-          <div class="video-title">素材</div>
+          <div class="video-title">角色</div>
           <div class="video-template">
-            <div v-for="item in materials" :key="item.id" style="border-radius: 10px; width: 130px"
+            <div v-for="item in figures" :key="item.id" style="border-radius: 10px; width: 130px"
                  @click="selectFigure(item)"
                  :style="{ 'background-color': item.id === figure.id ? '#e0e7fb' : '#FFFFFF' }">
               <el-image class="template-img" :src="item.picture" fit="cover"></el-image>
@@ -14,11 +14,11 @@
           </div>
         </div>
         <div class="video-card-list">
-          <div class="video-title">角色</div>
+          <div class="video-title">素材</div>
           <div class="video-template">
-            <div v-for="item in figures" :key="item.id" style="border-radius: 10px; width: 130px"
-                 @click="selectFigure(item)"
-                 :style="{ 'background-color': item.id === figure.id ? '#e0e7fb' : '#FFFFFF' }">
+            <div v-for="item in materials" :key="item.id" style="border-radius: 10px; width: 130px"
+                 @click="selectMaterials(item)"
+                 :style="{ 'background-color': material_list.includes(item.id) ? '#e0e7fb' : '#FFFFFF' }">
               <el-image class="template-img" :src="item.picture" fit="cover"></el-image>
               <div class="template-name" :title="item.name">{{ item.name }}</div>
             </div>
@@ -71,16 +71,16 @@
             <div class="play-btn" @click="stopAudio" v-else>
               <i class="el-icon-pause" style="font-size: 13px; color: #6286ed"></i>
             </div>
-            <el-popover placement="bottom" trigger="click"  @hide="stopAudio">
+            <el-popover placement="bottom" trigger="click" @hide="stopAudio">
               <div class="popover-content">
                 <el-row>
                   <el-col :span="12">
                     <div class="voice-item">
                       <el-upload
-                        action="http://127.0.0.1:6006/bgm/upload"
-                        :show-file-list="false"
-                        accept=".mp3, .wav"
-                        :on-success="bgmUploadSuccess"
+                          action="http://127.0.0.1:6006/bgm/upload"
+                          :show-file-list="false"
+                          accept=".mp3, .wav"
+                          :on-success="bgmUploadSuccess"
                       >
                         <div style="display: flex;align-items: center;height: 80px;">
                           <div class="voice-icon" style="background-color: pink !important">
@@ -93,8 +93,10 @@
                   </el-col>
                   <el-col :span="12" v-for="(item, index) in bgmList" :key="item.id">
                     <div class="voice-item" :class="{ active: item.id === bgm.id }" @click="selectBgm(item)">
-                      <div class="voice-icon" @click="previewAudio(item, 10000 + index)" v-if="audioIndex !== (10000 + index)">
-                        <i :class="item.isPlay ? 'el-icon-pause' : 'el-icon-play'" style="font-size: 13px; color: #6286ed"></i>
+                      <div class="voice-icon" @click="previewAudio(item, 10000 + index)"
+                           v-if="audioIndex !== (10000 + index)">
+                        <i :class="item.isPlay ? 'el-icon-pause' : 'el-icon-play'"
+                           style="font-size: 13px; color: #6286ed"></i>
                       </div>
                       <div class="voice-icon" @click="stopAudio" v-else>
                         <i class="el-icon-pause" style="font-size: 13px; color: #6286ed"></i>
@@ -123,10 +125,10 @@
       </div>
       <el-collapse v-model="activeTitleNames">
         <el-collapse-item title="字幕标题" name="1">
-          <div style="display: flex;margin-bottom: 10px">
-            <div style="font-size: 13px;line-height: 30px;margin-right: 10px">字幕标题</div>
-            <el-input type="textarea" rows="3" placeholder="请输入" class="video-input" clearable v-model="subtitleNameParams.name"></el-input>
-          </div>
+          <!--          <div style="display: flex;margin-bottom: 10px">-->
+          <!--            <div style="font-size: 13px;line-height: 30px;margin-right: 10px">字幕标题</div>-->
+          <!--            <el-input type="textarea" rows="3" placeholder="请输入" class="video-input text-input" clearable v-model="subtitleNameParams.name"></el-input>-->
+          <!--          </div>-->
           <div style="display: flex;gap: 30px;align-items: center;height: 80px">
             <div style="text-align: center">
               <div style="font-size: 13px;height: 40px">字体颜色</div>
@@ -155,8 +157,10 @@
               <div style="display: flex">
                 <el-slider v-model="subtitleNameParams.name_fontsize" style="width: 170px" :min="5" :max="50"
                            @change="saveSubtitleNameParams('name_fontsize')"></el-slider>
-                <el-input-number v-model="subtitleNameParams.name_fontsize" controls-position="right" :min="5" :max="50"
-                                 style="margin-left: 10px" @change="saveSubtitleNameParams('name_fontsize')"></el-input-number>
+                <el-input-number class="text-input" v-model="subtitleNameParams.name_fontsize" controls-position="right"
+                                 :min="5" :max="50"
+                                 style="margin-left: 10px;width: 80px !important;"
+                                 @change="saveSubtitleNameParams('name_fontsize')"></el-input-number>
               </div>
             </div>
             <div style="text-align: center">
@@ -167,7 +171,8 @@
             <div style="text-align: center">
               <div style="font-size: 13px;height: 40px">开启字幕背景</div>
               <div style="height: 35px;">
-                <el-switch :width="50" v-model="name_use_background" @change="switchNameUseBackground" style="margin-top: 5px"></el-switch>
+                <el-switch :width="50" v-model="name_use_background" @change="switchNameUseBackground"
+                           style="margin-top: 5px"></el-switch>
               </div>
             </div>
             <div style="text-align: center">
@@ -214,8 +219,10 @@
               <div style="display: flex">
                 <el-slider v-model="subtitleParams.fontsize" style="width: 170px" :min="5" :max="50"
                            @change="saveSubtitleParams('font_size')"></el-slider>
-                <el-input-number v-model="subtitleParams.fontsize" controls-position="right" :min="5" :max="50"
-                                 style="margin-left: 10px" @change="saveSubtitleParams('font_size')"></el-input-number>
+                <el-input-number class="text-input" v-model="subtitleParams.fontsize" controls-position="right" :min="5"
+                                 :max="50"
+                                 style="margin-left: 10px;width: 80px !important;"
+                                 @change="saveSubtitleParams('font_size')"></el-input-number>
               </div>
             </div>
             <div style="text-align: center">
@@ -226,7 +233,8 @@
             <div style="text-align: center">
               <div style="font-size: 13px;height: 40px">开启字幕背景</div>
               <div style="height: 35px;">
-                <el-switch :width="50" v-model="use_background" @change="switchUseBackground" style="margin-top: 5px"></el-switch>
+                <el-switch :width="50" v-model="use_background" @change="switchUseBackground"
+                           style="margin-top: 5px"></el-switch>
               </div>
             </div>
             <div style="text-align: center">
@@ -239,22 +247,77 @@
       </el-collapse>
     </div>
     <div class="text-card">
-      <div class="video-title" style="margin-bottom: 10px">口播文案</div>
-      <el-input type="textarea" style="height: calc(100% - 30px); width: 100%" @focus="isFocus = true"
-                @blur="isFocus = false" v-model="text">
-      </el-input>
-      <span class="text-tips" v-if="!isFocus && text === ''">请输入视频口播文案</span>
+      <div style="display: flex;margin-bottom: 10px;align-items: center">
+        <div class="video-title" style="flex: 1">口播文案</div>
+        <div class="ai-generate-btn" @click="openSetting">AI生成文案</div>
+      </div>
+      <div ref="scrollDiv" style="max-height: calc(100% - 65px);overflow-y: auto">
+        <div class="input-row" style="position: relative" v-for="(text, index) in text_list" :key="index">
+          <div style="text-align: center;width: 200px;margin-right: 10px">
+            <span style="font-size: 13px">口播标题</span>
+            <el-input placeholder="请输入口播标题" type="textarea" rows="4" v-model="title_text_list[index]">
+            </el-input>
+          </div>
+          <div class="input-with-button" style="text-align: center">
+            <span style="font-size: 13px">口播文案</span>
+            <el-input placeholder="请输入口播文案" class="input-with-button" type="textarea" rows="4"
+                      v-model="text_list[index]">
+            </el-input>
+          </div>
+          <el-button type="danger" icon="el-icon-delete" @click="minusText(index)"></el-button>
+          <!--          <span class="text-tips" v-if="!text_list[index]">请输入视频口播文案</span>-->
+        </div>
+      </div>
+      <el-button type="primary" @click="addText" class="add-button">
+        添加口播文案
+      </el-button>
     </div>
     <div style="height: 50px;display: flex;align-items: center;">
       <div style="margin-right: 20px;margin-left: 10px;font-size: 15px">视频倒序循环</div>
       <el-switch :width="50" v-model="reverse" @change="switchReverse"></el-switch>
     </div>
     <el-button type="primary" class="generate-btn" @click="verify">生成视频</el-button>
+    <el-dialog title="AI生成文案配置" :visible.sync="dialogVisible" width="70%" :show-close="false">
+      <div style="height: 50vh;overflow-y: auto">
+        <el-form :model="form" label-width="80px" label-position="top">
+          <el-form-item label="示例文案">
+            <div class="input-row" v-for="(text, index) in exampleTexts" :key="index">
+              <el-input class="input-with-button" type="textarea" rows="3" placeholder="请输入示例文案"
+                        v-model="exampleTexts[index]"></el-input>
+              <el-button type="danger" icon="el-icon-delete" @click="removeText(index)"></el-button>
+            </div>
+            <el-button type="primary" @click="addExampleText" class="add-button">
+              添加示例文案
+            </el-button>
+          </el-form-item>
+          <el-form-item label="文案要求">
+            <el-input type="textarea" rows="3" placeholder="请输入文案要求" v-model="requirements"></el-input>
+          </el-form-item>
+          <el-row>
+            <el-col :span="12">
+              <el-form-item label="字数">
+                <el-input class="text_setting" type="number" v-model="num_of_words" style="width: 200px"></el-input>
+              </el-form-item>
+            </el-col>
+            <el-col :span="12">
+              <el-form-item label="数量">
+                <el-input class="text_setting" type="number" v-model="script_count" style="width: 200px"></el-input>
+              </el-form-item>
+            </el-col>
+          </el-row>
+        </el-form>
+      </div>
+      <span slot="footer" class="dialog-footer">
+        <el-button @click="dialogClose">取 消</el-button>
+        <el-button type="primary" @click="generateText">确 定</el-button>
+      </span>
+    </el-dialog>
   </div>
 </template>
 
 <script>
 import {getAction, postAction} from "@/api/api";
+import axios from "axios";
 
 export default {
   name: "Video",
@@ -265,6 +328,7 @@ export default {
       materials: [],
       figures: [],
       figure: {},
+      material_list: [],
       voices: [],
       sound: {},
       bgmList: [],
@@ -284,7 +348,15 @@ export default {
       fontFamily: [],
       activeTitleNames: [],
       activeNames: [],
-      subtitle: ''
+      subtitle: '',
+      text_list: [''],
+      title_text_list: [''],
+      dialogVisible: false,
+      form: {},
+      exampleTexts: [],
+      requirements: '',
+      num_of_words: 0,
+      script_count: 1
     };
   },
   mounted() {
@@ -298,6 +370,94 @@ export default {
     this.stopAudio();
   },
   methods: {
+    generateText() {
+      const cleanTexts = this.exampleTexts.map(text => text.trim()).filter(text => text !== '');
+      let params = {
+        examples: cleanTexts,
+        requirements: this.requirements,
+        num_of_words: parseInt(this.num_of_words),
+        script_count: parseInt(this.script_count)
+      }
+      this.loading = this.$loading({
+        lock: true,
+        text: '文案生成中，请耐心等待...',
+        spinner: 'el-icon-loading',
+        background: 'rgba(0, 0, 0, 0.7)'
+      });
+      axios.post("http://127.0.0.1:9669/generate_script", params).then(res => {
+        if (res.data.status === "success") {
+          this.text_list = res.data.data
+        } else {
+          this.$notify({
+            title: "文案生成失败",
+            message: `${res.data.message}`,
+            type: "error",
+            duration: 0
+          });
+        }
+        this.dialogClose()
+      }).catch(err => {
+        this.$notify({
+          title: "文案生成失败",
+          message: `${err}`,
+          type: "error",
+          duration: 0
+        });
+        this.dialogClose()
+      })
+    },
+    addExampleText() {
+      this.exampleTexts.push('');
+    },
+    removeText(index) {
+      this.exampleTexts.splice(index, 1);
+    },
+    dialogClose() {
+      this.exampleTexts = [];
+      this.requirements = '';
+      this.num_of_words = 0;
+      this.script_count = 1;
+      if (this.loading) {
+        this.loading.close();
+        this.loading = null;
+      }
+      this.dialogVisible = false;
+    },
+    openSetting() {
+      this.loading = this.$loading({
+        lock: true,
+        text: '正在切换服务到AI大模型',
+        spinner: 'el-icon-loading',
+        background: 'rgba(0, 0, 0, 0.7)'
+      });
+      postAction("stop_docker_service").then((res) => {
+        if (res.data.status === "success") {
+          this.dialogVisible = true;
+          this.loading.close();
+          this.loading = null;
+        } else {
+          this.loading.close();
+          this.loading = null;
+          this.$alert("当前数字人服务使用中，无法切换到AI大模型服务生成文案", "提示");
+        }
+      }).catch((err) => {
+        this.loading.close();
+        this.loading = null;
+        this.$alert("当前数字人服务使用中，无法切换到AI大模型服务生成文案", "提示");
+      });
+    },
+    addText() {
+      this.text_list.push('')
+      this.title_text_list.push('')
+      this.$nextTick(() => { //自动滚到到底部
+        let scrollElem = this.$refs.scrollDiv;
+        scrollElem.scrollTo({top: scrollElem.scrollHeight, behavior: 'smooth'});
+      });
+    },
+    minusText(index) {
+      this.text_list.splice(index, 1);
+      this.title_text_list.splice(index, 1)
+    },
     initParams() {
       this.withSubtitle = sessionStorage.getItem("with_subtitle") === 'true'
       this.withTitle = sessionStorage.getItem("with_title") === 'true'
@@ -330,15 +490,18 @@ export default {
       getAction("/figure/query_success").then((res) => {
         if (res.data.status === "success") {
           let data = res.data.data.filter(item => item.status === "success");
+          // data.forEach(figure => {
+          //   figure.picture = figure.picture.replace('http://127.0.0.1', 'http://192.168.0.116')
+          // })
           if (data.length > 0) {
             this.materials = data.filter(item => !item.lip_sync && item.status === "success");
-            this.figures = data.filter(item =>  item.lip_sync && item.status === "success");
-            let figure = JSON.parse(sessionStorage.getItem("setting_figure"))
-            if (figure && data.some(item => item.id === figure.id)) {
-              this.figure = figure
-            } else {
-              this.figure = res.data.data[0];
-            }
+            this.figures = data.filter(item => item.lip_sync && item.status === "success");
+            // let figure = JSON.parse(sessionStorage.getItem("setting_figure"))
+            // if (figure && data.some(item => item.id === figure.id)) {
+            //   this.figure = figure
+            // } else {
+            //   this.figure = res.data.data[0];
+            // }
           }
         }
       }).catch((error) => {
@@ -365,16 +528,15 @@ export default {
       });
     },
     queryBgm() {
+      let bgmList = [{id: '', name: '无'}]
       getAction('/bgm/all').then(res => {
         if (res.data.status === 'success') {
-          if (res.data.data.length > 0) {
-            this.bgmList = res.data.data
-            let bgm = JSON.parse(sessionStorage.getItem("setting_bgm"))
-            if (bgm && this.bgmList.some(item => item.id === bgm.id)) {
-              this.bgm = bgm
-            } else {
-              this.bgm = this.bgmList[0]
-            }
+          this.bgmList = bgmList.concat(res.data.data)
+          let bgm = JSON.parse(sessionStorage.getItem("setting_bgm"))
+          if (bgm && this.bgmList.some(item => item.id === bgm.id)) {
+            this.bgm = bgm
+          } else {
+            this.bgm = this.bgmList[0]
           }
         } else {
           this.$message.error("获取背景音乐列表失败。");
@@ -384,7 +546,7 @@ export default {
       })
     },
     previewAudio(voice, index) {
-      if (voice.id === 'default') {
+      if (voice.id === '') {
         this.$message.warning("无音频预览");
         return;
       }
@@ -415,7 +577,15 @@ export default {
       let hours = String(data.getHours()).padStart(2, "0");
       let minutes = String(data.getMinutes()).padStart(2, "0");
       let seconds = String(data.getSeconds()).padStart(2, "0");
-      return year + '-' + month + '-' + day + '_' + hours + '-' + minutes + '-' + seconds
+      // return year + '-' + month + '-' + day + '_' + hours + '-' + minutes + '-' + seconds
+      let base = year + '-' + month + '-' + day + '_' + hours + '-' + minutes + '-' + seconds
+
+      let result = [];
+      for (let i = 1; i <= this.text_list.length; i++) {
+        result.push(base + '_' + i);
+      }
+
+      return result;
     },
     verify() {
       getAction('/verify/activation').then(res => {
@@ -424,26 +594,31 @@ export default {
         } else {
           this.$alert(res.data.message, "验证失败");
         }
+      }).catch(err => {
+        console.log(err)
       })
     },
     generateVideo() {
-      if (this.withTitle && this.subtitleNameParams.name === '') {
-        this.$message.error("开启字幕标题后，必须填写字幕标题内容");
-        return;
-      }
+      // if (this.withTitle && this.subtitleNameParams.name === '') {
+      //   this.$message.error("开启字幕标题后，必须填写字幕标题内容");
+      //   return;
+      // }
       let name = this.setName()
       let background_colors = this.subtitleParams.background_color.replace(/rgba|\(|\)|\s/g, '').split(',');
       let name_background_colors = this.subtitleNameParams.name_background_color.replace(/rgba|\(|\)|\s/g, '').split(',');
       let params = {
         video_id: this.figure.video_id,
+        material_list: this.material_list,
         voice_id: this.sound.voice_id,
         bgm_id: this.bgm.id,
-        filename: name,
+        // filename: name,
+        filename_list: name,
         reverse: this.reverse,
-        text: this.text,
+        // text: this.text,
+        text_list: this.text_list,
         with_subtitle: this.withSubtitle,
         with_title: this.withTitle,
-        lip_sync: !!this.figure.lip_sync,
+        // lip_sync: !!this.figure.lip_sync,
         subtitle_params: {
           font: this.subtitleParams.font,
           fontsize: this.subtitleParams['fontsize'],
@@ -454,7 +629,8 @@ export default {
           background_opacity: Number(background_colors[3])
         },
         title_params: {
-          title_text: this.subtitleNameParams.name,
+          // title_text: this.subtitleNameParams.name,
+          title_text_list: this.title_text_list,
           font: this.subtitleNameParams.name_font,
           fontsize: this.subtitleNameParams.name_fontsize,
           color: this.subtitleNameParams.name_color,
@@ -464,7 +640,8 @@ export default {
           background_opacity: Number(name_background_colors[3])
         },
       };
-      postAction("/figure/generate_video", params).then((res) => {
+      // postAction("/figure/generate_video", params).then((res) => {
+      postAction("/figure/generate_video_v2", params).then((res) => {
         if (res.data.status === "success") {
           this.$alert('已创建视频生成任务，视频生成成功后会自动下载到本地', "任务创建提醒");
 
@@ -488,7 +665,7 @@ export default {
         });
       });
     },
-    bgmUploadSuccess(res,file) {
+    bgmUploadSuccess(res, file) {
       if (res.status === "success") {
         this.$notify({
           title: "上传提示",
@@ -508,8 +685,19 @@ export default {
     },
 
     selectFigure(item) {
-      this.figure = item
-      sessionStorage.setItem("setting_figure", JSON.stringify(item))
+      if (this.figure.id === item.id) {
+        this.figure = {}
+      } else {
+        this.figure = item
+      }
+      // sessionStorage.setItem("setting_figure", JSON.stringify(item))
+    },
+    selectMaterials(item) {
+      if (!this.material_list.includes(item.id)) {
+        this.material_list.push(item.id)
+      } else {
+        this.material_list.splice(this.material_list.indexOf(item.id), 1)
+      }
     },
     selectVoice(voice) {
       this.sound = voice
@@ -571,8 +759,12 @@ export default {
   font-size: 15px;
 }
 
-.video-header {
-
+.ai-generate-btn {
+  color: #4c8df1;
+  font-size: 14px;
+  flex: 1;
+  cursor: pointer;
+  margin-right: 65px;
 }
 
 .video-card {
@@ -703,14 +895,13 @@ export default {
 
 .text-card {
   width: 100%;
-  height: calc(100% - 620px);
+  height: calc(100% - 570px);
   margin-top: 10px;
   min-height: 180px;
   background-color: #ffffff;
   border-radius: 10px;
   padding: 15px;
   box-sizing: border-box;
-  position: relative;
 }
 
 .video-input {
@@ -722,7 +913,7 @@ export default {
   background-color: #f9f9f9;
   height: 100%;
   border: none;
-  border-radius: 10px;
+  border-radius: 7px;
   padding: 10px 15px;
 }
 
@@ -760,31 +951,41 @@ export default {
   height: 3px;
 }
 
-.video >>> .el-input__inner {
+.el-select >>> .el-input__inner {
   height: 30px;
   line-height: 30px;
   padding-right: 35px !important;
 }
 
-.video >>> .el-input-number {
+.el-select >>> .el-input__icon {
+  line-height: 30px;
+}
+
+.text-input >>> .el-input__inner {
+  height: 30px;
+  line-height: 30px;
+  padding-right: 35px !important;
+}
+
+.text-input >>> .el-input-number {
   width: 80px
 }
 
-.video >>> .el-input-number__decrease {
+.text-input >>> .el-input-number__decrease {
   width: 20px;
   height: 15px !important;
   line-height: 15px !important;
   bottom: 5px !important;
 }
 
-.video >>> .el-input-number__increase {
+.text-input >>> .el-input-number__increase {
   width: 20px;
   height: 14px !important;
   line-height: 14px !important;
   top: 5px !important;
 }
 
-.video >>> .el-input__icon {
+.text-input >>> .el-input__icon {
   line-height: 30px;
 }
 
@@ -813,5 +1014,16 @@ export default {
 
 .video >>> .el-collapse-item__wrap {
   border: none !important;
+}
+
+.input-row {
+  display: flex;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.input-with-button {
+  flex: 1;
+  margin-right: 10px;
 }
 </style>

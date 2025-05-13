@@ -220,6 +220,7 @@ export default {
 }
 
 .video-name {
+  width: 180px;
   text-align: center;
   margin-top: 5px;
   white-space: nowrap;
