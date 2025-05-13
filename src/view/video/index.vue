@@ -384,7 +384,7 @@ export default {
         spinner: 'el-icon-loading',
         background: 'rgba(0, 0, 0, 0.7)'
       });
-      axios.post("http://192.168.0.121:9669/generate_script", params).then(res => {
+      axios.post("http://127.0.0.1:9669/generate_script", params).then(res => {
         if (res.data.status === "success") {
           this.text_list = res.data.data
         } else {
