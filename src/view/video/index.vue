@@ -709,9 +709,11 @@ export default {
     },
     switchSubtitle() {
       sessionStorage.setItem("with_subtitle", this.withSubtitle)
+      this.activeNames = this.withSubtitle ? ['1'] : []
     },
     switchTitle() {
       sessionStorage.setItem("with_title", this.withTitle)
+      this.activeTitleNames = this.withTitle ? ['1'] : []
     },
     saveBgmVolume() {
       sessionStorage.setItem("bg_volume", this.bg_volume)
@@ -809,6 +811,7 @@ export default {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  margin: 0 auto;
 }
 
 .voice-card {
@@ -897,7 +900,7 @@ export default {
   width: 100%;
   height: calc(100% - 570px);
   margin-top: 10px;
-  min-height: 180px;
+  min-height: 227px;
   background-color: #ffffff;
   border-radius: 10px;
   padding: 15px;

@@ -221,8 +221,7 @@ export default {
 
 .video-name {
   width: 180px;
-  text-align: center;
-  margin-top: 5px;
+  margin: 5px auto;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
