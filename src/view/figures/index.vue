@@ -212,7 +212,7 @@ export default {
     uploadMaterialsError(file) {
       this.$notify({
         title: "上传失败",
-        message: `上传素材${file.name}失败`,
+        message: `素材${file.name}上传失败`,
         duration: 0,
         type: "error",
       });
@@ -221,14 +221,14 @@ export default {
       if (res.status === "success") {
         this.$notify({
           title: "上传成功",
-          message: `上传素材${file.name}成功`,
+          message: `素材${file.name}上传成功`,
           duration: 20000,
-          type: "error",
+          type: "success",
         });
       } else {
         this.$notify({
           title: "上传失败",
-          message: `上传素材${file.name}失败，${res.data}`,
+          message: `素材${file.name}上传失败，${res.data}`,
           duration: 0,
           type: "error",
         });

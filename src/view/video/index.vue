@@ -125,10 +125,6 @@
       </div>
       <el-collapse v-model="activeTitleNames">
         <el-collapse-item title="字幕标题" name="1">
-          <!--          <div style="display: flex;margin-bottom: 10px">-->
-          <!--            <div style="font-size: 13px;line-height: 30px;margin-right: 10px">字幕标题</div>-->
-          <!--            <el-input type="textarea" rows="3" placeholder="请输入" class="video-input text-input" clearable v-model="subtitleNameParams.name"></el-input>-->
-          <!--          </div>-->
           <div style="display: flex;gap: 30px;align-items: center;height: 80px">
             <div style="text-align: center">
               <div style="font-size: 13px;height: 40px">字体颜色</div>
@@ -251,26 +247,27 @@
         <div class="video-title" style="flex: 1">口播文案</div>
         <div class="ai-generate-btn" @click="openSetting">AI生成文案</div>
       </div>
-      <div ref="scrollDiv" style="max-height: calc(100% - 65px);overflow-y: auto">
-        <div class="input-row" style="position: relative" v-for="(text, index) in text_list" :key="index">
-          <div style="text-align: center;width: 200px;margin-right: 10px">
-            <span style="font-size: 13px">口播标题</span>
-            <el-input placeholder="请输入口播标题" type="textarea" rows="4" v-model="title_text_list[index]">
-            </el-input>
-          </div>
-          <div class="input-with-button" style="text-align: center">
-            <span style="font-size: 13px">口播文案</span>
-            <el-input placeholder="请输入口播文案" class="input-with-button" type="textarea" rows="4"
-                      v-model="text_list[index]">
-            </el-input>
-          </div>
-          <el-button type="danger" icon="el-icon-delete" @click="minusText(index)"></el-button>
-          <!--          <span class="text-tips" v-if="!text_list[index]">请输入视频口播文案</span>-->
-        </div>
+      <div style="height: calc(100% - 65px)">
+        <el-table :data="tableData" empty-text="暂未设置" stripe style="width: 100%;" height="100%" ref="table">
+          <el-table-column prop="title" label="口播标题">
+            <template slot-scope="scope">
+              <div class="table-column" :title="scope.row.title">{{ scope.row.title }}</div>
+            </template>
+          </el-table-column>
+          <el-table-column prop="text" label="口播内容">
+            <template slot-scope="scope">
+              <div class="table-column" :title="scope.row.text">{{ scope.row.text }}</div>
+            </template>
+          </el-table-column>
+          <el-table-column label="操作" width="200" align="center">
+            <template slot-scope="scope">
+              <el-button size="mini" @click="editRow(scope.$index)">编辑</el-button>
+              <el-button size="mini" type="danger" @click="deleteRow(scope.$index)">删除</el-button>
+            </template>
+          </el-table-column>
+        </el-table>
       </div>
-      <el-button type="primary" @click="addText" class="add-button">
-        添加口播文案
-      </el-button>
+      <el-button type="primary" size="small" @click="addTable" class="add-button">添加口播文案</el-button>
     </div>
     <div style="height: 50px;display: flex;align-items: center;">
       <div style="margin-right: 20px;margin-left: 10px;font-size: 15px">视频倒序循环</div>
@@ -312,6 +309,21 @@
         <el-button type="primary" @click="generateText" :disabled="switching">确 定</el-button>
       </span>
     </el-dialog>
+    <el-dialog title="编辑文案" :visible.sync="editDialogVisible" width="70%" :show-close="false"
+               :close-on-click-modal="false" :close-on-press-escape="false">
+      <el-form ref="editForm" :model="selectedRow" :rules="rules" label-width="80px" label-position="top">
+        <el-form-item label="口播标题" prop="title">
+          <el-input type="textarea" rows="3" placeholder="输入口播标题" v-model="selectedRow.title"></el-input>
+        </el-form-item>
+        <el-form-item label="口播内容" prop="text">
+          <el-input type="textarea" rows="3" placeholder="输入口播内容" v-model="selectedRow.text"></el-input>
+        </el-form-item>
+      </el-form>
+      <span slot="footer" class="dialog-footer">
+        <el-button size="small" @click="cancelEdit" v-if="showCancelBtn">取 消</el-button>
+        <el-button type="primary" size="small" @click="saveEditRow">保 存</el-button>
+      </span>
+    </el-dialog>
   </div>
 </template>
 
@@ -349,10 +361,21 @@ export default {
       activeTitleNames: [],
       activeNames: [],
       subtitle: '',
-      text_list: [''],
-      title_text_list: [''],
+      tableData: [],
       dialogVisible: false,
       form: {},
+      editDialogVisible: false,
+      selectedRow: {},
+      selectedIndex: 0,
+      rules: {
+        title: [
+          {required: false, message: '请输入口播文案', trigger: 'blur'},
+        ],
+        text: [
+          {required: true, message: '请输入口播文案', trigger: 'blur'},
+        ],
+      },
+      showCancelBtn: true,
       exampleTexts: [],
       requirements: '',
       num_of_words: 0,
@@ -387,7 +410,7 @@ export default {
       });
       axios.post("http://127.0.0.1:9669/generate_script", params).then(res => {
         if (res.data.status === "success") {
-          this.text_list = res.data.data
+          this.tableData = res.data.data.map(item => ({title: '', text: item}))
         } else {
           this.$notify({
             title: "文案生成失败",
@@ -458,17 +481,38 @@ export default {
         return data.length > 0
       })
     },
-    addText() {
-      this.text_list.push('')
-      this.title_text_list.push('')
+    addTable() {
+      this.tableData.push({title: '', text: ''})
       this.$nextTick(() => { //自动滚到到底部
-        let scrollElem = this.$refs.scrollDiv;
-        scrollElem.scrollTo({top: scrollElem.scrollHeight, behavior: 'smooth'});
+        const tableBodyWrapper = this.$refs.table.bodyWrapper;
+        tableBodyWrapper.scrollTop = tableBodyWrapper.scrollHeight;
       });
+      this.editRow(this.tableData.length - 1,false)
     },
-    minusText(index) {
-      this.text_list.splice(index, 1);
-      this.title_text_list.splice(index, 1)
+    deleteRow(index) {
+      this.tableData.splice(index, 1);
+    },
+    editRow(index, show = true) {
+      this.selectedRow = {...this.tableData[index]};
+      this.selectedIndex = index
+      this.rules.title[0].required = this.withTitle;
+      this.editDialogVisible = true;
+      this.showCancelBtn = show
+    },
+    cancelEdit() {
+      this.$refs.editForm.clearValidate();
+      this.editDialogVisible = false;
+    },
+    saveEditRow() {
+      this.$refs.editForm.validate((valid) => {
+        if (valid) {
+          this.$set(this.tableData, this.selectedIndex, this.selectedRow);
+          this.$forceUpdate()
+          this.editDialogVisible = false;
+        } else {
+          return false;
+        }
+      });
     },
     initParams() {
       this.withSubtitle = sessionStorage.getItem("with_subtitle") === 'true'
@@ -583,7 +627,7 @@ export default {
       let base = year + '-' + month + '-' + day + '_' + hours + '-' + minutes + '-' + seconds
 
       let result = [];
-      for (let i = 1; i <= this.text_list.length; i++) {
+      for (let i = 1; i <= this.tableData.length; i++) {
         result.push(base + '_' + i);
       }
 
@@ -601,10 +645,6 @@ export default {
       })
     },
     generateVideo() {
-      // if (this.withTitle && this.subtitleNameParams.name === '') {
-      //   this.$message.error("开启字幕标题后，必须填写字幕标题内容");
-      //   return;
-      // }
       let name = this.setName()
       let background_colors = this.subtitleParams.background_color.replace(/rgba|\(|\)|\s/g, '').split(',');
       let name_background_colors = this.subtitleNameParams.name_background_color.replace(/rgba|\(|\)|\s/g, '').split(',');
@@ -613,14 +653,11 @@ export default {
         material_list: this.material_list,
         voice_id: this.sound.voice_id,
         bgm_id: this.bgm.id,
-        // filename: name,
         filename_list: name,
         reverse: this.reverse,
-        // text: this.text,
-        text_list: this.text_list,
+        text_list: this.tableData.map(item => item.text),
         with_subtitle: this.withSubtitle,
         with_title: this.withTitle,
-        // lip_sync: !!this.figure.lip_sync,
         subtitle_params: {
           font: this.subtitleParams.font,
           fontsize: this.subtitleParams['fontsize'],
@@ -631,8 +668,7 @@ export default {
           background_opacity: Number(background_colors[3])
         },
         title_params: {
-          // title_text: this.subtitleNameParams.name,
-          title_text_list: this.title_text_list,
+          title_text_list: this.tableData.map(item => item.title),
           font: this.subtitleNameParams.name_font,
           fontsize: this.subtitleNameParams.name_fontsize,
           color: this.subtitleNameParams.name_color,
@@ -642,7 +678,6 @@ export default {
           background_opacity: Number(name_background_colors[3])
         },
       };
-      // postAction("/figure/generate_video", params).then((res) => {
       postAction("/figure/generate_video_v2", params).then((res) => {
         if (res.data.status === "success") {
           this.$alert('已创建视频生成任务，视频生成成功后会自动下载到本地', "任务创建提醒");
@@ -685,7 +720,6 @@ export default {
         });
       }
     },
-
     selectFigure(item) {
       if (this.figure.id === item.id) {
         this.figure = {}
@@ -768,6 +802,13 @@ export default {
   flex: 1;
   cursor: pointer;
   margin-right: 65px;
+}
+
+.table-column {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  cursor: pointer;
 }
 
 .video-card {
