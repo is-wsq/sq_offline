@@ -309,7 +309,7 @@
       </div>
       <span slot="footer" class="dialog-footer">
         <el-button @click="dialogClose">取 消</el-button>
-        <el-button type="primary" @click="generateText">确 定</el-button>
+        <el-button type="primary" @click="generateText" :disabled="switching">确 定</el-button>
       </span>
     </el-dialog>
   </div>
@@ -356,7 +356,8 @@ export default {
       exampleTexts: [],
       requirements: '',
       num_of_words: 0,
-      script_count: 1
+      script_count: 1,
+      switching: false
     };
   },
   mounted() {
@@ -423,28 +424,39 @@ export default {
       }
       this.dialogVisible = false;
     },
-    openSetting() {
-      this.loading = this.$loading({
-        lock: true,
-        text: '正在切换服务到AI大模型',
-        spinner: 'el-icon-loading',
-        background: 'rgba(0, 0, 0, 0.7)'
-      });
+    async openSetting() {
+      if (await this.judgeServeStatus()) {
+        await this.$alert("当前数字人服务使用中，无法切换到AI大模型服务生成文案", "提示");
+        return
+      }
+      this.switching = true
+      this.dialogVisible = true
       postAction("stop_docker_service").then((res) => {
         if (res.data.status === "success") {
-          this.dialogVisible = true;
-          this.loading.close();
-          this.loading = null;
-        } else {
-          this.loading.close();
-          this.loading = null;
-          this.$alert("当前数字人服务使用中，无法切换到AI大模型服务生成文案", "提示");
+          this.switching = false;
         }
-      }).catch((err) => {
-        this.loading.close();
-        this.loading = null;
-        this.$alert("当前数字人服务使用中，无法切换到AI大模型服务生成文案", "提示");
-      });
+      })
+    },
+    async judgeServeStatus() {
+      return !!(await this.figureRun() || await this.timbreRun() || await this.videoRun());
+    },
+    async figureRun() {
+      return getAction('/figure/query_success').then(res => {
+        let data = res.data.data.filter(item => item.status === "ready");
+        return data.length > 0;
+      })
+    },
+    async timbreRun() {
+      return getAction('/timbres/query_success').then(res => {
+        let data = res.data.data.filter(item => item.status === "pending");
+        return data.length > 0
+      })
+    },
+    async videoRun() {
+      return getAction('/video_record/query').then(res => {
+        let data = res.data.data.filter(item => item.status === "pending");
+        return data.length > 0
+      })
     },
     addText() {
       this.text_list.push('')
@@ -490,18 +502,9 @@ export default {
       getAction("/figure/query_success").then((res) => {
         if (res.data.status === "success") {
           let data = res.data.data.filter(item => item.status === "success");
-          // data.forEach(figure => {
-          //   figure.picture = figure.picture.replace('http://127.0.0.1', 'http://192.168.0.116')
-          // })
           if (data.length > 0) {
             this.materials = data.filter(item => !item.lip_sync && item.status === "success");
             this.figures = data.filter(item => item.lip_sync && item.status === "success");
-            // let figure = JSON.parse(sessionStorage.getItem("setting_figure"))
-            // if (figure && data.some(item => item.id === figure.id)) {
-            //   this.figure = figure
-            // } else {
-            //   this.figure = res.data.data[0];
-            // }
           }
         }
       }).catch((error) => {
@@ -577,7 +580,6 @@ export default {
       let hours = String(data.getHours()).padStart(2, "0");
       let minutes = String(data.getMinutes()).padStart(2, "0");
       let seconds = String(data.getSeconds()).padStart(2, "0");
-      // return year + '-' + month + '-' + day + '_' + hours + '-' + minutes + '-' + seconds
       let base = year + '-' + month + '-' + day + '_' + hours + '-' + minutes + '-' + seconds
 
       let result = [];
@@ -690,7 +692,6 @@ export default {
       } else {
         this.figure = item
       }
-      // sessionStorage.setItem("setting_figure", JSON.stringify(item))
     },
     selectMaterials(item) {
       if (!this.material_list.includes(item.id)) {
