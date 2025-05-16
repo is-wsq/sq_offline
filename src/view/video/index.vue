@@ -411,7 +411,7 @@ export default {
       axios.post("http://127.0.0.1:9669/generate_script", params).then(res => {
         if (res.data.status === "success") {
           this.tableData = res.data.data.map(item => ({title: '', text: item}))
-          sessionStorage.setItem("tableData", this.tableData)
+          sessionStorage.setItem("tableData", JSON.stringify(this.tableData))
         } else {
           this.$notify({
             title: "文案生成失败",
@@ -492,7 +492,7 @@ export default {
     },
     deleteRow(index) {
       this.tableData.splice(index, 1);
-      sessionStorage.setItem("tableData", this.tableData)
+      sessionStorage.setItem("tableData", JSON.stringify(this.tableData))
     },
     editRow(index, type = 'edit') {
       this.selectedRow = {...this.tableData[index]};
@@ -504,7 +504,7 @@ export default {
     cancelEdit() {
       if (this.dialogType === 'add') {
         this.tableData.pop();
-        sessionStorage.setItem("tableData", this.tableData)
+        sessionStorage.setItem("tableData", JSON.stringify(this.tableData))
       }
       this.$refs.editForm.clearValidate();
       this.editDialogVisible = false;
@@ -515,7 +515,7 @@ export default {
           this.$set(this.tableData, this.selectedIndex, this.selectedRow);
           this.$forceUpdate()
           this.editDialogVisible = false;
-          sessionStorage.setItem("tableData", this.tableData)
+          sessionStorage.setItem("tableData", JSON.stringify(this.tableData))
         } else {
           return false;
         }
@@ -540,6 +540,7 @@ export default {
       this.subtitleNameParams.name_background_color = sessionStorage.getItem("name_background_color") || 'rgba(64,64,64,0.6)'
       this.subtitleNameParams.name_stroke_color = sessionStorage.getItem("name_stroke_color") || '#000000'
 
+      console.log(sessionStorage.getItem("tableData"))
       this.tableData = sessionStorage.getItem("tableData") ? JSON.parse(sessionStorage.getItem("tableData")) : []
     },
     queryFontFamily() {
