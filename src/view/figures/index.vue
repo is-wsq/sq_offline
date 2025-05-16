@@ -1,56 +1,39 @@
 <template>
   <div class="figures">
     <div class="figures-content">
-      <div class="figures-list">
-        <div v-for="item in processTasks" :key="item.id">
-          <div class="image-wrapper shining">
-            <el-image
-                style="width: 180px; height: 236px; border-radius: 12px;filter: blur(15px);opacity: 0.8"
-                :src="require('/public/images/4.jpg')"
-                fit="cover"
-            ></el-image>
-            <div class="shine-layer"></div>
-            <div class="figure-progress">
-              <div>形象克隆中</div>
-              <div style="width: 10px;text-align: left;margin-left: 5px;font-size: 22px">{{ dot }}</div>
-            </div>
+      <div class="figure-item">
+        <div style="margin-bottom: 10px">素材</div>
+        <div class="figures-list">
+          <div v-for="(item, index) in materials" :key="index" @contextmenu.stop="handleContextMenu(item, $event)"
+               @click="selectItem(item)">
+            <el-image class="figures-img" :src="item.picture" fit="cover"></el-image>
+            <div class="figure-name" :title="item.name">{{ item.name }}</div>
           </div>
-          <div class="figure-name" :title="item.name">{{ item.name }}</div>
-        </div>
-        <div v-for="(item, index) in figures" :key="index" @contextmenu.stop="handleContextMenu(item, $event)"
-             @click="selectItem(item)">
-          <el-image class="figures-img" :src="item.picture" fit="cover"></el-image>
-          <div class="figure-name" :title="item.name">{{ item.name }}</div>
         </div>
       </div>
-      <div style="display: flex;margin-top: 30px;gap: 100px">
-        <div style="text-align: end;flex: 1">
-          <el-upload
-              class="avatar-uploader"
-              action="http://127.0.0.1:6006/figure/clone_only"
-              :show-file-list="false"
-              accept=".mp4, .mov"
-              :on-success="uploadMaterialsSuccess"
-              :on-error="uploadMaterialsError"
-              :before-upload="beforeUpload"
-              :data="{ lip_sync: false }"
-          >
-            <el-button type="primary">上传素材</el-button>
-          </el-upload>
-        </div>
-        <div style="flex: 1">
-          <el-upload
-              class="avatar-uploader"
-              action="http://127.0.0.1:6006/figure/clone"
-              :show-file-list="false"
-              accept=".mp4, .mov"
-              :on-success="uploadSuccess"
-              :on-error="uploadError"
-              :before-upload="beforeUpload"
-              :data="{ lip_sync: true }"
-          >
-            <el-button type="primary">添加形象</el-button>
-          </el-upload>
+      <div class="figure-item">
+        <div style="margin-bottom: 10px">形象</div>
+        <div class="figures-list">
+          <div v-for="item in processTasks" :key="item.id">
+            <div class="image-wrapper shining">
+              <el-image
+                  style="width: 120px; height: 158px; border-radius: 8px;filter: blur(15px);opacity: 0.8"
+                  :src="require('/public/images/4.jpg')"
+                  fit="cover"
+              ></el-image>
+              <div class="shine-layer"></div>
+              <div class="figure-progress">
+                <div>形象克隆中</div>
+                <div style="width: 10px;text-align: left;margin-left: 5px;font-size: 22px">{{ dot }}</div>
+              </div>
+            </div>
+            <div class="figure-name" :title="item.name">{{ item.name }}</div>
+          </div>
+          <div v-for="(item, index) in figures" :key="index" @contextmenu.stop="handleContextMenu(item, $event)"
+               @click="selectItem(item)">
+            <el-image class="figures-img" :src="item.picture" fit="cover"></el-image>
+            <div class="figure-name" :title="item.name">{{ item.name }}</div>
+          </div>
         </div>
       </div>
       <div :style="menuStyle" v-if="rightMenuVisible">
@@ -66,6 +49,36 @@
           <i class="el-icon-delete-solid menu-icon"></i>
           <span style="margin-top: 2px">删除</span>
         </div>
+      </div>
+    </div>
+    <div style="display: flex;margin-top: 30px;gap: 100px">
+      <div style="text-align: end;flex: 1">
+        <el-upload
+            class="avatar-uploader"
+            action="http://127.0.0.1:6006/figure/clone_only"
+            :show-file-list="false"
+            accept=".mp4, .mov"
+            :on-success="uploadMaterialsSuccess"
+            :on-error="uploadMaterialsError"
+            :before-upload="beforeUpload"
+            :data="{ lip_sync: false }"
+        >
+          <el-button type="primary">上传素材</el-button>
+        </el-upload>
+      </div>
+      <div style="flex: 1">
+        <el-upload
+            class="avatar-uploader"
+            action="http://127.0.0.1:6006/figure/clone"
+            :show-file-list="false"
+            accept=".mp4, .mov"
+            :on-success="uploadSuccess"
+            :on-error="uploadError"
+            :before-upload="beforeUpload"
+            :data="{ lip_sync: true }"
+        >
+          <el-button type="primary">添加形象</el-button>
+        </el-upload>
       </div>
     </div>
     <el-dialog :visible.sync="dialogVisible" :before-close="beforeClose">
@@ -122,7 +135,10 @@ export default {
       return this.figureTasks.filter((item) => item.status === "ready");
     },
     figures() {
-      return this.figureTasks.filter((item) => item.status === "success");
+      return this.figureTasks.filter((item) => item.status === "success" && item.lip_sync);
+    },
+    materials() {
+      return this.figureTasks.filter((item) => item.status === "success" && !item.lip_sync);
     },
   },
   mounted() {
@@ -264,7 +280,7 @@ export default {
 }
 
 .figure-name {
-  width: 180px;
+  width: 120px;
   text-align: center;
   line-height: 23px;
   white-space: nowrap;
@@ -284,19 +300,28 @@ export default {
 }
 
 .figures-content {
-  width: 90%;
-  height: calc(100% - 180px);
-  padding: 30px 40px;
+  width: 100%;
+  height: calc(100% - 160px);
+  padding: 20px;
   box-sizing: border-box;
-  background-color: #f5f5f5;
-  border-radius: 20px;
+  display: flex;
+  gap: 20px;
+}
+
+.figure-item {
+  flex: 1;
+  height: 100%;
+  background-color: #ffffff;
+  border-radius: 10px;
+  padding: 10px;
+  box-sizing: border-box;
 }
 
 .figures-list {
-  height: calc(100% - 80px);
+  height: calc(100% - 40px);
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-  grid-template-rows: 270px;
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  grid-template-rows: 190px;
   gap: 20px;
   justify-items: center;
   overflow: auto;
@@ -314,9 +339,9 @@ export default {
 }
 
 .figures-img {
-  width: 180px;
-  height: 240px;
-  border-radius: 12px;
+  width: 120px;
+  height: 160px;
+  border-radius: 8px;
 }
 
 .control-icon {
