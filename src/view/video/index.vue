@@ -320,7 +320,7 @@
         </el-form-item>
       </el-form>
       <span slot="footer" class="dialog-footer">
-        <el-button size="small" @click="cancelEdit" v-if="showCancelBtn">取 消</el-button>
+        <el-button size="small" @click="cancelEdit">取 消</el-button>
         <el-button type="primary" size="small" @click="saveEditRow">保 存</el-button>
       </span>
     </el-dialog>
@@ -375,7 +375,7 @@ export default {
           {required: true, message: '请输入口播文案', trigger: 'blur'},
         ],
       },
-      showCancelBtn: true,
+      dialogType: 'edit',
       exampleTexts: [],
       requirements: '',
       num_of_words: 0,
@@ -487,19 +487,22 @@ export default {
         const tableBodyWrapper = this.$refs.table.bodyWrapper;
         tableBodyWrapper.scrollTop = tableBodyWrapper.scrollHeight;
       });
-      this.editRow(this.tableData.length - 1,false)
+      this.editRow(this.tableData.length - 1,'add')
     },
     deleteRow(index) {
       this.tableData.splice(index, 1);
     },
-    editRow(index, show = true) {
+    editRow(index, type = 'edit') {
       this.selectedRow = {...this.tableData[index]};
       this.selectedIndex = index
       this.rules.title[0].required = this.withTitle;
       this.editDialogVisible = true;
-      this.showCancelBtn = show
+      this.dialogType = type
     },
     cancelEdit() {
+      if (this.dialogType === 'add') {
+        this.tableData.pop();
+      }
       this.$refs.editForm.clearValidate();
       this.editDialogVisible = false;
     },
