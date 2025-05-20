@@ -277,6 +277,17 @@
     <el-dialog title="AI生成文案配置" :visible.sync="dialogVisible" width="70%" :show-close="false">
       <div style="height: 50vh;overflow-y: auto">
         <el-form :model="form" label-width="80px" label-position="top">
+          <el-form-item label="模型选择">
+            <el-select v-model="ai_model">
+              <el-option
+                  v-for="item in AIOptions"
+                  :key="item.value"
+                  :label="item.label"
+                  :value="item.value">
+              </el-option>
+            </el-select>
+          </el-form-item>
+
           <el-form-item label="示例文案">
             <div class="input-row" v-for="(text, index) in exampleTexts" :key="index">
               <el-input class="input-with-button" type="textarea" rows="3" placeholder="请输入示例文案"
@@ -292,12 +303,20 @@
           </el-form-item>
           <el-row>
             <el-col :span="12">
-              <el-form-item label="字数">
-                <el-input class="text_setting" type="number" v-model="num_of_words" style="width: 200px"></el-input>
+              <el-form-item label="文案字数">
+<!--                <el-input class="text_setting" type="number" v-model="num_of_words" style="width: 200px"></el-input>-->
+                <el-select v-model="num_of_words">
+                  <el-option
+                    v-for="item in options"
+                    :key="item.value"
+                    :label="item.label"
+                    :value="item.value">
+                  </el-option>
+                </el-select>
               </el-form-item>
             </el-col>
             <el-col :span="12">
-              <el-form-item label="数量">
+              <el-form-item label="文案数量">
                 <el-input class="text_setting" type="number" v-model="script_count" style="width: 200px"></el-input>
               </el-form-item>
             </el-col>
@@ -306,7 +325,7 @@
       </div>
       <span slot="footer" class="dialog-footer">
         <el-button @click="dialogClose">取 消</el-button>
-        <el-button type="primary" @click="generateText" :disabled="switching">确 定</el-button>
+        <el-button type="primary" @click="generateText" :disabled="switching">生 成</el-button>
       </span>
     </el-dialog>
     <el-dialog title="编辑文案" :visible.sync="editDialogVisible" width="70%" :show-close="false"
@@ -376,9 +395,21 @@ export default {
         ],
       },
       dialogType: 'edit',
+      ai_model: 'local_model',
+      AIOptions: [
+        {label: '本地大模型', value: 'local_model'},
+        {label: 'deepseek v3', value: 'deepseek_v3'},
+      ],
       exampleTexts: [],
       requirements: '',
-      num_of_words: 0,
+      num_of_words: 200,
+      options: [
+        {label: '200',value: 200},
+        {label: '300',value: 300},
+        {label: '400',value: 400},
+        {label: '500',value: 500},
+        {label: '600',value: 600}
+      ],
       script_count: 1,
       switching: false
     };
@@ -395,6 +426,15 @@ export default {
   },
   methods: {
     generateText() {
+      let url = ''
+      switch (this.ai_model) {
+        case 'local_model':
+          url = 'http://127.0.0.1:9669/generate_script'
+          break
+        case 'deepseek_v3':
+          url = 'http://127.0.0.1:9669/api/generate_script'
+          break
+      }
       const cleanTexts = this.exampleTexts.map(text => text.trim()).filter(text => text !== '');
       let params = {
         examples: cleanTexts,
@@ -408,7 +448,7 @@ export default {
         spinner: 'el-icon-loading',
         background: 'rgba(0, 0, 0, 0.7)'
       });
-      axios.post("http://127.0.0.1:9669/generate_script", params).then(res => {
+      axios.post(url, params).then(res => {
         if (res.data.status === "success") {
           this.tableData = res.data.data.map(item => ({title: '', text: item}))
           sessionStorage.setItem("tableData", JSON.stringify(this.tableData))
@@ -1080,5 +1120,13 @@ export default {
 .input-with-button {
   flex: 1;
   margin-right: 10px;
+}
+
+.video >>> .el-form-item {
+  margin-bottom: 15px !important;
+}
+
+.video >>> .el-form-item__label {
+  padding: 0 !important;
 }
 </style>
