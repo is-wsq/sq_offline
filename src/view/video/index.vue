@@ -771,6 +771,7 @@ export default {
       }
     },
     selectFigure(item) {
+      this.material_list = []
       if (this.figure.id === item.id) {
         this.figure = {}
       } else {
@@ -778,6 +779,7 @@ export default {
       }
     },
     selectMaterials(item) {
+      this.figure = {}
       if (!this.material_list.includes(item.id)) {
         this.material_list.push(item.id)
       } else {
