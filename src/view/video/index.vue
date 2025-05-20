@@ -272,6 +272,10 @@
     <div style="height: 50px;display: flex;align-items: center;">
       <div style="margin-right: 20px;margin-left: 10px;font-size: 15px">视频倒序循环</div>
       <el-switch :width="50" v-model="reverse" @change="switchReverse"></el-switch>
+      <div style="margin-right: 20px;margin-left: 50px;font-size: 15px">AI混剪</div>
+      <el-switch :width="50" v-model="montage" @change="switchMontage"></el-switch>
+      <div style="margin-left: 20px;font-size: 14px;color: #409EFF;cursor: pointer"
+           @click="montageDialogVisible = true" v-if="montage">混剪配置</div>
     </div>
     <el-button type="primary" class="generate-btn" @click="verify">生成视频</el-button>
     <el-dialog title="AI生成文案配置" :visible.sync="dialogVisible" width="70%" :show-close="false">
@@ -304,13 +308,13 @@
           <el-row>
             <el-col :span="12">
               <el-form-item label="文案字数">
-<!--                <el-input class="text_setting" type="number" v-model="num_of_words" style="width: 200px"></el-input>-->
+                <!--                <el-input class="text_setting" type="number" v-model="num_of_words" style="width: 200px"></el-input>-->
                 <el-select v-model="num_of_words">
                   <el-option
-                    v-for="item in options"
-                    :key="item.value"
-                    :label="item.label"
-                    :value="item.value">
+                      v-for="item in options"
+                      :key="item.value"
+                      :label="item.label"
+                      :value="item.value">
                   </el-option>
                 </el-select>
               </el-form-item>
@@ -341,6 +345,29 @@
       <span slot="footer" class="dialog-footer">
         <el-button size="small" @click="cancelEdit">取 消</el-button>
         <el-button type="primary" size="small" @click="saveEditRow">保 存</el-button>
+      </span>
+    </el-dialog>
+    <el-dialog title="AI混剪配置" :visible.sync="montageDialogVisible" width="70%" :show-close="false"
+               :close-on-click-modal="false" :close-on-press-escape="false">
+      <el-form ref="montageForm" :model="montageForm" label-width="80px" label-position="top">
+        <el-form-item label="混剪要求" prop="title">
+          <div style="position: relative;">
+            <div class="highlight-content" v-html="highlightedText"></div>
+            <el-input placeholder="输入混剪要求" v-model="montageForm.request"
+                      @input="onInput" ref="inputRef" class="input-layer"></el-input>
+            <div v-if="showDropdown" class="dropdown" :style="dropdownStyle">
+              <ul>
+                <li v-for="(item, index) in mentionList" :key="index" @click="selectMention(item)">
+                  {{ item.name }}
+                </li>
+              </ul>
+            </div>
+          </div>
+        </el-form-item>
+      </el-form>
+      <span slot="footer" class="dialog-footer">
+        <el-button size="small" @click="montageDialogVisible = false">关 闭</el-button>
+<!--        <el-button type="primary" size="small" @click="montageSave">保 存</el-button>-->
       </span>
     </el-dialog>
   </div>
@@ -411,8 +438,37 @@ export default {
         {label: '600',value: 600}
       ],
       script_count: 1,
-      switching: false
+      switching: false,
+      montage: false,
+      montageDialogVisible: false,
+      montageForm: {
+        request: '' // 显示给用户看的
+      },
+      actualRequest: '', // 实际发送给服务端的
+      replaceName: [],
+      replaceId: [],
+      mentionList: [],
+      showDropdown: false,
+      dropdownStyle: {
+        position: 'absolute',
+        top: '0px',
+        left: '0px'
+      },
     };
+  },
+  computed: {
+    highlightedText() {
+      // 使用正则替换所有 @人名 为高亮样式
+      let result = this.montageForm.request;
+      this.replaceName.forEach(item => {
+        const regex = new RegExp(`@${item}`, 'g'); // 使用全局标志
+        result = result.replace(regex, (match) => {
+          return `<span style="color: #4c8df1">${match}</span>`
+        });
+      });
+      result = result.replace(/\n/g, '<br>'); // 支持换行
+      return result; // 返回最终结果
+    }
   },
   mounted() {
     this.querySounds();
@@ -420,11 +476,73 @@ export default {
     this.queryFontFamily()
     this.queryBgm()
     this.initParams()
+    document.addEventListener('click', this.handleClickOutside);
   },
   beforeDestroy() {
     this.stopAudio();
+    document.removeEventListener('click', this.handleClickOutside);
   },
   methods: {
+    onInput() {
+      const inputEl = this.$refs.inputRef.$el.querySelector('input')
+      const cursorPos = inputEl.selectionStart
+      const textBeforeCursor = this.montageForm.request.slice(0, cursorPos)
+      const validMention = textBeforeCursor.charAt(textBeforeCursor.length - 1) === '@'
+
+      if (validMention) {
+        this.showDropdown = true
+
+        this.$nextTick(() => {
+          const rect = inputEl.getBoundingClientRect()
+          const paddingLeft = parseFloat(getComputedStyle(inputEl).paddingLeft) || 0
+
+          const canvas = document.createElement('canvas')
+          const context = canvas.getContext('2d')
+          const computedStyle = getComputedStyle(inputEl)
+          context.font = `${computedStyle.fontSize} ${computedStyle.fontFamily}`
+
+          const textWidth = context.measureText(textBeforeCursor).width
+
+          this.dropdownStyle.top = `${window.scrollY + rect.height - 20}px`
+          this.dropdownStyle.left = `${paddingLeft + textWidth + 5}px`
+        })
+      } else {
+        this.showDropdown = false
+      }
+    },
+    selectMention(item) {
+      const inputEl = this.$refs.inputRef.$el.querySelector('input')
+      const cursorPos = inputEl.selectionStart
+      const atIndex = this.montageForm.request.lastIndexOf('@', cursorPos - 1)
+      if (atIndex !== -1) {
+        this.montageForm.request =
+            this.montageForm.request.slice(0, atIndex + 1) + item.name + this.montageForm.request.slice(cursorPos)
+        this.replaceName.push(item.name)
+        this.replaceId.push(item.id)
+        this.showDropdown = false
+      }
+    },
+    handleClickOutside(event) {
+      if (!this.$refs.inputRef)
+        return;
+      const inputEl = this.$refs.inputRef.$el.querySelector('input');
+      const dropdownEl = this.$refs.dropdownRef; // 假设选择框有一个引用
+
+      // 检查点击是否发生在输入框或选择框内
+      if (!inputEl.contains(event.target) && (!dropdownEl || !dropdownEl.contains(event.target))) {
+        this.showDropdown = false;
+      }
+    },
+    montageSave() {
+      console.log('request',this.montageForm.request)
+      console.log('replaceName',this.replaceName)
+      console.log('replaceId',this.replaceId)
+      this.actualRequest = this.montageForm.request
+      this.replaceName.forEach((item, index) => {
+        this.actualRequest = this.actualRequest.replace(item, `{${this.replaceId[index]}}`)
+      })
+      console.log('actual',this.actualRequest)
+    },
     generateText() {
       let url = ''
       switch (this.ai_model) {
@@ -772,6 +890,7 @@ export default {
     },
     selectFigure(item) {
       this.material_list = []
+      this.mentionList = []
       if (this.figure.id === item.id) {
         this.figure = {}
       } else {
@@ -782,8 +901,10 @@ export default {
       this.figure = {}
       if (!this.material_list.includes(item.id)) {
         this.material_list.push(item.id)
+        this.mentionList.push(item)
       } else {
         this.material_list.splice(this.material_list.indexOf(item.id), 1)
+        this.mentionList.splice(this.mentionList.indexOf(item), 1)
       }
     },
     selectVoice(voice) {
@@ -829,6 +950,13 @@ export default {
     switchReverse() {
       sessionStorage.setItem("reverse", this.reverse)
     },
+    switchMontage() {
+      if (this.montage) {
+        this.montageDialogVisible = true
+      } else {
+        this.montageForm.request = ''
+      }
+    }
   },
 };
 </script>
@@ -1130,5 +1258,57 @@ export default {
 
 .video >>> .el-form-item__label {
   padding: 0 !important;
+}
+
+.dropdown {
+  background: white;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  position: absolute;
+  z-index: 999;
+  width: 180px;
+  height: 200px;
+  overflow: auto;
+}
+.dropdown ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.dropdown li {
+  padding: 6px 10px;
+  cursor: pointer;
+}
+.dropdown li:hover {
+  background-color: #f0f0f0;
+}
+
+.highlight-content {
+  padding: 0 15px;
+  box-sizing: border-box;
+  border-radius: 4px;
+  background: white;
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 40px;
+  line-height: 40px;
+  pointer-events: none;
+  z-index: 1;
+  border: 1px solid #dcdfe6;
+}
+
+.input-layer {
+  position: relative;
+  z-index: 2;
+  background-color: transparent;
+  color: transparent;         /* 让文字看不见 */
+  caret-color: black;
+}
+
+.input-layer >>> .el-input__inner {
+  background-color: transparent;
+  color: transparent;         /* 让文字看不见 */
 }
 </style>
