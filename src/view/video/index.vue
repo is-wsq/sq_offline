@@ -842,6 +842,7 @@ export default {
         material_list: this.material_list,
         voice_id: this.sound.voice_id,
         bgm_id: this.bgm.id,
+        bg_volume: this.bg_volume,
         filename_list: name,
         reverse: this.reverse,
         text_list: this.tableData.map(item => item.text),
