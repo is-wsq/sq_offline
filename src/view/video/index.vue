@@ -275,7 +275,7 @@
       <div style="margin-right: 20px;margin-left: 50px;font-size: 15px">AI混剪</div>
       <el-switch :width="50" v-model="montage" @change="switchMontage"></el-switch>
       <div style="margin-left: 20px;font-size: 14px;color: #409EFF;cursor: pointer"
-           @click="montageDialogVisible = true" v-if="montage">混剪配置</div>
+           @click="openMontageDialog" v-if="montage">混剪配置</div>
     </div>
     <el-button type="primary" class="generate-btn" @click="verify">生成视频</el-button>
     <el-dialog title="AI生成文案配置" :visible.sync="dialogVisible" width="70%" :show-close="false">
@@ -352,9 +352,10 @@
       <el-form ref="montageForm" :model="montageForm" label-width="80px" label-position="top">
         <el-form-item label="混剪要求" prop="title">
           <div style="position: relative;">
-            <div class="highlight-content" v-html="highlightedText"></div>
-            <el-input placeholder="输入混剪要求" v-model="montageForm.request"
-                      @input="onInput" ref="inputRef" class="input-layer"></el-input>
+            <div class="highlight-content" :style="{height: replaceDivHeight + 'px',overflowY: 'auto',overflowX: 'hidden'}"
+                 v-html="highlightedText" ref="highlightDiv"></div>
+            <el-input type="textarea" rows="4" placeholder="输入混剪要求" v-model="montageForm.request"
+                      @input="onInput" ref="inputRef" class="input-layer" @scroll="handleScroll"></el-input>
             <div v-if="showDropdown" class="dropdown" :style="dropdownStyle">
               <ul>
                 <li v-for="(item, index) in mentionList" :key="index" @click="selectMention(item)">
@@ -366,7 +367,7 @@
         </el-form-item>
       </el-form>
       <span slot="footer" class="dialog-footer">
-        <el-button size="small" @click="montageDialogVisible = false">关 闭</el-button>
+        <el-button size="small" @click="closeMontageDialog">关 闭</el-button>
 <!--        <el-button type="primary" size="small" @click="montageSave">保 存</el-button>-->
       </span>
     </el-dialog>
@@ -454,6 +455,7 @@ export default {
         top: '0px',
         left: '0px'
       },
+      replaceDivHeight: 40,
     };
   },
   computed: {
@@ -483,8 +485,16 @@ export default {
     document.removeEventListener('click', this.handleClickOutside);
   },
   methods: {
+    handleScroll(event) {
+      const textareaScrollTop = event.target.scrollTop;
+      const highlightDiv = this.$refs.highlightDiv;
+      console.log('textareaScrollTop',textareaScrollTop)
+      if (highlightDiv) {
+        highlightDiv.scrollTop = textareaScrollTop;
+      }
+    },
     onInput() {
-      const inputEl = this.$refs.inputRef.$el.querySelector('input')
+      const inputEl = this.$refs.inputRef.$el.querySelector('textarea')
       const cursorPos = inputEl.selectionStart
       const textBeforeCursor = this.montageForm.request.slice(0, cursorPos)
       const validMention = textBeforeCursor.charAt(textBeforeCursor.length - 1) === '@'
@@ -502,16 +512,27 @@ export default {
           context.font = `${computedStyle.fontSize} ${computedStyle.fontFamily}`
 
           const textWidth = context.measureText(textBeforeCursor).width
+          const inputWidth = inputEl.clientWidth - 30
+          console.log('inputEl',inputEl.clientWidth)
 
-          this.dropdownStyle.top = `${window.scrollY + rect.height - 20}px`
-          this.dropdownStyle.left = `${paddingLeft + textWidth + 5}px`
+          const lineHeight = parseFloat(computedStyle.lineHeight) || parseFloat(computedStyle.fontSize);
+          const scrollTop = inputEl.scrollTop;
+
+          let offsetTop = Math.floor((paddingLeft + textWidth + 10) / inputWidth) + 1
+          offsetTop = Math.min(offsetTop, 4) // 限制最大显示数量
+          let remainder = (paddingLeft + textWidth + 5) % inputWidth
+          console.log('lineHeight',lineHeight)
+          console.log('offsetTop',offsetTop)
+
+          this.dropdownStyle.top = `${window.scrollY + offsetTop * lineHeight}px`
+          this.dropdownStyle.left = `${remainder}px`
         })
       } else {
         this.showDropdown = false
       }
     },
     selectMention(item) {
-      const inputEl = this.$refs.inputRef.$el.querySelector('input')
+      const inputEl = this.$refs.inputRef.$el.querySelector('textarea')
       const cursorPos = inputEl.selectionStart
       const atIndex = this.montageForm.request.lastIndexOf('@', cursorPos - 1)
       if (atIndex !== -1) {
@@ -525,7 +546,7 @@ export default {
     handleClickOutside(event) {
       if (!this.$refs.inputRef)
         return;
-      const inputEl = this.$refs.inputRef.$el.querySelector('input');
+      const inputEl = this.$refs.inputRef.$el.querySelector('textarea');
       const dropdownEl = this.$refs.dropdownRef; // 假设选择框有一个引用
 
       // 检查点击是否发生在输入框或选择框内
@@ -952,10 +973,25 @@ export default {
     },
     switchMontage() {
       if (this.montage) {
-        this.montageDialogVisible = true
+        this.openMontageDialog()
       } else {
         this.montageForm.request = ''
       }
+    },
+    openMontageDialog() {
+      this.montageDialogVisible = true
+      this.$nextTick(() => {
+        if (this.$refs.inputRef) {
+          const inputEl = this.$refs.inputRef.$el.querySelector('textarea')
+          this.replaceDivHeight = inputEl.clientHeight
+          inputEl.addEventListener('scroll', this.handleScroll);
+        }
+      })
+    },
+    closeMontageDialog() {
+      const inputEl = this.$refs.inputRef.$el.querySelector('textarea')
+      inputEl.removeEventListener('scroll', this.handleScroll);
+      this.montageDialogVisible = false
     }
   },
 };
@@ -1284,19 +1320,18 @@ export default {
 }
 
 .highlight-content {
-  padding: 0 15px;
+  padding: 10px 15px;
   box-sizing: border-box;
   border-radius: 4px;
-  background: white;
+  background-color: #f9f9f9;
   position: absolute;
   top: 0;
   left: 0;
   right: 0;
-  height: 40px;
-  line-height: 40px;
+  font-size: 14px;
+  line-height: 1.5;
   pointer-events: none;
   z-index: 1;
-  border: 1px solid #dcdfe6;
 }
 
 .input-layer {
@@ -1307,8 +1342,15 @@ export default {
   caret-color: black;
 }
 
-.input-layer >>> .el-input__inner {
+.input-layer >>> .el-textarea__inner {
   background-color: transparent;
   color: transparent;         /* 让文字看不见 */
+  font-size: 14px;
+  font-family: "Helvetica Neue", Arial, sans-serif;
+  line-height: 1.5;
+  border-radius: 4px;
+  box-shadow: none;
+  resize: none;
+  transition: border-color 0.2s ease-in-out;
 }
 </style>
