@@ -834,6 +834,10 @@ export default {
       })
     },
     generateVideo() {
+      this.actualRequest = this.montageForm.request
+      this.replaceName.forEach((item, index) => {
+        this.actualRequest = this.actualRequest.replace(item, `{${this.replaceId[index]}}`)
+      })
       let name = this.setName()
       let background_colors = this.subtitleParams.background_color.replace(/rgba|\(|\)|\s/g, '').split(',');
       let name_background_colors = this.subtitleNameParams.name_background_color.replace(/rgba|\(|\)|\s/g, '').split(',');
@@ -844,6 +848,7 @@ export default {
         bgm_id: this.bgm.id,
         bg_volume: this.bg_volume,
         filename_list: name,
+        user_request: this.actualRequest,
         reverse: this.reverse,
         text_list: this.tableData.map(item => item.text),
         with_subtitle: this.withSubtitle,
@@ -977,6 +982,8 @@ export default {
         this.openMontageDialog()
       } else {
         this.montageForm.request = ''
+        this.replaceName = []
+        this.replaceId = []
       }
     },
     openMontageDialog() {
