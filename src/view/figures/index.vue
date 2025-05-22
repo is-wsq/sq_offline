@@ -336,7 +336,7 @@ export default {
   height: calc(100% - 40px);
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
-  grid-template-rows: 190px;
+  grid-auto-rows: 190px;
   gap: 20px;
   justify-items: center;
   overflow: auto;
