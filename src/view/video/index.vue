@@ -249,6 +249,14 @@
       </div>
       <div style="height: calc(100% - 65px)">
         <el-table :data="tableData" empty-text="暂未设置" stripe style="width: 100%;" height="100%" ref="table">
+          <el-table-column type="index" label="#" width="70" align="center">
+            <template slot-scope="scope">
+              <div style="position: relative;width: 100%">
+                <div>{{ scope.$index + 1 }}</div>
+                <div class="warning" title="已开启字幕标题设置，口播标题不能为空" v-if="withTitle && !scope.row.title">!</div>
+              </div>
+            </template>
+          </el-table-column>
           <el-table-column prop="title" label="口播标题">
             <template slot-scope="scope">
               <div class="table-column" :title="scope.row.title">{{ scope.row.title }}</div>
@@ -275,7 +283,8 @@
       <div style="margin-right: 20px;margin-left: 50px;font-size: 15px">AI混剪</div>
       <el-switch :width="50" v-model="montage" @change="switchMontage"></el-switch>
       <div style="margin-left: 20px;font-size: 14px;color: #409EFF;cursor: pointer"
-           @click="openMontageDialog" v-if="montage">混剪配置</div>
+           @click="openMontageDialog" v-if="montage">混剪配置
+      </div>
     </div>
     <el-button type="primary" class="generate-btn" @click="verify">生成视频</el-button>
     <el-dialog title="AI生成文案配置" :visible.sync="dialogVisible" width="70%" :show-close="false">
@@ -284,11 +293,11 @@
           <el-form-item label="模型选择">
             <el-select v-model="ai_model" @change="modelChange">
               <el-option
-                v-for="item in AIOptions"
-                :key="item.value"
-                :label="item.label"
-                :value="item.value"
-                :disabled="item.value === 'local_model' && serverIsRunning">
+                  v-for="item in AIOptions"
+                  :key="item.value"
+                  :label="item.label"
+                  :value="item.value"
+                  :disabled="item.value === 'local_model' && serverIsRunning">
               </el-option>
             </el-select>
           </el-form-item>
@@ -311,10 +320,10 @@
               <el-form-item label="文案字数">
                 <el-select v-model="num_of_words">
                   <el-option
-                    v-for="item in options"
-                    :key="item.value"
-                    :label="item.label"
-                    :value="item.value">
+                      v-for="item in options"
+                      :key="item.value"
+                      :label="item.label"
+                      :value="item.value">
                   </el-option>
                 </el-select>
               </el-form-item>
@@ -352,7 +361,8 @@
       <el-form ref="montageForm" :model="montageForm" label-width="80px" label-position="top">
         <el-form-item label="混剪要求" prop="title">
           <div style="position: relative;">
-            <div class="highlight-content" :style="{height: replaceDivHeight + 'px',overflowY: 'auto',overflowX: 'hidden'}"
+            <div class="highlight-content"
+                 :style="{height: replaceDivHeight + 'px',overflowY: 'auto',overflowX: 'hidden'}"
                  v-html="highlightedText" ref="highlightDiv"></div>
             <el-input type="textarea" rows="4" placeholder="输入混剪要求" v-model="montageForm.request"
                       @input="onInput" ref="inputRef" class="input-layer" @scroll="handleScroll"></el-input>
@@ -368,7 +378,7 @@
       </el-form>
       <span slot="footer" class="dialog-footer">
         <el-button size="small" @click="closeMontageDialog">关 闭</el-button>
-<!--        <el-button type="primary" size="small" @click="montageSave">保 存</el-button>-->
+        <!--        <el-button type="primary" size="small" @click="montageSave">保 存</el-button>-->
       </span>
     </el-dialog>
   </div>
@@ -433,11 +443,11 @@ export default {
       requirements: '',
       num_of_words: 200,
       options: [
-        {label: '200',value: 200},
-        {label: '300',value: 300},
-        {label: '400',value: 400},
-        {label: '500',value: 500},
-        {label: '600',value: 600}
+        {label: '200', value: 200},
+        {label: '300', value: 300},
+        {label: '400', value: 400},
+        {label: '500', value: 500},
+        {label: '600', value: 600}
       ],
       script_count: 1,
       disableBtn: false,
@@ -626,7 +636,7 @@ export default {
             this.disableBtn = false;
           }
         })
-      }else {
+      } else {
         this.disableBtn = false
       }
     },
@@ -657,7 +667,7 @@ export default {
         const tableBodyWrapper = this.$refs.table.bodyWrapper;
         tableBodyWrapper.scrollTop = tableBodyWrapper.scrollHeight;
       });
-      this.editRow(this.tableData.length - 1,'add')
+      this.editRow(this.tableData.length - 1, 'add')
     },
     deleteRow(index) {
       this.tableData.splice(index, 1);
@@ -709,7 +719,6 @@ export default {
       this.subtitleNameParams.name_background_color = sessionStorage.getItem("name_background_color") || 'rgba(64,64,64,0.6)'
       this.subtitleNameParams.name_stroke_color = sessionStorage.getItem("name_stroke_color") || '#000000'
 
-      console.log(sessionStorage.getItem("tableData"))
       this.tableData = sessionStorage.getItem("tableData") ? JSON.parse(sessionStorage.getItem("tableData")) : []
     },
     queryFontFamily() {
@@ -824,6 +833,10 @@ export default {
       })
     },
     generateVideo() {
+      if (this.withTitle && this.tableData.some(item => item.title === "")) {
+        this.$alert('开启字幕标题设置后，所有标题不能为空', "提示");
+        return
+      }
       this.actualRequest = this.montageForm.request
       this.replaceName.forEach((item, index) => {
         this.actualRequest = this.actualRequest.replace(item, `{${this.replaceId[index]}}`)
@@ -1304,15 +1317,18 @@ export default {
   height: 200px;
   overflow: auto;
 }
+
 .dropdown ul {
   list-style: none;
   margin: 0;
   padding: 0;
 }
+
 .dropdown li {
   padding: 6px 10px;
   cursor: pointer;
 }
+
 .dropdown li:hover {
   background-color: #f0f0f0;
 }
@@ -1336,13 +1352,13 @@ export default {
   position: relative;
   z-index: 2;
   background-color: transparent;
-  color: transparent;         /* 让文字看不见 */
+  color: transparent; /* 让文字看不见 */
   caret-color: black;
 }
 
 .input-layer >>> .el-textarea__inner {
   background-color: transparent;
-  color: transparent;         /* 让文字看不见 */
+  color: transparent; /* 让文字看不见 */
   font-size: 14px;
   font-family: "Helvetica Neue", Arial, sans-serif;
   line-height: 1.5;
@@ -1350,5 +1366,28 @@ export default {
   box-shadow: none;
   resize: none;
   transition: border-color 0.2s ease-in-out;
+}
+
+.video >>> .el-table__cell {
+  padding: 0;
+}
+
+.video >>> .cell {
+  line-height: 50px;
+}
+
+.warning {
+  background-color: red;
+  color: #ffffff;
+  height: 14px;
+  line-height: 14px;
+  font-size: 10px;
+  width: 14px;
+  border-radius: 50%;
+  position: absolute;
+  top: 12px;
+  right: -5px;
+  transform: translate(-50%, -50%);
+  cursor: pointer;
 }
 </style>
