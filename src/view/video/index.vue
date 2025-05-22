@@ -833,6 +833,14 @@ export default {
       })
     },
     generateVideo() {
+      if (!this.figure.video_id && this.material_list.length === 0) {
+        this.$alert('请先选择角色或素材', "提示")
+        return;
+      }
+      if (this.tableData.length === 0) {
+        this.$alert('请先添加口播文案', "提示")
+        return;
+      }
       if (this.withTitle && this.tableData.some(item => item.title === "")) {
         this.$alert('开启字幕标题设置后，所有标题不能为空', "提示");
         return
