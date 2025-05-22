@@ -4,6 +4,21 @@
       <div class="figure-item">
         <div style="margin-bottom: 10px">素材</div>
         <div class="figures-list">
+          <div v-for="item in processMaterials" :key="item.id">
+            <div class="image-wrapper shining">
+              <el-image
+                style="width: 120px; height: 158px; border-radius: 8px;filter: blur(15px);opacity: 0.8"
+                :src="require('/public/images/4.jpg')"
+                fit="cover"
+              ></el-image>
+              <div class="shine-layer"></div>
+              <div class="figure-progress">
+                <div>素材上传中</div>
+                <div style="width: 10px;text-align: left;margin-left: 5px;font-size: 22px">{{ dot }}</div>
+              </div>
+            </div>
+            <div class="figure-name" :title="item.name">{{ item.name }}</div>
+          </div>
           <div v-for="(item, index) in materials" :key="index" @contextmenu.stop="handleContextMenu(item, $event)"
                @click="selectItem(item)">
             <el-image class="figures-img" :src="item.picture" fit="cover"></el-image>
@@ -17,9 +32,9 @@
           <div v-for="item in processTasks" :key="item.id">
             <div class="image-wrapper shining">
               <el-image
-                  style="width: 120px; height: 158px; border-radius: 8px;filter: blur(15px);opacity: 0.8"
-                  :src="require('/public/images/4.jpg')"
-                  fit="cover"
+                style="width: 120px; height: 158px; border-radius: 8px;filter: blur(15px);opacity: 0.8"
+                :src="require('/public/images/4.jpg')"
+                fit="cover"
               ></el-image>
               <div class="shine-layer"></div>
               <div class="figure-progress">
@@ -55,12 +70,14 @@
       <div style="text-align: end;flex: 1">
         <el-upload
             class="avatar-uploader"
-            action="http://127.0.0.1:6006/figure/clone_only"
+            action="http://192.168.0.116:6006/figure/clone_only"
             :show-file-list="false"
             accept=".mp4, .mov"
+            multiple
             :on-success="uploadMaterialsSuccess"
             :on-error="uploadMaterialsError"
             :before-upload="beforeUpload"
+            :file-list="MaterialList"
             :data="{ lip_sync: false }"
         >
           <el-button type="primary">上传素材</el-button>
@@ -126,11 +143,15 @@ export default {
       newName: "",
       dotCount: 1,
       dotTimer: null,
-      dot: '.'
+      dot: '.',
+      MaterialList: []
     };
   },
   computed: {
     ...mapGetters("task", ["figureTasks"]), // 获取任务列表
+    processMaterials() {
+      return this.figureTasks.filter((item) => item.status === "pending");
+    },
     processTasks() {
       return this.figureTasks.filter((item) => item.status === "ready");
     },
@@ -226,28 +247,17 @@ export default {
       })
     },
     uploadMaterialsError(file) {
-      this.$notify({
-        title: "上传失败",
-        message: `素材${file.name}上传失败`,
-        duration: 0,
-        type: "error",
-      });
+      let content = `创建${file.name}素材上传任务失败`;
+      this.$alert(content, "任务创建提醒");
     },
     uploadMaterialsSuccess(res, file) {
       if (res.status === "success") {
-        this.$notify({
-          title: "上传成功",
-          message: `素材${file.name}上传成功`,
-          duration: 20000,
-          type: "success",
-        });
+        let content = `已创建${file.name}素材上传任务，素材上传成功后会自动更新素材列表`;
+        this.$alert(content, "任务创建提醒");
+        this.$store.dispatch("task/pollFigureTasks");
       } else {
-        this.$notify({
-          title: "上传失败",
-          message: `素材${file.name}上传失败，${res.data}`,
-          duration: 0,
-          type: "error",
-        });
+        let content = `创建${file.name}素材上传任务失败，${res.data}`;
+        this.$alert(content, "任务创建提醒");
       }
     },
     uploadError(file) {
