@@ -489,7 +489,6 @@ export default {
     handleScroll(event) {
       const textareaScrollTop = event.target.scrollTop;
       const highlightDiv = this.$refs.highlightDiv;
-      console.log('textareaScrollTop',textareaScrollTop)
       if (highlightDiv) {
         highlightDiv.scrollTop = textareaScrollTop;
       }
@@ -514,7 +513,6 @@ export default {
 
           const textWidth = context.measureText(textBeforeCursor).width
           const inputWidth = inputEl.clientWidth - 30
-          console.log('inputEl',inputEl.clientWidth)
 
           const lineHeight = parseFloat(computedStyle.lineHeight) || parseFloat(computedStyle.fontSize);
           const scrollTop = inputEl.scrollTop;
@@ -522,8 +520,6 @@ export default {
           let offsetTop = Math.floor((paddingLeft + textWidth + 10) / inputWidth) + 1
           offsetTop = Math.min(offsetTop, 4) // 限制最大显示数量
           let remainder = (paddingLeft + textWidth + 5) % inputWidth
-          console.log('lineHeight',lineHeight)
-          console.log('offsetTop',offsetTop)
 
           this.dropdownStyle.top = `${window.scrollY + offsetTop * lineHeight}px`
           this.dropdownStyle.left = `${remainder}px`
@@ -555,16 +551,6 @@ export default {
         this.showDropdown = false;
       }
     },
-    montageSave() {
-      console.log('request',this.montageForm.request)
-      console.log('replaceName',this.replaceName)
-      console.log('replaceId',this.replaceId)
-      this.actualRequest = this.montageForm.request
-      this.replaceName.forEach((item, index) => {
-        this.actualRequest = this.actualRequest.replace(item, `{${this.replaceId[index]}}`)
-      })
-      console.log('actual',this.actualRequest)
-    },
     generateText() {
       let url = ''
       switch (this.ai_model) {
@@ -590,7 +576,7 @@ export default {
       });
       axios.post(url, params).then(res => {
         if (res.data.status === "success") {
-          this.tableData = res.data.data.map(item => ({title: '', text: item}))
+          this.tableData = this.tableData.concat(res.data.data.map(item => ({title: '', text: item})))
           sessionStorage.setItem("tableData", JSON.stringify(this.tableData))
         } else {
           this.$notify({
