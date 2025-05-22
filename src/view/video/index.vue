@@ -619,7 +619,7 @@ export default {
     dialogClose() {
       this.exampleTexts = [];
       this.requirements = '';
-      this.num_of_words = 0;
+      this.num_of_words = 200;
       this.script_count = 1;
       if (this.loading) {
         this.loading.close();
