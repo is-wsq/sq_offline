@@ -282,12 +282,13 @@
       <div style="height: 50vh;overflow-y: auto">
         <el-form :model="form" label-width="80px" label-position="top">
           <el-form-item label="模型选择">
-            <el-select v-model="ai_model">
+            <el-select v-model="ai_model" @change="modelChange">
               <el-option
-                  v-for="item in AIOptions"
-                  :key="item.value"
-                  :label="item.label"
-                  :value="item.value">
+                v-for="item in AIOptions"
+                :key="item.value"
+                :label="item.label"
+                :value="item.value"
+                :disabled="item.value === 'local_model' && serverIsRunning">
               </el-option>
             </el-select>
           </el-form-item>
@@ -308,13 +309,12 @@
           <el-row>
             <el-col :span="12">
               <el-form-item label="文案字数">
-                <!--                <el-input class="text_setting" type="number" v-model="num_of_words" style="width: 200px"></el-input>-->
                 <el-select v-model="num_of_words">
                   <el-option
-                      v-for="item in options"
-                      :key="item.value"
-                      :label="item.label"
-                      :value="item.value">
+                    v-for="item in options"
+                    :key="item.value"
+                    :label="item.label"
+                    :value="item.value">
                   </el-option>
                 </el-select>
               </el-form-item>
@@ -329,7 +329,7 @@
       </div>
       <span slot="footer" class="dialog-footer">
         <el-button @click="dialogClose">取 消</el-button>
-        <el-button type="primary" @click="generateText" :disabled="switching">生 成</el-button>
+        <el-button type="primary" @click="generateText" :disabled="disableBtn">生 成</el-button>
       </span>
     </el-dialog>
     <el-dialog title="编辑文案" :visible.sync="editDialogVisible" width="70%" :show-close="false"
@@ -423,7 +423,8 @@ export default {
         ],
       },
       dialogType: 'edit',
-      ai_model: 'local_model',
+      ai_model: 'deepseek_v3',
+      serverIsRunning: false,
       AIOptions: [
         {label: '本地大模型', value: 'local_model'},
         {label: 'deepseek v3', value: 'deepseek_v3'},
@@ -439,7 +440,7 @@ export default {
         {label: '600',value: 600}
       ],
       script_count: 1,
-      switching: false,
+      disableBtn: false,
       montage: false,
       montageDialogVisible: false,
       montageForm: {
@@ -470,7 +471,7 @@ export default {
       });
       result = result.replace(/\n/g, '<br>'); // 支持换行
       return result; // 返回最终结果
-    }
+    },
   },
   mounted() {
     this.querySounds();
@@ -628,17 +629,20 @@ export default {
       this.dialogVisible = false;
     },
     async openSetting() {
-      if (await this.judgeServeStatus()) {
-        await this.$alert("当前数字人服务使用中，无法切换到AI大模型服务生成文案", "提示");
-        return
-      }
-      this.switching = true
+      this.serverIsRunning = await this.judgeServeStatus()
       this.dialogVisible = true
-      postAction("stop_docker_service").then((res) => {
-        if (res.data.status === "success") {
-          this.switching = false;
-        }
-      })
+    },
+    modelChange() {
+      if (this.ai_model === 'local_model') {
+        this.disableBtn = true
+        postAction("stop_docker_service").then((res) => {
+          if (res.data.status === "success") {
+            this.disableBtn = false;
+          }
+        })
+      }else {
+        this.disableBtn = false
+      }
     },
     async judgeServeStatus() {
       return !!(await this.figureRun() || await this.timbreRun() || await this.videoRun());
