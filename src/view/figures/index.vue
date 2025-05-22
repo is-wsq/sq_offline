@@ -7,9 +7,9 @@
           <div v-for="item in processMaterials" :key="item.id">
             <div class="image-wrapper shining">
               <el-image
-                style="width: 120px; height: 158px; border-radius: 8px;filter: blur(15px);opacity: 0.8"
-                :src="require('/public/images/4.jpg')"
-                fit="cover"
+                  style="width: 120px; height: 158px; border-radius: 8px;filter: blur(15px);opacity: 0.8"
+                  :src="require('/public/images/4.jpg')"
+                  fit="cover"
               ></el-image>
               <div class="shine-layer"></div>
               <div class="figure-progress">
@@ -32,9 +32,9 @@
           <div v-for="item in processTasks" :key="item.id">
             <div class="image-wrapper shining">
               <el-image
-                style="width: 120px; height: 158px; border-radius: 8px;filter: blur(15px);opacity: 0.8"
-                :src="require('/public/images/4.jpg')"
-                fit="cover"
+                  style="width: 120px; height: 158px; border-radius: 8px;filter: blur(15px);opacity: 0.8"
+                  :src="require('/public/images/4.jpg')"
+                  fit="cover"
               ></el-image>
               <div class="shine-layer"></div>
               <div class="figure-progress">
@@ -98,9 +98,10 @@
         </el-upload>
       </div>
     </div>
-    <el-dialog :visible.sync="dialogVisible" :before-close="beforeClose">
-      <div style="width: 100%; text-align: center; position: relative">
-        <video style="width: 300px; border-radius: 20px" ref="video" :src="src" @ended="isPlaying = false"></video>
+    <el-dialog :visible.sync="dialogVisible" :before-close="beforeClose" :width="aspectRatio > 1? '640px' : '390px'">
+      <div style="width: 100%;text-align: center;position: relative">
+        <video style="border-radius: 10px;width: calc(100% - 40px)" ref="video" :src="src" @ended="isPlaying = false"
+               @loadedmetadata="checkAspectRatio"></video>
         <div style="position: absolute;top: 50%;left: 50%;transform: translate(-50%, -50%);">
           <i class="el-icon-play control-icon" @click="controlVideo" v-if="!isPlaying"></i>
         </div>
@@ -138,6 +139,7 @@ export default {
       dialogVisible: false,
       drawer: false,
       src: "",
+      aspectRatio: 0,
       isPlaying: false,
       figureId: null,
       newName: "",
@@ -202,10 +204,9 @@ export default {
           this.$message.error(res.data.message);
         }
         this.drawer = false;
-      })
-          .catch((err) => {
-            this.$message.error("重命名失败，请稍后重试！");
-          });
+      }).catch((err) => {
+        this.$message.error("重命名失败，请稍后重试！");
+      });
     },
     deleteItem() {
       delAction("/figure/delete", {figure_id: this.selectedItem.id}).then((res) => {
@@ -215,10 +216,15 @@ export default {
         } else {
           this.$message.error(res.data.message);
         }
-      })
-          .catch((err) => {
-            this.$message.error("删除失败，请稍后重试！");
-          });
+      }).catch((err) => {
+        this.$message.error("删除失败，请稍后重试！");
+      });
+    },
+    checkAspectRatio() {
+      const video = this.$refs.video;
+      const width = video.videoWidth;
+      const height = video.videoHeight;
+      this.aspectRatio = width / height
     },
     controlVideo() {
       const video = this.$refs.video;
@@ -301,7 +307,6 @@ export default {
 .figures >>> .el-dialog {
   background-color: #79777700 !important;
   box-shadow: none !important;
-  width: 500px;
 }
 
 .figures >>> .el-dialog__headerbtn .el-dialog__close {

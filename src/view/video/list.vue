@@ -37,9 +37,10 @@
           <span style="margin-top: 2px">重命名</span>
         </div>
       </div>
-      <el-dialog :visible.sync="dialogVisible" :before-close="beforeClose">
-        <div style="width: 100%; text-align: center; position: relative">
-          <video style="width: 300px; border-radius: 20px" ref="video" :src="src" @ended="isPlaying = false"></video>
+      <el-dialog :visible.sync="dialogVisible" :before-close="beforeClose" :width="aspectRatio > 1? '640px' : '390px'">
+        <div style="width: 100%;text-align: center;position: relative">
+          <video style="border-radius: 10px;width: calc(100% - 40px)" ref="video" :src="src" @ended="isPlaying = false"
+                 @loadedmetadata="checkAspectRatio"></video>
           <div style="position: absolute;top: 50%;left: 50%;transform: translate(-50%, -50%);">
             <i class="el-icon-play control-icon" @click="controlVideo" v-if="!isPlaying"></i>
           </div>
@@ -79,6 +80,7 @@ export default {
       videoId: '',
       dialogVisible: false,
       src: "",
+      aspectRatio: 0,
       isPlaying: false,
       downloadFilePath: '',
       downloadFileName: '',
@@ -154,6 +156,12 @@ export default {
       .catch((err) => {
         this.$message.error("重命名失败，请稍后重试！");
       });
+    },
+    checkAspectRatio() {
+      const video = this.$refs.video;
+      const width = video.videoWidth;
+      const height = video.videoHeight;
+      this.aspectRatio = width / height
     },
     preview(item) {
       this.src = item.video_path;
@@ -235,7 +243,6 @@ export default {
 .video-list >>> .el-dialog {
   background-color: #79777700 !important;
   box-shadow: none !important;
-  width: 500px;
 }
 
 .video-list >>> .el-dialog__headerbtn .el-dialog__close {
