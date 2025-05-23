@@ -377,8 +377,8 @@
         </el-form-item>
       </el-form>
       <span slot="footer" class="dialog-footer">
-        <el-button size="small" @click="closeMontageDialog">关 闭</el-button>
-        <!--        <el-button type="primary" size="small" @click="montageSave">保 存</el-button>-->
+<!--        <el-button size="small" @click="closeMontageDialog">关 闭</el-button>-->
+        <el-button type="primary" size="small" @click="closeMontageDialog">确 定</el-button>
       </span>
     </el-dialog>
   </div>
@@ -441,8 +441,9 @@ export default {
       ],
       exampleTexts: [],
       requirements: '',
-      num_of_words: 200,
+      num_of_words: 100,
       options: [
+        {label: '100', value: 100},
         {label: '200', value: 200},
         {label: '300', value: 300},
         {label: '400', value: 400},
@@ -616,7 +617,7 @@ export default {
     dialogClose() {
       this.exampleTexts = [];
       this.requirements = '';
-      this.num_of_words = 200;
+      this.num_of_words = 100;
       this.script_count = 1;
       if (this.loading) {
         this.loading.close();
@@ -701,6 +702,10 @@ export default {
       });
     },
     initParams() {
+      this.figure = JSON.parse(sessionStorage.getItem('figure')) || {}
+      this.material_list = JSON.parse(sessionStorage.getItem('material_list')) || []
+      this.mentionList = JSON.parse(sessionStorage.getItem('mention_list')) || []
+
       this.withSubtitle = sessionStorage.getItem("with_subtitle") === 'true'
       this.withTitle = sessionStorage.getItem("with_title") === 'true'
       this.reverse = sessionStorage.getItem("reverse") === 'true'
@@ -934,6 +939,9 @@ export default {
       } else {
         this.figure = item
       }
+      sessionStorage.setItem('figure', JSON.stringify(this.figure))
+      sessionStorage.setItem('material_list',JSON.stringify(this.material_list))
+      sessionStorage.setItem('mention_list',JSON.stringify(this.mentionList))
     },
     selectMaterials(item) {
       this.figure = {}
@@ -944,6 +952,9 @@ export default {
         this.material_list.splice(this.material_list.indexOf(item.id), 1)
         this.mentionList.splice(this.mentionList.indexOf(item), 1)
       }
+      sessionStorage.setItem('figure', JSON.stringify(this.figure))
+      sessionStorage.setItem('material_list',JSON.stringify(this.material_list))
+      sessionStorage.setItem('mention_list',JSON.stringify(this.mentionList))
     },
     selectVoice(voice) {
       this.sound = voice
