@@ -70,14 +70,15 @@
       <div style="text-align: end;flex: 1">
         <el-upload
             class="avatar-uploader"
-            action="http://192.168.0.116:6006/figure/clone_only"
+            action="http://127.0.0.1:6006/figure/clone_only"
             :show-file-list="false"
             accept=".mp4, .mov"
             multiple
             :on-success="uploadMaterialsSuccess"
             :on-error="uploadMaterialsError"
             :before-upload="beforeUpload"
-            :file-list="MaterialList"
+            :on-progress="handleFileChange"
+            :file-list.sync="MaterialList"
             :data="{ lip_sync: false }"
         >
           <el-button type="primary">上传素材</el-button>
@@ -146,7 +147,8 @@ export default {
       dotCount: 1,
       dotTimer: null,
       dot: '.',
-      MaterialList: []
+      MaterialList: [],
+      response_list: [],
     };
   },
   computed: {
@@ -252,18 +254,63 @@ export default {
         }
       })
     },
+    handleFileChange(event, file, fileList) {
+      this.MaterialList = fileList;
+    },
     uploadMaterialsError(file) {
-      let content = `创建${file.name}素材上传任务失败`;
-      this.$alert(content, "任务创建提醒");
+      this.response_list.push({ name: file.name, status: "failed", msg: "上传失败" })
+      if (this.response_list.length === this.MaterialList.length) {
+        let success = this.response_list.filter(item => item.status === "success").map(res => res.name);
+        let failed = this.response_list.filter(item => item.status === "failed")
+        let content = ''
+        if (success.length > 0)
+          content += `创建${success.join('、')}素材上传任务成功\n`
+        if (failed.length > 0) {
+          failed.forEach(item => {
+            content += `创建${item.name}素材上传任务失败，${item.msg}\n`
+          })
+        }
+        this.response_list = [];
+        this.MaterialList = [];
+        this.$alert(content, "任务创建提醒");
+      }
     },
     uploadMaterialsSuccess(res, file) {
       if (res.status === "success") {
-        let content = `已创建${file.name}素材上传任务，素材上传成功后会自动更新素材列表`;
-        this.$alert(content, "任务创建提醒");
+        this.response_list.push({ name: file.name, status: "success" })
+        if (this.response_list.length === this.MaterialList.length) {
+          let success = this.response_list.filter(item => item.status === "success").map(res => res.name);
+          let failed = this.response_list.filter(item => item.status === "failed")
+          let content = ''
+          if (success.length > 0)
+            content += `创建${success.join('、')}素材上传任务成功\n`
+          if (failed.length > 0) {
+            failed.forEach(item => {
+              content += `创建${item.name}素材上传任务失败，${item.msg}\n`
+            })
+          }
+          this.response_list = [];
+          this.MaterialList = [];
+          this.$alert(content, "任务创建提醒");
+        }
         this.$store.dispatch("task/pollFigureTasks");
       } else {
-        let content = `创建${file.name}素材上传任务失败，${res.data}`;
-        this.$alert(content, "任务创建提醒");
+        this.response_list.push({ name: file.name, status: "failed", msg: res.message })
+        if (this.response_list.length === this.MaterialList.length) {
+          let success = this.response_list.filter(item => item.status === "success").map(res => res.name);
+          let failed = this.response_list.filter(item => item.status === "failed")
+          let content = ''
+          if (success.length > 0)
+            content += `创建${success.join('、')}素材上传任务成功\n`
+          if (failed.length > 0) {
+            failed.forEach(item => {
+              content += `创建${item.name}素材上传任务失败，${item.msg}\n`
+            })
+          }
+          this.response_list = [];
+          this.MaterialList = [];
+          this.$alert(content, "任务创建提醒");
+        }
       }
     },
     uploadError(file) {

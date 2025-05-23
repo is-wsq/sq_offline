@@ -134,7 +134,6 @@ const actions = {
 
                 list.forEach(video => {
                     const prev = state.videoPreviousStatusMap[video.id];
-                    console.log('Vuex中的状态' + prev + '  -------------库中的状态  ' + video.status)
                     if (prev === "pending" && video.status === "success") {
                         Vue.prototype.$notify({
                             title: "视频生成成功",
