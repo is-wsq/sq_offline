@@ -125,6 +125,15 @@
       </div>
       <el-collapse v-model="activeTitleNames">
         <el-collapse-item title="字幕标题" name="1">
+          <div class="preset">
+            <span style="margin-right: 20px">预设样式</span>
+            <div class="preset-style" v-for="item in titlePresets" :key="item.id" @click="selectTitlePreset(item)" :style="{
+              backgroundColor: item.backgroundColor,
+              color: item.color,
+              '-webkit-text-stroke': '1px' + item.stroke,
+              border: activeTitlePresetId === item.id ? '2px solid #6286ed' : 'none'
+            }">T</div>
+          </div>
           <div style="display: flex;gap: 30px;align-items: center;height: 80px">
             <div style="text-align: center">
               <div style="font-size: 13px;height: 40px">字体颜色</div>
@@ -188,6 +197,15 @@
       </div>
       <el-collapse v-model="activeNames">
         <el-collapse-item title="字幕设置" name="1">
+          <div class="preset">
+            <span style="margin-right: 20px">预设样式</span>
+            <div class="preset-style" v-for="item in titlePresets" :key="item.id" @click="selectPreset(item)" :style="{
+              backgroundColor: item.backgroundColor,
+              color: item.color,
+              '-webkit-text-stroke': '1px' + item.stroke,
+              border: activePresetId === item.id ? '2px solid #6286ed' : 'none'
+            }">T</div>
+          </div>
           <div style="display: flex;gap: 30px;align-items: center;height: 80px">
             <div style="text-align: center">
               <div style="font-size: 13px;height: 40px">字体颜色</div>
@@ -215,11 +233,11 @@
               <div style="font-size: 13px;height: 35px">字体大小</div>
               <div style="display: flex">
                 <el-slider v-model="subtitleParams.fontsize" style="width: 170px" :min="5" :max="50"
-                           @change="saveSubtitleParams('font_size')"></el-slider>
+                           @change="saveSubtitleParams('fontsize')"></el-slider>
                 <el-input-number class="text-input" v-model="subtitleParams.fontsize" controls-position="right" :min="5"
                                  :max="50"
                                  style="margin-left: 10px;width: 80px !important;"
-                                 @change="saveSubtitleParams('font_size')"></el-input-number>
+                                 @change="saveSubtitleParams('fontsize')"></el-input-number>
               </div>
             </div>
             <div style="text-align: center">
@@ -240,6 +258,7 @@
                                @change="saveSubtitleParams('background_color')"></el-color-picker>
             </div>
           </div>
+          <div style="margin-top: 10px;text-align: center;width: 100%;padding: 20px 10px;box-sizing: border-box" :style="textStyle">示例样式</div>
         </el-collapse-item>
       </el-collapse>
     </div>
@@ -416,6 +435,7 @@ export default {
       name_use_background: false,
       subtitleNameParams: {},
       titleTextStyle: {},
+      textStyle: {},
       fontFamily: [],
       activeTitleNames: [],
       activeNames: [],
@@ -470,7 +490,67 @@ export default {
         left: '0px'
       },
       replaceDivHeight: 40,
-      titleWidth: 0
+      titleWidth: 0,
+      titlePresets: [
+        {
+          id: '1',
+          fontFamily: 'SJxingkai-C-Regular',
+          backgroundColor: 'rgba(64,64,64,0.6)',
+          stroke: '#000000',
+          color: '#ffffff'
+        },
+        {
+          id: '2',
+          fontFamily: 'SJxingkai-C-Regular',
+          backgroundColor: 'rgba(64,64,64,0.6)',
+          stroke: '#ffffff',
+          color: '#000000'
+        },
+        {
+          id: '3',
+          fontFamily: 'SJxingkai-C-Regular',
+          backgroundColor: 'rgba(64,64,64,0.6)',
+          stroke: '#FC0202',
+          color: '#FDFF00'
+        },
+        {
+          id: '4',
+          fontFamily: 'SJxingkai-C-Regular',
+          backgroundColor: 'rgba(64,64,64,0.6)',
+          stroke: '#FDFF00',
+          color: '#FC0202'
+        },
+        {
+          id: '5',
+          fontFamily: 'LXGW-ZhenKai',
+          backgroundColor: 'rgba(200, 200, 200, 0.6)',
+          stroke: '#000000',
+          color: '#ffffff'
+        },
+        {
+          id: '6',
+          fontFamily: 'LXGW-ZhenKai',
+          backgroundColor: 'rgba(200, 200, 200, 0.6)',
+          stroke: '#ffffff',
+          color: '#000000'
+        },
+        {
+          id: '7',
+          fontFamily: 'LXGW-ZhenKai',
+          backgroundColor: 'rgba(200, 200, 200, 0.6)',
+          stroke: '#FC0202',
+          color: '#FDFF00'
+        },
+        {
+          id: '8',
+          fontFamily: 'LXGW-ZhenKai',
+          backgroundColor: 'rgba(200, 200, 200, 0.6)',
+          stroke: '#FDFF00',
+          color: '#FC0202'
+        },
+      ],
+      activeTitlePresetId: '1',
+      activePresetId: '1'
     };
   },
   computed: {
@@ -718,12 +798,23 @@ export default {
       this.bg_volume = Number(sessionStorage.getItem("bg_volume")) || 0.5
       this.use_background = sessionStorage.getItem("use_background") === 'true'
       this.name_use_background = sessionStorage.getItem("name_use_background") === 'true'
-      this.subtitleParams.fontsize = parseInt(sessionStorage.getItem("font_size")) || 5
+
+      this.activePresetId = sessionStorage.getItem("preset_id") || '1'
+      this.subtitleParams.fontsize = parseInt(sessionStorage.getItem("fontsize")) || 5
       this.subtitleParams.color = sessionStorage.getItem("color") || '#ffffff'
       this.subtitleParams.font = sessionStorage.getItem("font") || 'SJxingkai-C-Regular'
       this.subtitleParams.background_color = sessionStorage.getItem("background_color") || 'rgba(64,64,64,0.6)'
       this.subtitleParams.stroke_color = sessionStorage.getItem("stroke_color") || '#000000'
+      this.textStyle = {
+        backgroundColor: this.subtitleParams.background_color,
+        color: this.subtitleParams.color,
+        fontFamily: this.subtitleParams.font,
+        lineHeight: 1,
+        '-webkit-text-stroke': `1px ${this.subtitleParams.stroke_color}`,
+        fontSize: (this.titleWidth * this.subtitleParams['fontsize'] / 100) + 'px',
+      }
 
+      this.activeTitlePresetId = sessionStorage.getItem("title_preset_id") || '1'
       this.subtitleNameParams.name_fontsize = parseInt(sessionStorage.getItem("name_fontsize")) || 10
       this.subtitleNameParams.name_color = sessionStorage.getItem("name_color") || '#ffffff'
       this.subtitleNameParams.name_font = sessionStorage.getItem("name_font") || 'SJxingkai-C-Regular'
@@ -998,6 +1089,21 @@ export default {
     switchNameUseBackground() {
       sessionStorage.setItem("name_use_background", this.name_use_background)
     },
+    selectTitlePreset(item) {
+      this.activeTitlePresetId = item.id
+      sessionStorage.setItem('title_preset_id', item.id)
+      this.subtitleNameParams.name_background_color = item.backgroundColor
+      sessionStorage.setItem('name_background_color', item.backgroundColor)
+      this.subtitleNameParams.name_color = item.color
+      sessionStorage.setItem('name_color', item.color)
+      this.subtitleNameParams.name_font = item.fontFamily
+      sessionStorage.setItem('name_font', item.fontFamily)
+      this.subtitleNameParams.name_fontsize = 10
+      sessionStorage.setItem('name_fontsize', '10')
+      this.subtitleNameParams.name_stroke_color = item.stroke
+      sessionStorage.setItem('name_stroke_color', item.stroke)
+      this.updateTitleTextStyle()
+    },
     updateTitleTextStyle() {
       this.titleTextStyle = {
         backgroundColor: this.subtitleNameParams.name_background_color,
@@ -1012,17 +1118,42 @@ export default {
       let value = this.subtitleNameParams[key]
       this.updateTitleTextStyle()
       sessionStorage.setItem(key, value)
+      this.activeTitlePresetId = '0'
+      sessionStorage.setItem('title_preset_id', '0')
       this.$forceUpdate()
     },
-    saveSubtitleParams(key) {
-      this.$forceUpdate()
-      let value
-      if (key === 'font_size') {
-        value = this.subtitleParams['fontsize']
-      } else {
-        value = this.subtitleParams[key]
+    selectPreset(item) {
+      this.activePresetId = item.id
+      sessionStorage.setItem('preset_id', item.id)
+      this.subtitleParams.background_color = item.backgroundColor
+      sessionStorage.setItem('background_color', item.backgroundColor)
+      this.subtitleParams.color = item.color
+      sessionStorage.setItem('color', item.color)
+      this.subtitleParams.font = item.fontFamily
+      sessionStorage.setItem('font', item.fontFamily)
+      this.subtitleParams['fontsize'] = 5
+      sessionStorage.setItem('fontsize', '5')
+      this.subtitleParams.stroke_color = item.stroke
+      sessionStorage.setItem('stroke_color', item.stroke)
+      this.updateTextStyle()
+    },
+    updateTextStyle() {
+      this.textStyle = {
+        backgroundColor: this.subtitleParams.background_color,
+        color: this.subtitleParams.color,
+        fontFamily: this.subtitleParams.font,
+        lineHeight: 1,
+        '-webkit-text-stroke': `1px ${this.subtitleParams.stroke_color}`,
+        fontSize: (this.titleWidth * this.subtitleParams['fontsize'] / 100) + 'px',
       }
+    },
+    saveSubtitleParams(key) {
+      let value = this.subtitleParams[key]
+      this.updateTextStyle()
       sessionStorage.setItem(key, value)
+      this.activePresetId = '0'
+      sessionStorage.setItem('preset_id', '0')
+      this.$forceUpdate()
     },
     switchReverse() {
       sessionStorage.setItem("reverse", this.reverse)
@@ -1136,6 +1267,25 @@ export default {
   border-radius: 10px;
   padding: 15px;
   box-sizing: border-box;
+}
+
+.preset {
+  height: 40px;
+  margin-bottom: 10px;
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  gap: 10px
+}
+
+.preset-style {
+  width: 30px;
+  height: 30px;
+  line-height: 30px;
+  border-radius: 3px;
+  text-align: center;
+  font-size: 24px;
+  font-weight: 900;
 }
 
 .play-btn {
