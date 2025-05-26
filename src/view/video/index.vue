@@ -1,27 +1,14 @@
 <template>
   <div class="video">
     <div class="video-header">
-      <div class="video-card">
-        <div class="video-card-list">
-          <div class="video-title">角色</div>
-          <div class="video-template">
-            <div v-for="item in figures" :key="item.id" style="border-radius: 10px; width: 130px"
-                 @click="selectFigure(item)"
-                 :style="{ 'background-color': item.id === figure.id ? '#e0e7fb' : '#FFFFFF' }">
-              <el-image class="template-img" :src="item.picture" fit="cover"></el-image>
-              <div class="template-name" :title="item.name">{{ item.name }}</div>
-            </div>
-          </div>
-        </div>
-        <div class="video-card-list">
-          <div class="video-title">素材</div>
-          <div class="video-template">
-            <div v-for="item in materials" :key="item.id" style="border-radius: 10px; width: 130px"
-                 @click="selectMaterials(item)"
-                 :style="{ 'background-color': material_list.includes(item.id) ? '#e0e7fb' : '#FFFFFF' }">
-              <el-image class="template-img" :src="item.picture" fit="cover"></el-image>
-              <div class="template-name" :title="item.name">{{ item.name }}</div>
-            </div>
+      <div class="video-card-list">
+        <el-switch :width="50" v-model="isMaterial" active-text="素材" inactive-text="数字人"></el-switch>
+        <div class="video-template">
+          <div v-for="item in isMaterial? materials : figures" :key="item.id" style="border-radius: 10px; width: 130px"
+               @click="selectResource(item)"
+               :style="{ 'background-color': item.id === figure.id || material_list.includes(item.id) ? '#e0e7fb' : '#FFFFFF' }">
+            <el-image class="template-img" :src="item.picture" fit="cover"></el-image>
+            <div class="template-name" :title="item.name">{{ item.name }}</div>
           </div>
         </div>
       </div>
@@ -414,6 +401,7 @@ export default {
     return {
       isPlay: false,
       templates: [],
+      isMaterial: false,
       materials: [],
       figures: [],
       figure: {},
@@ -568,11 +556,11 @@ export default {
     },
   },
   mounted() {
-    // this.querySounds();
-    // this.queryFigures();
+    this.querySounds();
+    this.queryFigures();
     this.queryFontFamily()
-    // this.queryBgm()
-    // document.addEventListener('click', this.handleClickOutside);
+    this.queryBgm()
+    document.addEventListener('click', this.handleClickOutside);
     this.$nextTick(() => {
       this.titleWidth = this.$refs.myBox.getBoundingClientRect().width - 50
       this.initParams()
@@ -791,6 +779,7 @@ export default {
       this.figure = JSON.parse(sessionStorage.getItem('figure')) || {}
       this.material_list = JSON.parse(sessionStorage.getItem('material_list')) || []
       this.mentionList = JSON.parse(sessionStorage.getItem('mention_list')) || []
+      this.isMaterial = this.material_list.length > 0;
 
       this.withSubtitle = sessionStorage.getItem("with_subtitle") === 'true'
       this.withTitle = sessionStorage.getItem("with_title") === 'true'
@@ -847,6 +836,9 @@ export default {
       getAction("/figure/query_success").then((res) => {
         if (res.data.status === "success") {
           let data = res.data.data.filter(item => item.status === "success");
+          data.forEach(item => {
+            item.picture = item.picture.replace('127.0.0.1', '192.168.0.106')
+          })
           if (data.length > 0) {
             this.materials = data.filter(item => !item.lip_sync && item.status === "success");
             this.figures = data.filter(item => item.lip_sync && item.status === "success");
@@ -1039,26 +1031,20 @@ export default {
         });
       }
     },
-    selectFigure(item) {
-      this.material_list = []
-      this.mentionList = []
-      if (this.figure.id === item.id) {
+    selectResource(item) {
+      if (this.isMaterial) {
         this.figure = {}
-      } else {
-        this.figure = item
-      }
-      sessionStorage.setItem('figure', JSON.stringify(this.figure))
-      sessionStorage.setItem('material_list',JSON.stringify(this.material_list))
-      sessionStorage.setItem('mention_list',JSON.stringify(this.mentionList))
-    },
-    selectMaterials(item) {
-      this.figure = {}
-      if (!this.material_list.includes(item.id)) {
-        this.material_list.push(item.id)
-        this.mentionList.push(item)
-      } else {
-        this.material_list.splice(this.material_list.indexOf(item.id), 1)
-        this.mentionList.splice(this.mentionList.indexOf(item), 1)
+        if (!this.material_list.includes(item.id)) {
+          this.material_list.push(item.id)
+          this.mentionList.push(item)
+        } else {
+          this.material_list.splice(this.material_list.indexOf(item.id), 1)
+          this.mentionList.splice(this.mentionList.indexOf(item), 1)
+        }
+      }else {
+        this.material_list = []
+        this.mentionList = []
+        this.figure = this.figure.id === item.id? {} : item
       }
       sessionStorage.setItem('figure', JSON.stringify(this.figure))
       sessionStorage.setItem('material_list',JSON.stringify(this.material_list))
@@ -1216,14 +1202,7 @@ export default {
   cursor: pointer;
 }
 
-.video-card {
-  width: 100%;
-  display: flex;
-  gap: 10px;
-}
-
 .video-card-list {
-  flex: 1;
   background-color: #ffffff;
   border-radius: 10px;
   padding: 5px 15px 15px 15px;
