@@ -118,7 +118,7 @@
         </div>
       </div>
     </div>
-    <div class="voice-card" style="margin-top: 10px;position: relative">
+    <div class="voice-card" ref="myBox" style="margin-top: 10px;position: relative">
       <div style="display: flex;align-items: center;position: absolute;top: 15px;left: 85px">
         <el-switch :width="50" v-model="withTitle" @change="switchTitle"></el-switch>
         <div style="margin-left: 20px;font-size: 13px;color: #9a9a9a">需开启添加字幕标题后，以下设置才会生效</div>
@@ -177,6 +177,7 @@
                                @change="saveSubtitleNameParams('name_background_color')"></el-color-picker>
             </div>
           </div>
+          <div style="margin-top: 10px;text-align: center;width: 100%;padding: 20px 10px;box-sizing: border-box" :style="titleTextStyle">示例样式</div>
         </el-collapse-item>
       </el-collapse>
     </div>
@@ -414,6 +415,7 @@ export default {
       withTitle: false,
       name_use_background: false,
       subtitleNameParams: {},
+      titleTextStyle: {},
       fontFamily: [],
       activeTitleNames: [],
       activeNames: [],
@@ -468,6 +470,7 @@ export default {
         left: '0px'
       },
       replaceDivHeight: 40,
+      titleWidth: 0
     };
   },
   computed: {
@@ -485,12 +488,15 @@ export default {
     },
   },
   mounted() {
-    this.querySounds();
-    this.queryFigures();
+    // this.querySounds();
+    // this.queryFigures();
     this.queryFontFamily()
-    this.queryBgm()
-    this.initParams()
-    document.addEventListener('click', this.handleClickOutside);
+    // this.queryBgm()
+    // document.addEventListener('click', this.handleClickOutside);
+    this.$nextTick(() => {
+      this.titleWidth = this.$refs.myBox.getBoundingClientRect().width - 50
+      this.initParams()
+    })
   },
   beforeDestroy() {
     this.stopAudio();
@@ -723,6 +729,14 @@ export default {
       this.subtitleNameParams.name_font = sessionStorage.getItem("name_font") || 'SJxingkai-C-Regular'
       this.subtitleNameParams.name_background_color = sessionStorage.getItem("name_background_color") || 'rgba(64,64,64,0.6)'
       this.subtitleNameParams.name_stroke_color = sessionStorage.getItem("name_stroke_color") || '#000000'
+      this.titleTextStyle = {
+        backgroundColor: this.subtitleNameParams.name_background_color,
+        color: this.subtitleNameParams.name_color,
+        fontFamily: this.subtitleNameParams.name_font,
+        lineHeight: 1,
+        '-webkit-text-stroke': `1px ${this.subtitleNameParams.name_stroke_color}`,
+        fontSize: (this.titleWidth * this.subtitleNameParams.name_fontsize / 100) + 'px',
+      }
 
       this.tableData = sessionStorage.getItem("tableData") ? JSON.parse(sessionStorage.getItem("tableData")) : []
     },
@@ -730,6 +744,9 @@ export default {
       getAction('/get_fonts').then(res => {
         if (res.data.status === 'success') {
           this.fontFamily = res.data.data
+          this.fontFamily.forEach(item => {
+            item.img_path = item.img_path.replace('127.0.0.1', '192.168.0.106')
+          })
         }
       }).catch((error) => {
         console.error("获取字体样式列表失败:", error);
@@ -981,10 +998,21 @@ export default {
     switchNameUseBackground() {
       sessionStorage.setItem("name_use_background", this.name_use_background)
     },
+    updateTitleTextStyle() {
+      this.titleTextStyle = {
+        backgroundColor: this.subtitleNameParams.name_background_color,
+        color: this.subtitleNameParams.name_color,
+        fontFamily: this.subtitleNameParams.name_font,
+        lineHeight: 1,
+        '-webkit-text-stroke': `1px ${this.subtitleNameParams.name_stroke_color}`,
+        fontSize: (this.titleWidth * this.subtitleNameParams.name_fontsize / 100) + 'px',
+      }
+    },
     saveSubtitleNameParams(key) {
-      this.$forceUpdate()
       let value = this.subtitleNameParams[key]
+      this.updateTitleTextStyle()
       sessionStorage.setItem(key, value)
+      this.$forceUpdate()
     },
     saveSubtitleParams(key) {
       this.$forceUpdate()
