@@ -1,0 +1,97 @@
+@font-face {
+    font-family: 'hongleixingshu';
+    src: url('@/assets/fonts/hongleixingshu.otf') format('opentype');
+    font-weight: normal;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'SJxingkai-C-Regular';
+    src: url('@/assets/fonts/SJxingkai-C-Regular.ttf') format('opentype');
+    font-weight: normal;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'Douyin-Sans-Bold';
+    src: url('@/assets/fonts/Douyin-Sans-Bold.otf') format('opentype');
+    font-weight: normal;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'TW-Sung';
+    src: url('@/assets/fonts/TW-Sung.ttf') format('opentype');
+    font-weight: normal;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'Alimama-FangYuanTi-VF';
+    src: url('@/assets/fonts/Alimama-FangYuanTi-VF.ttf') format('opentype');
+    font-weight: normal;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'XKNLT-Regular';
+    src: url('@/assets/fonts/XKNLT-Regular.ttf') format('opentype');
+    font-weight: normal;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'LXGW-ZhenKai';
+    src: url('@/assets/fonts/LXGW-ZhenKai.ttf') format('opentype');
+    font-weight: normal;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: '千图马克手写体';
+    src: url('@/assets/fonts/千图马克手写体.ttf') format('opentype');
+    font-weight: normal;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'Alimama-DongFangDaKai';
+    src: url('@/assets/fonts/Alimama-DongFangDaKai.ttf') format('opentype');
+    font-weight: normal;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'BangFont-WanKu-Regular';
+    src: url('@/assets/fonts/BangFont-WanKu-Regular.ttf') format('opentype');
+    font-weight: normal;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'bailutongtongshouxieti';
+    src: url('@/assets/fonts/bailutongtongshouxieti.ttf') format('opentype');
+    font-weight: normal;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: '荆南波波黑-Bold';
+    src: url('@/assets/fonts/荆南波波黑-Bold.ttf') format('opentype');
+    font-weight: normal;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'YEFONTXiaoShiTou';
+    src: url('@/assets/fonts/YEFONTXiaoShiTou.ttf') format('opentype');
+    font-weight: normal;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'SJjnyyjyy';
+    src: url('@/assets/fonts/SJjnyyjyy.ttf') format('opentype');
+    font-weight: normal;
+    font-style: normal;
+}
