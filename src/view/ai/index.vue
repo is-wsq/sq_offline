@@ -41,7 +41,9 @@ export default {
   data() {
     return {
       model: '',
-      options: [],
+      options: [
+        { label: '奇点文本审核', value: 'doubao-1-5-thinking-pro-250415' }
+      ],
       modelOpen: false,
       loading: false,
     };
@@ -54,8 +56,8 @@ export default {
     queryModels() {
       getAction("/get_model_dict").then(res => {
         if (res.data.status === "success") {
-          this.options = res.data.options
-          this.model = res.data.options[0].value || ''
+          this.options = this.options.concat(res.data.options)
+          this.model = this.options[0].value || ''
         }
       })
     },
@@ -107,6 +109,13 @@ export default {
         .then((res) => {
           if (res.data.status === "success") {
             this.startWebui();
+            if (this.model === 'doubao-1-5-thinking-pro-250415') {
+              this.loading.close();
+              this.loading = null;
+              this.modelOpen = true;
+              this.$message.success("模型加载成功");
+              return
+            }
             axios.post("http://127.0.0.1:11434/api/generate", params).then((result) => {
               if (result.data.done) {
                 this.modelOpen = true;
