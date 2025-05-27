@@ -116,11 +116,11 @@
             <div class="preset">
               <span style="margin-right: 20px">预设样式</span>
               <div class="preset-style" v-for="item in titlePresets" :key="item.id" @click="selectTitlePreset(item)" :style="{
-            backgroundColor: item.backgroundColor,
-            color: item.color,
-            '-webkit-text-stroke': '0.5px' + item.stroke,
-            border: activeTitlePresetId === item.id ? '2px solid #6286ed' : 'none'
-          }">T</div>
+                backgroundColor: item.backgroundColor,
+                color: item.color,
+                '-webkit-text-stroke': '0.5px' + item.stroke,
+                border: activeTitlePresetId === item.id ? '2px solid #6286ed' : 'none'
+              }">T</div>
             </div>
             <div style="display: flex;gap: 30px;align-items: center;height: 80px">
               <div style="text-align: center">
@@ -174,7 +174,6 @@
                                  @change="saveSubtitleNameParams('name_background_color')"></el-color-picker>
               </div>
             </div>
-<!--            <div style="margin-top: 10px;text-align: center;width: 100%;padding: 20px 10px;box-sizing: border-box" :style="titleTextStyle">示例样式</div>-->
           </el-collapse-item>
         </el-collapse>
       </div>
@@ -188,11 +187,11 @@
             <div class="preset">
               <span style="margin-right: 20px">预设样式</span>
               <div class="preset-style" v-for="item in titlePresets" :key="item.id" @click="selectPreset(item)" :style="{
-            backgroundColor: item.backgroundColor,
-            color: item.color,
-            '-webkit-text-stroke': '0.5px' + item.stroke,
-            border: activePresetId === item.id ? '2px solid #6286ed' : 'none'
-          }">T</div>
+                backgroundColor: item.backgroundColor,
+                color: item.color,
+                '-webkit-text-stroke': '0.5px' + item.stroke,
+                border: activePresetId === item.id ? '2px solid #6286ed' : 'none'
+              }">T</div>
             </div>
             <div style="display: flex;gap: 30px;align-items: center;height: 80px">
               <div style="text-align: center">
@@ -246,7 +245,6 @@
                                  @change="saveSubtitleParams('background_color')"></el-color-picker>
               </div>
             </div>
-<!--            <div style="margin-top: 10px;text-align: center;width: 100%;padding: 20px 10px;box-sizing: border-box" :style="textStyle">示例样式</div>-->
           </el-collapse-item>
         </el-collapse>
       </div>
@@ -391,9 +389,11 @@
       </el-dialog>
     </div>
     <div class="video-right">
-      <div class="preview-setting">
-        <div class="preview-title" :style="titleTextStyle" v-if="withTitle">示例样式</div>
-        <div class="preview-content" :style="textStyle" v-if="withSubtitle">示例样式</div>
+      <div class="preview-setting" ref="container" @mousemove="onMouseMove" @mouseup="onMouseUp" @mouseleave="onMouseUp">
+        <div class="preview-title" ref="titleContainer" :class="{ noneBackground: !name_use_background }"
+             :style="titleTextStyle" v-if="withTitle" @mousedown="onMouseDown('top', $event)">示例标题</div>
+        <div class="preview-content" ref="contentContainer" :class="{ noneBackground: !use_background }"
+             :style="textStyle" v-if="withSubtitle" @mousedown="onMouseDown('bottom', $event)">示例字幕</div>
       </div>
     </div>
   </div>
@@ -546,7 +546,13 @@ export default {
         },
       ],
       activeTitlePresetId: '1',
-      activePresetId: '1'
+      activePresetId: '1',
+
+      dragging: false,
+      draggingType: '',
+      startY: 0,
+      topOffset: 20,
+      bottomOffset: 20,
     };
   },
   computed: {
@@ -579,6 +585,38 @@ export default {
     document.removeEventListener('click', this.handleClickOutside);
   },
   methods: {
+    onMouseDown(type,event) {
+      this.dragging = true;
+      this.draggingType = type;
+      this.startY = event.clientY;
+    },
+    onMouseMove(event) {
+      if (!this.dragging) return;
+      const deltaY = event.clientY - this.startY;
+      this.startY = event.clientY;
+
+      const containerHeight = this.$refs.container.clientHeight;
+      const titleHeight = this.$refs.titleContainer.clientHeight;
+      const contentHeight = this.$refs.contentContainer.clientHeight;
+      const sum = titleHeight + contentHeight;
+
+      if (this.draggingType === 'top') {
+        let newTop = this.topOffset + deltaY;
+        newTop = Math.max(0, Math.min(containerHeight - this.bottomOffset - sum, newTop));
+        this.topOffset = newTop;
+        this.updateTitleTextStyle()
+      }
+
+      if (this.draggingType === 'bottom') {
+        let newBottom = this.bottomOffset - deltaY;
+        newBottom = Math.max(0, Math.min(containerHeight - this.topOffset - sum, newBottom));
+        this.bottomOffset = newBottom;
+        this.updateTextStyle()
+      }
+    },
+    onMouseUp() {
+      this.dragging = false;
+    },
     handleScroll(event) {
       const textareaScrollTop = event.target.scrollTop;
       const highlightDiv = this.$refs.highlightDiv;
@@ -809,6 +847,7 @@ export default {
         lineHeight: 1,
         '-webkit-text-stroke': `0.5px ${this.subtitleParams.stroke_color}`,
         fontSize: (410 * this.subtitleParams['fontsize'] / 100) + 'px',
+        bottom: this.bottomOffset + 'px'
       }
 
       this.activeTitlePresetId = sessionStorage.getItem("title_preset_id") || '1'
@@ -824,6 +863,7 @@ export default {
         lineHeight: 1,
         '-webkit-text-stroke': `0.5px ${this.subtitleNameParams.name_stroke_color}`,
         fontSize: (410 * this.subtitleNameParams.name_fontsize / 100) + 'px',
+        top: this.topOffset + 'px'
       }
 
       this.tableData = sessionStorage.getItem("tableData") ? JSON.parse(sessionStorage.getItem("tableData")) : []
@@ -832,9 +872,9 @@ export default {
       getAction('/get_fonts').then(res => {
         if (res.data.status === 'success') {
           this.fontFamily = res.data.data
-          this.fontFamily.forEach(item => {
-            item.img_path = item.img_path.replace('127.0.0.1', '192.168.0.106')
-          })
+          // this.fontFamily.forEach(item => {
+          //   item.img_path = item.img_path.replace('127.0.0.1', '192.168.0.106')
+          // })
         }
       }).catch((error) => {
         console.error("获取字体样式列表失败:", error);
@@ -844,9 +884,9 @@ export default {
       getAction("/figure/query_success").then((res) => {
         if (res.data.status === "success") {
           let data = res.data.data.filter(item => item.status === "success");
-          data.forEach(item => {
-            item.picture = item.picture.replace('127.0.0.1', '192.168.0.106')
-          })
+          // data.forEach(item => {
+          //   item.picture = item.picture.replace('127.0.0.1', '192.168.0.106')
+          // })
           if (data.length > 0) {
             this.materials = data.filter(item => !item.lip_sync && item.status === "success");
             this.figures = data.filter(item => item.lip_sync && item.status === "success");
@@ -1106,6 +1146,7 @@ export default {
         lineHeight: 1,
         '-webkit-text-stroke': `0.5px ${this.subtitleNameParams.name_stroke_color}`,
         fontSize: (410 * this.subtitleNameParams.name_fontsize / 100) + 'px',
+        top: this.topOffset + 'px'
       }
     },
     saveSubtitleNameParams(key) {
@@ -1139,6 +1180,7 @@ export default {
         lineHeight: 1,
         '-webkit-text-stroke': `0.5px ${this.subtitleParams.stroke_color}`,
         fontSize: (410 * this.subtitleParams['fontsize'] / 100) + 'px',
+        bottom: this.bottomOffset + 'px'
       }
     },
     saveSubtitleParams(key) {
@@ -1208,22 +1250,30 @@ export default {
   border-radius: 20px;
   border: 1px solid #bbbbbb;
   position: relative;
+  overflow: hidden;
+  user-select: none;
 }
 
 .preview-title {
   position: absolute;
   width: 100%;
-  top: 20px;
   text-align: center;
   padding: 20px 0;
+  cursor: move;
+  user-select: none;
 }
 
 .preview-content {
   position: absolute;
-  bottom: 20px;
   width: 100%;
   text-align: center;
   padding: 20px 0;
+  cursor: move;
+  user-select: none;
+}
+
+.noneBackground {
+  background: none !important;
 }
 
 .video-title {
