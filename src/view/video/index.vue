@@ -547,12 +547,11 @@ export default {
       ],
       activeTitlePresetId: '1',
       activePresetId: '1',
-
       dragging: false,
       draggingType: '',
       startY: 0,
-      topOffset: 20,
-      bottomOffset: 20,
+      topOffset: 0,
+      bottomOffset: 320,
     };
   },
   computed: {
@@ -598,19 +597,21 @@ export default {
       const containerHeight = this.$refs.container.clientHeight;
       const titleHeight = this.$refs.titleContainer.clientHeight;
       const contentHeight = this.$refs.contentContainer.clientHeight;
-      const sum = titleHeight + contentHeight;
 
       if (this.draggingType === 'top') {
         let newTop = this.topOffset + deltaY;
-        newTop = Math.max(0, Math.min(containerHeight - this.bottomOffset - sum, newTop));
+        newTop = Math.max(0, Math.min(this.bottomOffset - titleHeight, newTop));
         this.topOffset = newTop;
+        sessionStorage.setItem('top_offset', this.topOffset)
         this.updateTitleTextStyle()
       }
 
       if (this.draggingType === 'bottom') {
-        let newBottom = this.bottomOffset - deltaY;
-        newBottom = Math.max(0, Math.min(containerHeight - this.topOffset - sum, newBottom));
+        let newBottom = this.bottomOffset + deltaY;
+        newBottom = Math.max(this.topOffset + titleHeight,
+            Math.min(containerHeight - contentHeight, newBottom));
         this.bottomOffset = newBottom;
+        sessionStorage.setItem('bottom_offset', this.bottomOffset)
         this.updateTextStyle()
       }
     },
@@ -827,6 +828,9 @@ export default {
       this.mentionList = JSON.parse(sessionStorage.getItem('mention_list')) || []
       this.isMaterial = this.material_list.length > 0;
 
+      this.topOffset = Number(sessionStorage.getItem('top_offset')) || 0
+      this.bottomOffset = Number(sessionStorage.getItem('bottom_offset')) || 320
+
       this.withSubtitle = sessionStorage.getItem("with_subtitle") === 'true'
       this.withTitle = sessionStorage.getItem("with_title") === 'true'
       this.reverse = sessionStorage.getItem("reverse") === 'true'
@@ -847,7 +851,7 @@ export default {
         lineHeight: 1,
         '-webkit-text-stroke': `0.5px ${this.subtitleParams.stroke_color}`,
         fontSize: (410 * this.subtitleParams['fontsize'] / 100) + 'px',
-        bottom: this.bottomOffset + 'px'
+        top: this.bottomOffset + 'px'
       }
 
       this.activeTitlePresetId = sessionStorage.getItem("title_preset_id") || '1'
@@ -1018,6 +1022,7 @@ export default {
         with_subtitle: this.withSubtitle,
         with_title: this.withTitle,
         subtitle_params: {
+          y_offset: this.bottomOffset,
           font: this.subtitleParams.font,
           fontsize: this.subtitleParams['fontsize'],
           color: this.subtitleParams.color,
@@ -1027,6 +1032,7 @@ export default {
           background_opacity: Number(background_colors[3])
         },
         title_params: {
+          y_offset: this.topOffset,
           title_text_list: this.tableData.map(item => item.title),
           font: this.subtitleNameParams.name_font,
           fontsize: this.subtitleNameParams.name_fontsize,
@@ -1180,7 +1186,7 @@ export default {
         lineHeight: 1,
         '-webkit-text-stroke': `0.5px ${this.subtitleParams.stroke_color}`,
         fontSize: (410 * this.subtitleParams['fontsize'] / 100) + 'px',
-        bottom: this.bottomOffset + 'px'
+        top: this.bottomOffset + 'px'
       }
     },
     saveSubtitleParams(key) {
