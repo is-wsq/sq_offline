@@ -1,4 +1,4 @@
-const {app, BrowserWindow, ipcMain,dialog,ipcRenderer  } = require('electron');
+const {app, BrowserWindow, ipcMain,dialog,ipcRenderer, screen  } = require('electron');
 const path = require('path');
 const fs = require('fs');
 const http = require('http');
@@ -7,8 +7,14 @@ const { spawn  } = require('child_process')
 let mainWindow;
 
 app.on('ready', () => {
+    const primaryDisplay = screen.getPrimaryDisplay();
+    const { width, height } = primaryDisplay.workAreaSize;
     mainWindow = new BrowserWindow({
-        fullscreen: true,
+        width: width,
+        height: height,
+        x: 0,
+        y: 0,
+        frame: true,
         show: false,
         icon: path.join(__dirname, 'public/favicon.ico'),
         webPreferences: {
