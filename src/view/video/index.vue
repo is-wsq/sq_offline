@@ -389,7 +389,7 @@
       </el-dialog>
     </div>
     <div class="video-right">
-      <div class="preview-setting" :style="{ background: 'url(' + figure.picture || materials[0].picture || '' + ')' }"
+      <div class="preview-setting" :style="{ backgroundImage: 'url(' + figure.picture || materials[0].picture || '' + ')' }"
            ref="container" @mousemove="onMouseMove" @mouseup="onMouseUp" @mouseleave="onMouseUp">
         <div class="preview-title" ref="titleContainer" :class="{ noneBackground: !name_use_background }"
              :style="titleTextStyle" v-if="withTitle" @mousedown="onMouseDown('top', $event)">示例标题</div>
