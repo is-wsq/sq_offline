@@ -389,8 +389,9 @@
       </el-dialog>
     </div>
     <div class="video-right">
-      <div class="preview-setting" :style="{ backgroundImage: 'url(' + figure.picture || materials[0].picture || '' + ')' }"
+      <div class="preview-setting"
            ref="container" @mousemove="onMouseMove" @mouseup="onMouseUp" @mouseleave="onMouseUp">
+        <el-image style="width: 100%;height: auto" :src="figure.picture || materials[0].picture || ''" fit="cover"></el-image>
         <div class="preview-title" ref="titleContainer" :class="{ noneBackground: !name_use_background }"
              :style="titleTextStyle" v-if="withTitle" @mousedown="onMouseDown('top', $event)">示例标题</div>
         <div class="preview-content" ref="contentContainer" :class="{ noneBackground: !use_background }"
@@ -1246,12 +1247,12 @@ export default {
 }
 
 .video-right {
-  max-width: 420px;
+  width: 420px;
   display: flex;
 }
 
 .preview-setting {
-  max-width: 412px;
+  width: 412px;
   margin-left: 8px;
   border-radius: 20px;
   border: 1px solid #bbbbbb;
