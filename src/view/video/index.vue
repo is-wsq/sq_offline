@@ -392,7 +392,7 @@
       <div class="preview-setting" ref="container" @mousemove="onMouseMove" @mouseup="onMouseUp" @mouseleave="onMouseUp">
         <el-image style="width: 100%" :src="figure.picture" fit="cover" v-if="figure.picture"></el-image>
         <el-image style="width: 100%" :src="mentionList[0].picture" fit="cover" v-else-if="mentionList[0]"></el-image>
-        <div style="width: 100%" v-else></div>
+        <div style="width: 100%;height: 600px" v-else></div>
         <div class="preview-title" ref="titleContainer" :class="{ noneBackground: !name_use_background }"
              :style="titleTextStyle" v-if="withTitle" @mousedown="onMouseDown('top', $event)">示例标题</div>
         <div class="preview-content" ref="contentContainer" :class="{ noneBackground: !use_background }"
@@ -1006,6 +1006,14 @@ export default {
       this.replaceName.forEach((item, index) => {
         this.actualRequest = this.actualRequest.replace(item, `{${this.replaceId[index]}}`)
       })
+
+      let materialIds = new Set(this.material_list);
+      let nonExistentIds = this.replaceId.filter(id => !materialIds.has(id));
+      if (nonExistentIds.length > 0) {
+        this.$alert('混剪要求中有@未选择或已删除的素材，请重新选择或删除@', "提示")
+        return;
+      }
+
       let name = this.setName()
       let background_colors = this.subtitleParams.background_color.replace(/rgba|\(|\)|\s/g, '').split(',');
       let name_background_colors = this.subtitleNameParams.name_background_color.replace(/rgba|\(|\)|\s/g, '').split(',');
