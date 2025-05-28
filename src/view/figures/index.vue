@@ -214,6 +214,20 @@ export default {
       delAction("/figure/delete", {figure_id: this.selectedItem.id}).then((res) => {
         if (res.data.status === "success") {
           this.$message.success("删除成功");
+
+          const updateSessionStorage = (key) => {
+            const list = JSON.parse(sessionStorage.getItem(key)) || [];
+            const updatedList = list.filter(item => item.id !== this.selectedItem.id);
+            sessionStorage.setItem(key, JSON.stringify(updatedList));
+          };
+          updateSessionStorage('material_list');
+          updateSessionStorage('mention_list');
+
+          let figure = JSON.parse(sessionStorage.getItem('figure')) || {}
+          if (figure.id === this.selectedItem.id) {
+            sessionStorage.removeItem('figure');
+          }
+
           this.$store.dispatch("task/pollFigureTasks");
         } else {
           this.$message.error(res.data.message);
