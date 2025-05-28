@@ -106,7 +106,7 @@
           </div>
         </div>
       </div>
-      <div class="voice-card" ref="myBox" style="margin-top: 10px;position: relative">
+      <div class="voice-card" style="margin-top: 10px;position: relative">
         <div style="display: flex;align-items: center;position: absolute;top: 15px;left: 85px">
           <el-switch :width="50" v-model="withTitle" @change="switchTitle"></el-switch>
           <div style="margin-left: 20px;font-size: 13px;color: #9a9a9a">需开启添加字幕标题后，以下设置才会生效</div>
@@ -389,9 +389,10 @@
       </el-dialog>
     </div>
     <div class="video-right">
-      <div class="preview-setting"
-           ref="container" @mousemove="onMouseMove" @mouseup="onMouseUp" @mouseleave="onMouseUp">
-        <el-image style="width: 100%;height: auto" :src="figure.picture || materials[0].picture || ''" fit="cover"></el-image>
+      <div class="preview-setting" ref="container" @mousemove="onMouseMove" @mouseup="onMouseUp" @mouseleave="onMouseUp">
+        <el-image style="width: 100%" :src="figure.picture" fit="cover" v-if="figure.picture"></el-image>
+        <el-image style="width: 100%" :src="mentionList[0].picture" fit="cover" v-else-if="mentionList[0]"></el-image>
+        <div style="width: 100%" v-else></div>
         <div class="preview-title" ref="titleContainer" :class="{ noneBackground: !name_use_background }"
              :style="titleTextStyle" v-if="withTitle" @mousedown="onMouseDown('top', $event)">示例标题</div>
         <div class="preview-content" ref="contentContainer" :class="{ noneBackground: !use_background }"
@@ -553,7 +554,7 @@ export default {
       draggingType: '',
       startY: 0,
       topOffset: 0,
-      bottomOffset: 320,
+      bottomOffset: 100,
     };
   },
   computed: {
@@ -577,7 +578,6 @@ export default {
     this.queryBgm()
     document.addEventListener('click', this.handleClickOutside);
     this.$nextTick(() => {
-      this.titleWidth = this.$refs.myBox.getBoundingClientRect().width - 50
       this.initParams()
     })
   },
@@ -604,7 +604,6 @@ export default {
         let newTop = this.topOffset + deltaY;
         newTop = Math.max(0, Math.min(this.bottomOffset - titleHeight, newTop));
         this.topOffset = newTop;
-        sessionStorage.setItem('top_offset', this.topOffset)
         this.updateTitleTextStyle()
       }
 
@@ -613,7 +612,6 @@ export default {
         newBottom = Math.max(this.topOffset + titleHeight,
             Math.min(containerHeight - contentHeight, newBottom));
         this.bottomOffset = newBottom;
-        sessionStorage.setItem('bottom_offset', this.bottomOffset)
         this.updateTextStyle()
       }
     },
@@ -831,7 +829,7 @@ export default {
       this.isMaterial = this.material_list.length > 0;
 
       this.topOffset = Number(sessionStorage.getItem('top_offset')) || 0
-      this.bottomOffset = Number(sessionStorage.getItem('bottom_offset')) || 320
+      this.bottomOffset = Number(sessionStorage.getItem('bottom_offset')) || 100
 
       this.withSubtitle = sessionStorage.getItem("with_subtitle") === 'true'
       this.withTitle = sessionStorage.getItem("with_title") === 'true'
@@ -1088,6 +1086,10 @@ export default {
       }
     },
     selectResource(item) {
+      this.topOffset = 0
+      this.bottomOffset = 100
+      this.updateTextStyle()
+      this.updateTitleTextStyle()
       if (this.isMaterial) {
         this.figure = {}
         if (!this.material_list.includes(item.id)) {
@@ -1156,6 +1158,7 @@ export default {
         fontSize: (410 * this.subtitleNameParams.name_fontsize / 100) + 'px',
         top: this.topOffset + 'px'
       }
+      sessionStorage.setItem('top_offset', this.topOffset)
     },
     saveSubtitleNameParams(key) {
       let value = this.subtitleNameParams[key]
@@ -1190,6 +1193,7 @@ export default {
         fontSize: (410 * this.subtitleParams['fontsize'] / 100) + 'px',
         top: this.bottomOffset + 'px'
       }
+      sessionStorage.setItem('bottom_offset', this.bottomOffset)
     },
     saveSubtitleParams(key) {
       let value = this.subtitleParams[key]
@@ -1236,10 +1240,9 @@ export default {
   height: 100%;
   min-height: 800px;
   min-width: 1280px;
-  padding: 5px 0;
-  box-sizing: border-box;
   overflow: auto;
   display: flex;
+  align-items: flex-start;
 }
 
 .video-left {
@@ -1247,13 +1250,12 @@ export default {
 }
 
 .video-right {
-  width: 420px;
-  display: flex;
+  flex: 1;
 }
 
 .preview-setting {
-  width: 412px;
   margin-left: 8px;
+  display: flex;
   border-radius: 20px;
   border: 1px solid #bbbbbb;
   position: relative;
