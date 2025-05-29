@@ -211,17 +211,18 @@ export default {
       });
     },
     deleteItem() {
-      delAction("/figure/delete", {figure_id: this.selectedItem.id}).then((res) => {
+      let selectedId = this.selectedItem.id
+      delAction("/figure/delete", {figure_id: selectedId}).then((res) => {
         if (res.data.status === "success") {
           this.$message.success("删除成功");
 
-          const updateSessionStorage = (key) => {
-            const list = JSON.parse(sessionStorage.getItem(key)) || [];
-            const updatedList = list.filter(item => item.id !== this.selectedItem.id);
-            sessionStorage.setItem(key, JSON.stringify(updatedList));
-          };
-          updateSessionStorage('material_list');
-          updateSessionStorage('mention_list');
+          const material_list = JSON.parse(sessionStorage.getItem('material_list')) || [];
+          const new_material_list = material_list.filter(item => item !== selectedId);
+          sessionStorage.setItem('material_list', JSON.stringify(new_material_list));
+
+          const mention_list = JSON.parse(sessionStorage.getItem('mention_list')) || [];
+          const new_mention_list = mention_list.filter(item => item.id !== selectedId);
+          sessionStorage.setItem('mention_list', JSON.stringify(new_mention_list));
 
           let figure = JSON.parse(sessionStorage.getItem('figure')) || {}
           if (figure.id === this.selectedItem.id) {
