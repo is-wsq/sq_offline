@@ -9,8 +9,8 @@
               <el-image
                   style="width: 120px; height: 158px; border-radius: 8px;filter: blur(15px);opacity: 0.8"
                   :src="require('/public/images/4.jpg')"
-                  fit="cover"
-              ></el-image>
+                  fit="cover">
+              </el-image>
               <div class="shine-layer"></div>
               <div class="figure-progress">
                 <div>素材上传中</div>
@@ -19,7 +19,9 @@
             </div>
             <div class="figure-name" :title="item.name">{{ item.name }}</div>
           </div>
-          <div v-for="(item, index) in materials" :key="index" @contextmenu.stop="handleContextMenu(item, $event)"
+          <div v-for="(item, index) in materials"
+               :key="index"
+               @contextmenu.stop="handleContextMenu(item, $event)"
                @click="selectItem(item)">
             <el-image class="figures-img" :src="item.picture" fit="cover"></el-image>
             <div class="figure-name" :title="item.name">{{ item.name }}</div>
@@ -34,8 +36,8 @@
               <el-image
                   style="width: 120px; height: 158px; border-radius: 8px;filter: blur(15px);opacity: 0.8"
                   :src="require('/public/images/4.jpg')"
-                  fit="cover"
-              ></el-image>
+                  fit="cover">
+              </el-image>
               <div class="shine-layer"></div>
               <div class="figure-progress">
                 <div>形象克隆中</div>
@@ -44,7 +46,9 @@
             </div>
             <div class="figure-name" :title="item.name">{{ item.name }}</div>
           </div>
-          <div v-for="(item, index) in figures" :key="index" @contextmenu.stop="handleContextMenu(item, $event)"
+          <div v-for="(item, index) in figures"
+               :key="index"
+               @contextmenu.stop="handleContextMenu(item, $event)"
                @click="selectItem(item)">
             <el-image class="figures-img" :src="item.picture" fit="cover"></el-image>
             <div class="figure-name" :title="item.name">{{ item.name }}</div>
@@ -79,8 +83,7 @@
             :before-upload="beforeUpload"
             :on-progress="handleFileChange"
             :file-list.sync="MaterialList"
-            :data="{ lip_sync: false }"
-        >
+            :data="{ lip_sync: false }">
           <el-button type="primary">上传素材</el-button>
         </el-upload>
       </div>
@@ -93,16 +96,19 @@
             :on-success="uploadSuccess"
             :on-error="uploadError"
             :before-upload="beforeUpload"
-            :data="{ lip_sync: true }"
-        >
+            :data="{ lip_sync: true }">
           <el-button type="primary">添加形象</el-button>
         </el-upload>
       </div>
     </div>
     <el-dialog :visible.sync="dialogVisible" :before-close="beforeClose" :width="aspectRatio > 1? '640px' : '390px'">
       <div style="width: 100%;text-align: center;position: relative">
-        <video style="border-radius: 10px;width: calc(100% - 40px)" ref="video" :src="src" @ended="isPlaying = false"
-               @loadedmetadata="checkAspectRatio"></video>
+        <video style="border-radius: 10px;width: calc(100% - 40px)"
+               ref="video"
+               :src="src"
+               @ended="isPlaying = false"
+               @loadedmetadata="checkAspectRatio">
+        </video>
         <div style="position: absolute;top: 50%;left: 50%;transform: translate(-50%, -50%);">
           <i class="el-icon-play control-icon" @click="controlVideo" v-if="!isPlaying"></i>
         </div>
@@ -273,7 +279,7 @@ export default {
       this.MaterialList = fileList;
     },
     uploadMaterialsError(file) {
-      this.response_list.push({ name: file.name, status: "failed", msg: "上传失败" })
+      this.response_list.push({name: file.name, status: "failed", msg: "上传失败"})
       if (this.response_list.length === this.MaterialList.length) {
         let success = this.response_list.filter(item => item.status === "success").map(res => res.name);
         let failed = this.response_list.filter(item => item.status === "failed")
@@ -292,7 +298,7 @@ export default {
     },
     uploadMaterialsSuccess(res, file) {
       if (res.status === "success") {
-        this.response_list.push({ name: file.name, status: "success" })
+        this.response_list.push({name: file.name, status: "success"})
         if (this.response_list.length === this.MaterialList.length) {
           let success = this.response_list.filter(item => item.status === "success").map(res => res.name);
           let failed = this.response_list.filter(item => item.status === "failed")
@@ -310,7 +316,7 @@ export default {
         }
         this.$store.dispatch("task/pollFigureTasks");
       } else {
-        this.response_list.push({ name: file.name, status: "failed", msg: res.message })
+        this.response_list.push({name: file.name, status: "failed", msg: res.message})
         if (this.response_list.length === this.MaterialList.length) {
           let success = this.response_list.filter(item => item.status === "success").map(res => res.name);
           let failed = this.response_list.filter(item => item.status === "failed")

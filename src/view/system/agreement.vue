@@ -9,12 +9,12 @@
     </div>
     <div class="iframe-container" v-loading="loading">
       <iframe
-        :src="docUrl"
-        width="100%"
-        height="100%"
-        frameborder="0"
-        @load="loading = false"
-      ></iframe>
+          :src="docUrl"
+          width="100%"
+          height="100%"
+          frameborder="0"
+          @load="loading = false">
+      </iframe>
     </div>
   </div>
 </template>
@@ -32,8 +32,8 @@ export default {
     docUrl() {
       this.loading = true;
       this.type === "声音复刻协议"
-       ? (this.docFile = "https://live.tellai.tech/files/timbre.docx")
-       : (this.docFile = "https://live.tellai.tech/files/figure.docx");
+          ? (this.docFile = "https://live.tellai.tech/files/timbre.docx")
+          : (this.docFile = "https://live.tellai.tech/files/figure.docx");
       return `https://docs.google.com/gview?url=${encodeURIComponent(this.docFile)}&embedded=true`;
     },
   },
@@ -50,6 +50,7 @@ export default {
   height: 100%;
   position: relative;
 }
+
 .back {
   position: absolute;
   top: 0;
@@ -59,6 +60,7 @@ export default {
   color: #9A9A9A;
   cursor: pointer;
 }
+
 .iframe-container {
   height: calc(100% - 45px);
   margin-top: 5px;

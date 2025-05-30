@@ -4,9 +4,14 @@
       <el-aside class="aside">
         <span style="font-size: 20px;margin-bottom: 20px;font-weight: bold;color: #5478FE">奇点</span>
         <div class="aside-menu">
-          <div v-for="(menu, index) in menus" :key="index" class="menu-group" :style="{'background-color': active === index? '#e3eaff' : '#ffffff'}">
-            <div class="menu-item" :class="{'active': active === index, 'inactive': active !== index}"
-                 title="克隆形象" @click="changeActive(index,menu.path)">
+          <div v-for="(menu, index) in menus"
+               :key="index"
+               class="menu-group"
+               :style="{'background-color': active === index? '#e3eaff' : '#ffffff'}">
+            <div class="menu-item"
+                 :class="{'active': active === index, 'inactive': active !== index}"
+                 title="克隆形象"
+                 @click="changeActive(index,menu.path)">
               <i :class="menu.class"
                  :style="{ 'color': active === index? '#FFFFFF' : '#8F92A1', 'font-size': '20px' }">
               </i>
@@ -52,8 +57,7 @@ export default {
     async queryServiceStatus() {
       return axios.get("http://127.0.0.1:11434/api/ps").then((res) => {
         return res.data.models.length > 0;
-      })
-      .catch((err) => {
+      }).catch((err) => {
         return false;
       });
     },

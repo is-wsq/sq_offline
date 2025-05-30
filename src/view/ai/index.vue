@@ -5,21 +5,21 @@
         <span style="margin-right: 20px; font-size: 16px; color: #6d7177">模型选择</span>
         <el-select v-model="model" placeholder="请选择">
           <el-option
-            v-for="item in options"
-            :key="item.value"
-            :label="item.label"
-            :value="item.value">
+              v-for="item in options"
+              :key="item.value"
+              :label="item.label"
+              :value="item.value">
           </el-option>
         </el-select>
       </div>
       <div style="display: flex; height: 40px; align-items: center;width: 60%;margin-top: 40px">
         <span style="margin-right: 20px; font-size: 16px; color: #6d7177">模型开关</span>
         <el-switch
-          :width="50"
-          v-model="modelOpen"
-          active-color="#6286ED"
-          @change="switchChange"
-        ></el-switch>
+            :width="50"
+            v-model="modelOpen"
+            active-color="#6286ED"
+            @change="switchChange">
+        </el-switch>
       </div>
       <el-button class="enter-service" @click="enterService">进入服务</el-button>
     </div>
@@ -34,7 +34,7 @@
 </template>
 
 <script>
-import { getAction, postAction } from "@/api/api";
+import {getAction, postAction} from "@/api/api";
 import axios from "axios";
 
 export default {
@@ -42,7 +42,7 @@ export default {
     return {
       model: '',
       options: [
-        { label: '奇点文本审核', value: 'doubao-1-5-thinking-pro-250415' }
+        {label: '奇点文本审核', value: 'doubao-1-5-thinking-pro-250415'}
       ],
       modelOpen: false,
       loading: false,
@@ -71,8 +71,7 @@ export default {
     async queryServiceStatus() {
       return axios.get("http://127.0.0.1:11434/api/ps").then((res) => {
         return res.data.models.length > 0;
-      })
-      .catch((err) => {
+      }).catch((err) => {
         return false;
       });
     },
@@ -87,7 +86,7 @@ export default {
       let params = {
         model: this.model,
       }
-      postAction('start_webui',params).then(res => {
+      postAction('start_webui', params).then(res => {
         console.log(res)
       }).catch(err => {
         this.$message.error(`webui模型开启失败，${err}`);
@@ -105,46 +104,44 @@ export default {
         spinner: 'el-icon-loading',
         background: 'rgba(0, 0, 0, 0.7)'
       });
-      postAction("stop_docker_service")
-        .then((res) => {
-          if (res.data.status === "success") {
-            this.startWebui();
-            if (this.model === 'doubao-1-5-thinking-pro-250415') {
-              this.loading.close();
-              this.loading = null;
-              this.modelOpen = true;
-              this.$message.success("模型加载成功");
-              return
-            }
-            axios.post("http://127.0.0.1:11434/api/generate", params).then((result) => {
-              if (result.data.done) {
-                this.modelOpen = true;
-                this.$message.success("模型加载成功");
-              } else {
-                this.modelOpen = false;
-                this.$message.error(result.data.message);
-              }
-              this.loading.close();
-              this.loading = null;
-            }).catch(err => {
-              this.loading.close();
-              this.loading = null;
-              this.modelOpen = false;
-              this.$message.error("模型加载失败，请稍后重试。");
-            });
-          } else {
-            this.modelOpen = false;
+      postAction("stop_docker_service").then((res) => {
+        if (res.data.status === "success") {
+          this.startWebui();
+          if (this.model === 'doubao-1-5-thinking-pro-250415') {
             this.loading.close();
             this.loading = null;
-            this.$message.error("当前后台有任务在进行中，请稍后再试。");
+            this.modelOpen = true;
+            this.$message.success("模型加载成功");
+            return
           }
-        })
-        .catch((err) => {
+          axios.post("http://127.0.0.1:11434/api/generate", params).then((result) => {
+            if (result.data.done) {
+              this.modelOpen = true;
+              this.$message.success("模型加载成功");
+            } else {
+              this.modelOpen = false;
+              this.$message.error(result.data.message);
+            }
+            this.loading.close();
+            this.loading = null;
+          }).catch(err => {
+            this.loading.close();
+            this.loading = null;
+            this.modelOpen = false;
+            this.$message.error("模型加载失败，请稍后重试。");
+          });
+        } else {
           this.modelOpen = false;
           this.loading.close();
           this.loading = null;
           this.$message.error("当前后台有任务在进行中，请稍后再试。");
-        });
+        }
+      }).catch((err) => {
+        this.modelOpen = false;
+        this.loading.close();
+        this.loading = null;
+        this.$message.error("当前后台有任务在进行中，请稍后再试。");
+      });
     },
     stopService() {
       axios.get("http://127.0.0.1:11434/api/ps").then((res) => {
@@ -162,8 +159,7 @@ export default {
               this.modelOpen = true;
               this.$message.error(res.data.message);
             }
-          })
-          .catch((err) => {
+          }).catch((err) => {
             this.modelOpen = true;
             this.$message.error("模型卸载失败，请稍后重试。");
           });

@@ -5,7 +5,9 @@
         <el-col :span="12" style="height: 100%">
           <div class="voice-type">系统音色</div>
           <div class="voice-list">
-            <div class="voice-item" v-for="(item, index) in systemVoice" :key="index"
+            <div class="voice-item"
+                 v-for="(item, index) in systemVoice"
+                 :key="index"
                  @contextmenu.stop="handleContextMenu(item, $event)">
               <div class="voice-icon" @click="textAudio(item)">
                 <i :class="item.isPlay ? 'el-icon-pause' : 'el-icon-play'" style="font-size: 13px; color: #6286ed"></i>
@@ -19,32 +21,37 @@
           <div class="voice-list">
             <div class="voice-item">
               <el-upload
-                action="http://127.0.0.1:6006/timbres/clone"
-                :show-file-list="false"
-                accept=".mp3, .wav"
-                :on-success="uploadSuccess"
-                :on-error="uploadError"
-                :before-upload="beforeUpload"
-              >
+                  action="http://127.0.0.1:6006/timbres/clone"
+                  :show-file-list="false"
+                  accept=".mp3, .wav"
+                  :on-success="uploadSuccess"
+                  :on-error="uploadError"
+                  :before-upload="beforeUpload">
                 <div style="display: flex;justify-content: center;align-items: center;height: 80px;">
                   <div class="voice-icon" style="background-color: pink !important">
                     <i class="el-icon-plus" style="font-size: 15px; color: red"></i>
                   </div>
-                  <div style="width: 80px;margin-left: 10px;font-size: 14px;color: #101010;text-align: left">上传音频</div>
+                  <div style="width: 80px;margin-left: 10px;font-size: 14px;color: #101010;text-align: left">
+                    上传音频
+                  </div>
                 </div>
               </el-upload>
             </div>
             <div class="voice-item" v-for="task in processVoice" :key="task.id">
               <div class="voice-icon" style="background-color: rgba(187, 187, 187, 0.25) !important;">
                 <div class="dot-spinner">
-                  <div class="dot" v-for="n in 8" :key="n"
-                       :style="{ transform: 'rotate(' + (n * 45) + 'deg) translate(0, -9px)', animationDelay: (n * 0.1) + 's' }"
-                  ></div>
+                  <div class="dot"
+                       v-for="n in 8"
+                       :key="n"
+                       :style="{transform: 'rotate(' + (n * 45) + 'deg) translate(0, -9px)', animationDelay: (n * 0.1) + 's'}">
+                  </div>
                 </div>
               </div>
               <div :title="task.name" class="voice-name">{{ task.name }}</div>
             </div>
-            <div class="voice-item" v-for="(item, index) in cloneVoice" :key="index"
+            <div class="voice-item"
+                 v-for="(item, index) in cloneVoice"
+                 :key="index"
                  @contextmenu.stop="handleContextMenu(item,$event)">
               <div class="voice-icon" @click="textAudio(item)">
                 <i :class="item.isPlay ? 'el-icon-pause' : 'el-icon-play'" style="font-size: 13px; color: #6286ed"></i>
@@ -88,9 +95,9 @@
 </template>
 
 <script>
-import { RightMenuMixin } from "@/mixins/RightMenuMixin";
-import { delAction, getAction, postAction } from "@/api/api";
-import { mapGetters } from "vuex";
+import {RightMenuMixin} from "@/mixins/RightMenuMixin";
+import {delAction, getAction, postAction} from "@/api/api";
+import {mapGetters} from "vuex";
 
 export default {
   name: "Voice",
@@ -166,8 +173,7 @@ export default {
           this.$message.error(res.data.message);
         }
         this.drawer = false;
-      })
-      .catch((err) => {
+      }).catch((err) => {
         this.$message.error("重命名失败，请稍后重试！");
       });
     },
@@ -179,16 +185,15 @@ export default {
         } else {
           this.$message.error(res.data.message);
         }
-      })
-      .catch((err) => {
+      }).catch((err) => {
         this.$message.error("删除失败，请稍后重试！");
       });
     },
     async beforeUpload(file) {
       return getAction('/verify/activation').then(res => {
-        if (res.data.status === 'success'){
+        if (res.data.status === 'success') {
           return true;
-        }else {
+        } else {
           this.$alert(res.data.message, "验证失败");
           return Promise.reject('验证失败，停止上传');
         }
@@ -271,10 +276,6 @@ export default {
   cursor: pointer;
 }
 
-.active {
-  background-color: #e0e7fb;
-}
-
 .voice-icon {
   width: 42px;
   height: 40px;
@@ -321,15 +322,6 @@ export default {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-}
-
-.clone-btn {
-  width: 150px;
-  height: 50px;
-  font-size: 16px;
-  background-color: #77c285;
-  color: #fff;
-  border-radius: 10px;
 }
 
 .voice-footer {

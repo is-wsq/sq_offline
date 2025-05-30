@@ -4,10 +4,10 @@
       <div v-for="item in processList" :key="item.id" style="text-align: center">
         <div class="image-wrapper shining">
           <el-image
-            style="width: 180px; height: 240px; border-radius: 12px;filter: blur(15px);opacity: 0.8"
-            :src="require('/public/images/4.jpg')"
-            fit="cover"
-          ></el-image>
+              style="width: 180px; height: 240px; border-radius: 12px;filter: blur(15px);opacity: 0.8"
+              :src="require('/public/images/4.jpg')"
+              fit="cover">
+          </el-image>
           <div class="shine-layer"></div>
           <div class="list-progress">
             <div>视频生成中</div>
@@ -18,8 +18,11 @@
           {{ item.filename }}
         </div>
       </div>
-      <div style="text-align: center;border-radius: 12px;padding: 5px 0;position: relative" v-for="item in videoList" :key="item.id"
-           :class="{'activeClass': item.id === selected.id}" @contextmenu.stop="handleContextMenu(item, $event)" @click="preview(item)">
+      <div style="text-align: center;border-radius: 12px;padding: 5px 0;position: relative"
+           v-for="item in videoList"
+           :key="item.id"
+           :class="{'activeClass': item.id === selected.id}" @contextmenu.stop="handleContextMenu(item, $event)"
+           @click="preview(item)">
         <el-image style="width: 180px;height: 240px;border-radius: 12px" :src="item.picture" fit="cover"></el-image>
         <div class="video-name" :title="item.filename">{{ item.filename }}</div>
       </div>
@@ -39,8 +42,12 @@
       </div>
       <el-dialog :visible.sync="dialogVisible" :before-close="beforeClose" :width="aspectRatio > 1? '640px' : '390px'">
         <div style="width: 100%;text-align: center;position: relative">
-          <video style="border-radius: 10px;width: calc(100% - 40px)" ref="video" :src="src" @ended="isPlaying = false"
-                 @loadedmetadata="checkAspectRatio"></video>
+          <video style="border-radius: 10px;width: calc(100% - 40px)"
+                 ref="video"
+                 :src="src"
+                 @ended="isPlaying = false"
+                 @loadedmetadata="checkAspectRatio">
+          </video>
           <div style="position: absolute;top: 50%;left: 50%;transform: translate(-50%, -50%);">
             <i class="el-icon-play control-icon" @click="controlVideo" v-if="!isPlaying"></i>
           </div>
@@ -114,7 +121,7 @@ export default {
         type: 'warning'
       }).then(() => {
         delAction(`/video_record/delete/${this.selectedId}`).then(res => {
-          if (res.data.status ==='success') {
+          if (res.data.status === 'success') {
             this.$message.success('删除成功');
             this.$store.dispatch("task/pollVideoTasks");
           } else {
@@ -152,8 +159,7 @@ export default {
           this.$message.error(res.data.message);
         }
         this.drawer = false;
-      })
-      .catch((err) => {
+      }).catch((err) => {
         this.$message.error("重命名失败，请稍后重试！");
       });
     },

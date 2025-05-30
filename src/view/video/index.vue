@@ -5,7 +5,9 @@
         <div class="video-card-list">
           <el-switch :width="50" v-model="isMaterial" active-text="素材" inactive-text="数字人"></el-switch>
           <div class="video-template">
-            <div v-for="item in isMaterial? materials : figures" :key="item.id" style="border-radius: 10px; width: 130px"
+            <div v-for="item in isMaterial? materials : figures"
+                 :key="item.id"
+                 style="border-radius: 10px; width: 130px"
                  @click="selectResource(item)"
                  :style="{ 'background-color': item.id === figure.id || material_list.includes(item.id) ? '#e0e7fb' : '#FFFFFF' }">
               <el-image class="template-img" :src="item.picture" fit="cover"></el-image>
@@ -68,8 +70,7 @@
                             action="http://127.0.0.1:6006/bgm/upload"
                             :show-file-list="false"
                             accept=".mp3, .wav"
-                            :on-success="bgmUploadSuccess"
-                        >
+                            :on-success="bgmUploadSuccess">
                           <div style="display: flex;align-items: center;height: 80px;">
                             <div class="voice-icon" style="background-color: pink !important">
                               <i class="el-icon-plus" style="font-size: 15px; color: red"></i>
@@ -81,10 +82,12 @@
                     </el-col>
                     <el-col :span="12" v-for="(item, index) in bgmList" :key="item.id">
                       <div class="voice-item" :class="{ active: item.id === bgm.id }" @click="selectBgm(item)">
-                        <div class="voice-icon" @click="previewAudio(item, 10000 + index)"
+                        <div class="voice-icon"
+                             @click="previewAudio(item, 10000 + index)"
                              v-if="audioIndex !== (10000 + index)">
                           <i :class="item.isPlay ? 'el-icon-pause' : 'el-icon-play'"
-                             style="font-size: 13px; color: #6286ed"></i>
+                             style="font-size: 13px; color: #6286ed">
+                          </i>
                         </div>
                         <div class="voice-icon" @click="stopAudio" v-else>
                           <i class="el-icon-pause" style="font-size: 13px; color: #6286ed"></i>
@@ -100,8 +103,13 @@
                 </div>
               </el-popover>
               <div style="margin: 0 10px;font-size: 13px;color: #303133">音量</div>
-              <el-slider v-model="bg_volume" :step="0.1" style="width: 90px" :min="0.1" :max="1"
-                         @change="saveBgmVolume('bg_volume')"></el-slider>
+              <el-slider v-model="bg_volume"
+                         :step="0.1"
+                         style="width: 90px"
+                         :min="0.1"
+                         :max="1"
+                         @change="saveBgmVolume('bg_volume')">
+              </el-slider>
             </div>
           </div>
         </div>
@@ -115,29 +123,38 @@
           <el-collapse-item title="字幕标题" name="1">
             <div class="preset">
               <span style="margin-right: 20px">预设样式</span>
-              <div class="preset-style" v-for="item in titlePresets" :key="item.id" @click="selectTitlePreset(item)" :style="{
-                backgroundColor: item.backgroundColor,
-                color: item.color,
-                '-webkit-text-stroke': '0.5px' + item.stroke,
-                border: activeTitlePresetId === item.id ? '2px solid #6286ed' : 'none'
-              }">T</div>
+              <div class="preset-style"
+                   v-for="item in titlePresets"
+                   :key="item.id"
+                   @click="selectTitlePreset(item)"
+                   :style="{
+                     backgroundColor: item.backgroundColor,
+                     color: item.color,
+                     '-webkit-text-stroke': '0.5px' + item.stroke,
+                     border: activeTitlePresetId === item.id ? '2px solid #6286ed' : 'none'
+                   }">
+                T
+              </div>
             </div>
             <div style="display: flex;gap: 30px;align-items: center;height: 80px">
               <div style="text-align: center">
                 <div style="font-size: 13px;height: 40px">字体颜色</div>
-                <el-color-picker v-model="subtitleNameParams.name_color" size="small"
-                                 @change="saveSubtitleNameParams('name_color')"></el-color-picker>
+                <el-color-picker v-model="subtitleNameParams.name_color"
+                                 size="small"
+                                 @change="saveSubtitleNameParams('name_color')">
+                </el-color-picker>
               </div>
               <div style="text-align: center">
                 <div style="font-size: 13px;height: 40px">字体样式</div>
-                <el-select v-model="subtitleNameParams.name_font" placeholder="请选择" style="height: 35px;width: 180px"
+                <el-select v-model="subtitleNameParams.name_font"
+                           placeholder="请选择"
+                           style="height: 35px;width: 180px"
                            @change="saveSubtitleNameParams('name_font')">
                   <el-option
                       v-for="item in fontFamily"
                       :key="item.font_id"
                       :label="item.name"
-                      :value="item.font_id"
-                  >
+                      :value="item.font_id">
                     <div style="display: flex; align-items: center">
                       <img :src="item.img_path" style="width: 150px; height: 50px; margin-right: 8px;"/>
                       <span>{{ item.name }}</span>
@@ -148,30 +165,45 @@
               <div>
                 <div style="font-size: 13px;height: 35px">字体大小</div>
                 <div style="display: flex">
-                  <el-slider v-model="subtitleNameParams.name_fontsize" style="width: 170px" :min="5" :max="50"
-                             @change="saveSubtitleNameParams('name_fontsize')"></el-slider>
-                  <el-input-number class="text-input" v-model="subtitleNameParams.name_fontsize" controls-position="right"
-                                   :min="5" :max="50"
+                  <el-slider v-model="subtitleNameParams.name_fontsize"
+                             style="width: 170px"
+                             :min="5"
+                             :max="50"
+                             @change="saveSubtitleNameParams('name_fontsize')">
+                  </el-slider>
+                  <el-input-number class="text-input" v-model="subtitleNameParams.name_fontsize"
+                                   controls-position="right"
+                                   :min="5"
+                                   :max="50"
                                    style="margin-left: 10px;width: 80px !important;"
-                                   @change="saveSubtitleNameParams('name_fontsize')"></el-input-number>
+                                   @change="saveSubtitleNameParams('name_fontsize')">
+                  </el-input-number>
                 </div>
               </div>
               <div style="text-align: center">
                 <div style="font-size: 13px;height: 40px">描边颜色</div>
-                <el-color-picker v-model="subtitleNameParams.name_stroke_color" size="small"
-                                 @change="saveSubtitleNameParams('name_stroke_color')"></el-color-picker>
+                <el-color-picker v-model="subtitleNameParams.name_stroke_color"
+                                 size="small"
+                                 @change="saveSubtitleNameParams('name_stroke_color')">
+                </el-color-picker>
               </div>
               <div style="text-align: center">
                 <div style="font-size: 13px;height: 40px">开启字幕背景</div>
                 <div style="height: 35px;">
-                  <el-switch :width="50" v-model="name_use_background" @change="switchNameUseBackground"
-                             style="margin-top: 5px"></el-switch>
+                  <el-switch :width="50"
+                             v-model="name_use_background"
+                             @change="switchNameUseBackground"
+                             style="margin-top: 5px">
+                  </el-switch>
                 </div>
               </div>
               <div style="text-align: center">
                 <div style="font-size: 13px;height: 40px">背景颜色</div>
-                <el-color-picker v-model="subtitleNameParams.name_background_color" show-alpha size="small"
-                                 @change="saveSubtitleNameParams('name_background_color')"></el-color-picker>
+                <el-color-picker v-model="subtitleNameParams.name_background_color"
+                                 show-alpha
+                                 size="small"
+                                 @change="saveSubtitleNameParams('name_background_color')">
+                </el-color-picker>
               </div>
             </div>
           </el-collapse-item>
@@ -186,29 +218,38 @@
           <el-collapse-item title="字幕设置" name="1">
             <div class="preset">
               <span style="margin-right: 20px">预设样式</span>
-              <div class="preset-style" v-for="item in titlePresets" :key="item.id" @click="selectPreset(item)" :style="{
-                backgroundColor: item.backgroundColor,
-                color: item.color,
-                '-webkit-text-stroke': '0.5px' + item.stroke,
-                border: activePresetId === item.id ? '2px solid #6286ed' : 'none'
-              }">T</div>
+              <div class="preset-style"
+                   v-for="item in titlePresets"
+                   :key="item.id"
+                   @click="selectPreset(item)"
+                   :style="{
+                     backgroundColor: item.backgroundColor,
+                     color: item.color,
+                     '-webkit-text-stroke': '0.5px' + item.stroke,
+                     border: activePresetId === item.id ? '2px solid #6286ed' : 'none'
+                   }">
+                T
+              </div>
             </div>
             <div style="display: flex;gap: 30px;align-items: center;height: 80px">
               <div style="text-align: center">
                 <div style="font-size: 13px;height: 40px">字体颜色</div>
-                <el-color-picker v-model="subtitleParams.color" size="small"
-                                 @change="saveSubtitleParams('color')"></el-color-picker>
+                <el-color-picker v-model="subtitleParams.color"
+                                 size="small"
+                                 @change="saveSubtitleParams('color')">
+                </el-color-picker>
               </div>
               <div style="text-align: center">
                 <div style="font-size: 13px;height: 40px">字体样式</div>
-                <el-select v-model="subtitleParams.font" placeholder="请选择" style="height: 35px;width: 180px"
+                <el-select v-model="subtitleParams.font"
+                           placeholder="请选择"
+                           style="height: 35px;width: 180px"
                            @change="saveSubtitleParams('font')">
                   <el-option
                       v-for="item in fontFamily"
                       :key="item.font_id"
                       :label="item.name"
-                      :value="item.font_id"
-                  >
+                      :value="item.font_id">
                     <div style="display: flex; align-items: center">
                       <img :src="item.img_path" style="width: 150px; height: 50px; margin-right: 8px;"/>
                       <span>{{ item.name }}</span>
@@ -219,30 +260,46 @@
               <div>
                 <div style="font-size: 13px;height: 35px">字体大小</div>
                 <div style="display: flex">
-                  <el-slider v-model="subtitleParams.fontsize" style="width: 170px" :min="5" :max="50"
-                             @change="saveSubtitleParams('fontsize')"></el-slider>
-                  <el-input-number class="text-input" v-model="subtitleParams.fontsize" controls-position="right" :min="5"
+                  <el-slider v-model="subtitleParams.fontsize"
+                             style="width: 170px"
+                             :min="5"
+                             :max="50"
+                             @change="saveSubtitleParams('fontsize')">
+                  </el-slider>
+                  <el-input-number class="text-input"
+                                   v-model="subtitleParams.fontsize"
+                                   controls-position="right"
+                                   :min="5"
                                    :max="50"
                                    style="margin-left: 10px;width: 80px !important;"
-                                   @change="saveSubtitleParams('fontsize')"></el-input-number>
+                                   @change="saveSubtitleParams('fontsize')">
+                  </el-input-number>
                 </div>
               </div>
               <div style="text-align: center">
                 <div style="font-size: 13px;height: 40px">描边颜色</div>
-                <el-color-picker v-model="subtitleParams.stroke_color" size="small"
-                                 @change="saveSubtitleParams('stroke_color')"></el-color-picker>
+                <el-color-picker v-model="subtitleParams.stroke_color"
+                                 size="small"
+                                 @change="saveSubtitleParams('stroke_color')">
+                </el-color-picker>
               </div>
               <div style="text-align: center">
                 <div style="font-size: 13px;height: 40px">开启字幕背景</div>
                 <div style="height: 35px;">
-                  <el-switch :width="50" v-model="use_background" @change="switchUseBackground"
-                             style="margin-top: 5px"></el-switch>
+                  <el-switch :width="50"
+                             v-model="use_background"
+                             @change="switchUseBackground"
+                             style="margin-top: 5px">
+                  </el-switch>
                 </div>
               </div>
               <div style="text-align: center">
                 <div style="font-size: 13px;height: 40px">背景颜色</div>
-                <el-color-picker v-model="subtitleParams.background_color" show-alpha size="small"
-                                 @change="saveSubtitleParams('background_color')"></el-color-picker>
+                <el-color-picker v-model="subtitleParams.background_color"
+                                 show-alpha
+                                 size="small"
+                                 @change="saveSubtitleParams('background_color')">
+                </el-color-picker>
               </div>
             </div>
           </el-collapse-item>
@@ -259,7 +316,9 @@
               <template slot-scope="scope">
                 <div style="position: relative;width: 100%">
                   <div>{{ scope.$index + 1 }}</div>
-                  <div class="warning" title="已开启字幕标题设置，口播标题不能为空" v-if="withTitle && !scope.row.title">!</div>
+                  <div class="warning" title="已开启字幕标题设置，口播标题不能为空" v-if="withTitle && !scope.row.title">
+                    !
+                  </div>
                 </div>
               </template>
             </el-table-column>
@@ -289,7 +348,9 @@
         <div style="margin-right: 20px;margin-left: 50px;font-size: 15px">AI混剪</div>
         <el-switch :width="50" v-model="montage" @change="switchMontage"></el-switch>
         <div style="margin-left: 20px;font-size: 14px;color: #409EFF;cursor: pointer"
-             @click="openMontageDialog" v-if="montage">混剪配置
+             @click="openMontageDialog"
+             v-if="montage">
+          混剪配置
         </div>
       </div>
       <el-button type="primary" class="generate-btn" @click="verify">生成视频</el-button>
@@ -307,11 +368,14 @@
                 </el-option>
               </el-select>
             </el-form-item>
-
             <el-form-item label="示例文案">
               <div class="input-row" v-for="(text, index) in exampleTexts" :key="index">
-                <el-input class="input-with-button" type="textarea" rows="3" placeholder="请输入示例文案"
-                          v-model="exampleTexts[index]"></el-input>
+                <el-input class="input-with-button"
+                          type="textarea"
+                          rows="3"
+                          placeholder="请输入示例文案"
+                          v-model="exampleTexts[index]">
+                </el-input>
                 <el-button type="danger" icon="el-icon-delete" @click="removeText(index)"></el-button>
               </div>
               <el-button type="primary" @click="addExampleText" class="add-button">
@@ -347,8 +411,12 @@
       <el-button type="primary" @click="generateText" :disabled="disableBtn">生 成</el-button>
     </span>
       </el-dialog>
-      <el-dialog title="编辑文案" :visible.sync="editDialogVisible" width="70%" :show-close="false"
-                 :close-on-click-modal="false" :close-on-press-escape="false">
+      <el-dialog title="编辑文案"
+                 :visible.sync="editDialogVisible"
+                 width="70%"
+                 :show-close="false"
+                 :close-on-click-modal="false"
+                 :close-on-press-escape="false">
         <el-form ref="editForm" :model="selectedRow" :rules="rules" label-width="80px" label-position="top">
           <el-form-item label="口播标题" prop="title">
             <el-input type="textarea" rows="3" placeholder="输入口播标题" v-model="selectedRow.title"></el-input>
@@ -358,20 +426,33 @@
           </el-form-item>
         </el-form>
         <span slot="footer" class="dialog-footer">
-      <el-button size="small" @click="cancelEdit">取 消</el-button>
-      <el-button type="primary" size="small" @click="saveEditRow">保 存</el-button>
-    </span>
+          <el-button size="small" @click="cancelEdit">取 消</el-button>
+          <el-button type="primary" size="small" @click="saveEditRow">保 存</el-button>
+        </span>
       </el-dialog>
-      <el-dialog title="AI混剪配置" :visible.sync="montageDialogVisible" width="70%" :show-close="false"
-                 :close-on-click-modal="false" :close-on-press-escape="false">
+      <el-dialog title="AI混剪配置"
+                 :visible.sync="montageDialogVisible"
+                 width="70%"
+                 :show-close="false"
+                 :close-on-click-modal="false"
+                 :close-on-press-escape="false">
         <el-form ref="montageForm" :model="montageForm" label-width="80px" label-position="top">
           <el-form-item label="混剪要求" prop="title">
             <div style="position: relative;">
               <div class="highlight-content"
                    :style="{height: replaceDivHeight + 'px',overflowY: 'auto',overflowX: 'hidden'}"
-                   v-html="highlightedText" ref="highlightDiv"></div>
-              <el-input type="textarea" rows="4" placeholder="输入混剪要求" v-model="montageForm.request"
-                        @input="onInput" ref="inputRef" class="input-layer" @scroll="handleScroll"></el-input>
+                   v-html="highlightedText"
+                   ref="highlightDiv">
+              </div>
+              <el-input type="textarea"
+                        rows="4"
+                        placeholder="输入混剪要求"
+                        v-model="montageForm.request"
+                        @input="onInput"
+                        ref="inputRef"
+                        class="input-layer"
+                        @scroll="handleScroll">
+              </el-input>
               <div v-if="showDropdown" class="dropdown" :style="dropdownStyle">
                 <ul>
                   <li v-for="(item, index) in mentionList" :key="index" @click="selectMention(item)">
@@ -383,20 +464,35 @@
           </el-form-item>
         </el-form>
         <span slot="footer" class="dialog-footer">
-<!--        <el-button size="small" @click="closeMontageDialog">关 闭</el-button>-->
-      <el-button type="primary" size="small" @click="closeMontageDialog">确 定</el-button>
-    </span>
+          <el-button type="primary" size="small" @click="closeMontageDialog">确 定</el-button>
+        </span>
       </el-dialog>
     </div>
     <div class="video-right">
-      <div class="preview-setting" ref="container" @mousemove="onMouseMove" @mouseup="onMouseUp" @mouseleave="onMouseUp">
+      <div class="preview-setting"
+           ref="container"
+           @mousemove="onMouseMove"
+           @mouseup="onMouseUp"
+           @mouseleave="onMouseUp">
         <el-image style="width: 100%" :src="figure.picture" fit="cover" v-if="figure.picture"></el-image>
         <el-image style="width: 100%" :src="mentionList[0].picture" fit="cover" v-else-if="mentionList[0]"></el-image>
         <div style="width: 100%;height: 600px" v-else></div>
-        <div class="preview-title" ref="titleContainer" :class="{ noneBackground: !name_use_background }"
-             :style="titleTextStyle" v-if="withTitle" @mousedown="onMouseDown('top', $event)">示例标题</div>
-        <div class="preview-content" ref="contentContainer" :class="{ noneBackground: !use_background }"
-             :style="textStyle" v-if="withSubtitle" @mousedown="onMouseDown('bottom', $event)">示例字幕</div>
+        <div class="preview-title"
+             ref="titleContainer"
+             :class="{ noneBackground: !name_use_background }"
+             :style="titleTextStyle"
+             v-if="withTitle"
+             @mousedown="onMouseDown('top', $event)">
+          示例标题
+        </div>
+        <div class="preview-content"
+             ref="contentContainer"
+             :class="{ noneBackground: !use_background }"
+             :style="textStyle"
+             v-if="withSubtitle"
+             @mousedown="onMouseDown('bottom', $event)">
+          示例字幕
+        </div>
       </div>
     </div>
   </div>
@@ -587,7 +683,7 @@ export default {
     document.removeEventListener('click', this.handleClickOutside);
   },
   methods: {
-    onMouseDown(type,event) {
+    onMouseDown(type, event) {
       this.dragging = true;
       this.draggingType = type;
       this.startY = event.clientY;
@@ -645,7 +741,7 @@ export default {
       const inputEl = this.$refs.inputRef.$el.querySelector('textarea');
       const cursorPos = inputEl.selectionStart;
       for (let mention of this.mentionRanges) {
-        const { start, end, name } = mention;
+        const {start, end, name} = mention;
         if (cursorPos >= start && cursorPos <= end - 1) {
           this.montageForm.request = this.montageForm.request.slice(0, start) + this.montageForm.request.slice(end);
           const index = this.replaceName.indexOf(name);
@@ -661,7 +757,6 @@ export default {
 
       const textBeforeCursorUpdated = this.montageForm.request.slice(0, cursorPos);
       const validMention = textBeforeCursorUpdated.charAt(textBeforeCursorUpdated.length - 1) === '@';
-
       if (validMention) {
         this.showDropdown = true;
 
@@ -696,7 +791,7 @@ export default {
       if (atIndex !== -1) {
         this.montageForm.request =
             this.montageForm.request.slice(0, atIndex) + '@' + item.name + this.montageForm.request.slice(cursorPos);
-        this.replaceName.push('@'+item.name);
+        this.replaceName.push('@' + item.name);
         this.replaceId.push(item.id);
         this.showDropdown = false;
 
@@ -1143,14 +1238,14 @@ export default {
           this.material_list.splice(this.material_list.indexOf(item.id), 1)
           this.mentionList.splice(this.mentionList.indexOf(item), 1)
         }
-      }else {
+      } else {
         this.material_list = []
         this.mentionList = []
-        this.figure = this.figure.id === item.id? {} : item
+        this.figure = this.figure.id === item.id ? {} : item
       }
       sessionStorage.setItem('figure', JSON.stringify(this.figure))
-      sessionStorage.setItem('material_list',JSON.stringify(this.material_list))
-      sessionStorage.setItem('mention_list',JSON.stringify(this.mentionList))
+      sessionStorage.setItem('material_list', JSON.stringify(this.material_list))
+      sessionStorage.setItem('mention_list', JSON.stringify(this.mentionList))
     },
     selectVoice(voice) {
       this.sound = voice
