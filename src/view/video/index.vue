@@ -42,7 +42,7 @@
                   </el-row>
                 </div>
                 <div class="sound" slot="reference">
-                  <div class="sound-name">{{ sound.name }}</div>
+                  <div class="sound-name" :title="sound.name">{{ sound.name }}</div>
                   <i class="el-icon-a-ze-bars1" style="font-size: 20px; color: #9a9a9a"></i>
                 </div>
               </el-popover>
@@ -95,7 +95,7 @@
                   </el-row>
                 </div>
                 <div class="sound" slot="reference">
-                  <div class="sound-name">{{ bgm.name }}</div>
+                  <div class="sound-name" :title="bgm.name">{{ bgm.name }}</div>
                   <i class="el-icon-a-ze-bars1" style="font-size: 20px; color: #9a9a9a"></i>
                 </div>
               </el-popover>
@@ -1486,6 +1486,10 @@ export default {
   font-size: 14px;
   margin-left: 20px;
   line-height: 40px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  cursor: pointer;
 }
 
 .text-card {
@@ -1499,10 +1503,6 @@ export default {
   box-sizing: border-box;
 }
 
-.video-input {
-  width: calc(100% - 70px);
-}
-
 .video >>> .el-textarea__inner {
   resize: none;
   background-color: #f9f9f9;
@@ -1510,14 +1510,6 @@ export default {
   border: none;
   border-radius: 7px;
   padding: 10px 15px;
-}
-
-.text-tips {
-  position: absolute;
-  bottom: 50%;
-  left: 50%;
-  color: #9a9a9a;
-  transform: translate(-50%, 50%);
 }
 
 .generate-btn {
