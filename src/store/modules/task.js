@@ -43,7 +43,7 @@ const actions = {
             if (res.data.status ==='success') {
                 const list = res.data.data;
                 list.forEach(figure => {
-                    // figure.picture = figure.picture.replace('http://127.0.0.1', 'http://192.168.0.116')
+                    // figure.picture = figure.picture.replace('127.0.0.1', '192.168.0.108')
                     const prev = state.figurePreviousStatusMap[figure.id];
                     if (prev === "ready" && figure.status === "success") {
                         Vue.prototype.$notify({

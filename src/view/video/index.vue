@@ -482,6 +482,7 @@ export default {
       replaceName: [],
       replaceId: [],
       mentionList: [],
+      mentionRanges: [],
       showDropdown: false,
       dropdownStyle: {
         position: 'absolute',
@@ -562,7 +563,7 @@ export default {
       // 使用正则替换所有 @人名 为高亮样式
       let result = this.montageForm.request;
       this.replaceName.forEach(item => {
-        const regex = new RegExp(`@${item}`, 'g'); // 使用全局标志
+        const regex = new RegExp(`${item}`, 'g'); // 使用全局标志
         result = result.replace(regex, (match) => {
           return `<span style="color: #4c8df1">${match}</span>`
         });
@@ -625,51 +626,86 @@ export default {
         highlightDiv.scrollTop = textareaScrollTop;
       }
     },
+    updateMentionRanges() {
+      let result = []
+      this.replaceName.forEach(name => {
+        let startIndex = 0;
+        while ((startIndex = this.montageForm.request.indexOf(name, startIndex)) !== -1) {
+          result.push({
+            start: startIndex,
+            end: startIndex + name.length,
+            name: name
+          });
+          startIndex += name.length; // 移动索引避免死循环
+        }
+      });
+      this.mentionRanges = result;
+    },
     onInput() {
-      const inputEl = this.$refs.inputRef.$el.querySelector('textarea')
-      const cursorPos = inputEl.selectionStart
-      const textBeforeCursor = this.montageForm.request.slice(0, cursorPos)
-      const validMention = textBeforeCursor.charAt(textBeforeCursor.length - 1) === '@'
+      const inputEl = this.$refs.inputRef.$el.querySelector('textarea');
+      const cursorPos = inputEl.selectionStart;
+      for (let mention of this.mentionRanges) {
+        const { start, end, name } = mention;
+        if (cursorPos >= start && cursorPos <= end - 1) {
+          this.montageForm.request = this.montageForm.request.slice(0, start) + this.montageForm.request.slice(end);
+          const index = this.replaceName.indexOf(name);
+          if (index !== -1) {
+            this.replaceName.splice(index, 1);
+            this.replaceId.splice(index, 1);
+          }
+        }
+      }
+
+      // 更新提及范围数组
+      this.updateMentionRanges()
+
+      const textBeforeCursorUpdated = this.montageForm.request.slice(0, cursorPos);
+      const validMention = textBeforeCursorUpdated.charAt(textBeforeCursorUpdated.length - 1) === '@';
 
       if (validMention) {
-        this.showDropdown = true
+        this.showDropdown = true;
 
         this.$nextTick(() => {
-          const rect = inputEl.getBoundingClientRect()
-          const paddingLeft = parseFloat(getComputedStyle(inputEl).paddingLeft) || 0
+          const paddingLeft = parseFloat(getComputedStyle(inputEl).paddingLeft) || 0;
 
-          const canvas = document.createElement('canvas')
-          const context = canvas.getContext('2d')
-          const computedStyle = getComputedStyle(inputEl)
-          context.font = `${computedStyle.fontSize} ${computedStyle.fontFamily}`
+          const canvas = document.createElement('canvas');
+          const context = canvas.getContext('2d');
+          const computedStyle = getComputedStyle(inputEl);
+          context.font = `${computedStyle.fontSize} ${computedStyle.fontFamily}`;
 
-          const textWidth = context.measureText(textBeforeCursor).width
-          const inputWidth = inputEl.clientWidth - 30
+          const textWidth = context.measureText(textBeforeCursorUpdated).width;
+          const inputWidth = inputEl.clientWidth - 30;
 
           const lineHeight = parseFloat(computedStyle.lineHeight) || parseFloat(computedStyle.fontSize);
-          const scrollTop = inputEl.scrollTop;
 
-          let offsetTop = Math.floor((paddingLeft + textWidth + 10) / inputWidth) + 1
-          offsetTop = Math.min(offsetTop, 4) // 限制最大显示数量
-          let remainder = (paddingLeft + textWidth + 5) % inputWidth
+          let offsetTop = Math.floor((paddingLeft + textWidth + 10) / inputWidth) + 1;
+          offsetTop = Math.min(offsetTop, 4); // 限制最大显示数量
+          let remainder = (paddingLeft + textWidth + 5) % inputWidth;
 
-          this.dropdownStyle.top = `${window.scrollY + offsetTop * lineHeight}px`
-          this.dropdownStyle.left = `${remainder}px`
-        })
+          this.dropdownStyle.top = `${window.scrollY + offsetTop * lineHeight}px`;
+          this.dropdownStyle.left = `${remainder}px`;
+        });
       } else {
-        this.showDropdown = false
+        this.showDropdown = false;
       }
     },
     selectMention(item) {
-      const inputEl = this.$refs.inputRef.$el.querySelector('textarea')
-      const cursorPos = inputEl.selectionStart
-      const atIndex = this.montageForm.request.lastIndexOf('@', cursorPos - 1)
+      const inputEl = this.$refs.inputRef.$el.querySelector('textarea');
+      const cursorPos = inputEl.selectionStart;
+      const atIndex = this.montageForm.request.lastIndexOf('@', cursorPos - 1);
       if (atIndex !== -1) {
         this.montageForm.request =
-            this.montageForm.request.slice(0, atIndex + 1) + item.name + this.montageForm.request.slice(cursorPos)
-        this.replaceName.push(item.name)
-        this.replaceId.push(item.id)
-        this.showDropdown = false
+            this.montageForm.request.slice(0, atIndex) + '@' + item.name + this.montageForm.request.slice(cursorPos);
+        this.replaceName.push('@'+item.name);
+        this.replaceId.push(item.id);
+        this.showDropdown = false;
+
+        // 记录提及的范围
+        this.updateMentionRanges()
+
+        // 设置光标位置到提及内容的末尾
+        inputEl.selectionStart = this.mentionRanges[this.mentionRanges.length - 1].end;
+        inputEl.selectionEnd = this.mentionRanges[this.mentionRanges.length - 1].end;
       }
     },
     handleClickOutside(event) {
@@ -877,7 +913,7 @@ export default {
         if (res.data.status === 'success') {
           this.fontFamily = res.data.data
           // this.fontFamily.forEach(item => {
-          //   item.img_path = item.img_path.replace('127.0.0.1', '192.168.0.106')
+          //   item.img_path = item.img_path.replace('127.0.0.1', '192.168.0.108')
           // })
         }
       }).catch((error) => {
@@ -889,7 +925,7 @@ export default {
         if (res.data.status === "success") {
           let data = res.data.data.filter(item => item.status === "success");
           // data.forEach(item => {
-          //   item.picture = item.picture.replace('127.0.0.1', '192.168.0.106')
+          //   item.picture = item.picture.replace('127.0.0.1', '192.168.0.108')
           // })
           if (data.length > 0) {
             this.materials = data.filter(item => !item.lip_sync && item.status === "success");
@@ -1004,7 +1040,7 @@ export default {
       }
       this.actualRequest = this.montageForm.request
       this.replaceName.forEach((item, index) => {
-        this.actualRequest = this.actualRequest.replace(item, `{${this.replaceId[index]}}`)
+        this.actualRequest = this.actualRequest.replace(item, `@{${this.replaceId[index]}}`)
       })
 
       let materialIds = new Set(this.material_list);
