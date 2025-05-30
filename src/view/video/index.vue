@@ -576,8 +576,6 @@ export default {
       },
       lastInput: '',
       actualRequest: '', // 实际发送给服务端的
-      replaceName: [],
-      replaceId: [],
       mentionList: [],
       mentionRanges: [],
       showDropdown: false,
@@ -659,7 +657,8 @@ export default {
     highlightedText() {
       // 使用正则替换所有 @人名 为高亮样式
       let result = this.montageForm.request;
-      this.replaceName.forEach(item => {
+      let names = this.mentionList.map(item => '@' + item.name);
+      names.forEach(item => {
         const regex = new RegExp(`${item}`, 'g'); // 使用全局标志
         result = result.replace(regex, (match) => {
           return `<span style="color: #4c8df1">${match}</span>`
@@ -725,7 +724,8 @@ export default {
     },
     updateMentionRanges() {
       let result = []
-      this.replaceName.forEach(name => {
+      let names = this.mentionList.map(item => '@' + item.name);
+      names.forEach(name => {
         let startIndex = 0;
         while ((startIndex = this.montageForm.request.indexOf(name, startIndex)) !== -1) {
           result.push({
@@ -747,12 +747,8 @@ export default {
         for (let mention of this.mentionRanges) {
           const {start, end, name} = mention;
           if (cursorPos >= start && cursorPos < end) { //删除@内容
-            this.montageForm.request = this.montageForm.request.slice(0, start - 1) + this.montageForm.request.slice(end - 1);
-            const index = this.replaceName.indexOf(name);
-            if (index !== -1) {
-              this.replaceName.splice(index, 1);
-              this.replaceId.splice(index, 1);
-            }
+            this.montageForm.request =
+                this.montageForm.request.slice(0, start - 1) + this.montageForm.request.slice(end - 1);
           }
         }
       }
@@ -796,8 +792,6 @@ export default {
       if (atIndex !== -1) {
         this.montageForm.request =
             this.montageForm.request.slice(0, atIndex) + '@' + item.name + this.montageForm.request.slice(cursorPos);
-        this.replaceName.push('@' + item.name);
-        this.replaceId.push(item.id);
         this.showDropdown = false;
         this.lastInput = this.montageForm.request;
 
@@ -1140,16 +1134,10 @@ export default {
         return
       }
       this.actualRequest = this.montageForm.request
-      this.replaceName.forEach((item, index) => {
-        this.actualRequest = this.actualRequest.replace(item, `@{${this.replaceId[index]}}`)
+      let names = this.mentionList.map(item => '@' + item.name);
+      names.forEach((item, index) => {
+        this.actualRequest = this.actualRequest.replace(item, `@{${this.material_list[index]}}`)
       })
-
-      let materialIds = new Set(this.material_list);
-      let nonExistentIds = this.replaceId.filter(id => !materialIds.has(id));
-      if (nonExistentIds.length > 0) {
-        this.$alert('混剪要求中有@未选择或已删除的素材，请重新选择或删除@', "提示")
-        return;
-      }
 
       let name = this.setName()
       let background_colors = this.subtitleParams.background_color.replace(/rgba|\(|\)|\s/g, '').split(',');
@@ -1356,8 +1344,6 @@ export default {
         this.openMontageDialog()
       } else {
         this.montageForm.request = ''
-        this.replaceName = []
-        this.replaceId = []
       }
     },
     openMontageDialog() {
