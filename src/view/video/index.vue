@@ -574,6 +574,7 @@ export default {
       montageForm: {
         request: '' // 显示给用户看的
       },
+      lastInput: '',
       actualRequest: '', // 实际发送给服务端的
       replaceName: [],
       replaceId: [],
@@ -728,7 +729,7 @@ export default {
         let startIndex = 0;
         while ((startIndex = this.montageForm.request.indexOf(name, startIndex)) !== -1) {
           result.push({
-            start: startIndex,
+            start: startIndex + 1,
             end: startIndex + name.length,
             name: name
           });
@@ -738,16 +739,20 @@ export default {
       this.mentionRanges = result;
     },
     onInput() {
+      let isDel = this.lastInput.length > this.montageForm.request.length;
+      this.lastInput = this.montageForm.request;
       const inputEl = this.$refs.inputRef.$el.querySelector('textarea');
       const cursorPos = inputEl.selectionStart;
-      for (let mention of this.mentionRanges) {
-        const {start, end, name} = mention;
-        if (cursorPos >= start && cursorPos <= end - 1) {
-          this.montageForm.request = this.montageForm.request.slice(0, start) + this.montageForm.request.slice(end);
-          const index = this.replaceName.indexOf(name);
-          if (index !== -1) {
-            this.replaceName.splice(index, 1);
-            this.replaceId.splice(index, 1);
+      if (isDel) { // 删除@内容
+        for (let mention of this.mentionRanges) {
+          const {start, end, name} = mention;
+          if (cursorPos >= start && cursorPos < end) { //删除@内容
+            this.montageForm.request = this.montageForm.request.slice(0, start - 1) + this.montageForm.request.slice(end - 1);
+            const index = this.replaceName.indexOf(name);
+            if (index !== -1) {
+              this.replaceName.splice(index, 1);
+              this.replaceId.splice(index, 1);
+            }
           }
         }
       }
@@ -784,7 +789,7 @@ export default {
         this.showDropdown = false;
       }
     },
-    selectMention(item) {
+    selectMention(item) {  //选择@
       const inputEl = this.$refs.inputRef.$el.querySelector('textarea');
       const cursorPos = inputEl.selectionStart;
       const atIndex = this.montageForm.request.lastIndexOf('@', cursorPos - 1);
@@ -794,6 +799,7 @@ export default {
         this.replaceName.push('@' + item.name);
         this.replaceId.push(item.id);
         this.showDropdown = false;
+        this.lastInput = this.montageForm.request;
 
         // 记录提及的范围
         this.updateMentionRanges()
