@@ -2,7 +2,7 @@
   <div class="system">
     <div class="system-content">
       <div class="title" @click="goto('/agreement')">用户协议</div>
-      <div class="title">隐私政策</div>
+      <div class="title" @click="goto('/shiftSelectAll')">隐私政策</div>
       <div class="title" @click="goto('/videoPlayer')">产品说明</div>
       <div class="title" @click="contactUs">联系我们</div>
       <el-form :inline="true" label-width="100px">
