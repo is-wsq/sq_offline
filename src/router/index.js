@@ -10,6 +10,7 @@ import video from '../view/video/index.vue';
 import videoList from '../view/video/list.vue';
 import system from '../view/system/index.vue';
 import agreement from '../view/system/agreement.vue';
+import videoPlayer from "../view/system/videoPlayer.vue";
 
 const routes = [
     {
@@ -46,6 +47,11 @@ const routes = [
         path: '/agreement',
         name: 'agreement',
         component: agreement
+    },
+    {
+        path: '/videoPlayer',
+        name: 'videoPlayer',
+        component: videoPlayer
     },
     {
         path: '/login',
