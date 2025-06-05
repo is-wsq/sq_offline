@@ -14,15 +14,8 @@
           <div class="overlay" v-if="isSelected(index)"></div>
           <el-checkbox v-model="selectedIndexes[index]" class="checkbox"></el-checkbox>
         </div>
-<!--        <div class="video-info">-->
-<!--          <h3>{{ video.title }}</h3>-->
-<!--          <p>{{ video.duration }}</p>-->
-<!--        </div>-->
       </div>
     </div>
-<!--    <div class="selected-info">-->
-<!--      已选择 {{ selectedCount }} 个视频-->
-<!--    </div>-->
   </div>
 </template>
 
@@ -30,7 +23,6 @@
 export default {
   data() {
     return {
-      // 模拟视频数据
       videoList: [
         {id: 1, title: '视频 1', duration: '03:45'},
         {id: 2, title: '视频 2', duration: '05:12'},
@@ -43,63 +35,33 @@ export default {
         {id: 9, title: '视频 9', duration: '05:30'},
         {id: 10, title: '视频 10', duration: '02:15'}
       ],
-      // 存储选中的视频索引
       selectedIndexes: Array(10).fill(false),
       // 上次点击的索引
       lastClickedIndex: null,
-      // 全选状态
       selectAll: false
     }
   },
   computed: {
-    // 计算选中的视频数量
     selectedCount() {
       return this.selectedIndexes.filter(Boolean).length
     }
   },
   methods: {
-    // 判断视频是否被选中
     isSelected(index) {
       return this.selectedIndexes[index]
     },
 
-    // 处理视频点击事件
     handleVideoClick(index) {
       const isShiftKey = window.event.shiftKey
-
-      // 如果没有按住Shift键，直接处理单个选择
+      // 普通点击：切换当前项的选中状态，不清空之前的选择
       if (!isShiftKey) {
-        // 如果点击的是已选中的项，并且不是通过Shift多选操作
-        if (this.isSelected(index) && !isShiftKey) {
-          // 如果按下Ctrl/Cmd键，则取消选择
-          if (window.event.ctrlKey || window.event.metaKey) {
-            this.selectedIndexes[index] = false
-          }
-          // 否则只选中当前项
-          else {
-            this.selectedIndexes = Array(this.videoList.length).fill(false)
-            this.selectedIndexes[index] = true
-          }
-        }
-        // 如果点击的是未选中的项
-        else {
-          // 如果按下Ctrl/Cmd键，则添加到选择
-          if (window.event.ctrlKey || window.event.metaKey) {
-            this.selectedIndexes[index] = true
-          }
-          // 否则只选中当前项
-          else {
-            this.selectedIndexes = Array(this.videoList.length).fill(false)
-            this.selectedIndexes[index] = true
-          }
-        }
-
-        // 更新最后点击的索引
+        this.selectedIndexes[index] = !this.selectedIndexes[index]
+        // 更新最后一次主动点击的位置
         this.lastClickedIndex = index
         return
       }
 
-      // 如果按住Shift键，处理范围选择
+      // Shift点击：处理范围选择
       if (this.lastClickedIndex !== null) {
         // 获取起始和结束索引
         const start = Math.min(this.lastClickedIndex, index)
@@ -115,22 +77,18 @@ export default {
           this.selectedIndexes[i] = true
         }
       } else {
-        // 如果是第一次点击并且按住了Shift键，处理方式同普通点击
-        this.selectedIndexes = Array(this.videoList.length).fill(false)
-        this.selectedIndexes[index] = true
+        // 第一次点击并且按住了Shift键，处理方式同普通点击
+        this.selectedIndexes[index] = !this.selectedIndexes[index]
       }
 
-      // 更新最后点击的索引
       this.lastClickedIndex = index
     },
 
-    // 处理全选/取消全选
     handleSelectAll(value) {
       this.selectedIndexes = Array(this.videoList.length).fill(value)
     }
   },
   watch: {
-    // 监听选择状态变化，更新全选状态
     selectedIndexes: {
       handler(newValue) {
         const allSelected = newValue.every(Boolean)
@@ -141,7 +99,7 @@ export default {
         } else if (noneSelected) {
           this.selectAll = false
         } else {
-          this.selectAll = null // 部分选中状态
+          this.selectAll = null
         }
       },
       deep: true
@@ -151,7 +109,6 @@ export default {
 </script>
 
 <style scoped>
-/* 样式与Vue3版本完全相同 */
 .video-selection-container {
   max-width: 1200px;
   margin: 0 auto;
