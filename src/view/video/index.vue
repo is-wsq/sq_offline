@@ -3,7 +3,11 @@
     <div class="video-left">
       <div class="video-header">
         <div class="video-card-list">
-          <el-switch :width="50" v-model="isMaterial" active-text="素材" inactive-text="数字人"></el-switch>
+          <div style="display: flex;margin-bottom: 10px;margin-left: 5px">
+            <div class="tab-item" :class="{ 'tab-item-active': !isMaterial }" @click="isMaterial = false">数字人</div>
+            <div class="tab-item" :class="{ 'tab-item-active': isMaterial }" @click="isMaterial = true">素材</div>
+          </div>
+<!--          <el-switch :width="50" v-model="isMaterial" active-text="素材" inactive-text="数字人"></el-switch>-->
           <div class="video-template">
             <div v-for="item in isMaterial? materials : figures"
                  :key="item.id"
@@ -115,12 +119,22 @@
         </div>
       </div>
       <div class="voice-card" style="margin-top: 10px;position: relative">
-        <div style="display: flex;align-items: center;position: absolute;top: 15px;left: 85px">
-          <el-switch :width="50" v-model="withTitle" @change="switchTitle"></el-switch>
-          <div style="margin-left: 20px;font-size: 13px;color: #9a9a9a">需开启添加字幕标题后，以下设置才会生效</div>
+        <div style="height: 21px;width: 100%;position: absolute;top: 15px;left: 0;z-index: 99;cursor: pointer"
+             title="点击展开或收起" @click="updateSubtitleSetting"></div>
+        <div v-if="subtitleSetting.length > 0"
+             style="display: flex;position: absolute;top: 15px;left: 50%;transform: translateX(-50%);z-index: 100">
+          <div class="tab-item" :class="{ 'tab-item-active': !isText }" @click="isText = false">口播标题</div>
+          <div class="tab-item" :class="{ 'tab-item-active': isText }" @click="isText = true">口播内容</div>
         </div>
-        <el-collapse v-model="activeTitleNames">
-          <el-collapse-item title="字幕标题" name="1">
+        <el-collapse v-model="subtitleSetting">
+          <el-collapse-item title="字幕设置" name="1" v-if="!isText">
+            <el-switch
+                :width="50"
+                v-model="withTitle"
+                @change="switchTitle"
+                inactive-text="字幕开关"
+                style="margin-top: 25px;margin-bottom: 15px">
+            </el-switch>
             <div class="preset">
               <span style="margin-right: 20px">预设样式</span>
               <div class="preset-style"
@@ -137,14 +151,7 @@
               </div>
             </div>
             <div style="display: flex;gap: 30px;align-items: center;height: 80px">
-              <div style="text-align: center">
-                <div style="font-size: 13px;height: 40px">字体颜色</div>
-                <el-color-picker v-model="subtitleNameParams.name_color"
-                                 size="small"
-                                 @change="saveSubtitleNameParams('name_color')">
-                </el-color-picker>
-              </div>
-              <div style="text-align: center">
+              <div>
                 <div style="font-size: 13px;height: 40px">字体样式</div>
                 <el-select v-model="subtitleNameParams.name_font"
                            placeholder="请选择"
@@ -181,6 +188,13 @@
                 </div>
               </div>
               <div style="text-align: center">
+                <div style="font-size: 13px;height: 40px">字体颜色</div>
+                <el-color-picker v-model="subtitleNameParams.name_color"
+                                 size="small"
+                                 @change="saveSubtitleNameParams('name_color')">
+                </el-color-picker>
+              </div>
+              <div style="text-align: center">
                 <div style="font-size: 13px;height: 40px">描边颜色</div>
                 <el-color-picker v-model="subtitleNameParams.name_stroke_color"
                                  size="small"
@@ -207,15 +221,14 @@
               </div>
             </div>
           </el-collapse-item>
-        </el-collapse>
-      </div>
-      <div class="voice-card" style="margin-top: 10px;position: relative">
-        <div style="margin-bottom: 20px;display: flex;align-items: center;position: absolute;top: 15px;left: 85px">
-          <el-switch :width="50" v-model="withSubtitle" @change="switchSubtitle"></el-switch>
-          <div style="margin-left: 20px;font-size: 13px;color: #9a9a9a">需开启添加字幕后，以下设置才会生效</div>
-        </div>
-        <el-collapse v-model="activeNames">
-          <el-collapse-item title="字幕设置" name="1">
+          <el-collapse-item title="字幕设置" name="1" v-if="isText">
+            <el-switch
+                :width="50"
+                v-model="withSubtitle"
+                @change="switchSubtitle"
+                inactive-text="字幕开关"
+                style="margin-top: 25px;margin-bottom: 15px">
+            </el-switch>
             <div class="preset">
               <span style="margin-right: 20px">预设样式</span>
               <div class="preset-style"
@@ -232,14 +245,7 @@
               </div>
             </div>
             <div style="display: flex;gap: 30px;align-items: center;height: 80px">
-              <div style="text-align: center">
-                <div style="font-size: 13px;height: 40px">字体颜色</div>
-                <el-color-picker v-model="subtitleParams.color"
-                                 size="small"
-                                 @change="saveSubtitleParams('color')">
-                </el-color-picker>
-              </div>
-              <div style="text-align: center">
+              <div>
                 <div style="font-size: 13px;height: 40px">字体样式</div>
                 <el-select v-model="subtitleParams.font"
                            placeholder="请选择"
@@ -277,6 +283,13 @@
                 </div>
               </div>
               <div style="text-align: center">
+                <div style="font-size: 13px;height: 40px">字体颜色</div>
+                <el-color-picker v-model="subtitleParams.color"
+                                 size="small"
+                                 @change="saveSubtitleParams('color')">
+                </el-color-picker>
+              </div>
+              <div style="text-align: center">
                 <div style="font-size: 13px;height: 40px">描边颜色</div>
                 <el-color-picker v-model="subtitleParams.stroke_color"
                                  size="small"
@@ -307,51 +320,49 @@
       </div>
       <div class="text-card">
         <div style="display: flex;margin-bottom: 10px;align-items: center">
-          <div class="video-title" style="flex: 1">口播文案</div>
+          <div class="video-title" style="flex: 1">智能成片</div>
           <div class="ai-generate-btn" @click="openSetting">AI生成文案</div>
         </div>
         <div style="height: calc(100% - 65px)">
-          <el-table :data="tableData" empty-text="暂未设置" stripe style="width: 100%;" height="100%" ref="table">
-            <el-table-column type="index" label="#" width="70" align="center">
+          <el-table :data="tableData" empty-text="暂未设置" stripe style="width: 100%;"
+                    height="100%" ref="table" @row-click="handleRowClick" tooltip-effect="light">
+            <el-table-column type="index" label="" width="70" align="center">
               <template slot-scope="scope">
-                <div style="position: relative;width: 100%">
+                <div style="position: relative;width: 100%;cursor: pointer" title="点击行可编辑">
                   <div>{{ scope.$index + 1 }}</div>
                   <div class="warning" title="已开启字幕标题设置，口播标题不能为空" v-if="withTitle && !scope.row.title">
-                    !
+                    <i class="el-icon-info" style="color: red;font-size: 16px"></i>
                   </div>
                 </div>
               </template>
             </el-table-column>
-            <el-table-column prop="title" label="口播标题">
+            <el-table-column prop="title" label="口播标题" header-align="center" width="250" show-overflow-tooltip>
               <template slot-scope="scope">
-                <div class="table-column" :title="scope.row.title">{{ scope.row.title }}</div>
+                <div class="table-column" title="点击行可编辑">{{ scope.row.title }}</div>
               </template>
             </el-table-column>
-            <el-table-column prop="text" label="口播内容">
+            <el-table-column prop="text" label="口播内容" header-align="center" show-overflow-tooltip>
               <template slot-scope="scope">
-                <div class="table-column" :title="scope.row.text">{{ scope.row.text }}</div>
+                <div class="table-column" title="点击行可编辑">{{ scope.row.text }}</div>
               </template>
             </el-table-column>
-            <el-table-column label="操作" width="200" align="center">
+            <el-table-column label="" width="90" align="center" class-name="no-border-column">
               <template slot-scope="scope">
-                <el-button size="mini" @click="editRow(scope.$index)">编辑</el-button>
-                <el-button size="mini" type="danger" @click="deleteRow(scope.$index)">删除</el-button>
+<!--                <el-button size="mini" @click="editRow(scope.$index)">编辑</el-button>-->
+                <el-button size="mini" type="danger" @click.stop="deleteRow(scope.$index)">删除</el-button>
               </template>
             </el-table-column>
           </el-table>
         </div>
-        <el-button type="primary" size="small" @click="addTable" class="add-button">添加口播文案</el-button>
+        <el-button type="primary" size="small" @click="addTable" style="margin-top: 5px">添加口播文案</el-button>
       </div>
       <div style="height: 50px;display: flex;align-items: center;">
-        <div style="margin-right: 20px;margin-left: 10px;font-size: 15px">视频倒序循环</div>
-        <el-switch :width="50" v-model="reverse" @change="switchReverse"></el-switch>
-        <div style="margin-right: 20px;margin-left: 50px;font-size: 15px">AI混剪</div>
-        <el-switch :width="50" v-model="montage" @change="switchMontage"></el-switch>
-        <div style="margin-left: 20px;font-size: 14px;color: #409EFF;cursor: pointer"
-             @click="openMontageDialog"
-             v-if="montage">
-          混剪配置
+        <el-switch :width="50" v-model="montage" @change="switchMontage" inactive-text="AI混剪"></el-switch>
+        <div style="margin: 0 20px;width: 80px">
+          <span style="font-size: 13px;color: #409EFF;cursor: pointer" @click="openMontageDialog" v-if="montage">混剪配置</span>
         </div>
+        <el-switch :width="50" v-model="reverse" @change="switchReverse" inactive-text="视频倒序循环"
+                   style="margin-right: 50px"></el-switch>
       </div>
       <el-button type="primary" class="generate-btn" @click="verify">生成视频</el-button>
       <el-dialog title="AI生成文案配置" :visible.sync="dialogVisible" width="70%" :show-close="false">
@@ -500,6 +511,7 @@
 
 <script>
 import {getAction, postAction} from "@/api/api";
+import {v4 as uuidv4} from 'uuid';
 import axios from "axios";
 
 export default {
@@ -509,6 +521,7 @@ export default {
       isPlay: false,
       templates: [],
       isMaterial: false,
+      isText: false,
       materials: [],
       figures: [],
       figure: {},
@@ -532,6 +545,7 @@ export default {
       titleTextStyle: {},
       textStyle: {},
       fontFamily: [],
+      subtitleSetting: [],
       activeTitleNames: [],
       activeNames: [],
       subtitle: '',
@@ -683,6 +697,9 @@ export default {
     document.removeEventListener('click', this.handleClickOutside);
   },
   methods: {
+    updateSubtitleSetting() {
+      this.subtitleSetting = this.subtitleSetting.length === 0? ['1'] : []
+    },
     onMouseDown(type, event) {
       this.dragging = true;
       this.draggingType = type;
@@ -839,7 +856,7 @@ export default {
       });
       axios.post(url, params).then(res => {
         if (res.data.status === "success") {
-          this.tableData = this.tableData.concat(res.data.data.map(item => ({title: '', text: item})))
+          this.tableData = this.tableData.concat(res.data.data.map(item => ({id: uuidv4(), title: '', text: item})))
           sessionStorage.setItem("tableData", JSON.stringify(this.tableData))
         } else {
           this.$notify({
@@ -915,7 +932,7 @@ export default {
       })
     },
     addTable() {
-      this.tableData.push({title: '', text: ''})
+      this.tableData.push({id: uuidv4(), title: '', text: ''})
       this.$nextTick(() => { //自动滚到到底部
         const tableBodyWrapper = this.$refs.table.bodyWrapper;
         tableBodyWrapper.scrollTop = tableBodyWrapper.scrollHeight;
@@ -925,6 +942,10 @@ export default {
     deleteRow(index) {
       this.tableData.splice(index, 1);
       sessionStorage.setItem("tableData", JSON.stringify(this.tableData))
+    },
+    handleRowClick(row) {
+      let index = this.tableData.indexOf(row)
+      this.editRow(index)
     },
     editRow(index, type = 'edit') {
       this.selectedRow = {...this.tableData[index]};
@@ -1382,16 +1403,18 @@ export default {
 
 .video-right {
   flex: 1;
+  height: 100%;
+  display: flex;
 }
 
 .preview-setting {
-  margin-left: 8px;
   display: flex;
   border-radius: 20px;
   border: 1px solid #bbbbbb;
   position: relative;
   overflow: hidden;
   user-select: none;
+  margin: auto 8px;
 }
 
 .preview-title {
@@ -1434,6 +1457,19 @@ export default {
   overflow: hidden;
   text-overflow: ellipsis;
   cursor: pointer;
+  height: 50px;
+}
+
+.video >>> .el-table::before {
+  width: calc(100% - 90px);
+}
+
+::v-deep .no-border-column {
+  border: none !important;
+}
+
+.title-column {
+  border:  none !important;
 }
 
 .video-card-list {
@@ -1441,6 +1477,22 @@ export default {
   border-radius: 10px;
   padding: 5px 15px 15px 15px;
   box-sizing: border-box;
+}
+
+.tab-item {
+  font-size: 14px;
+  cursor: pointer;
+  width: 80px;
+  text-align: center;
+  font-weight: 500;
+  line-height: 30px;
+  color: #303133;
+  border-bottom: 2px solid #bbbbbb;
+}
+
+.tab-item-active {
+  color: #409eff;
+  border-bottom: 2px solid #4c8df1;
 }
 
 .video-template {
@@ -1480,6 +1532,16 @@ export default {
   border-radius: 10px;
   padding: 15px;
   box-sizing: border-box;
+}
+
+.video >>> .el-switch__label.is-active {
+  color: #303133 !important;
+}
+
+.video >>> .el-switch__label {
+  font-size: 13px;
+  color: #4c8df1;
+  line-height: 20px;
 }
 
 .preset {
@@ -1581,7 +1643,7 @@ export default {
 
 .text-card {
   width: 100%;
-  height: calc(100vh - 630px);
+  height: calc(100vh - 620px);
   margin-top: 10px;
   min-height: 227px;
   background-color: #ffffff;
@@ -1602,6 +1664,7 @@ export default {
 .generate-btn {
   width: 126px;
   border-radius: 4px;
+  margin-top: 15px;
   margin-left: calc(50% - 63px);
 }
 
@@ -1683,7 +1746,6 @@ export default {
 
 .video >>> .el-collapse-item__content {
   padding-bottom: 0;
-  margin-top: 15px;
 }
 
 .video >>> .el-collapse-item__wrap {
@@ -1779,16 +1841,9 @@ export default {
 }
 
 .warning {
-  background-color: red;
-  color: #ffffff;
-  height: 14px;
-  line-height: 14px;
-  font-size: 10px;
-  width: 14px;
-  border-radius: 50%;
   position: absolute;
-  top: 12px;
-  right: -5px;
+  top: 15px;
+  right: -7px;
   transform: translate(-50%, -50%);
   cursor: pointer;
 }
