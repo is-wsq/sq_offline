@@ -118,244 +118,252 @@
           </div>
         </div>
       </div>
-      <div class="voice-card" style="margin-top: 10px;position: relative">
-        <div style="height: 21px;width: 100%;position: absolute;top: 15px;left: 0;z-index: 99;cursor: pointer"
-             title="点击展开或收起" @click="updateSubtitleSetting"></div>
-        <div v-if="subtitleSetting.length > 0"
-             style="display: flex;position: absolute;top: 15px;left: 50%;transform: translateX(-50%);z-index: 100">
-          <div class="tab-item" :class="{ 'tab-item-active': !isText }" @click="isText = false">口播标题</div>
-          <div class="tab-item" :class="{ 'tab-item-active': isText }" @click="isText = true">口播内容</div>
-        </div>
-        <el-collapse v-model="subtitleSetting">
-          <el-collapse-item title="字幕设置" name="1" v-if="!isText">
-            <el-switch
-                :width="50"
-                v-model="withTitle"
-                @change="switchTitle"
-                inactive-text="字幕开关"
-                style="margin-top: 25px;margin-bottom: 15px">
-            </el-switch>
-            <div class="preset">
-              <span style="margin-right: 20px">预设样式</span>
-              <div class="preset-style"
-                   v-for="item in titlePresets"
-                   :key="item.id"
-                   @click="selectTitlePreset(item)"
-                   :style="{
+
+      <div v-if="with_text">
+        <div class="voice-card" style="margin-top: 10px;position: relative">
+          <div style="height: 21px;width: 100%;position: absolute;top: 15px;left: 0;z-index: 99;cursor: pointer"
+               title="点击展开或收起" @click="updateSubtitleSetting"></div>
+          <div v-if="subtitleSetting.length > 0"
+               style="display: flex;position: absolute;top: 15px;left: 50%;transform: translateX(-50%);z-index: 100">
+            <div class="tab-item" :class="{ 'tab-item-active': !isText }" @click="isText = false">口播标题</div>
+            <div class="tab-item" :class="{ 'tab-item-active': isText }" @click="isText = true">口播内容</div>
+          </div>
+          <el-collapse v-model="subtitleSetting">
+            <el-collapse-item title="字幕设置" name="1" v-if="!isText">
+              <el-switch
+                  :width="50"
+                  v-model="withTitle"
+                  @change="switchTitle"
+                  inactive-text="字幕开关"
+                  style="margin-top: 25px;margin-bottom: 15px">
+              </el-switch>
+              <div class="preset">
+                <span style="margin-right: 20px">预设样式</span>
+                <div class="preset-style"
+                     v-for="item in titlePresets"
+                     :key="item.id"
+                     @click="selectTitlePreset(item)"
+                     :style="{
                      backgroundColor: item.backgroundColor,
                      color: item.color,
                      '-webkit-text-stroke': '0.5px' + item.stroke,
                      border: activeTitlePresetId === item.id ? '2px solid #6286ed' : 'none'
                    }">
-                T
-              </div>
-            </div>
-            <div style="display: flex;gap: 30px;align-items: center;height: 80px">
-              <div>
-                <div style="font-size: 13px;height: 40px">字体样式</div>
-                <el-select v-model="subtitleNameParams.name_font"
-                           placeholder="请选择"
-                           style="height: 35px;width: 180px"
-                           @change="saveSubtitleNameParams('name_font')">
-                  <el-option
-                      v-for="item in fontFamily"
-                      :key="item.font_id"
-                      :label="item.name"
-                      :value="item.font_id">
-                    <div style="display: flex; align-items: center">
-                      <img :src="item.img_path" style="width: 150px; height: 50px; margin-right: 8px;"/>
-                      <span>{{ item.name }}</span>
-                    </div>
-                  </el-option>
-                </el-select>
-              </div>
-              <div>
-                <div style="font-size: 13px;height: 35px">字体大小</div>
-                <div style="display: flex">
-                  <el-slider v-model="subtitleNameParams.name_fontsize"
-                             style="width: 170px"
-                             :min="5"
-                             :max="50"
-                             @change="saveSubtitleNameParams('name_fontsize')">
-                  </el-slider>
-                  <el-input-number class="text-input" v-model="subtitleNameParams.name_fontsize"
-                                   controls-position="right"
-                                   :min="5"
-                                   :max="50"
-                                   style="margin-left: 10px;width: 80px !important;"
-                                   @change="saveSubtitleNameParams('name_fontsize')">
-                  </el-input-number>
+                  T
                 </div>
               </div>
-              <div style="text-align: center">
-                <div style="font-size: 13px;height: 40px">字体颜色</div>
-                <el-color-picker v-model="subtitleNameParams.name_color"
-                                 size="small"
-                                 @change="saveSubtitleNameParams('name_color')">
-                </el-color-picker>
-              </div>
-              <div style="text-align: center">
-                <div style="font-size: 13px;height: 40px">描边颜色</div>
-                <el-color-picker v-model="subtitleNameParams.name_stroke_color"
-                                 size="small"
-                                 @change="saveSubtitleNameParams('name_stroke_color')">
-                </el-color-picker>
-              </div>
-              <div style="text-align: center">
-                <div style="font-size: 13px;height: 40px">开启字幕背景</div>
-                <div style="height: 35px;">
-                  <el-switch :width="50"
-                             v-model="name_use_background"
-                             @change="switchNameUseBackground"
-                             style="margin-top: 5px">
-                  </el-switch>
+              <div style="display: flex;gap: 30px;align-items: center;height: 80px">
+                <div>
+                  <div style="font-size: 13px;height: 40px">字体样式</div>
+                  <el-select v-model="subtitleNameParams.name_font"
+                             placeholder="请选择"
+                             style="height: 35px;width: 180px"
+                             @change="saveSubtitleNameParams('name_font')">
+                    <el-option
+                        v-for="item in fontFamily"
+                        :key="item.font_id"
+                        :label="item.name"
+                        :value="item.font_id">
+                      <div style="display: flex; align-items: center">
+                        <img :src="item.img_path" style="width: 150px; height: 50px; margin-right: 8px;"/>
+                        <span>{{ item.name }}</span>
+                      </div>
+                    </el-option>
+                  </el-select>
+                </div>
+                <div>
+                  <div style="font-size: 13px;height: 35px">字体大小</div>
+                  <div style="display: flex">
+                    <el-slider v-model="subtitleNameParams.name_fontsize"
+                               style="width: 170px"
+                               :min="5"
+                               :max="50"
+                               @change="saveSubtitleNameParams('name_fontsize')">
+                    </el-slider>
+                    <el-input-number class="text-input" v-model="subtitleNameParams.name_fontsize"
+                                     controls-position="right"
+                                     :min="5"
+                                     :max="50"
+                                     style="margin-left: 10px;width: 80px !important;"
+                                     @change="saveSubtitleNameParams('name_fontsize')">
+                    </el-input-number>
+                  </div>
+                </div>
+                <div style="text-align: center">
+                  <div style="font-size: 13px;height: 40px">字体颜色</div>
+                  <el-color-picker v-model="subtitleNameParams.name_color"
+                                   size="small"
+                                   @change="saveSubtitleNameParams('name_color')">
+                  </el-color-picker>
+                </div>
+                <div style="text-align: center">
+                  <div style="font-size: 13px;height: 40px">描边颜色</div>
+                  <el-color-picker v-model="subtitleNameParams.name_stroke_color"
+                                   size="small"
+                                   @change="saveSubtitleNameParams('name_stroke_color')">
+                  </el-color-picker>
+                </div>
+                <div style="text-align: center">
+                  <div style="font-size: 13px;height: 40px">开启字幕背景</div>
+                  <div style="height: 35px;">
+                    <el-switch :width="50"
+                               v-model="name_use_background"
+                               @change="switchNameUseBackground"
+                               style="margin-top: 5px">
+                    </el-switch>
+                  </div>
+                </div>
+                <div style="text-align: center">
+                  <div style="font-size: 13px;height: 40px">背景颜色</div>
+                  <el-color-picker v-model="subtitleNameParams.name_background_color"
+                                   show-alpha
+                                   size="small"
+                                   @change="saveSubtitleNameParams('name_background_color')">
+                  </el-color-picker>
                 </div>
               </div>
-              <div style="text-align: center">
-                <div style="font-size: 13px;height: 40px">背景颜色</div>
-                <el-color-picker v-model="subtitleNameParams.name_background_color"
-                                 show-alpha
-                                 size="small"
-                                 @change="saveSubtitleNameParams('name_background_color')">
-                </el-color-picker>
-              </div>
-            </div>
-          </el-collapse-item>
-          <el-collapse-item title="字幕设置" name="1" v-if="isText">
-            <el-switch
-                :width="50"
-                v-model="withSubtitle"
-                @change="switchSubtitle"
-                inactive-text="字幕开关"
-                style="margin-top: 25px;margin-bottom: 15px">
-            </el-switch>
-            <div class="preset">
-              <span style="margin-right: 20px">预设样式</span>
-              <div class="preset-style"
-                   v-for="item in titlePresets"
-                   :key="item.id"
-                   @click="selectPreset(item)"
-                   :style="{
+            </el-collapse-item>
+            <el-collapse-item title="字幕设置" name="1" v-if="isText">
+              <el-switch
+                  :width="50"
+                  v-model="withSubtitle"
+                  @change="switchSubtitle"
+                  inactive-text="字幕开关"
+                  style="margin-top: 25px;margin-bottom: 15px">
+              </el-switch>
+              <div class="preset">
+                <span style="margin-right: 20px">预设样式</span>
+                <div class="preset-style"
+                     v-for="item in titlePresets"
+                     :key="item.id"
+                     @click="selectPreset(item)"
+                     :style="{
                      backgroundColor: item.backgroundColor,
                      color: item.color,
                      '-webkit-text-stroke': '0.5px' + item.stroke,
                      border: activePresetId === item.id ? '2px solid #6286ed' : 'none'
                    }">
-                T
-              </div>
-            </div>
-            <div style="display: flex;gap: 30px;align-items: center;height: 80px">
-              <div>
-                <div style="font-size: 13px;height: 40px">字体样式</div>
-                <el-select v-model="subtitleParams.font"
-                           placeholder="请选择"
-                           style="height: 35px;width: 180px"
-                           @change="saveSubtitleParams('font')">
-                  <el-option
-                      v-for="item in fontFamily"
-                      :key="item.font_id"
-                      :label="item.name"
-                      :value="item.font_id">
-                    <div style="display: flex; align-items: center">
-                      <img :src="item.img_path" style="width: 150px; height: 50px; margin-right: 8px;"/>
-                      <span>{{ item.name }}</span>
-                    </div>
-                  </el-option>
-                </el-select>
-              </div>
-              <div>
-                <div style="font-size: 13px;height: 35px">字体大小</div>
-                <div style="display: flex">
-                  <el-slider v-model="subtitleParams.fontsize"
-                             style="width: 170px"
-                             :min="5"
-                             :max="50"
-                             @change="saveSubtitleParams('fontsize')">
-                  </el-slider>
-                  <el-input-number class="text-input"
-                                   v-model="subtitleParams.fontsize"
-                                   controls-position="right"
-                                   :min="5"
-                                   :max="50"
-                                   style="margin-left: 10px;width: 80px !important;"
-                                   @change="saveSubtitleParams('fontsize')">
-                  </el-input-number>
+                  T
                 </div>
               </div>
-              <div style="text-align: center">
-                <div style="font-size: 13px;height: 40px">字体颜色</div>
-                <el-color-picker v-model="subtitleParams.color"
-                                 size="small"
-                                 @change="saveSubtitleParams('color')">
-                </el-color-picker>
-              </div>
-              <div style="text-align: center">
-                <div style="font-size: 13px;height: 40px">描边颜色</div>
-                <el-color-picker v-model="subtitleParams.stroke_color"
-                                 size="small"
-                                 @change="saveSubtitleParams('stroke_color')">
-                </el-color-picker>
-              </div>
-              <div style="text-align: center">
-                <div style="font-size: 13px;height: 40px">开启字幕背景</div>
-                <div style="height: 35px;">
-                  <el-switch :width="50"
-                             v-model="use_background"
-                             @change="switchUseBackground"
-                             style="margin-top: 5px">
-                  </el-switch>
+              <div style="display: flex;gap: 30px;align-items: center;height: 80px">
+                <div>
+                  <div style="font-size: 13px;height: 40px">字体样式</div>
+                  <el-select v-model="subtitleParams.font"
+                             placeholder="请选择"
+                             style="height: 35px;width: 180px"
+                             @change="saveSubtitleParams('font')">
+                    <el-option
+                        v-for="item in fontFamily"
+                        :key="item.font_id"
+                        :label="item.name"
+                        :value="item.font_id">
+                      <div style="display: flex; align-items: center">
+                        <img :src="item.img_path" style="width: 150px; height: 50px; margin-right: 8px;"/>
+                        <span>{{ item.name }}</span>
+                      </div>
+                    </el-option>
+                  </el-select>
                 </div>
-              </div>
-              <div style="text-align: center">
-                <div style="font-size: 13px;height: 40px">背景颜色</div>
-                <el-color-picker v-model="subtitleParams.background_color"
-                                 show-alpha
-                                 size="small"
-                                 @change="saveSubtitleParams('background_color')">
-                </el-color-picker>
-              </div>
-            </div>
-          </el-collapse-item>
-        </el-collapse>
-      </div>
-      <div class="text-card">
-        <div style="display: flex;margin-bottom: 10px;align-items: center">
-          <div class="video-title" style="flex: 1">智能成片</div>
-          <div class="ai-generate-btn" @click="openSetting">AI生成文案</div>
-        </div>
-        <div style="height: calc(100% - 65px)">
-          <el-table :data="tableData" empty-text="暂未设置" stripe style="width: 100%;"
-                    height="100%" ref="table" @row-click="handleRowClick" tooltip-effect="light">
-            <el-table-column type="index" label="" width="70" align="center">
-              <template slot-scope="scope">
-                <div style="position: relative;width: 100%;cursor: pointer" title="点击行可编辑">
-                  <div>{{ scope.$index + 1 }}</div>
-                  <div class="warning" title="已开启字幕标题设置，口播标题不能为空" v-if="withTitle && !scope.row.title">
-                    <i class="el-icon-info" style="color: red;font-size: 16px"></i>
+                <div>
+                  <div style="font-size: 13px;height: 35px">字体大小</div>
+                  <div style="display: flex">
+                    <el-slider v-model="subtitleParams.fontsize"
+                               style="width: 170px"
+                               :min="5"
+                               :max="50"
+                               @change="saveSubtitleParams('fontsize')">
+                    </el-slider>
+                    <el-input-number class="text-input"
+                                     v-model="subtitleParams.fontsize"
+                                     controls-position="right"
+                                     :min="5"
+                                     :max="50"
+                                     style="margin-left: 10px;width: 80px !important;"
+                                     @change="saveSubtitleParams('fontsize')">
+                    </el-input-number>
                   </div>
                 </div>
-              </template>
-            </el-table-column>
-            <el-table-column prop="title" label="口播标题" header-align="center" width="250" show-overflow-tooltip>
-              <template slot-scope="scope">
-                <div class="table-column" title="点击行可编辑">{{ scope.row.title }}</div>
-              </template>
-            </el-table-column>
-            <el-table-column prop="text" label="口播内容" header-align="center" show-overflow-tooltip>
-              <template slot-scope="scope">
-                <div class="table-column" title="点击行可编辑">{{ scope.row.text }}</div>
-              </template>
-            </el-table-column>
-            <el-table-column label="" width="90" align="center" class-name="no-border-column">
-              <template slot-scope="scope">
-<!--                <el-button size="mini" @click="editRow(scope.$index)">编辑</el-button>-->
-                <el-button size="mini" type="danger" @click.stop="deleteRow(scope.$index)">删除</el-button>
-              </template>
-            </el-table-column>
-          </el-table>
+                <div style="text-align: center">
+                  <div style="font-size: 13px;height: 40px">字体颜色</div>
+                  <el-color-picker v-model="subtitleParams.color"
+                                   size="small"
+                                   @change="saveSubtitleParams('color')">
+                  </el-color-picker>
+                </div>
+                <div style="text-align: center">
+                  <div style="font-size: 13px;height: 40px">描边颜色</div>
+                  <el-color-picker v-model="subtitleParams.stroke_color"
+                                   size="small"
+                                   @change="saveSubtitleParams('stroke_color')">
+                  </el-color-picker>
+                </div>
+                <div style="text-align: center">
+                  <div style="font-size: 13px;height: 40px">开启字幕背景</div>
+                  <div style="height: 35px;">
+                    <el-switch :width="50"
+                               v-model="use_background"
+                               @change="switchUseBackground"
+                               style="margin-top: 5px">
+                    </el-switch>
+                  </div>
+                </div>
+                <div style="text-align: center">
+                  <div style="font-size: 13px;height: 40px">背景颜色</div>
+                  <el-color-picker v-model="subtitleParams.background_color"
+                                   show-alpha
+                                   size="small"
+                                   @change="saveSubtitleParams('background_color')">
+                  </el-color-picker>
+                </div>
+              </div>
+            </el-collapse-item>
+          </el-collapse>
         </div>
-        <el-button type="primary" size="small" @click="addTable" style="margin-top: 5px">添加口播文案</el-button>
+        <div class="text-card">
+          <div style="display: flex;margin-bottom: 10px;align-items: center">
+            <div class="video-title" style="flex: 1">智能成片</div>
+            <div class="ai-generate-btn" @click="openSetting">AI生成文案</div>
+          </div>
+          <div style="height: calc(100% - 65px)">
+            <el-table :data="tableData" empty-text="暂未设置" stripe style="width: 100%;"
+                      height="100%" ref="table" @row-click="handleRowClick" tooltip-effect="light">
+              <el-table-column type="index" label="" width="70" align="center">
+                <template slot-scope="scope">
+                  <div style="position: relative;width: 100%;cursor: pointer" title="点击行可编辑">
+                    <div>{{ scope.$index + 1 }}</div>
+                    <div class="warning" title="已开启字幕标题设置，口播标题不能为空" v-if="withTitle && !scope.row.title">
+                      <i class="el-icon-info" style="color: red;font-size: 16px"></i>
+                    </div>
+                  </div>
+                </template>
+              </el-table-column>
+              <el-table-column prop="title" label="口播标题" header-align="center" width="250" show-overflow-tooltip>
+                <template slot-scope="scope">
+                  <div class="table-column" title="点击行可编辑">{{ scope.row.title }}</div>
+                </template>
+              </el-table-column>
+              <el-table-column prop="text" label="口播内容" header-align="center" show-overflow-tooltip>
+                <template slot-scope="scope">
+                  <div class="table-column" title="点击行可编辑">{{ scope.row.text }}</div>
+                </template>
+              </el-table-column>
+              <el-table-column label="" width="90" align="center" class-name="no-border-column">
+                <template slot-scope="scope">
+                  <!--                <el-button size="mini" @click="editRow(scope.$index)">编辑</el-button>-->
+                  <el-button size="mini" type="danger" @click.stop="deleteRow(scope.$index)">删除</el-button>
+                </template>
+              </el-table-column>
+            </el-table>
+          </div>
+          <el-button type="primary" size="small" @click="addTable" style="margin-top: 5px">添加口播文案</el-button>
+        </div>
       </div>
+
+      <div v-if="!with_text">
+        后需添加用户输入视频时长和生成的视频个数
+      </div>
+
       <div style="height: 50px;display: flex;align-items: center;">
         <el-switch :width="50" v-model="montage" @change="switchMontage" inactive-text="AI混剪"></el-switch>
         <div style="margin: 0 20px;width: 80px">
@@ -531,6 +539,9 @@ export default {
       bgmList: [],
       bgm: {},
       bg_volume: 0.5,
+      with_text: true,
+      with_time: 30,
+      video_num: 1,
       text: "",
       audio: null,
       audioIndex: null,
@@ -1172,6 +1183,9 @@ export default {
         filename_list: name,
         user_request: this.actualRequest,
         reverse: this.reverse,
+        with_text: this.with_text,
+        with_time: this.with_time,
+        video_num: this.video_num,
         text_list: this.tableData.map(item => item.text),
         with_subtitle: this.withSubtitle,
         with_title: this.withTitle,
