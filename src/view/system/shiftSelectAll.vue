@@ -1,13 +1,20 @@
 <template>
   <div class="video-selection-container">
     <el-checkbox v-model="selectAll" @change="handleSelectAll">全选</el-checkbox>
-    <div class="video-grid">
+    <div
+      class="video-grid"
+      @mousedown="startSelection"
+      @mousemove="updateSelection"
+      @mouseup="endSelection"
+      @mouseleave="endSelection"
+    >
       <div
-          v-for="(video, index) in videoList"
-          :key="video.id"
-          :class="{'selected': isSelected(index), 'active': lastClickedIndex === index}"
-          class="video-item"
-          @click="handleVideoClick(index)"
+        v-for="(video, index) in videoList"
+        :key="video.id"
+        :class="{'selected': isSelected(index), 'active': lastClickedIndex === index}"
+        class="video-item"
+        @click="handleVideoClick(index, $event)"
+        ref="videoItems"
       >
         <div class="video-thumbnail">
           <img :src="`https://picsum.photos/seed/video${video.id}/300/200`" alt="视频缩略图">
@@ -15,6 +22,18 @@
           <el-checkbox v-model="selectedIndexes[index]" class="checkbox"></el-checkbox>
         </div>
       </div>
+
+      <!-- 选框元素 -->
+      <div
+        v-if="isSelecting"
+        class="selection-box"
+        :style="{
+          left: `${selectionLeft}px`,
+          top: `${selectionTop}px`,
+          width: `${selectionWidth}px`,
+          height: `${selectionHeight}px`
+        }"
+      ></div>
     </div>
   </div>
 </template>
@@ -36,14 +55,17 @@ export default {
         {id: 10, title: '视频 10', duration: '02:15'}
       ],
       selectedIndexes: Array(10).fill(false),
-      // 上次点击的索引
       lastClickedIndex: null,
-      selectAll: false
-    }
-  },
-  computed: {
-    selectedCount() {
-      return this.selectedIndexes.filter(Boolean).length
+      selectAll: false,
+
+      // 框选相关状态
+      isSelecting: false,
+      initialX: 0,     // 初始X坐标
+      initialY: 0,     // 初始Y坐标
+      selectionLeft: 0,  // 选框左边界
+      selectionTop: 0,   // 选框上边界
+      selectionWidth: 0, // 选框宽度
+      selectionHeight: 0 // 选框高度
     }
   },
   methods: {
@@ -51,8 +73,14 @@ export default {
       return this.selectedIndexes[index]
     },
 
-    handleVideoClick(index) {
-      const isShiftKey = window.event.shiftKey
+    handleVideoClick(index, event) {
+      // 如果是框选操作，不处理点击事件
+      if (this.isSelecting) {
+        event.stopPropagation()
+        return
+      }
+
+      const isShiftKey = event.shiftKey
       // 普通点击：切换当前项的选中状态，不清空之前的选择
       if (!isShiftKey) {
         this.selectedIndexes[index] = !this.selectedIndexes[index]
@@ -86,6 +114,94 @@ export default {
 
     handleSelectAll(value) {
       this.selectedIndexes = Array(this.videoList.length).fill(value)
+    },
+
+    // 开始框选
+    startSelection(event) {
+      // 如果是右键点击或点击了复选框，不开始框选
+      if (event.button !== 0 || event.target.closest('.el-checkbox')) {
+        return
+      }
+
+      // 阻止默认行为和事件冒泡
+      event.preventDefault()
+      event.stopPropagation()
+
+      // 记录初始位置
+      const rect = this.$el.getBoundingClientRect()
+      this.initialX = event.clientX - rect.left
+      this.initialY = event.clientY - rect.top - 40
+
+      // 初始化选框位置和大小
+      this.selectionLeft = this.initialX
+      this.selectionTop = this.initialY
+      this.selectionWidth = 0
+      this.selectionHeight = 0
+
+      this.isSelecting = true
+    },
+
+    // 更新框选
+    updateSelection(event) {
+      if (!this.isSelecting) return
+
+      const rect = this.$el.getBoundingClientRect()
+      const currentX = event.clientX - rect.left
+      const currentY = event.clientY - rect.top - 40
+
+      // 计算选框位置和大小（考虑任意方向）
+      this.selectionLeft = Math.min(this.initialX, currentX)
+      this.selectionTop = Math.min(this.initialY, currentY)
+      this.selectionWidth = Math.abs(currentX - this.initialX)
+      this.selectionHeight = Math.abs(currentY - this.initialY)
+
+      // 更新选中项
+      this.updateSelectedItems()
+    },
+
+    // 结束框选
+    endSelection() {
+      if (!this.isSelecting) return
+
+      this.isSelecting = false
+      // 重置选框尺寸
+      this.selectionWidth = 0
+      this.selectionHeight = 0
+    },
+
+    // 更新选中项
+    updateSelectedItems() {
+      // 获取选框区域
+      const selectionRect = {
+        left: this.selectionLeft,
+        top: this.selectionTop,
+        right: this.selectionLeft + this.selectionWidth,
+        bottom: this.selectionTop + this.selectionHeight
+      }
+
+      // 检查每个视频项是否在选框内
+      this.$refs.videoItems.forEach((el, index) => {
+        const rect = el.getBoundingClientRect()
+        const containerRect = this.$el.getBoundingClientRect()
+
+        // 计算相对于容器的位置
+        const itemRect = {
+          left: rect.left - containerRect.left,
+          top: rect.top - containerRect.top - 40,
+          right: rect.right - containerRect.left,
+          bottom: rect.bottom - containerRect.top - 40
+        }
+
+        // 判断矩形是否重叠
+        const isOverlapping =
+            itemRect.left < selectionRect.right &&
+            itemRect.right > selectionRect.left &&
+            itemRect.top < selectionRect.bottom &&
+            itemRect.bottom > selectionRect.top
+
+        // 更新选中状态
+        this.selectedIndexes[index] = isOverlapping
+      })
     }
   },
   watch: {
@@ -109,17 +225,14 @@ export default {
 </script>
 
 <style scoped>
-.video-selection-container {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 20px;
-}
-
 .video-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
   gap: 20px;
   margin-top: 20px;
+  padding: 20px;
+  position: relative;
+  border: 1px solid red;
 }
 
 .video-item {
@@ -181,33 +294,12 @@ export default {
   z-index: 10;
 }
 
-.video-info {
-  padding: 12px;
-}
-
-.video-info h3 {
-  margin: 0;
-  font-size: 16px;
-  font-weight: 500;
-  color: #303133;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.video-info p {
-  margin: 6px 0 0;
-  font-size: 14px;
-  color: #909399;
-}
-
-.selected-info {
-  margin-top: 20px;
-  padding: 10px;
-  background-color: #f5f7fa;
-  border-radius: 4px;
-  font-size: 14px;
-  color: #606266;
-  text-align: center;
+.selection-box {
+  position: absolute;
+  border: 1px dashed #409eff;
+  background-color: rgba(64, 158, 255, 0.1);
+  pointer-events: none;
+  z-index: 20;
+  transition: all 0.1s ease;
 }
 </style>
