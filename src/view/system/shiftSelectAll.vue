@@ -65,7 +65,8 @@ export default {
       selectionLeft: 0,  // 选框左边界
       selectionTop: 0,   // 选框上边界
       selectionWidth: 0, // 选框宽度
-      selectionHeight: 0 // 选框高度
+      selectionHeight: 0, // 选框高度
+      initialSelectedState: []
     }
   },
   methods: {
@@ -139,6 +140,9 @@ export default {
       this.selectionHeight = 0
 
       this.isSelecting = true
+
+      // 新增：记录框选开始时的所有选中状态
+      this.initialSelectedState = [...this.selectedIndexes]
     },
 
     // 更新框选
@@ -200,7 +204,7 @@ export default {
             itemRect.bottom > selectionRect.top
 
         // 更新选中状态
-        this.selectedIndexes[index] = isOverlapping
+        this.selectedIndexes[index] = isOverlapping || this.initialSelectedState[index]
       })
     }
   },
