@@ -7,6 +7,7 @@
       @mousemove="updateSelection"
       @mouseup="endSelection"
       @mouseleave="endSelection"
+      ref="videoGrid"
     >
       <div
         v-for="(video, index) in videoList"
@@ -129,9 +130,10 @@ export default {
       event.stopPropagation()
 
       // 记录初始位置
+      const container = this.$refs.videoGrid
       const rect = this.$el.getBoundingClientRect()
       this.initialX = event.clientX - rect.left
-      this.initialY = event.clientY - rect.top - 40
+      this.initialY = event.clientY - rect.top - 40 + + container.scrollTop
 
       // 初始化选框位置和大小
       this.selectionLeft = this.initialX
@@ -149,9 +151,10 @@ export default {
     updateSelection(event) {
       if (!this.isSelecting) return
 
+      const container = this.$refs.videoGrid
       const rect = this.$el.getBoundingClientRect()
       const currentX = event.clientX - rect.left
-      const currentY = event.clientY - rect.top - 40
+      const currentY = event.clientY - rect.top - 40 + container.scrollTop
 
       // 计算选框位置和大小（考虑任意方向）
       this.selectionLeft = Math.min(this.initialX, currentX)
@@ -187,13 +190,14 @@ export default {
       this.$refs.videoItems.forEach((el, index) => {
         const rect = el.getBoundingClientRect()
         const containerRect = this.$el.getBoundingClientRect()
+        const container = this.$refs.videoGrid
 
         // 计算相对于容器的位置
         const itemRect = {
           left: rect.left - containerRect.left,
-          top: rect.top - containerRect.top - 40,
+          top: rect.top - containerRect.top - 40 + container.scrollTop,
           right: rect.right - containerRect.left,
-          bottom: rect.bottom - containerRect.top - 40
+          bottom: rect.bottom - containerRect.top - 40 + container.scrollTop
         }
 
         // 判断矩形是否重叠
