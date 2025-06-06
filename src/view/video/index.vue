@@ -204,16 +204,6 @@
                   </el-color-picker>
                 </div>
                 <div style="text-align: center">
-                  <div style="font-size: 13px;height: 40px">开启字幕背景</div>
-                  <div style="height: 35px;">
-                    <el-switch :width="50"
-                               v-model="name_use_background"
-                               @change="switchNameUseBackground"
-                               style="margin-top: 5px">
-                    </el-switch>
-                  </div>
-                </div>
-                <div style="text-align: center">
                   <div style="font-size: 13px;height: 40px">背景颜色</div>
                   <el-color-picker v-model="subtitleNameParams.name_background_color"
                                    show-alpha
@@ -297,16 +287,6 @@
                                    size="small"
                                    @change="saveSubtitleParams('stroke_color')">
                   </el-color-picker>
-                </div>
-                <div style="text-align: center">
-                  <div style="font-size: 13px;height: 40px">开启字幕背景</div>
-                  <div style="height: 35px;">
-                    <el-switch :width="50"
-                               v-model="use_background"
-                               @change="switchUseBackground"
-                               style="margin-top: 5px">
-                    </el-switch>
-                  </div>
                 </div>
                 <div style="text-align: center">
                   <div style="font-size: 13px;height: 40px">背景颜色</div>
@@ -498,7 +478,6 @@
         <div style="width: 100%;height: 600px" v-else></div>
         <div class="preview-title"
              ref="titleContainer"
-             :class="{ noneBackground: !name_use_background }"
              :style="titleTextStyle"
              v-if="withTitle"
              @mousedown="onMouseDown('top', $event)">
@@ -506,7 +485,6 @@
         </div>
         <div class="preview-content"
              ref="contentContainer"
-             :class="{ noneBackground: !use_background }"
              :style="textStyle"
              v-if="withSubtitle"
              @mousedown="onMouseDown('bottom', $event)">
@@ -548,10 +526,8 @@ export default {
       isFocus: false,
       reverse: false,
       withSubtitle: false,
-      use_background: false,
       subtitleParams: {},
       withTitle: false,
-      name_use_background: false,
       subtitleNameParams: {},
       titleTextStyle: {},
       textStyle: {},
@@ -998,8 +974,6 @@ export default {
       this.withTitle = sessionStorage.getItem("with_title") === 'true'
       this.reverse = sessionStorage.getItem("reverse") === 'true'
       this.bg_volume = Number(sessionStorage.getItem("bg_volume")) || 0.5
-      this.use_background = sessionStorage.getItem("use_background") === 'true'
-      this.name_use_background = sessionStorage.getItem("name_use_background") === 'true'
 
       this.activePresetId = sessionStorage.getItem("preset_id") || '1'
       this.subtitleParams.fontsize = parseInt(sessionStorage.getItem("fontsize")) || 5
@@ -1195,7 +1169,7 @@ export default {
           fontsize: this.subtitleParams['fontsize'],
           color: this.subtitleParams.color,
           stroke_color: this.subtitleParams.stroke_color,
-          use_background: this.use_background,
+          use_background: Number(background_colors[3]) !== 0,
           background_color: background_colors.slice(0, 3).map(Number),
           background_opacity: Number(background_colors[3])
         },
@@ -1206,7 +1180,7 @@ export default {
           fontsize: this.subtitleNameParams.name_fontsize,
           color: this.subtitleNameParams.name_color,
           stroke_color: this.subtitleNameParams.name_stroke_color,
-          use_background: this.name_use_background,
+          use_background: Number(name_background_colors[3]) !== 0,
           background_color: name_background_colors.slice(0, 3).map(Number),
           background_opacity: Number(name_background_colors[3])
         },
@@ -1294,12 +1268,6 @@ export default {
     },
     saveBgmVolume() {
       sessionStorage.setItem("bg_volume", this.bg_volume)
-    },
-    switchUseBackground() {
-      sessionStorage.setItem("use_background", this.use_background)
-    },
-    switchNameUseBackground() {
-      sessionStorage.setItem("name_use_background", this.name_use_background)
     },
     selectTitlePreset(item) {
       this.activeTitlePresetId = item.id
