@@ -10,10 +10,10 @@ app.on('ready', () => {
     const primaryDisplay = screen.getPrimaryDisplay();
     const { width, height } = primaryDisplay.workAreaSize;
     mainWindow = new BrowserWindow({
-        width: width,
-        height: height,
-        x: 0,
-        y: 0,
+        width: 1200,
+        height: 800,
+        // x: 0,
+        // y: 0,
         frame: true,
         show: false,
         icon: path.join(__dirname, 'public/favicon.ico'),
@@ -31,7 +31,8 @@ app.on('ready', () => {
     mainWindow.loadFile(indexPath);
 
     mainWindow.webContents.once('did-finish-load', () => {
-        mainWindow.show();
+        mainWindow.maximize()
+        mainWindow.show()
     });
 
     mainWindow.on('close', (e) => {
