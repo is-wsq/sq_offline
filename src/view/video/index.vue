@@ -3,17 +3,44 @@
     <div class="video-left">
       <div class="video-header">
         <div class="video-card-list">
-          <div style="display: flex;margin-bottom: 10px;margin-left: 5px">
+          <div style="display: flex;margin-left: 5px">
             <div class="tab-item" :class="{ 'tab-item-active': !isMaterial }" @click="isMaterial = false">数字人</div>
             <div class="tab-item" :class="{ 'tab-item-active': isMaterial }" @click="isMaterial = true">素材</div>
           </div>
 <!--          <el-switch :width="50" v-model="isMaterial" active-text="素材" inactive-text="数字人"></el-switch>-->
-          <div class="video-template">
-            <div v-for="item in isMaterial? materials : figures"
+          <div class="video-template"
+               @mousedown="startSelection"
+               @mousemove="updateSelection"
+               @mouseup="endSelection"
+               @mouseleave="endSelection"
+               v-if="isMaterial"
+               ref="videoGrid">
+            <div v-for="item in materials"
+                 :key="item.id"
+                 style="border-radius: 10px; width: 130px"
+                 @click.stop="selectMaterial(item, $event)"
+                 :style="{ 'background-color': material_list.includes(item.id) ? '#e0e7fb' : '#FFFFFF' }"
+                 ref="videoItems">
+              <el-image class="template-img" :src="item.picture" fit="cover"></el-image>
+              <div class="template-name" :title="item.name">{{ item.name }}</div>
+            </div>
+            <!-- 选框元素 -->
+            <div v-if="isSelecting"
+                class="selection-box"
+                :style="{
+                  left: `${selectionLeft}px`,
+                  top: `${selectionTop}px`,
+                  width: `${selectionWidth}px`,
+                  height: `${selectionHeight}px`
+                }"
+            ></div>
+          </div>
+          <div class="video-template" v-else>
+            <div v-for="item in figures"
                  :key="item.id"
                  style="border-radius: 10px; width: 130px"
                  @click="selectResource(item)"
-                 :style="{ 'background-color': item.id === figure.id || material_list.includes(item.id) ? '#e0e7fb' : '#FFFFFF' }">
+                 :style="{ 'background-color': item.id === figure.id ? '#e0e7fb' : '#FFFFFF' }">
               <el-image class="template-img" :src="item.picture" fit="cover"></el-image>
               <div class="template-name" :title="item.name">{{ item.name }}</div>
             </div>
@@ -499,9 +526,11 @@
 import {getAction, postAction} from "@/api/api";
 import {v4 as uuidv4} from 'uuid';
 import axios from "axios";
+import {EnhancedChoiceMixin} from "@/mixins/EnhancedChoiceMixin";
 
 export default {
   name: "Video",
+  mixins: [EnhancedChoiceMixin],
   data() {
     return {
       isPlay: false,
@@ -577,7 +606,7 @@ export default {
       },
       lastInput: '',
       actualRequest: '', // 实际发送给服务端的
-      mentionList: [],
+      // mentionList: [],
       mentionRanges: [],
       showDropdown: false,
       dropdownStyle: {
@@ -655,6 +684,10 @@ export default {
     };
   },
   computed: {
+    mentionList() {
+      return this.materials.filter(item => this.material_list.includes(item.id))
+          .sort((a, b) => this.material_list.indexOf(a.id) - this.material_list.indexOf(b.id))
+    },
     highlightedText() {
       // 使用正则替换所有 @人名 为高亮样式
       let result = this.montageForm.request;
@@ -964,7 +997,7 @@ export default {
     initParams() {
       this.figure = JSON.parse(sessionStorage.getItem('figure')) || {}
       this.material_list = JSON.parse(sessionStorage.getItem('material_list')) || []
-      this.mentionList = JSON.parse(sessionStorage.getItem('mention_list')) || []
+      // this.mentionList = JSON.parse(sessionStorage.getItem('mention_list')) || []
       this.isMaterial = this.material_list.length > 0;
 
       this.topOffset = Number(sessionStorage.getItem('top_offset')) || 0
@@ -1227,7 +1260,37 @@ export default {
         });
       }
     },
-    selectResource(item) {
+    selectMaterial(item, event) {
+      if (this.isSelecting) {
+        return
+      }
+      const isShiftKey = event.shiftKey
+      let index = this.materials.indexOf(item)
+
+      if (!isShiftKey) {
+        this.selectResource(item)
+        this.lastClickedIndex = index
+        return
+      }
+
+      // Shift点击：处理范围选择
+      if (this.lastClickedIndex !== null) {
+        // 获取起始和结束索引
+        const start = Math.min(this.lastClickedIndex, index)
+        const end = Math.max(this.lastClickedIndex, index)
+
+        // 选中范围内的所有项
+        for (let i = start; i <= end; i++) {
+          this.selectResource(this.materials[i], true)
+        }
+      } else {
+        // 第一次点击并且按住了Shift键，处理方式同普通点击
+        this.selectResource(this.materials[index])
+      }
+
+      this.lastClickedIndex = index
+    },
+    selectResource(item, shiftSelect = false) {
       this.topOffset = 0
       this.bottomOffset = 100
       this.updateTextStyle()
@@ -1236,19 +1299,26 @@ export default {
         this.figure = {}
         if (!this.material_list.includes(item.id)) {
           this.material_list.push(item.id)
-          this.mentionList.push(item)
+          // this.mentionList.push(item)
+          // console.log('mentionList1',this.mentionList)
         } else {
+          if (shiftSelect) {
+            return
+          }
           this.material_list.splice(this.material_list.indexOf(item.id), 1)
-          this.mentionList.splice(this.mentionList.indexOf(item), 1)
+          // this.mentionList.splice(this.mentionList.indexOf(item), 1)
+          // console.log('mentionList2',this.mentionList)
         }
       } else {
         this.material_list = []
-        this.mentionList = []
+        // this.mentionList = []
         this.figure = this.figure.id === item.id ? {} : item
       }
+      console.log('1',this.material_list)
+      console.log('2',this.mentionList)
       sessionStorage.setItem('figure', JSON.stringify(this.figure))
       sessionStorage.setItem('material_list', JSON.stringify(this.material_list))
-      sessionStorage.setItem('mention_list', JSON.stringify(this.mentionList))
+      // sessionStorage.setItem('mention_list', JSON.stringify(this.mentionList))
     },
     selectVoice(voice) {
       this.sound = voice
@@ -1390,6 +1460,7 @@ export default {
 }
 
 .preview-setting {
+  width: 100%;
   display: flex;
   border-radius: 20px;
   border: 1px solid #bbbbbb;
@@ -1457,7 +1528,7 @@ export default {
 .video-card-list {
   background-color: #ffffff;
   border-radius: 10px;
-  padding: 5px 15px 15px 15px;
+  padding-top: 5px;
   box-sizing: border-box;
 }
 
@@ -1478,7 +1549,6 @@ export default {
 }
 
 .video-template {
-  width: 100%;
   height: 195px;
   margin-top: 7px;
   display: grid;
@@ -1488,6 +1558,8 @@ export default {
   grid-template-rows: 195px;
   gap: 15px;
   position: relative;
+  padding: 15px;
+  cursor: pointer;
 }
 
 .template-img {
@@ -1506,6 +1578,15 @@ export default {
   overflow: hidden;
   text-overflow: ellipsis;
   margin: 0 auto;
+}
+
+.selection-box {
+  position: absolute;
+  border: 1px dashed #409eff;
+  background-color: rgba(64, 158, 255, 0.1);
+  pointer-events: none;
+  z-index: 20;
+  transition: all 0.1s ease;
 }
 
 .voice-card {
