@@ -606,7 +606,6 @@ export default {
       },
       lastInput: '',
       actualRequest: '', // 实际发送给服务端的
-      // mentionList: [],
       mentionRanges: [],
       showDropdown: false,
       dropdownStyle: {
@@ -997,7 +996,6 @@ export default {
     initParams() {
       this.figure = JSON.parse(sessionStorage.getItem('figure')) || {}
       this.material_list = JSON.parse(sessionStorage.getItem('material_list')) || []
-      // this.mentionList = JSON.parse(sessionStorage.getItem('mention_list')) || []
       this.isMaterial = this.material_list.length > 0;
 
       this.topOffset = Number(sessionStorage.getItem('top_offset')) || 0
@@ -1299,26 +1297,18 @@ export default {
         this.figure = {}
         if (!this.material_list.includes(item.id)) {
           this.material_list.push(item.id)
-          // this.mentionList.push(item)
-          // console.log('mentionList1',this.mentionList)
         } else {
           if (shiftSelect) {
             return
           }
           this.material_list.splice(this.material_list.indexOf(item.id), 1)
-          // this.mentionList.splice(this.mentionList.indexOf(item), 1)
-          // console.log('mentionList2',this.mentionList)
         }
       } else {
         this.material_list = []
-        // this.mentionList = []
         this.figure = this.figure.id === item.id ? {} : item
       }
-      console.log('1',this.material_list)
-      console.log('2',this.mentionList)
       sessionStorage.setItem('figure', JSON.stringify(this.figure))
       sessionStorage.setItem('material_list', JSON.stringify(this.material_list))
-      // sessionStorage.setItem('mention_list', JSON.stringify(this.mentionList))
     },
     selectVoice(voice) {
       this.sound = voice
