@@ -6,6 +6,34 @@
   "description": "",
   "glyphs": [
     {
+      "icon_id": "1447728",
+      "name": "声音",
+      "font_class": "shengyin",
+      "unicode": "e614",
+      "unicode_decimal": 58900
+    },
+    {
+      "icon_id": "1447747",
+      "name": "静音",
+      "font_class": "jingyin",
+      "unicode": "e61d",
+      "unicode_decimal": 58909
+    },
+    {
+      "icon_id": "4182352",
+      "name": "AK-MN_声音无_fill",
+      "font_class": "jingyin_fill",
+      "unicode": "e601",
+      "unicode_decimal": 58881
+    },
+    {
+      "icon_id": "4182366",
+      "name": "AK-MN_声音_fill",
+      "font_class": "shengyin_fill",
+      "unicode": "e602",
+      "unicode_decimal": 58882
+    },
+    {
       "icon_id": "42492610",
       "name": "ze-bars 1",
       "font_class": "a-ze-bars1",

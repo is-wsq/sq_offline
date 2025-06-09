@@ -17,13 +17,28 @@
                ref="videoGrid">
             <div v-for="item in materials"
                  :key="item.id"
-                 style="border-radius: 10px; width: 130px"
+                 style="border-radius: 10px; width: 130px;position: relative"
                  @mousedown="onVideoItemMouseDown"
                  @click="selectMaterial(item, $event)"
                  :style="{ 'background-color': material_list.includes(item.id) ? '#e0e7fb' : '#FFFFFF' }"
                  ref="videoItems">
+<!--              <el-tag size="mini" style="position: absolute;top: 5px;left: 5px;z-index: 999">标签一</el-tag>-->
               <el-image class="template-img" :src="item.picture" fit="cover"></el-image>
-              <div class="template-name" :title="item.name">{{ item.name }}</div>
+              <div style="display: flex">
+                <div class="template-name" :title="item.name">{{ item.name }}</div>
+                <div style="line-height: 1.5;margin-right: 5px">
+                  <i class="el-icon-shengyin_fill"
+                     style="font-size: 16px; color: #6286ed;"
+                     @click.stop="addMute(item.id)"
+                     v-if="!mute_materials.includes(item.id)">
+                  </i>
+                  <i class="el-icon-jingyin_fill"
+                     style="font-size: 16px; color: #6286ed;"
+                     @click.stop="removeMute(item.id)"
+                     v-else>
+                  </i>
+                </div>
+              </div>
             </div>
             <!-- 选框元素 -->
             <div v-if="isSelecting"
@@ -43,7 +58,7 @@
                  @click="selectResource(item)"
                  :style="{ 'background-color': item.id === figure.id ? '#e0e7fb' : '#FFFFFF' }">
               <el-image class="template-img" :src="item.picture" fit="cover"></el-image>
-              <div class="template-name" :title="item.name">{{ item.name }}</div>
+              <div class="template-name" style="width: 120px !important" :title="item.name">{{ item.name }}</div>
             </div>
           </div>
         </div>
@@ -539,6 +554,7 @@ export default {
       isMaterial: false,
       isText: false,
       materials: [],
+      mute_materials: [],
       figures: [],
       figure: {},
       material_list: [],
@@ -997,6 +1013,7 @@ export default {
     initParams() {
       this.figure = JSON.parse(sessionStorage.getItem('figure')) || {}
       this.material_list = JSON.parse(sessionStorage.getItem('material_list')) || []
+      this.mute_materials = JSON.parse(sessionStorage.getItem('mute_materials')) || []
       this.isMaterial = this.material_list.length > 0;
 
       this.topOffset = Number(sessionStorage.getItem('top_offset')) || 0
@@ -1177,12 +1194,15 @@ export default {
         this.actualRequest = this.actualRequest.replace(item, `@{${this.material_list[index]}}`)
       })
 
+      let bool_list = this.material_list.map(item => this.mute_materials.includes(item))
+
       let name = this.setName()
       let background_colors = this.subtitleParams.background_color.replace(/rgba|\(|\)|\s/g, '').split(',');
       let name_background_colors = this.subtitleNameParams.name_background_color.replace(/rgba|\(|\)|\s/g, '').split(',');
       let params = {
         video_id: this.figure.video_id,
         material_list: this.material_list,
+        bool_list: bool_list,
         voice_id: this.sound.voice_id,
         bgm_id: this.bgm.id,
         bg_volume: this.bg_volume,
@@ -1258,6 +1278,14 @@ export default {
           type: "error",
         });
       }
+    },
+    addMute(id) {
+      this.mute_materials.push(id)
+      sessionStorage.setItem("mute_materials", JSON.stringify(this.mute_materials))
+    },
+    removeMute(id) {
+      this.mute_materials = this.mute_materials.filter(item => item !== id)
+      sessionStorage.setItem("mute_materials", JSON.stringify(this.mute_materials))
     },
     selectMaterial(item, event) {
       if (this.isSelecting || !this.isVideoItemClick) {
@@ -1564,7 +1592,7 @@ export default {
 .template-name {
   font-size: 15px;
   color: #1e1f20;
-  width: 120px;
+  width: 100px;
   text-align: center;
   white-space: nowrap;
   overflow: hidden;
