@@ -11,10 +11,15 @@ export const EnhancedChoiceMixin = {
             selectionTop: 0,   // 选框上边界
             selectionWidth: 0, // 选框宽度
             selectionHeight: 0, // 选框高度
-            initial_material_list: []
+            initial_material_list: [],
+            selectingThreshold: 10, // 新增：框选最小移动阈值（像素）
+            isVideoItemClick: false // 新增：标记是否为视频项点击
         }
     },
     methods: {
+        onVideoItemMouseDown() {
+            this.isVideoItemClick = true; // 初始化为点击
+        },
         startSelection(event) {
             if (event.button !== 0) {
                 return
@@ -51,14 +56,27 @@ export const EnhancedChoiceMixin = {
             const currentX = event.clientX - rect.left
             const currentY = event.clientY - rect.top - 30 + container.scrollTop
 
-            // 计算选框位置和大小（考虑任意方向）
-            this.selectionLeft = Math.min(this.initialX, currentX)
-            this.selectionTop = Math.min(this.initialY, currentY)
-            this.selectionWidth = Math.abs(currentX - this.initialX)
-            this.selectionHeight = Math.abs(currentY - this.initialY)
+            // 计算位移距离
+            const distance = Math.sqrt(
+                Math.pow(currentX - this.initialX, 2) +
+                Math.pow(currentY - this.initialY, 2)
+            );
 
-            // 更新选中项
-            this.updateSelectedItems()
+            // 只有当移动超过阈值时，才认为是真正的框选
+            if (distance >= this.selectingThreshold) {
+                // 阻止点击事件
+                event.preventDefault();
+                event.stopPropagation();
+                this.isVideoItemClick = false
+                // 计算选框位置和大小（考虑任意方向）
+                this.selectionLeft = Math.min(this.initialX, currentX)
+                this.selectionTop = Math.min(this.initialY, currentY)
+                this.selectionWidth = Math.abs(currentX - this.initialX)
+                this.selectionHeight = Math.abs(currentY - this.initialY)
+
+                // 更新选中项
+                this.updateSelectedItems()
+            }
         },
 
         // 结束框选

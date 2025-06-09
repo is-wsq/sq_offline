@@ -18,7 +18,8 @@
             <div v-for="item in materials"
                  :key="item.id"
                  style="border-radius: 10px; width: 130px"
-                 @click.stop="selectMaterial(item, $event)"
+                 @mousedown="onVideoItemMouseDown"
+                 @click="selectMaterial(item, $event)"
                  :style="{ 'background-color': material_list.includes(item.id) ? '#e0e7fb' : '#FFFFFF' }"
                  ref="videoItems">
               <el-image class="template-img" :src="item.picture" fit="cover"></el-image>
@@ -1259,7 +1260,8 @@ export default {
       }
     },
     selectMaterial(item, event) {
-      if (this.isSelecting) {
+      if (this.isSelecting || !this.isVideoItemClick) {
+        event.stopPropagation()
         return
       }
       const isShiftKey = event.shiftKey
