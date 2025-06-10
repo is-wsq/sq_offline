@@ -33,7 +33,7 @@ export const EnhancedChoiceMixin = {
             const container = this.$refs.videoGrid
             const rect = this.$el.getBoundingClientRect()
             this.initialX = event.clientX - rect.left
-            this.initialY = event.clientY - rect.top - 30 + container.scrollTop
+            this.initialY = event.clientY - rect.top - 50 + container.scrollTop
 
             // 初始化选框位置和大小
             this.selectionLeft = this.initialX
@@ -54,7 +54,7 @@ export const EnhancedChoiceMixin = {
             const container = this.$refs.videoGrid
             const rect = this.$el.getBoundingClientRect()
             const currentX = event.clientX - rect.left
-            const currentY = event.clientY - rect.top - 30 + container.scrollTop
+            const currentY = event.clientY - rect.top - 50 + container.scrollTop
 
             // 计算位移距离
             const distance = Math.sqrt(
@@ -108,9 +108,9 @@ export const EnhancedChoiceMixin = {
                 // 计算相对于容器的位置
                 const itemRect = {
                     left: rect.left - containerRect.left,
-                    top: rect.top - containerRect.top - 30 + container.scrollTop,
+                    top: rect.top - containerRect.top - 50 + container.scrollTop,
                     right: rect.right - containerRect.left,
-                    bottom: rect.bottom - containerRect.top - 30 + container.scrollTop
+                    bottom: rect.bottom - containerRect.top - 50 + container.scrollTop
                 }
 
                 // 判断矩形是否重叠
