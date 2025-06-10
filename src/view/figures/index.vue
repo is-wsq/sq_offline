@@ -72,20 +72,7 @@
     </div>
     <div style="display: flex;margin-top: 30px;gap: 100px">
       <div style="text-align: end;flex: 1">
-        <el-upload
-            class="avatar-uploader"
-            action="http://127.0.0.1:6006/figure/clone_only"
-            :show-file-list="false"
-            accept=".mp4, .mov"
-            multiple
-            :on-success="uploadMaterialsSuccess"
-            :on-error="uploadMaterialsError"
-            :before-upload="beforeUpload"
-            :on-progress="handleFileChange"
-            :file-list.sync="MaterialList"
-            :data="{ lip_sync: false }">
-          <el-button type="primary">上传素材</el-button>
-        </el-upload>
+        <el-button type="primary" @click="uploadDialogVisible = true">上传素材</el-button>
       </div>
       <div style="flex: 1">
         <el-upload
@@ -101,7 +88,33 @@
         </el-upload>
       </div>
     </div>
-    <el-dialog :visible.sync="dialogVisible" :before-close="beforeClose" :width="aspectRatio > 1? '640px' : '390px'">
+    <el-dialog class="upload-dialog" :visible.sync="uploadDialogVisible" width="800px" title="上传素材" :before-close="beforeUploadClose">
+      <el-upload
+          drag
+          ref="materialUpload"
+          class="material-uploader"
+          style="width: 100%"
+          action="http://127.0.0.1:6006/figure/clone_only"
+          accept=".mp4, .mov"
+          :on-success="uploadMaterialsSuccess"
+          :on-error="uploadMaterialsError"
+          :before-upload="beforeUpload"
+          :on-progress="handleFileChange"
+          :file-list.sync="materialList"
+          :data="{ lip_sync: true, tag: tag }"
+          :auto-upload="false"
+          multiple>
+        <i class="el-icon-upload"></i>
+        <div class="el-upload__text">将文件拖到此处，或<em>点击上传</em></div>
+      </el-upload>
+      <div style="margin: 20px 0 10px 0;font-size: 15px;font-weight: bold">标签</div>
+      <el-input v-model="tag" placeholder="多标签使用逗号(，)分隔，用于匹配搜索"></el-input>
+      <span slot="footer" class="dialog-footer">
+        <el-button @click="uploadDialogVisible = false" size="small">取消</el-button>
+        <el-button type="primary" @click="handleSubmit" size="small">确认上传</el-button>
+      </span>
+    </el-dialog>
+    <el-dialog class="preview-dialog" :visible.sync="dialogVisible" :before-close="beforeClose" :width="aspectRatio > 1? '640px' : '390px'">
       <div style="width: 100%;text-align: center;position: relative">
         <video style="border-radius: 10px;width: calc(100% - 40px)"
                ref="video"
@@ -143,6 +156,8 @@ export default {
   mixins: [RightMenuMixin],
   data() {
     return {
+      uploadDialogVisible: false,
+      tag: '',
       dialogVisible: false,
       drawer: false,
       src: "",
@@ -153,7 +168,7 @@ export default {
       dotCount: 1,
       dotTimer: null,
       dot: '.',
-      MaterialList: [],
+      materialList: [],
       response_list: [],
     };
   },
@@ -180,6 +195,13 @@ export default {
     clearInterval(this.dotTimer);
   },
   methods: {
+    beforeUploadClose() {
+      this.materialList = []
+      this.uploadDialogVisible = false
+    },
+    handleSubmit() {
+      this.$refs.materialUpload.submit()
+    },
     startDotAnimation() {
       this.dotTimer = setInterval(() => {
         this.dotCount = this.dotCount % 3 + 1;
@@ -276,11 +298,11 @@ export default {
       })
     },
     handleFileChange(event, file, fileList) {
-      this.MaterialList = fileList;
+      this.materialList = fileList;
     },
     uploadMaterialsError(file) {
       this.response_list.push({name: file.name, status: "failed", msg: "上传失败"})
-      if (this.response_list.length === this.MaterialList.length) {
+      if (this.response_list.length === this.materialList.length) {
         let success = this.response_list.filter(item => item.status === "success").map(res => res.name);
         let failed = this.response_list.filter(item => item.status === "failed")
         let content = ''
@@ -292,14 +314,14 @@ export default {
           })
         }
         this.response_list = [];
-        this.MaterialList = [];
+        this.materialList = [];
         this.$alert(content, "任务创建提醒");
       }
     },
     uploadMaterialsSuccess(res, file) {
       if (res.status === "success") {
         this.response_list.push({name: file.name, status: "success"})
-        if (this.response_list.length === this.MaterialList.length) {
+        if (this.response_list.length === this.materialList.length) {
           let success = this.response_list.filter(item => item.status === "success").map(res => res.name);
           let failed = this.response_list.filter(item => item.status === "failed")
           let content = ''
@@ -311,13 +333,14 @@ export default {
             })
           }
           this.response_list = [];
-          this.MaterialList = [];
+          this.materialList = [];
           this.$alert(content, "任务创建提醒");
+          this.uploadDialogVisible = false
         }
         this.$store.dispatch("task/pollFigureTasks");
       } else {
         this.response_list.push({name: file.name, status: "failed", msg: res.message})
-        if (this.response_list.length === this.MaterialList.length) {
+        if (this.response_list.length === this.materialList.length) {
           let success = this.response_list.filter(item => item.status === "success").map(res => res.name);
           let failed = this.response_list.filter(item => item.status === "failed")
           let content = ''
@@ -329,7 +352,7 @@ export default {
             })
           }
           this.response_list = [];
-          this.MaterialList = [];
+          this.materialList = [];
           this.$alert(content, "任务创建提醒");
         }
       }
@@ -372,12 +395,12 @@ export default {
   text-overflow: ellipsis;
 }
 
-.figures >>> .el-dialog {
+.preview-dialog >>> .el-dialog {
   background-color: #79777700 !important;
   box-shadow: none !important;
 }
 
-.figures >>> .el-dialog__headerbtn .el-dialog__close {
+.preview-dialog >>> .el-dialog__headerbtn .el-dialog__close {
   font-size: 24px;
   color: #9a9a9a;
 }
@@ -439,5 +462,22 @@ export default {
   height: 80px;
   margin-top: 20px;
   color: #6d7177;
+}
+
+.upload-dialog >>> .el-dialog__body {
+  padding-top: 10px !important;
+}
+
+.material-uploader >>> .el-upload {
+  width: 100%;
+}
+
+.material-uploader >>> .el-upload-dragger {
+  width: 100%;
+}
+
+.material-uploader >>> .el-upload-list {
+  max-height: 80px;
+  overflow: auto;
 }
 </style>

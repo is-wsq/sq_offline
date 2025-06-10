@@ -6,6 +6,13 @@
           <div style="display: flex;margin-left: 5px">
             <div class="tab-item" :class="{ 'tab-item-active': !isMaterial }" @click="isMaterial = false">数字人</div>
             <div class="tab-item" :class="{ 'tab-item-active': isMaterial }" @click="isMaterial = true">素材</div>
+            <el-select v-model="search_tag" multiple collapse-tags placeholder="请选择"
+                       v-if="isMaterial" style="margin-left: 50px;margin-top: 2px">
+              <el-option v-for="item in tags" :key="item" :label="item" :value="item">
+              </el-option>
+            </el-select>
+            <el-button type="primary" size="mini" @click="filterMaterials" v-if="isMaterial"
+                       style="height: 30px;margin-left: 5px;margin-top: 2px">筛选</el-button>
           </div>
 <!--          <el-switch :width="50" v-model="isMaterial" active-text="素材" inactive-text="数字人"></el-switch>-->
           <div class="video-template"
@@ -15,14 +22,16 @@
                @mouseleave="endSelection"
                v-if="isMaterial"
                ref="videoGrid">
-            <div v-for="item in materials"
+            <div v-for="item in filter_materials"
                  :key="item.id"
                  style="border-radius: 10px; width: 130px;position: relative"
                  @mousedown="onVideoItemMouseDown"
                  @click="selectMaterial(item, $event)"
                  :style="{ 'background-color': material_list.includes(item.id) ? '#e0e7fb' : '#FFFFFF' }"
                  ref="videoItems">
-<!--              <el-tag size="mini" style="position: absolute;top: 5px;left: 5px;z-index: 999">标签一</el-tag>-->
+              <div style="position: absolute;top: 5px;left: 5px;z-index: 999" v-if="item.tag">
+                <el-tag size="mini" v-for="tag in item.tag.split(/[,，]/)" :key="tag" v-if="tag">{{ tag }}</el-tag>
+              </div>
               <el-image class="template-img" :src="item.picture" fit="cover"></el-image>
               <div style="display: flex">
                 <div class="template-name" :title="item.name">{{ item.name }}</div>
@@ -553,7 +562,9 @@ export default {
       templates: [],
       isMaterial: false,
       isText: false,
+      search_tag: [],
       materials: [],
+      filter_materials: [],
       mute_materials: [],
       figures: [],
       figure: {},
@@ -704,6 +715,15 @@ export default {
       return this.materials.filter(item => this.material_list.includes(item.id))
           .sort((a, b) => this.material_list.indexOf(a.id) - this.material_list.indexOf(b.id))
     },
+    tags() {
+      const tagSet = new Set();
+      this.materials.forEach(item => {
+        if (item.tag) {
+          item.tag.split(/[,，]/).forEach(tag => tagSet.add(tag));
+        }
+      });
+      return Array.from(tagSet);
+    },
     highlightedText() {
       // 使用正则替换所有 @人名 为高亮样式
       let result = this.montageForm.request;
@@ -733,6 +753,11 @@ export default {
     document.removeEventListener('click', this.handleClickOutside);
   },
   methods: {
+    filterMaterials() {
+      this.filter_materials = this.materials.filter(item => {
+        return item.tag && item.tag.split(/[,，]/).some(tag => this.search_tag.includes(tag));
+      })
+    },
     updateSubtitleSetting() {
       this.subtitleSetting = this.subtitleSetting.length === 0? ['1'] : []
     },
@@ -1079,6 +1104,7 @@ export default {
           // })
           if (data.length > 0) {
             this.materials = data.filter(item => !item.lip_sync && item.status === "success");
+            this.filter_materials = this.materials
             this.figures = data.filter(item => item.lip_sync && item.status === "success");
           }
         }
@@ -1548,7 +1574,7 @@ export default {
 .video-card-list {
   background-color: #ffffff;
   border-radius: 10px;
-  padding-top: 5px;
+  padding-top: 10px;
   box-sizing: border-box;
 }
 
