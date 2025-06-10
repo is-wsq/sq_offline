@@ -12,9 +12,9 @@
               </el-option>
             </el-select>
             <el-button type="primary" size="mini" @click="filterMaterials" v-if="isMaterial"
-                       style="height: 30px;margin-left: 5px;margin-top: 2px">筛选</el-button>
+                       style="height: 30px;margin-left: 5px;margin-top: 2px">筛选
+            </el-button>
           </div>
-<!--          <el-switch :width="50" v-model="isMaterial" active-text="素材" inactive-text="数字人"></el-switch>-->
           <div class="video-template"
                @mousedown="startSelection"
                @mousemove="updateSelection"
@@ -32,7 +32,14 @@
               <div style="position: absolute;top: 5px;left: 5px;z-index: 999" v-if="item.tag">
                 <el-tag size="mini" v-for="tag in item.tag.split(/[,，]/)" :key="tag" v-if="tag">{{ tag }}</el-tag>
               </div>
-              <el-image class="template-img" :src="item.picture" fit="cover"></el-image>
+              <el-popover placement="right" trigger="hover" :content="''" @show="item.previewing = true"
+                          @hide="item.previewing = false" :disabled="isSelecting"
+                          popper-class="video-preview-popover" :open-delay="1000" :close-delay="300">
+                <el-image slot="reference" class="template-img" :src="item.picture" fit="cover"></el-image>
+                <video :src="item.filepath" loop muted autoplay style="min-width: 150px" height="180"
+                       @mouseenter="handleVideoMouseEnter" @mouseleave="handleVideoMouseLeave" v-if="item.previewing">
+                </video>
+              </el-popover>
               <div style="display: flex">
                 <div class="template-name" :title="item.name">{{ item.name }}</div>
                 <div style="line-height: 1.5;margin-right: 5px">
@@ -50,15 +57,14 @@
               </div>
             </div>
             <!-- 选框元素 -->
-            <div v-if="isSelecting"
-                class="selection-box"
-                :style="{
-                  left: `${selectionLeft}px`,
-                  top: `${selectionTop}px`,
-                  width: `${selectionWidth}px`,
-                  height: `${selectionHeight}px`
-                }"
-            ></div>
+            <div v-if="isSelecting" class="selection-box"
+                 :style="{
+                    left: `${selectionLeft}px`,
+                    top: `${selectionTop}px`,
+                    width: `${selectionWidth}px`,
+                    height: `${selectionHeight}px`
+                 }">
+            </div>
           </div>
           <div class="video-template" v-else>
             <div v-for="item in figures"
@@ -66,7 +72,14 @@
                  style="border-radius: 10px; width: 130px"
                  @click="selectResource(item)"
                  :style="{ 'background-color': item.id === figure.id ? '#e0e7fb' : '#FFFFFF' }">
-              <el-image class="template-img" :src="item.picture" fit="cover"></el-image>
+              <el-popover placement="right" trigger="hover" :content="''" @show="item.previewing = true"
+                          @hide="item.previewing = false"
+                          popper-class="video-preview-popover" :open-delay="1000" :close-delay="300">
+                <el-image slot="reference" class="template-img" :src="item.picture" fit="cover"></el-image>
+                <video :src="item.filepath" loop muted autoplay style="min-width: 150px" height="180"
+                       @mouseenter="handleVideoMouseEnter" @mouseleave="handleVideoMouseLeave" v-if="item.previewing">
+                </video>
+              </el-popover>
               <div class="template-name" style="width: 120px !important" :title="item.name">{{ item.name }}</div>
             </div>
           </div>
@@ -364,7 +377,8 @@
                 <template slot-scope="scope">
                   <div style="position: relative;width: 100%;cursor: pointer" title="点击行可编辑">
                     <div>{{ scope.$index + 1 }}</div>
-                    <div class="warning" title="已开启字幕标题设置，口播标题不能为空" v-if="withTitle && !scope.row.title">
+                    <div class="warning" title="已开启字幕标题设置，口播标题不能为空"
+                         v-if="withTitle && !scope.row.title">
                       <i class="el-icon-info" style="color: red;font-size: 16px"></i>
                     </div>
                   </div>
@@ -399,7 +413,8 @@
       <div style="height: 50px;display: flex;align-items: center;">
         <el-switch :width="50" v-model="montage" @change="switchMontage" inactive-text="AI混剪"></el-switch>
         <div style="margin: 0 20px;width: 80px">
-          <span style="font-size: 13px;color: #409EFF;cursor: pointer" @click="openMontageDialog" v-if="montage">混剪配置</span>
+          <span style="font-size: 13px;color: #409EFF;cursor: pointer" @click="openMontageDialog"
+                v-if="montage">混剪配置</span>
         </div>
         <el-switch :width="50" v-model="reverse" @change="switchReverse" inactive-text="视频倒序循环"
                    style="margin-right: 50px"></el-switch>
@@ -753,13 +768,20 @@ export default {
     document.removeEventListener('click', this.handleClickOutside);
   },
   methods: {
+    handleVideoMouseEnter(event) {
+      event.stopPropagation();
+    },
+    handleVideoMouseLeave(event) {
+      event.stopPropagation();
+    },
+
     filterMaterials() {
       this.filter_materials = this.materials.filter(item => {
         return item.tag && item.tag.split(/[,，]/).some(tag => this.search_tag.includes(tag));
       })
     },
     updateSubtitleSetting() {
-      this.subtitleSetting = this.subtitleSetting.length === 0? ['1'] : []
+      this.subtitleSetting = this.subtitleSetting.length === 0 ? ['1'] : []
     },
     onMouseDown(type, event) {
       this.dragging = true;
@@ -1103,9 +1125,13 @@ export default {
           //   item.picture = item.picture.replace('127.0.0.1', '192.168.0.108')
           // })
           if (data.length > 0) {
-            this.materials = data.filter(item => !item.lip_sync && item.status === "success");
+            this.materials = data.filter(item => !item.lip_sync && item.status === "success").map(item => ({
+              ...item, previewing: false
+            }))
             this.filter_materials = this.materials
-            this.figures = data.filter(item => item.lip_sync && item.status === "success");
+            this.figures = data.filter(item => item.lip_sync && item.status === "success").map(item => ({
+              ...item, previewing: false
+            }))
           }
         }
       }).catch((error) => {
@@ -1568,7 +1594,7 @@ export default {
 }
 
 .title-column {
-  border:  none !important;
+  border: none !important;
 }
 
 .video-card-list {
@@ -1613,6 +1639,11 @@ export default {
   height: 160px;
   margin: 5px;
   border-radius: 10px;
+  transition: transform 0.2s ease;
+}
+
+.template-img:hover {
+  transform: scale(1.05);
 }
 
 .template-name {
