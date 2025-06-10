@@ -26,6 +26,8 @@
                  :key="item.id"
                  style="border-radius: 10px; width: 130px;position: relative"
                  @mousedown="onVideoItemMouseDown"
+                 @mouseleave="onMouseLeave"
+                 @mouseenter="onMouseEnter"
                  @click="selectMaterial(item, $event)"
                  :style="{ 'background-color': material_list.includes(item.id) ? '#e0e7fb' : '#FFFFFF' }"
                  ref="videoItems">
@@ -33,11 +35,11 @@
                 <el-tag size="mini" v-for="tag in item.tag.split(/[,，]/)" :key="tag" v-if="tag">{{ tag }}</el-tag>
               </div>
               <el-popover placement="right" trigger="hover" :content="''" @show="item.previewing = true"
-                          @hide="item.previewing = false" :disabled="isSelecting"
+                          @hide="item.previewing = false" :disabled="isSelecting || !shouldShowPopover"
                           popper-class="video-preview-popover" :open-delay="1000" :close-delay="300">
                 <el-image slot="reference" class="template-img" :src="item.picture" fit="cover"></el-image>
                 <video :src="item.filepath" loop muted autoplay style="min-width: 150px" height="180"
-                       @mouseenter="handleVideoMouseEnter" @mouseleave="handleVideoMouseLeave" v-if="item.previewing">
+                       v-if="item.previewing">
                 </video>
               </el-popover>
               <div style="display: flex">
@@ -723,6 +725,7 @@ export default {
       startY: 0,
       topOffset: 0,
       bottomOffset: 100,
+      shouldShowPopover: false
     };
   },
   computed: {
@@ -768,13 +771,14 @@ export default {
     document.removeEventListener('click', this.handleClickOutside);
   },
   methods: {
-    handleVideoMouseEnter(event) {
-      event.stopPropagation();
+    onMouseLeave() {
+      this.shouldShowPopover = false;
     },
-    handleVideoMouseLeave(event) {
-      event.stopPropagation();
+    onMouseEnter() {
+      if (!this.isSelecting) {
+        this.shouldShowPopover = true;
+      }
     },
-
     filterMaterials() {
       this.filter_materials = this.materials.filter(item => {
         return item.tag && item.tag.split(/[,，]/).some(tag => this.search_tag.includes(tag));
