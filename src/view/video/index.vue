@@ -798,20 +798,28 @@ export default {
       this.startY = event.clientY;
 
       const containerHeight = this.$refs.container.clientHeight;
-      const titleHeight = this.$refs.titleContainer.clientHeight;
-      const contentHeight = this.$refs.contentContainer.clientHeight;
+      const titleHeight = this.$refs.titleContainer?this.$refs.titleContainer.clientHeight:0;
+      const contentHeight = this.$refs.contentContainer?this.$refs.contentContainer.clientHeight:0;
 
       if (this.draggingType === 'top') {
         let newTop = this.topOffset + deltaY;
-        newTop = Math.max(0, Math.min(this.bottomOffset - titleHeight, newTop));
+        if (this.$refs.contentContainer) {
+          newTop = Math.max(0, Math.min(this.bottomOffset - titleHeight, newTop));
+        }else {
+          newTop = Math.max(0, newTop);
+        }
         this.topOffset = newTop;
         this.updateTitleTextStyle()
       }
 
       if (this.draggingType === 'bottom') {
         let newBottom = this.bottomOffset + deltaY;
-        newBottom = Math.max(this.topOffset + titleHeight,
-            Math.min(containerHeight - contentHeight, newBottom));
+        if (this.$refs.titleContainer) {
+          newBottom = Math.max(this.topOffset + titleHeight,
+              Math.min(containerHeight - contentHeight, newBottom));
+        } else {
+          newBottom = Math.max(titleHeight,Math.min(containerHeight - contentHeight, newBottom));
+        }
         this.bottomOffset = newBottom;
         this.updateTextStyle()
       }
