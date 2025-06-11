@@ -6,6 +6,41 @@
   "description": "",
   "glyphs": [
     {
+      "icon_id": "8679530",
+      "name": "上传",
+      "font_class": "shangchuan",
+      "unicode": "e63b",
+      "unicode_decimal": 58939
+    },
+    {
+      "icon_id": "36425288",
+      "name": "数字人",
+      "font_class": "koboshuzr",
+      "unicode": "e870",
+      "unicode_decimal": 59504
+    },
+    {
+      "icon_id": "39608575",
+      "name": "剪刀剪切裁剪",
+      "font_class": "jiandao",
+      "unicode": "e672",
+      "unicode_decimal": 58994
+    },
+    {
+      "icon_id": "21339584",
+      "name": "混剪",
+      "font_class": "hunjian",
+      "unicode": "e632",
+      "unicode_decimal": 58930
+    },
+    {
+      "icon_id": "19975831",
+      "name": "爆款好物_爆款好物",
+      "font_class": "baokuan",
+      "unicode": "e64a",
+      "unicode_decimal": 58954
+    },
+    {
       "icon_id": "1447728",
       "name": "声音",
       "font_class": "shengyin",
@@ -67,13 +102,6 @@
       "font_class": "figure",
       "unicode": "e693",
       "unicode_decimal": 59027
-    },
-    {
-      "icon_id": "37054442",
-      "name": "数字人",
-      "font_class": "shuziren",
-      "unicode": "e6ba",
-      "unicode_decimal": 59066
     },
     {
       "icon_id": "39192512",
