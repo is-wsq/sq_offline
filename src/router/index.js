@@ -6,7 +6,9 @@ import Register from '../view/login/Register.vue';
 import ai from '../view/ai/index.vue';
 import figures from '../view/figures/index.vue';
 import voice from '../view/voice/index.vue';
-import video from '../view/video/index.vue';
+import video from '../view/video/home.vue';
+import digitalHuman from '../view/video/index.vue';
+import hot from '../view/video/hot.vue';
 import videoList from '../view/video/list.vue';
 import system from '../view/system/index.vue';
 import agreement from '../view/system/agreement.vue';
@@ -33,6 +35,16 @@ const routes = [
         path: '/video',
         name: 'video',
         component: video
+    },
+    {
+        path: '/digitalHuman',
+        name: 'digitalHuman',
+        component: digitalHuman
+    },
+    {
+        path: '/hot',
+        name: 'hot',
+        component: hot
     },
     {
         path: '/videoList',

@@ -72,13 +72,16 @@ export default {
       this.$router.push({path: path})
     },
     updateActiveFromRoute() {
+      if (this.$route.path === '/digitalHuman' || this.$route.path === '/hot') {
+        this.active = 3;
+        return;
+      }
       for (let i = 0; i < this.menus.length; i++) {
         if (this.$route.path === this.menus[i].path) {
           this.active = i;
           break;
         }
       }
-      console.log('跳转后的active', this.active)
     },
   },
   beforeRouteUpdate(to, from, next) {

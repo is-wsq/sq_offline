@@ -1,6 +1,6 @@
 <template>
   <div class="hot">
-    <el-button type="text" class="back-btn">
+    <el-button type="text" class="back-btn" @click="$router.push({path: '/video'})">
       <i class="el-icon-arrow-left" style="font-size: 20px;"></i>
     </el-button>
     <div class="box-card">

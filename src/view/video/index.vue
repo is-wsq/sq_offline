@@ -1,5 +1,8 @@
 <template>
   <div class="video">
+    <el-button type="text" class="back-btn" @click="$router.push({path: '/video'})">
+      <i class="el-icon-arrow-left" style="font-size: 20px;"></i>
+    </el-button>
     <div class="video-left">
       <div class="video-header">
         <div class="video-card-list">
@@ -1535,6 +1538,25 @@ export default {
   overflow: auto;
   display: flex;
   align-items: flex-start;
+  padding-top: 45px;
+  box-sizing: border-box;
+  position: relative;
+}
+
+.back-btn {
+  padding: 7px;
+  border-radius: 50%;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+  color: #a2a8b3;
+  background-color: #FFFFFF;
+  margin: 0 0 8px;
+  position: absolute;
+  top: 0;
+  left: 0;
+}
+
+.back-btn:hover {
+  color: #1F2937 !important;
 }
 
 .video-left {
@@ -1818,7 +1840,7 @@ export default {
 
 .text-card {
   width: 100%;
-  height: calc(100vh - 620px);
+  height: calc(100vh - 630px);
   margin-top: 10px;
   min-height: 227px;
   background-color: #ffffff;
@@ -1839,7 +1861,6 @@ export default {
 .generate-btn {
   width: 126px;
   border-radius: 4px;
-  margin-top: 15px;
   margin-left: calc(50% - 63px);
 }
 

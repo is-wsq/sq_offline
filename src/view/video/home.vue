@@ -12,7 +12,7 @@
           class="feature-card"
           shadow="hover"
       >
-        <div class="feature-card-content">
+        <div class="feature-card-content" @click="gotoPage(item.path)">
           <div :class="['card-icon', item.iconClass]">
             <i :class="item.icon"></i>
           </div>
@@ -37,7 +37,8 @@ export default {
           title: "数字人口播",
           icon: "el-icon-koboshuzr",
           iconClass: "icon-digital-human",
-          description: "上传文本或音频，选择您的数字分身，一键生成高质量的口播视频。"
+          description: "上传文本或音频，选择您的数字分身，一键生成高质量的口播视频。",
+          path: "/digitalHuman"
         },
         {
           title: "AI 混剪",
@@ -49,12 +50,18 @@ export default {
           title: "爆款复刻",
           icon: "el-icon-baokuan",
           iconClass: "icon-viral-remake",
-          description: "粘贴热门视频链接进行分析，AI 自动学习其风格，助您轻松创作同款爆款。"
+          description: "粘贴热门视频链接进行分析，AI 自动学习其风格，助您轻松创作同款爆款。",
+          path: "/hot"
         }
       ]
     };
   },
-  methods: {}
+  methods: {
+    gotoPage(path) {
+      if (path)
+        this.$router.push({path: path})
+    }
+  }
 };
 </script>
 
