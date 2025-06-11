@@ -197,6 +197,7 @@ export default {
   methods: {
     beforeUploadClose() {
       this.materialList = []
+      this.tag = ''
       this.uploadDialogVisible = false
     },
     handleSubmit() {

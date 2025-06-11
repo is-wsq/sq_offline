@@ -31,8 +31,8 @@
                  @click="selectMaterial(item, $event)"
                  :style="{ 'background-color': material_list.includes(item.id) ? '#e0e7fb' : '#FFFFFF' }"
                  ref="videoItems">
-              <div style="position: absolute;top: 5px;left: 5px;z-index: 999" v-if="item.tag">
-                <el-tag size="mini" v-for="tag in item.tag.split(/[,，]/)" :key="tag" v-if="tag">{{ tag }}</el-tag>
+              <div class="template-tag" v-if="item.tag">
+                <el-tag class="tag-item" size="mini" v-for="tag in item.tag.split(/[,，]/)" :key="tag" v-if="tag">{{ tag }}</el-tag>
               </div>
               <el-popover placement="right" trigger="hover" :content="''" @show="item.previewing = true"
                           @hide="item.previewing = false" :disabled="isSelecting || !shouldShowPopover"
@@ -780,6 +780,10 @@ export default {
       }
     },
     filterMaterials() {
+      if (this.search_tag.length === 0) {
+        this.filter_materials = this.materials;
+        return;
+      }
       this.filter_materials = this.materials.filter(item => {
         return item.tag && item.tag.split(/[,，]/).some(tag => this.search_tag.includes(tag));
       })
@@ -1644,6 +1648,25 @@ export default {
   position: relative;
   padding: 15px;
   cursor: pointer;
+}
+
+.template-tag {
+  position: absolute;
+  top: 5px;
+  left: 5px;
+  z-index: 999;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 3px;
+}
+
+.tag-item {
+  background-color: #3b82f6;
+  color: #FFFFFF;
+  border: 1px solid #3b82f6;
+  height: 20px;
+  line-height: 20px;
+  padding: 0 5px;
 }
 
 .template-img {
