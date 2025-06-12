@@ -1,6 +1,6 @@
 <template>
   <div class="video">
-    <el-button type="text" class="back-btn" @click="$router.push({path: '/video'})">
+    <el-button type="text" class="back-btn" @click="$router.go(-1)">
       <i class="el-icon-arrow-left" style="font-size: 20px;"></i>
     </el-button>
     <div class="video-left">

@@ -1,6 +1,6 @@
 <template>
   <div class="hot">
-    <el-button type="text" class="back-btn" @click="$router.push({path: '/video'})">
+    <el-button type="text" class="back-btn" @click="$router.go(-1)">
       <i class="el-icon-arrow-left" style="font-size: 20px;"></i>
     </el-button>
     <div class="box-card">
@@ -54,20 +54,20 @@
         <i class="el-icon-upload"></i>
         <div class="el-upload__text">将文件拖到此处，或<em>点击上传</em></div>
       </el-upload>
-      <div style="margin: 20px 0 10px 0;font-size: 15px;font-weight: bold">标题</div>
+      <div style="margin: 10px 0 5px 0;font-size: 15px;font-weight: bold">标题</div>
       <el-input v-model="title" placeholder="请输入视频标题"></el-input>
-      <div style="margin: 20px 0 10px 0;font-size: 15px;font-weight: bold">分类</div>
+      <div style="margin: 10px 0 5px 0;font-size: 15px;font-weight: bold">分类</div>
       <div class="classifies">
         <el-tag v-for="(tag, index) in classifies" :key="index" size="small" class="tag"
                 :class="{ 'tag-active': tag === classify }" @click="classify = tag">
           {{ tag }}
         </el-tag>
       </div>
-      <div style="margin: 20px 0 10px 0;font-size: 15px;font-weight: bold">标签</div>
+      <div style="margin: 10px 0 5px 0;font-size: 15px;font-weight: bold">标签</div>
       <el-input v-model="tag" placeholder="多标签使用逗号(，)分隔，用于匹配搜索"></el-input>
       <span slot="footer" class="dialog-footer">
-        <el-button @click="uploadDialogVisible = false" size="small">取消</el-button>
-        <el-button type="primary" @click="handleSubmit" size="small">确认上传</el-button>
+        <el-button @click="uploadDialogVisible = false" size="small" style="border-radius: 6px">取消</el-button>
+        <el-button type="primary" @click="handleSubmit" size="small" style="border-radius: 6px">确认上传</el-button>
       </span>
     </el-dialog>
   </div>
@@ -254,8 +254,21 @@ export default {
   border-radius: 8px;
 }
 
+.upload-dialog >>> .el-dialog {
+  border-radius: 10px;
+}
+
+.upload-dialog >>> .el-dialog__title {
+  font-weight: 700;
+}
+
+.upload-dialog >>> .el-dialog__close {
+  color: #9ca3af;
+  font-size: 24px;
+}
+
 .upload-dialog >>> .el-dialog__body {
-  padding-top: 10px !important;
+  padding: 10px 20px !important;
 }
 
 .video-uploader >>> .el-upload {
@@ -264,6 +277,11 @@ export default {
 
 .video-uploader >>> .el-upload-dragger {
   width: 100%;
+  height: 145px;
+}
+
+.video-uploader >>> .el-icon-upload {
+  margin: 30px 0 16px;
 }
 
 .video-uploader >>> .el-upload-list {
