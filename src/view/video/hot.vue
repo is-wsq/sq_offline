@@ -23,7 +23,7 @@
         </div>
         <div v-for="(video, index) in videos" :key="index" class="video-card" @mouseleave="video.isHover = false"
              @mouseenter="video.isHover = true">
-          <el-image style="width: 100%; height: 100%;" :src="`https://picsum.photos/seed/video${video.id}/300/200`" fit="cover">
+          <el-image style="width: 100%; height: 100%;border-radius: 8px;" :src="`https://picsum.photos/seed/video${video.id}/300/200`" fit="cover">
           </el-image>
           <el-tag size="mini" v-if="video.tag" class="video-tag">{{ video.tag }}</el-tag>
           <div class="video-title" v-if="!video.isHover">{{ video.title }}</div>
@@ -42,7 +42,7 @@
     <div style="text-align: center; margin-top: 12px;">
       <el-button type="primary" class="foot-btn">一键复刻</el-button>
     </div>
-    <el-dialog class="upload-dialog" :visible.sync="uploadDialogVisible" width="800px" title="上传爆款视频" :before-close="beforeUploadClose">
+    <el-dialog class="upload-dialog" :visible.sync="uploadDialogVisible" width="32rem" title="上传爆款视频" :before-close="beforeUploadClose">
       <el-upload
           drag
           ref="upload"
@@ -198,6 +198,7 @@ export default {
   color: #64748b;
   border: 2px dashed #d9d9d9;
   cursor: pointer;
+  border-radius: 8px;
 }
 
 .video-card {
@@ -227,18 +228,20 @@ export default {
   position: absolute;
   bottom: 4px;
   width: 100%;
-  background: linear-gradient(to bottom, rgba(0, 0, 0, 0.2), rgba(0, 0, 0, 1));
+  background: linear-gradient(to bottom, rgba(0, 0, 0, 0), rgba(0, 0, 0, 1));
   padding: 10px;
   box-sizing: border-box;
   color: #FFFFFF;
   font-size: 12px;
+  border-bottom-left-radius: 8px;
+  border-bottom-right-radius: 8px;
 }
 
 .video-title-hover {
   position: absolute;
   bottom: 4px;
   width: 100%;
-  background: linear-gradient(to bottom, rgba(0, 0, 0, 0.2), rgba(0, 0, 0, 1));
+  background: linear-gradient(to bottom, rgba(0, 0, 0, 0), rgba(0, 0, 0, 1));
   padding: 2px 10px 10px 10px;
   box-sizing: border-box;
   color: #FFFFFF;
