@@ -25,7 +25,7 @@
              @mouseenter="video.isHover = true">
           <el-image style="width: 100%; height: 100%;border-radius: 8px;" :src="`https://picsum.photos/seed/video${video.id}/300/200`" fit="cover">
           </el-image>
-          <el-tag size="mini" v-if="video.tag" class="video-tag">{{ video.tag }}</el-tag>
+          <el-tag size="mini" v-if="video.tag" class="video-tag" :style="{ backgroundColor: video.color }">{{ video.tag }}</el-tag>
           <div class="video-title" v-if="!video.isHover">{{ video.title }}</div>
           <div class="video-title-hover" v-if="video.isHover">
             <div style="margin-bottom: 8px">{{ video.title }}</div>
@@ -81,13 +81,13 @@ export default {
       tags: ['全部推荐','行业热点','产品展示','口播','企业故事'],
       activeTag: '全部推荐',
       videos: [
-        {id: 1, title: '企业宣传片模板', duration: '00:15', tag: '产品展示', storyboard: '12分镜', isHover: false},
-        {id: 2, title: '新品发布口播', duration: '00:08', tag: '口播', storyboard: '5分镜', isHover: false},
-        {id: 3, title: '科技前沿动态', duration: '00:21', tag: '行业热点', storyboard: '18分镜', isHover: false},
-        {id: 4, title: '品牌发展历程', duration: '00:30', tag: '企业故事', storyboard: '25分镜', isHover: false},
-        {id: 5, title: '我们招人啦', duration: '00:12', tag: '口播', storyboard: '8分镜', isHover: false},
-        {id: 6, title: '城市美食探店', duration: '00:18', tag: '行业热点', storyboard: '15分镜', isHover: false},
-        {id: 7, title: '3D产品展示', duration: '00:15', tag: '产品展示', storyboard: '12分镜', isHover: false}
+        {id: 1, title: '企业宣传片模板', duration: '00:15', tag: '产品展示', storyboard: '12分镜', isHover: false, color: '#3b82f6'},
+        {id: 2, title: '新品发布口播', duration: '00:08', tag: '口播', storyboard: '5分镜', isHover: false, color: '#22c55e'},
+        {id: 3, title: '科技前沿动态', duration: '00:21', tag: '行业热点', storyboard: '18分镜', isHover: false, color: '#f97316'},
+        {id: 4, title: '品牌发展历程', duration: '00:30', tag: '企业故事', storyboard: '25分镜', isHover: false, color: '#a855f7'},
+        {id: 5, title: '我们招人啦', duration: '00:12', tag: '口播', storyboard: '8分镜', isHover: false, color: '#22c55e'},
+        {id: 6, title: '城市美食探店', duration: '00:18', tag: '行业热点', storyboard: '15分镜', isHover: false, color: '#f97316'},
+        {id: 7, title: '3D产品展示', duration: '00:15', tag: '产品展示', storyboard: '12分镜', isHover: false, color: '#3b82f6'}
       ],
       uploadDialogVisible: false,
       uploadFile: null,
@@ -112,6 +112,10 @@ export default {
 </script>
 
 <style scoped>
+.hot {
+  min-width: 1200px;
+}
+
 .back-btn {
   padding: 7px;
   border-radius: 50%;
@@ -215,13 +219,13 @@ export default {
   top: 5px;
   left: 5px;
   z-index: 999;
-  background-color: #3b82f6;
   color: #FFFFFF;
-  border: 1px solid #3b82f6;
-  cursor: pointer;
+  border: none;
   height: 20px;
   line-height: 20px;
   padding: 0 5px;
+  font-size: 11px;
+  border-radius: 2px;
 }
 
 .video-title {
@@ -246,6 +250,8 @@ export default {
   box-sizing: border-box;
   color: #FFFFFF;
   font-size: 12px;
+  border-bottom-left-radius: 8px;
+  border-bottom-right-radius: 8px;
 }
 
 .foot-btn {
