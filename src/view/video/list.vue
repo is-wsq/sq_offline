@@ -1,10 +1,14 @@
 <template>
   <div class="video-list">
+    <div class="list-search">
+      <el-input class="list-search-input" prefix-icon="el-icon-search" placeholder="通过标题搜索视频..."
+                v-model="keyword" @change="filterVideo"></el-input>
+    </div>
     <div class="list-content">
-      <div v-for="item in processList" :key="item.id" style="text-align: center">
+      <div v-for="item in filterProcess" :key="item.id" style="text-align: center">
         <div class="image-wrapper shining">
           <el-image
-              style="width: 180px; height: 240px; border-radius: 12px;filter: blur(15px);opacity: 0.8"
+              style="width: 180px; height: 240px; border-radius: 8px;filter: blur(15px);opacity: 0.8"
               :src="require('/public/images/4.jpg')"
               fit="cover">
           </el-image>
@@ -18,8 +22,8 @@
           {{ item.filename }}
         </div>
       </div>
-      <div style="text-align: center;border-radius: 12px;padding: 5px 0;position: relative"
-           v-for="item in videoList"
+      <div style="text-align: center;border-radius: 8px;padding: 5px 0;position: relative"
+           v-for="item in filterVideos"
            :key="item.id"
            :class="{'activeClass': item.id === selected.id}" @contextmenu.stop="handleContextMenu(item, $event)"
            @click="preview(item)">
@@ -78,6 +82,9 @@ export default {
   mixins: [RightMenuMixin],
   data() {
     return {
+      keyword: '',
+      filterProcess: [],
+      filterVideos: [],
       dotCount: 1,
       dotTimer: null,
       dot: '.',
@@ -106,8 +113,19 @@ export default {
   mounted() {
     this.startDotAnimation();
     this.$store.dispatch("task/pollVideoTasks");
+    this.filterProcess = this.processList
+    this.filterVideos = this.videoList;
   },
   methods: {
+    filterVideo() {
+      if (this.keyword !== '') {
+        this.filterProcess = this.processList.filter((item) => item.filename.includes(this.keyword));
+        this.filterVideos = this.videoList.filter((item) => item.filename.includes(this.keyword));
+      } else {
+        this.filterProcess = this.processList;
+        this.filterVideos = this.videoList;
+      }
+    },
     startDotAnimation() {
       this.dotTimer = setInterval(() => {
         this.dotCount = this.dotCount % 3 + 1;
@@ -201,20 +219,39 @@ export default {
 .video-list {
   width: 100%;
   height: 100%;
-  min-height: 700px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
+  padding: 12px;
+  box-sizing: border-box;
+  min-height: 800px;
+}
+
+.list-search {
+  text-align: center;
+}
+
+.list-search-input {
+  width: 33.33%;
+}
+
+.list-search >>> .el-input__icon {
+  line-height: 42px;
+  font-size: 20px;
+}
+
+.list-search >>> .el-input__inner {
+  height: 42px;
+  line-height: 42px;
+  border-radius: 21px;
+  background-color: #FFFFFF;
+  border: 1px solid #D1D5DB;
+  font-size: 16px;
+  padding-left: 40px;
 }
 
 .list-content {
-  width: 90%;
-  height: calc(100% - 100px);
-  padding: 40px;
+  height: calc(100% - 63px);
+  padding: 10px 0;
+  margin-top: 20px;
   box-sizing: border-box;
-  background-color: #f5f5f5;
-  border-radius: 20px;
   display: grid;
   gap: 20px;
   grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));

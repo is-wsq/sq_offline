@@ -728,7 +728,8 @@ export default {
       startY: 0,
       topOffset: 0,
       bottomOffset: 100,
-      shouldShowPopover: false
+      shouldShowPopover: false,
+      device_uuid: ''
     };
   },
   computed: {
@@ -760,6 +761,7 @@ export default {
     },
   },
   mounted() {
+    this.getUUID()
     this.querySounds();
     this.queryFigures();
     this.queryFontFamily()
@@ -1238,7 +1240,7 @@ export default {
     verify() {
       getAction('/verify/activation').then(res => {
         if (res.data.status === 'success') {
-          this.generateVideo()
+          this.saveCopywriting()
         } else {
           this.$alert(res.data.message, "验证失败");
         }
@@ -1246,7 +1248,17 @@ export default {
         console.log(err)
       })
     },
-    generateVideo() {
+    getUUID() {
+      getAction('/uuid').then(res => {
+        console.log(res)
+        if (res.data.status === 'success') {
+          this.device_uuid = res.data.data.uuid
+        }else {
+          this.$alert(res.data.message, "获取UUID失败");
+        }
+      })
+    },
+    saveCopywriting() {
       if (!this.figure.video_id && this.material_list.length === 0) {
         this.$alert('请先选择角色或素材', "提示")
         return;
@@ -1259,6 +1271,19 @@ export default {
         this.$alert('开启字幕标题设置后，所有标题不能为空', "提示");
         return
       }
+      let params = {
+        gpu_uuid: this.device_uuid,
+        copywriting: this.tableData.map(item => item.text)
+      }
+      axios.post("https://live.tellai.tech/api/offline_backend/user_copywriting/create", params).then(res => {
+        if (res.data.status === "success") {
+          this.generateVideo()
+        }else {
+          this.$alert(res.data.status, "生成失败")
+        }
+      })
+    },
+    generateVideo() {
       this.actualRequest = this.montageForm.request
       let names = this.mentionList.map(item => '@' + item.name);
       names.forEach((item, index) => {
