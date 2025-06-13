@@ -1,10 +1,14 @@
 <template>
   <div class="video-list">
+    <div class="list-search">
+      <el-input class="list-search-input" prefix-icon="el-icon-search" placeholder="通过标题搜索视频..."
+                v-model="keyword" @change="filterVideo"></el-input>
+    </div>
     <div class="list-content">
-      <div v-for="item in processList" :key="item.id" style="text-align: center">
+      <div v-for="item in filterProcess" :key="item.id" style="text-align: center">
         <div class="image-wrapper shining">
           <el-image
-              style="width: 180px; height: 240px; border-radius: 12px;filter: blur(15px);opacity: 0.8"
+              style="width: 180px; height: 240px; border-radius: 8px;filter: blur(15px);opacity: 0.8"
               :src="require('/public/images/4.jpg')"
               fit="cover">
           </el-image>
@@ -18,26 +22,36 @@
           {{ item.filename }}
         </div>
       </div>
-      <div style="text-align: center;border-radius: 12px;padding: 5px 0;position: relative"
-           v-for="item in videoList"
+      <div class="video-list-item"
+           v-for="item in filterVideos"
            :key="item.id"
            :class="{'activeClass': item.id === selected.id}" @contextmenu.stop="handleContextMenu(item, $event)"
            @click="preview(item)">
-        <el-image style="width: 180px;height: 240px;border-radius: 12px" :src="item.picture" fit="cover"></el-image>
-        <div class="video-name" :title="item.filename">{{ item.filename }}</div>
-      </div>
-      <div :style="menuStyle" v-if="rightMenuVisible">
-        <div class="right-item" @click="deleteVideo">
-          <i class="el-icon-delete-solid menu-icon"></i>
-          <span style="margin-top: 2px">删除</span>
-        </div>
-        <div class="right-item" @click="downloadVideo">
-          <i class="el-icon-download menu-icon"></i>
-          <span style="margin-top: 2px">另存为</span>
-        </div>
-        <div class="right-item" @click="rename">
-          <i class="el-icon-edit-outline menu-icon"></i>
-          <span style="margin-top: 2px">重命名</span>
+        <el-image style="width: 100%;height: 100%;border-radius: 8px" :src="item.picture" fit="cover"></el-image>
+        <div class="video-item-info">
+          <div :title="item.filename" class="video-name" v-if="!item.isEdit">{{ item.filename }}</div>
+          <div v-else style="flex: 1" @click.stop="">
+            <el-input style="width: 100%" v-model="newName" @change="onSave(item)"></el-input>
+          </div>
+          <el-popover
+              placement="left-start"
+              popper-class="video-item-more-popover"
+              v-model="item.show"
+              trigger="click">
+              <div class="more-btn-item" @click="deleteVideo(item)">
+                <i class="el-icon-delete-solid menu-icon"></i>
+                <span style="margin-top: 2px">删除</span>
+              </div>
+              <div class="more-btn-item" @click="downloadVideo(item)">
+                <i class="el-icon-download menu-icon"></i>
+                <span style="margin-top: 2px">另存为</span>
+              </div>
+              <div class="more-btn-item" @click="rename(item)">
+                <i class="el-icon-edit-outline menu-icon"></i>
+                <span style="margin-top: 2px">重命名</span>
+              </div>
+            <el-button slot="reference" type="text" class="more-btn" icon="el-icon-gengduo" @click.stop="clearOther(item)"></el-button>
+          </el-popover>
         </div>
       </div>
       <el-dialog :visible.sync="dialogVisible" :before-close="beforeClose" :width="aspectRatio > 1? '640px' : '390px'">
@@ -53,18 +67,6 @@
           </div>
         </div>
       </el-dialog>
-      <el-drawer title="重命名视频名称" :visible.sync="drawer" direction="rtl">
-        <div style="width: 100%; text-align: center">
-          <el-form ref="form" style="width: 70%; margin: 0 auto">
-            <el-form-item label="新名称" prop="newName">
-              <el-input v-model="newName" placeholder="请输入新名称"></el-input>
-            </el-form-item>
-            <el-form-item>
-              <el-button type="primary" @click="onSave">保存</el-button>
-            </el-form-item>
-          </el-form>
-        </div>
-      </el-drawer>
     </div>
   </div>
 </template>
@@ -78,11 +80,13 @@ export default {
   mixins: [RightMenuMixin],
   data() {
     return {
+      keyword: '',
+      filterProcess: [],
+      filterVideos: [],
       dotCount: 1,
       dotTimer: null,
       dot: '.',
       selected: {},
-      drawer: false,
       newName: '',
       videoId: '',
       dialogVisible: false,
@@ -100,27 +104,39 @@ export default {
       return this.videoTasks.filter((item) => item.status === 'pending');
     },
     videoList() {
-      return this.videoTasks.filter((item) => item.status === 'success');
+      return this.videoTasks.filter((item) => item.status === 'success').map((item) => ({ ...item, show: false, isEdit: false }));
     },
   },
   mounted() {
     this.startDotAnimation();
     this.$store.dispatch("task/pollVideoTasks");
+    this.filterProcess = this.processList
+    this.filterVideos = this.videoList;
   },
   methods: {
+    filterVideo() {
+      if (this.keyword !== '') {
+        this.filterProcess = this.processList.filter((item) => item.filename.includes(this.keyword));
+        this.filterVideos = this.videoList.filter((item) => item.filename.includes(this.keyword));
+      } else {
+        this.filterProcess = this.processList;
+        this.filterVideos = this.videoList;
+      }
+    },
     startDotAnimation() {
       this.dotTimer = setInterval(() => {
         this.dotCount = this.dotCount % 3 + 1;
         this.dot = '.'.repeat(this.dotCount);
       }, 1000);
     },
-    deleteVideo() {
+    deleteVideo(item) {
+      item.show = false;
       this.$confirm('此操作将永久删除该文件, 是否继续?', '提示', {
         confirmButtonText: '确定',
         cancelButtonText: '取消',
         type: 'warning'
       }).then(() => {
-        delAction(`/video_record/delete/${this.selectedId}`).then(res => {
+        delAction(`/video_record/delete/${item.id}`).then(res => {
           if (res.data.status === 'success') {
             this.$message.success('删除成功');
             this.$store.dispatch("task/pollVideoTasks");
@@ -132,21 +148,31 @@ export default {
         this.$message.info('已取消删除');
       });
     },
-    async downloadVideo() {
+    async downloadVideo(item) {
+      item.show = false;
       let self = this
       window.electronAPI.selectFolder().then((path) => {
         if (path) {
-          window.electronAPI.downloadFile(self.downloadFilePath, path, self.downloadFileName)
+          window.electronAPI.downloadFile(item.video_path, path, item.filename)
           self.$message.success(`视频已另存为${path}`)
         }
       })
     },
-    rename() {
-      this.videoId = this.selectedId;
-      this.newName = "";
-      this.drawer = true;
+    rename(item) {
+      item.show = false;
+      item.isEdit = true
+      this.newName = item.filename;
+      this.videoId = item.id;
     },
-    onSave() {
+    clearOther(item) {
+      this.filterVideos.forEach((video) => {
+        if (item.id !== video.id) {
+          video.show = false;
+          video.isEdit = false
+        }
+      });
+    },
+    onSave(item) {
       let params = {
         id: this.videoId,
         name: this.newName,
@@ -158,7 +184,7 @@ export default {
         } else {
           this.$message.error(res.data.message);
         }
-        this.drawer = false;
+        item.isEdit = false;
       }).catch((err) => {
         this.$message.error("重命名失败，请稍后重试！");
       });
@@ -201,25 +227,53 @@ export default {
 .video-list {
   width: 100%;
   height: 100%;
-  min-height: 700px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
+  padding: 12px;
+  box-sizing: border-box;
+  min-height: 800px;
+}
+
+.list-search {
+  text-align: center;
+}
+
+.list-search-input {
+  width: 33.33%;
+}
+
+.list-search >>> .el-input__icon {
+  line-height: 42px;
+  font-size: 20px;
+}
+
+.list-search >>> .el-input__inner {
+  height: 42px;
+  line-height: 42px;
+  border-radius: 21px;
+  background-color: #FFFFFF;
+  border: 1px solid #D1D5DB;
+  font-size: 16px;
+  padding-left: 40px;
 }
 
 .list-content {
-  width: 90%;
-  height: calc(100% - 100px);
-  padding: 40px;
+  height: calc(100% - 63px);
+  padding: 10px 0;
+  margin-top: 20px;
   box-sizing: border-box;
-  background-color: #f5f5f5;
-  border-radius: 20px;
   display: grid;
   gap: 20px;
-  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-  grid-auto-rows: 280px;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  grid-auto-rows: min-content;
   overflow: auto;
+}
+
+.video-list-item {
+  aspect-ratio: 9 / 16;
+  position: relative;
+}
+
+.video-list-item:hover {
+  transform: scale(1.05);
 }
 
 .list-progress {
@@ -233,13 +287,79 @@ export default {
   width: 100%;
 }
 
+.video-item-info {
+  position: absolute;
+  bottom: 4px;
+  width: 100%;
+  background: linear-gradient(to bottom, rgba(0, 0, 0, 0), rgba(0, 0, 0, 1));
+  padding: 10px 5px 10px 10px;
+  box-sizing: border-box;
+  border-bottom-left-radius: 8px;
+  border-bottom-right-radius: 8px;
+  display: flex;
+  align-items: end;
+}
+
+
 .video-name {
-  width: 180px;
-  margin: 5px auto;
+  flex: 1;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  color: #1E1F20
+  cursor: pointer;
+  color: #FFFFFF;
+  font-size: 14px;
+}
+
+.video-list-item >>> .el-input__inner {
+  -webkit-appearance: none;
+  background-color: #1e1f20;
+  background-image: none;
+  border-radius: 4px;
+  border: 2px solid #4c8df1;
+  box-sizing: border-box;
+  color: #ffffff;
+  display: inline-block;
+  height: 30px;
+  line-height: 30px;
+  outline: 0;
+  padding: 0 15px;
+  transition: border-color .2s cubic-bezier(.645,.045,.355,1);
+  width: 100%;
+}
+
+.more-btn {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+  padding: 0;
+  font-size: 18px;
+  color: rgba(255,255,255,0.8);
+}
+
+.more-btn:hover {
+  background-color: rgba(0,0,0,1);
+  color: #FFFFFF;
+}
+
+.more-btn-item {
+  height: 40px;
+  line-height: 40px;
+  border-radius: 5px;
+  padding-left: 10px
+}
+
+.more-btn-item:hover {
+  background-color: #1890ff !important;
+  color: #fff !important;
+}
+
+.menu-icon-more {
+  margin-left: 10px;
+  font-size: 20px;
+  color: rgba(255,255,255,0.8);
+  cursor: pointer;
 }
 
 .activeClass {
