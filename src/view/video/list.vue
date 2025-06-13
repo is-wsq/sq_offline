@@ -139,7 +139,9 @@ export default {
         delAction(`/video_record/delete/${item.id}`).then(res => {
           if (res.data.status === 'success') {
             this.$message.success('删除成功');
-            this.$store.dispatch("task/pollVideoTasks");
+            this.$store.dispatch("task/pollVideoTasks").then(() => {
+              this.filterVideo()
+            });
           } else {
             this.$message.error(res.data.message);
           }
@@ -180,7 +182,9 @@ export default {
       postAction("/video_record/update_name", params).then((res) => {
         if (res.data.status === "success") {
           this.$message.success("重命名成功");
-          this.$store.dispatch("task/pollVideoTasks");
+          this.$store.dispatch("task/pollVideoTasks").then(() => {
+            this.filterVideo()
+          });
         } else {
           this.$message.error(res.data.message);
         }
