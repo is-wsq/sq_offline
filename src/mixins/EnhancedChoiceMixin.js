@@ -13,12 +13,61 @@ export const EnhancedChoiceMixin = {
             selectionHeight: 0, // 选框高度
             initial_material_list: [],
             selectingThreshold: 10, // 新增：框选最小移动阈值（像素）
-            isVideoItemClick: false // 新增：标记是否为视频项点击
+            isVideoItemClick: false, // 新增：标记是否为视频项点击
+            shouldShowPopover: false,
         }
     },
     methods: {
         onVideoItemMouseDown() {
             this.isVideoItemClick = true; // 初始化为点击
+        },
+        onMouseLeave() {
+            this.shouldShowPopover = false;
+        },
+        onMouseEnter() {
+            if (!this.isSelecting) {
+                this.shouldShowPopover = true;
+            }
+        },
+        onMouseDown(type, event) {
+            this.dragging = true;
+            this.draggingType = type;
+            this.startY = event.clientY;
+        },
+        onMouseMove(event) {
+            if (!this.dragging) return;
+            const deltaY = event.clientY - this.startY;
+            this.startY = event.clientY;
+
+            const containerHeight = this.$refs.container.clientHeight;
+            const titleHeight = this.$refs.titleContainer?this.$refs.titleContainer.clientHeight:0;
+            const contentHeight = this.$refs.contentContainer?this.$refs.contentContainer.clientHeight:0;
+
+            if (this.draggingType === 'top') {
+                let newTop = this.topOffset + deltaY;
+                if (this.$refs.contentContainer) {
+                    newTop = Math.max(0, Math.min(this.bottomOffset - titleHeight, newTop));
+                }else {
+                    newTop = Math.max(0, Math.min(containerHeight - titleHeight, newTop));
+                }
+                this.topOffset = newTop;
+                this.updateTitleTextStyle()
+            }
+
+            if (this.draggingType === 'bottom') {
+                let newBottom = this.bottomOffset + deltaY;
+                if (this.$refs.titleContainer) {
+                    newBottom = Math.max(this.topOffset + titleHeight,
+                        Math.min(containerHeight - contentHeight, newBottom));
+                } else {
+                    newBottom = Math.max(titleHeight,Math.min(containerHeight - contentHeight, newBottom));
+                }
+                this.bottomOffset = newBottom;
+                this.updateTextStyle()
+            }
+        },
+        onMouseUp() {
+            this.dragging = false;
         },
         startSelection(event) {
             if (event.button !== 0) {
@@ -33,7 +82,7 @@ export const EnhancedChoiceMixin = {
             const container = this.$refs.videoGrid
             const rect = this.$el.getBoundingClientRect()
             this.initialX = event.clientX - rect.left
-            this.initialY = event.clientY - rect.top - 50 + container.scrollTop
+            this.initialY = event.clientY - rect.top - 85 + container.scrollTop
 
             // 初始化选框位置和大小
             this.selectionLeft = this.initialX
@@ -54,7 +103,7 @@ export const EnhancedChoiceMixin = {
             const container = this.$refs.videoGrid
             const rect = this.$el.getBoundingClientRect()
             const currentX = event.clientX - rect.left
-            const currentY = event.clientY - rect.top - 50 + container.scrollTop
+            const currentY = event.clientY - rect.top - 85 + container.scrollTop
 
             // 计算位移距离
             const distance = Math.sqrt(
@@ -108,9 +157,9 @@ export const EnhancedChoiceMixin = {
                 // 计算相对于容器的位置
                 const itemRect = {
                     left: rect.left - containerRect.left,
-                    top: rect.top - containerRect.top - 50 + container.scrollTop,
+                    top: rect.top - containerRect.top - 85 + container.scrollTop,
                     right: rect.right - containerRect.left,
-                    bottom: rect.bottom - containerRect.top - 50 + container.scrollTop
+                    bottom: rect.bottom - containerRect.top - 85 + container.scrollTop
                 }
 
                 // 判断矩形是否重叠
@@ -130,6 +179,10 @@ export const EnhancedChoiceMixin = {
                 }
             })
             sessionStorage.setItem('material_list', JSON.stringify(this.material_list))
+            this.topOffset = 0
+            this.bottomOffset = 100
+            this.updateTextStyle()
+            this.updateTitleTextStyle()
         }
     }
 }

@@ -72,7 +72,8 @@ export default {
       this.$router.push({path: path})
     },
     updateActiveFromRoute() {
-      if (this.$route.path === '/digitalHuman' || this.$route.path === '/hot') {
+      if (this.$route.path === '/digitalHuman' || this.$route.path === '/material'
+          || this.$route.path === '/montage' || this.$route.path === '/hot') {
         this.active = 3;
         return;
       }

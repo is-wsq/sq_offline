@@ -44,7 +44,8 @@ export default {
           title: "AI 混剪",
           icon: "el-icon-jiandao",
           iconClass: "icon-ai-cut",
-          description: "智能匹配素材、添加转场和配乐，仅需数秒即可生成富有节奏感的精彩短片。"
+          description: "智能匹配素材、添加转场和配乐，仅需数秒即可生成富有节奏感的精彩短片。",
+          path: "/material"
         },
         {
           title: "爆款复刻",
@@ -58,8 +59,7 @@ export default {
   },
   methods: {
     gotoPage(path) {
-      if (path)
-        this.$router.push({path: path})
+      this.$router.push({path: path})
     }
   }
 };
