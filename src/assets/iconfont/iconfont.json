@@ -6,6 +6,20 @@
   "description": "",
   "glyphs": [
     {
+      "icon_id": "39437138",
+      "name": "icon_拖动",
+      "font_class": "tuodong",
+      "unicode": "e651",
+      "unicode_decimal": 58961
+    },
+    {
+      "icon_id": "40735818",
+      "name": "document_L",
+      "font_class": "document-list",
+      "unicode": "e613",
+      "unicode_decimal": 58899
+    },
+    {
       "icon_id": "23639953",
       "name": "更多",
       "font_class": "gengduo",

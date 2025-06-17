@@ -50,6 +50,29 @@ body {
   font-family: Arial, sans-serif;
 }
 
+.margin-b-12 {
+  margin-bottom: 12px;
+}
+
+.margin-b-16 {
+  margin-bottom: 16px;
+}
+
+.margin-t-8 {
+  margin-top: 8px;
+}
+
+.font-weight {
+  font-weight: bold;
+}
+
+.flex-center {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 5px;
+}
+
 .right-item {
   width: 130px !important;
   height: 46px !important;

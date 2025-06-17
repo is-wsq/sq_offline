@@ -69,7 +69,7 @@
           </div>
         </div>
         <div class="c-center-btn">
-          <el-button type="primary" class="next-btn">下一步：编辑文案</el-button>
+          <el-button type="primary" class="next-btn" @click="nextStep">下一步：编辑文案</el-button>
         </div>
       </div>
       <div class="c-right">
@@ -682,13 +682,16 @@ export default {
       sessionStorage.setItem('preset_id', '0')
       this.$forceUpdate()
     },
+    nextStep() {
+      this.$router.push({path: '/smartGenerate'})
+    }
   }
 }
 </script>
 
 <style scoped>
 .material {
-  min-width: 1300px;
+  min-width: 1200px;
   min-height: 800px;
   height: 100%;
 }
@@ -732,7 +735,7 @@ export default {
   height: calc(100% - 80px);
   display: grid;
   gap: 15px;
-  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
   grid-auto-rows: min-content;
   position: relative;
   cursor: pointer;

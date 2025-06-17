@@ -72,8 +72,8 @@ export default {
       this.$router.push({path: path})
     },
     updateActiveFromRoute() {
-      if (this.$route.path === '/digitalHuman' || this.$route.path === '/material'
-          || this.$route.path === '/montage' || this.$route.path === '/hot') {
+      let paths = ['/digitalHuman', '/material', '/montage', '/hot', '/smartGenerate']
+      if (paths.includes(this.$route.path)) {
         this.active = 3;
         return;
       }

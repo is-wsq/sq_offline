@@ -9,6 +9,7 @@ import voice from '../view/voice/index.vue';
 import video from '../view/video/home.vue';
 import digitalHuman from '../view/video/index.vue';
 import material from '../view/video/material.vue';
+import smartGenerate from '../view/video/smartGenerate.vue';
 import montage from '../view/video/montage.vue';
 import hot from '../view/video/hot.vue';
 import videoList from '../view/video/list.vue';
@@ -47,6 +48,11 @@ const routes = [
         path: '/material',
         name: 'material',
         component: material
+    },
+    {
+        path: '/smartGenerate',
+        name: 'smartGenerate',
+        component: smartGenerate
     },
     {
         path: '/montage',
