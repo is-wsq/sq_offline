@@ -205,15 +205,31 @@
               <el-color-picker size="small" v-model="subtitleNameParams.name_color"
                                @change="saveSubtitleNameParams('name_color')"></el-color-picker>
             </div>
-            <div class="flex-center margin-t-8">
+            <div class="flex-center margin-t-8 margin-b-16">
               <div class="s-voice-title" style="flex: 1">描边颜色</div>
               <el-color-picker size="small" v-model="subtitleNameParams.name_stroke_color"
                                @change="saveSubtitleNameParams('name_stroke_color')"></el-color-picker>
             </div>
-            <div class="flex-center margin-t-8">
+            <div class="flex-center" :class="{'margin-b-16': name_background_setting}" style="cursor: pointer"
+                 @click="name_background_setting = !name_background_setting">
               <div class="s-voice-title" style="flex: 1">背景颜色</div>
-              <el-color-picker size="small" show-alpha v-model="subtitleNameParams.name_background_color"
+              <i class="el-icon-arrow-down" style="color: #374151" v-if="name_background_setting"></i>
+              <i class="el-icon-arrow-right" style="color: #374151" v-else></i>
+            </div>
+            <div class="flex-center margin-b-12 bg-color" v-if="name_background_setting">
+              <div class="s-voice-title" style="margin-right: 12px">颜色</div>
+              <el-color-picker size="small" v-model="subtitleNameParams.name_background_color"
                                @change="saveSubtitleNameParams('name_background_color')"></el-color-picker>
+              <div style="flex: 1"></div>
+            </div>
+            <div class="flex-center opacity" v-if="name_background_setting">
+              <div class="s-voice-title" style="margin-right: 12px">不透明度</div>
+              <el-slider v-model="subtitleNameParams.name_background_opacity"
+                         :step="0.01" style="flex: 1" :min="0" :max="1"
+                         @input="saveSubtitleNameParams('name_background_opacity')"></el-slider>
+              <div class="s-voice-title" style="margin-left: 8px;width: 30px">
+                {{ (subtitleNameParams.name_background_opacity * 100).toFixed(0) + '%' }}
+              </div>
             </div>
           </div>
           <div class="s-card-item">
@@ -270,15 +286,31 @@
               <el-color-picker size="small" v-model="subtitleParams.color"
                                @change="saveSubtitleParams('color')"></el-color-picker>
             </div>
-            <div class="flex-center margin-t-8">
+            <div class="flex-center margin-t-8 margin-b-16">
               <div class="s-voice-title" style="flex: 1">描边颜色</div>
               <el-color-picker size="small" v-model="subtitleParams.stroke_color"
                                @change="saveSubtitleParams('stroke_color')"></el-color-picker>
             </div>
-            <div class="flex-center margin-t-8">
+            <div class="flex-center" :class="{'margin-b-16': background_setting}" style="cursor: pointer"
+                 @click="background_setting = !background_setting">
               <div class="s-voice-title" style="flex: 1">背景颜色</div>
-              <el-color-picker size="small" show-alpha v-model="subtitleParams.background_color"
+              <i class="el-icon-arrow-down" style="color: #374151" v-if="background_setting"></i>
+              <i class="el-icon-arrow-right" style="color: #374151" v-else></i>
+            </div>
+            <div class="flex-center margin-b-12 bg-color" v-if="background_setting">
+              <div class="s-voice-title" style="margin-right: 12px">颜色</div>
+              <el-color-picker size="small" v-model="subtitleParams.background_color"
                                @change="saveSubtitleParams('background_color')"></el-color-picker>
+              <div style="flex: 1"></div>
+            </div>
+            <div class="flex-center opacity" v-if="background_setting">
+              <div class="s-voice-title" style="margin-right: 12px">不透明度</div>
+              <el-slider v-model="subtitleParams.background_opacity"
+                         :step="0.01" style="flex: 1" :min="0" :max="1"
+                         @input="saveSubtitleParams('background_opacity')"></el-slider>
+              <div class="s-voice-title" style="margin-left: 8px;width: 30px">
+                {{ (subtitleParams.background_opacity * 100).toFixed(0) + '%' }}
+              </div>
             </div>
           </div>
         </div>
@@ -301,63 +333,69 @@ export default {
       materials: [],
       material_list: [],
       withTitle: true,
-      subtitleNameParams: {},
+      subtitleNameParams: {
+        'name_background_opacity': 0.6
+      },
+      name_background_setting: false,
       withSubtitle: true,
-      subtitleParams: {},
+      subtitleParams: {
+        background_opacity: 0.6
+      },
+      background_setting: false,
       titlePresets: [
         {
           id: '1',
           fontFamily: 'SJxingkai-C-Regular',
-          backgroundColor: 'rgba(64,64,64,0.6)',
+          backgroundColor: '#404040',
           stroke: '#000000',
           color: '#ffffff'
         },
         {
           id: '2',
           fontFamily: 'SJxingkai-C-Regular',
-          backgroundColor: 'rgba(64,64,64,0.6)',
+          backgroundColor: '#404040',
           stroke: '#ffffff',
           color: '#000000'
         },
         {
           id: '3',
           fontFamily: 'SJxingkai-C-Regular',
-          backgroundColor: 'rgba(64,64,64,0.6)',
+          backgroundColor: '#404040',
           stroke: '#FC0202',
           color: '#FDFF00'
         },
         {
           id: '4',
           fontFamily: 'SJxingkai-C-Regular',
-          backgroundColor: 'rgba(64,64,64,0.6)',
+          backgroundColor: '#404040',
           stroke: '#FDFF00',
           color: '#FC0202'
         },
         {
           id: '5',
           fontFamily: 'LXGW-ZhenKai',
-          backgroundColor: 'rgba(200, 200, 200, 0.6)',
+          backgroundColor: '#c8c8c8',
           stroke: '#000000',
           color: '#ffffff'
         },
         {
           id: '6',
           fontFamily: 'LXGW-ZhenKai',
-          backgroundColor: 'rgba(200, 200, 200, 0.6)',
+          backgroundColor: '#c8c8c8',
           stroke: '#ffffff',
           color: '#000000'
         },
         {
           id: '7',
           fontFamily: 'LXGW-ZhenKai',
-          backgroundColor: 'rgba(200, 200, 200, 0.6)',
+          backgroundColor: '#c8c8c8',
           stroke: '#FC0202',
           color: '#FDFF00'
         },
         {
           id: '8',
           fontFamily: 'LXGW-ZhenKai',
-          backgroundColor: 'rgba(200, 200, 200, 0.6)',
+          backgroundColor: '#c8c8c8',
           stroke: '#FDFF00',
           color: '#FC0202'
         },
@@ -411,9 +449,14 @@ export default {
       this.subtitleParams.color = sessionStorage.getItem("color") || '#ffffff'
       this.subtitleParams.font = sessionStorage.getItem("font") || 'SJxingkai-C-Regular'
       this.subtitleParams.background_color = sessionStorage.getItem("background_color") || 'rgba(64,64,64,0.6)'
+      this.subtitleParams.background_opacity = Number(sessionStorage.getItem("background_opacity")) || 0.6
       this.subtitleParams.stroke_color = sessionStorage.getItem("stroke_color") || '#000000'
+
+      let rgb_color = this.hexToRgb(this.subtitleParams.background_color)
+      let rgba_color = `rgba(${rgb_color.replace('rgb(', '')
+          .replace(')', '')}, ${this.subtitleParams.background_opacity})`
       this.textStyle = {
-        backgroundColor: this.subtitleParams.background_color,
+        backgroundColor: rgba_color,
         color: this.subtitleParams.color,
         fontFamily: this.subtitleParams.font,
         lineHeight: 1,
@@ -426,10 +469,15 @@ export default {
       this.subtitleNameParams.name_fontsize = parseInt(sessionStorage.getItem("name_fontsize")) || 10
       this.subtitleNameParams.name_color = sessionStorage.getItem("name_color") || '#ffffff'
       this.subtitleNameParams.name_font = sessionStorage.getItem("name_font") || 'SJxingkai-C-Regular'
-      this.subtitleNameParams.name_background_color = sessionStorage.getItem("name_background_color") || 'rgba(64,64,64,0.6)'
+      this.subtitleNameParams.name_background_color = sessionStorage.getItem("name_background_color") || 'rgba(64,64,64)'
+      this.subtitleNameParams.name_background_opacity = Number(sessionStorage.getItem("name_background_opacity")) || 0.6
       this.subtitleNameParams.name_stroke_color = sessionStorage.getItem("name_stroke_color") || '#000000'
+
+      let name_rgb_color = this.hexToRgb(this.subtitleNameParams.name_background_color)
+      let name_rgba_color = `rgba(${name_rgb_color.replace('rgb(', '')
+          .replace(')', '')}, ${this.subtitleNameParams.name_background_opacity})`
       this.titleTextStyle = {
-        backgroundColor: this.subtitleNameParams.name_background_color,
+        backgroundColor: name_rgba_color,
         color: this.subtitleNameParams.name_color,
         fontFamily: this.subtitleNameParams.name_font,
         lineHeight: 1,
@@ -543,7 +591,6 @@ export default {
       if (!this.material_list.includes(item.id)) {
         this.material_list.push(item.id)
       } else {
-        console.log(111)
         if (shiftSelect) {
           return
         }
@@ -613,6 +660,8 @@ export default {
       sessionStorage.setItem('title_preset_id', item.id)
       this.subtitleNameParams.name_background_color = item.backgroundColor
       sessionStorage.setItem('name_background_color', item.backgroundColor)
+      this.subtitleNameParams.name_background_opacity = 0.6
+      sessionStorage.setItem('name_background_opacity', '0.6')
       this.subtitleNameParams.name_color = item.color
       sessionStorage.setItem('name_color', item.color)
       this.subtitleNameParams.name_font = item.fontFamily
@@ -623,9 +672,20 @@ export default {
       sessionStorage.setItem('name_stroke_color', item.stroke)
       this.updateTitleTextStyle()
     },
+    hexToRgb(hex) { //16进制颜色转RGB格式
+      hex = hex.replace('#', '');
+      let bigint = parseInt(hex, 16);
+      let r = (bigint >> 16) & 255;
+      let g = (bigint >> 8) & 255;
+      let b = bigint & 255;
+      return `rgb(${r}, ${g}, ${b})`;
+    },
     updateTitleTextStyle() {
+      let rgb_color = this.hexToRgb(this.subtitleNameParams.name_background_color)
+      let rgba_color = `rgba(${rgb_color.replace('rgb(', '')
+          .replace(')', '')}, ${this.subtitleNameParams.name_background_opacity})`
       this.titleTextStyle = {
-        backgroundColor: this.subtitleNameParams.name_background_color,
+        backgroundColor: rgba_color,
         color: this.subtitleNameParams.name_color,
         fontFamily: this.subtitleNameParams.name_font,
         lineHeight: 1,
@@ -652,6 +712,8 @@ export default {
       sessionStorage.setItem('preset_id', item.id)
       this.subtitleParams.background_color = item.backgroundColor
       sessionStorage.setItem('background_color', item.backgroundColor)
+      this.subtitleParams.background_opacity = 0.6
+      sessionStorage.setItem('background_opacity', '0.6')
       this.subtitleParams.color = item.color
       sessionStorage.setItem('color', item.color)
       this.subtitleParams.font = item.fontFamily
@@ -663,8 +725,11 @@ export default {
       this.updateTextStyle()
     },
     updateTextStyle() {
+      let rgb_color = this.hexToRgb(this.subtitleParams.background_color)
+      let rgba_color = `rgba(${rgb_color.replace('rgb(', '')
+          .replace(')', '')}, ${this.subtitleParams.background_opacity})`
       this.textStyle = {
-        backgroundColor: this.subtitleParams.background_color,
+        backgroundColor: rgba_color,
         color: this.subtitleParams.color,
         fontFamily: this.subtitleParams.font,
         lineHeight: 1,
@@ -856,6 +921,30 @@ export default {
 .s-voice-title {
   font-size: 12px;
   color: #374151;
+}
+
+.bg-color >>> .el-color-picker__trigger {
+  width: 132px;
+}
+
+.opacity >>> .el-slider__button {
+  height: 18px;
+  width: 4px;
+  border-radius: 2px;
+  border: none;
+  background-color: #E4E7ED;
+}
+
+.opacity >>> .el-slider__button-wrapper {
+  height: 33px;
+}
+
+.opacity >>> .el-slider__runway {
+  height: 3px;
+}
+
+.opacity >>> .el-slider__bar {
+  height: 3px;
 }
 
 .preset-style {
