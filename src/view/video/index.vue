@@ -759,7 +759,6 @@ export default {
     },
   },
   mounted() {
-    this.getUUID()
     this.querySounds();
     this.queryFigures();
     this.queryFontFamily()
@@ -1145,7 +1144,7 @@ export default {
           // })
           if (data.length > 0) {
             this.materials = data.filter(item => !item.lip_sync && item.status === "success").map(item => ({
-              ...item, previewing: false
+              ...item, previewing: false, size: item.height + '*' + item.width
             }))
             this.filter_materials = this.materials
             this.figures = data.filter(item => item.lip_sync && item.status === "success").map(item => ({
@@ -1250,6 +1249,13 @@ export default {
       if (!this.figure.video_id && this.material_list.length === 0) {
         this.$alert('请先选择角色或素材', "提示")
         return;
+      }
+      if (this.material_list.length > 0) {
+        let sizes = [...new Set(this.mentionList.map(item => item.size))]
+        if (sizes.length > 1) {
+          this.$alert(`素材尺寸不一致，请重新选择，当前素材尺寸为${sizes.join(', ')}`, "提示");
+          return;
+        }
       }
       if (this.tableData.length === 0) {
         this.$alert('请先添加口播文案', "提示")
