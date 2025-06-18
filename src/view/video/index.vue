@@ -1370,11 +1370,17 @@ export default {
         return
       }
       const isShiftKey = event.shiftKey
-      let index = this.materials.indexOf(item)
+      if (this.material_list.length === 0) {
+        this.filter_materials = this.filter_materials.filter(material => material.size === item.size)
+      }
+
+      let index = this.filter_materials.indexOf(item)
 
       if (!isShiftKey) {
         this.selectResource(item)
-        this.lastClickedIndex = index
+        if (this.material_list.length > 0) {
+          this.lastClickedIndex = index
+        }
         return
       }
 
@@ -1386,11 +1392,11 @@ export default {
 
         // 选中范围内的所有项
         for (let i = start; i <= end; i++) {
-          this.selectResource(this.materials[i], true)
+          this.selectResource(this.filter_materials[i], true)
         }
       } else {
         // 第一次点击并且按住了Shift键，处理方式同普通点击
-        this.selectResource(this.materials[index])
+        this.selectResource(this.filter_materials[index])
       }
 
       this.lastClickedIndex = index
@@ -1409,6 +1415,10 @@ export default {
             return
           }
           this.material_list.splice(this.material_list.indexOf(item.id), 1)
+          if (this.material_list.length === 0) {
+            this.lastClickedIndex = null
+            this.filterMaterials()
+          }
         }
       } else {
         this.material_list = []
