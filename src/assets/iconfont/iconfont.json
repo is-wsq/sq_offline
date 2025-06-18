@@ -6,6 +6,27 @@
   "description": "",
   "glyphs": [
     {
+      "icon_id": "35336123",
+      "name": "film",
+      "font_class": "film-c",
+      "unicode": "e8b0",
+      "unicode_decimal": 59568
+    },
+    {
+      "icon_id": "25068888",
+      "name": "fa-download",
+      "font_class": "fa-download",
+      "unicode": "e609",
+      "unicode_decimal": 58889
+    },
+    {
+      "icon_id": "37655967",
+      "name": "编辑器-底部-抠图",
+      "font_class": "bianjiqi",
+      "unicode": "e701c",
+      "unicode_decimal": 946204
+    },
+    {
       "icon_id": "39437138",
       "name": "icon_拖动",
       "font_class": "tuodong",

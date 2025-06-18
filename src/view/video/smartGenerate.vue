@@ -4,7 +4,7 @@
       <el-button type="text" class="back-btn" @click="$router.go(-1)">
         <i class="el-icon-arrow-left" style="font-size: 20px;"></i>
       </el-button>
-      <div class="smart-generate-h-t">智能成片</div>
+      <div class="smart-generate-h-t">编辑文案</div>
       <div style="width: 36px"></div>
     </div>
     <div class="smart-generate-c margin-b-12">
@@ -59,12 +59,12 @@
           <div class="smart-generate-c-r">
             <div class="font-weight margin-b-12">文案列表</div>
             <div class="smart-generate-c-r-list">
-              <div v-if="copy_list.length > 0">
+              <div v-if="copy_list.length > 0" style="width: 100%">
                 <div v-for="(item, index) in copy_list" :key="index" class="copy-item">
                   <i class="el-icon-tuodong" style="color: #9ca3af;font-size: 18px"></i>
                   <div class="copy-item-content" style="cursor: pointer"
                        v-if="!item.isEdit" @click="item.isEdit = true">
-                    <div class="copy-item-title">{{ item.title }}</div>
+                    <div class="copy-item-title" :title="item.title">{{ item.title }}</div>
                     <div class="copy-item-desc">{{ item.content }}</div>
                   </div>
                   <div class="copy-item-content" v-else>
@@ -88,7 +88,7 @@
       </el-row>
     </div>
     <div class="flex-center">
-      <el-button type="primary" style="width: 176px" @click="nextStep">下一步：AI混剪</el-button>
+      <el-button type="primary" style="width: 176px" @click="nextStep">下一步：智能成片</el-button>
     </div>
   </div>
 </template>
@@ -110,7 +110,13 @@ export default {
       copy_list: []
     }
   },
+  mounted() {
+    this.initData()
+  },
   methods: {
+    initData() {
+      this.copy_list = sessionStorage.getItem("copy_list") ? JSON.parse(sessionStorage.getItem("copy_list")) : []
+    },
     batchGenerate() {
       let url = ''
       switch (this.ai_model) {
@@ -137,6 +143,7 @@ export default {
         if (res.data.status === "success") {
           this.copy_list = this.copy_list.concat(res.data.data.map(
               (item, index) => ({title: `AI生成标题${index + 1}`, content: item, isEdit: false})))
+          sessionStorage.setItem("copy_list", JSON.stringify(this.copy_list))
         } else {
           this.$notify({
             title: "文案生成失败", message: `${res.data.message}`,
@@ -166,9 +173,11 @@ export default {
       });
       this.copy_title = '';
       this.copy_content = '';
+      sessionStorage.setItem("copy_list", JSON.stringify(this.copy_list))
     },
     removeCopy(index) {
       this.copy_list.splice(index, 1);
+      sessionStorage.setItem("copy_list", JSON.stringify(this.copy_list))
     },
     nextStep() {
       this.$router.push({path: '/montage'})
@@ -214,6 +223,7 @@ export default {
 .smart-generate-c-l,
 .smart-generate-c-r {
   height: 100%;
+  width: 100%;
   background-color: #FFFFFF;
   border-radius: 16px;
   padding: 16px;
@@ -294,6 +304,7 @@ export default {
 
 .smart-generate-c-r-list {
   height: calc(100% - 35px);
+  width: 100%;
   padding: 12px;
   box-sizing: border-box;
   overflow-y: auto;
@@ -302,6 +313,7 @@ export default {
 }
 
 .copy-item {
+  width: 100%;
   border-radius: 8px;
   background-color: #FFFFFF;
   margin-top: 12px;
@@ -312,10 +324,11 @@ export default {
 
 .copy-item-content {
   margin: 0 12px;
-  flex: 1;
+  width: calc(100% - 64px);
 }
 
 .copy-item-title {
+  width: 100%;
   font-size: 14px;
   color: #262626;
   margin-bottom: 4px;
@@ -326,11 +339,13 @@ export default {
 }
 
 .copy-item-desc {
+  width: 100%;
   color: #4b5563;
   font-size: 12px;
   margin-top: 4px;
   max-height: 100px;
   overflow-y: auto;
+  overflow-wrap: break-word;
 }
 
 .copy-item-close {
