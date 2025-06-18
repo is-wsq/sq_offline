@@ -12,21 +12,22 @@
              @mouseup="endSelection"
              @mouseleave="endSelection"
              ref="videoGrid">
-          <div class="m-item" v-for="item in materials" :key="item.id"
+          <div class="m-item" v-for="item in filter_materials" :key="item.id"
                @mousedown="onVideoItemMouseDown"
-               @mouseleave="onMouseLeave"
-               @mouseenter="onMouseEnter"
+
                @click="selectMaterial(item, $event)"
                ref="videoItems">
-            <el-popover placement="right" trigger="hover" :content="''" @show="item.previewing = true"
-                        @hide="item.previewing = false" :disabled="isSelecting || !shouldShowPopover"
-                        popper-class="video-preview-popover" :open-delay="1000" :close-delay="300">
-              <el-image slot="reference" class="m-item-img" :class="{'m-img-selected': material_list.includes(item.id) }"
-                        :src="item.picture" fit="cover"></el-image>
-              <video :src="item.filepath" loop muted autoplay style="min-width: 150px" height="180"
-                     v-if="item.previewing">
-              </video>
-            </el-popover>
+            <el-image class="m-item-img" :class="{'m-img-selected': material_list.includes(item.id) }"
+                      :src="item.picture" fit="cover"></el-image>
+<!--            <el-popover placement="right" trigger="hover" :content="''" @show="item.previewing = true"-->
+<!--                        @hide="item.previewing = false" :disabled="isSelecting || !shouldShowPopover"-->
+<!--                        popper-class="video-preview-popover" :open-delay="1000" :close-delay="300">-->
+<!--              <el-image slot="reference" class="m-item-img" :class="{'m-img-selected': material_list.includes(item.id) }"-->
+<!--                        :src="item.picture" fit="cover"></el-image>-->
+<!--              <video :src="item.filepath" loop muted autoplay style="min-width: 150px" height="180"-->
+<!--                     v-if="item.previewing">-->
+<!--              </video>-->
+<!--            </el-popover>-->
             <div class="m-item-title" :class="{'m-title-selected': material_list.includes(item.id) }">{{item.name}}</div>
           </div>
           <!-- 选框元素 -->
@@ -331,6 +332,7 @@ export default {
   data() {
     return {
       materials: [],
+      filter_materials: [],
       material_list: [],
       withTitle: true,
       subtitleNameParams: {
@@ -495,8 +497,9 @@ export default {
           })
           if (data.length > 0) {
             this.materials = data.filter(item => !item.lip_sync).map(item => ({
-              ...item, previewing: false
+              ...item, previewing: false, size: item.height + '*' + item.width
             }))
+            this.filter_materials = this.materials
           }
         }
       }).catch((error) => {
@@ -558,7 +561,10 @@ export default {
         return
       }
       const isShiftKey = event.shiftKey
-      let index = this.materials.indexOf(item)
+      if (this.material_list.length === 0) {
+        this.filter_materials = this.filter_materials.filter(material => material.size === item.size)
+      }
+      let index = this.filter_materials.indexOf(item)
 
       if (!isShiftKey) {
         this.selectResource(item)
@@ -574,11 +580,11 @@ export default {
 
         // 选中范围内的所有项
         for (let i = start; i <= end; i++) {
-          this.selectResource(this.materials[i], true)
+          this.selectResource(this.filter_materials[i], true)
         }
       } else {
         // 第一次点击并且按住了Shift键，处理方式同普通点击
-        this.selectResource(this.materials[index])
+        this.selectResource(this.filter_materials[index])
       }
 
       this.lastClickedIndex = index
@@ -595,6 +601,10 @@ export default {
           return
         }
         this.material_list.splice(this.material_list.indexOf(item.id), 1)
+        if (this.material_list.length === 0) {
+          this.lastClickedIndex = null
+          this.filter_materials = this.materials
+        }
       }
       sessionStorage.setItem('material_list', JSON.stringify(this.material_list))
     },
