@@ -10,6 +10,7 @@ import video from '../view/video/home.vue';
 import digitalHuman from '../view/video/index.vue';
 import material from '../view/video/material.vue';
 import smartGenerate from '../view/video/smartGenerate.vue';
+import syncCv from '../view/video/syncCv.vue';
 import montage from '../view/video/montage.vue';
 import hot from '../view/video/hot.vue';
 import videoList from '../view/video/list.vue';
@@ -53,6 +54,11 @@ const routes = [
         path: '/smartGenerate',
         name: 'smartGenerate',
         component: smartGenerate
+    },
+    {
+        path: '/syncCv',
+        name: 'syncCv',
+        component: syncCv
     },
     {
         path: '/montage',

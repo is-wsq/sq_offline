@@ -1,8 +1,12 @@
 <template>
   <div class="material">
-    <el-button type="text" class="back-btn" @click="$router.go(-1)">
-      <i class="el-icon-arrow-left" style="font-size: 20px;"></i>
-    </el-button>
+    <div class="flex-center">
+      <el-button type="text" class="back-btn" @click="$router.go(-1)">
+        <i class="el-icon-arrow-left" style="font-size: 20px;"></i>
+      </el-button>
+      <div class="material-h-t">素材选择</div>
+      <div style="width: 36px"></div>
+    </div>
     <div class="material-content">
       <div class="c-left">
         <div style="line-height: 40px;font-weight: bold;margin-left: 15px">媒体库</div>
@@ -14,20 +18,21 @@
              ref="videoGrid">
           <div class="m-item" v-for="item in filter_materials" :key="item.id"
                @mousedown="onVideoItemMouseDown"
-
+               @mouseleave="onMouseLeave"
+               @mouseenter="onMouseEnter"
                @click="selectMaterial(item, $event)"
                ref="videoItems">
-            <el-image class="m-item-img" :class="{'m-img-selected': material_list.includes(item.id) }"
-                      :src="item.picture" fit="cover"></el-image>
-<!--            <el-popover placement="right" trigger="hover" :content="''" @show="item.previewing = true"-->
-<!--                        @hide="item.previewing = false" :disabled="isSelecting || !shouldShowPopover"-->
-<!--                        popper-class="video-preview-popover" :open-delay="1000" :close-delay="300">-->
-<!--              <el-image slot="reference" class="m-item-img" :class="{'m-img-selected': material_list.includes(item.id) }"-->
-<!--                        :src="item.picture" fit="cover"></el-image>-->
-<!--              <video :src="item.filepath" loop muted autoplay style="min-width: 150px" height="180"-->
-<!--                     v-if="item.previewing">-->
-<!--              </video>-->
-<!--            </el-popover>-->
+<!--            <el-image class="m-item-img" :class="{'m-img-selected': material_list.includes(item.id) }"-->
+<!--                      :src="item.picture" fit="cover"></el-image>-->
+            <el-popover placement="right" trigger="hover" :content="''" @show="item.previewing = true"
+                        @hide="item.previewing = false" :disabled="isSelecting || !shouldShowPopover"
+                        popper-class="video-preview-popover" :open-delay="1000" :close-delay="300">
+              <el-image slot="reference" class="m-item-img" :class="{'m-img-selected': material_list.includes(item.id) }"
+                        :src="item.picture" fit="cover"></el-image>
+              <video :src="item.filepath" loop muted autoplay style="min-width: 150px" height="180"
+                     v-if="item.previewing">
+              </video>
+            </el-popover>
             <div class="m-item-title" :class="{'m-title-selected': material_list.includes(item.id) }">{{item.name}}</div>
           </div>
           <!-- 选框元素 -->
@@ -70,7 +75,8 @@
           </div>
         </div>
         <div class="c-center-btn">
-          <el-button type="primary" class="next-btn" @click="nextStep">下一步：编辑文案</el-button>
+          <el-button type="primary" class="next-btn" @click="nextStep('/smartGenerate')">下一步：编辑文案</el-button>
+          <el-button type="primary" class="next-btn" @click="nextStep('/syncCv')">下一步：一键混剪</el-button>
         </div>
       </div>
       <div class="c-right">
@@ -333,7 +339,7 @@ export default {
     return {
       materials: [],
       filter_materials: [],
-      material_list: [],
+      material_list: [],  //选择的素材id列表
       withTitle: true,
       subtitleNameParams: {
         'name_background_opacity': 0.6
@@ -757,8 +763,8 @@ export default {
       sessionStorage.setItem('preset_id', '0')
       this.$forceUpdate()
     },
-    nextStep() {
-      this.$router.push({path: '/smartGenerate'})
+    nextStep(path) {
+      this.$router.push({path: path})
     }
   }
 }
@@ -769,6 +775,14 @@ export default {
   min-width: 1200px;
   min-height: 800px;
   height: 100%;
+}
+
+.material-h-t {
+  flex: 1;
+  margin: 0 0 8px;
+  font-weight: bold;
+  display: flex;
+  justify-content: center;
 }
 
 .back-btn {

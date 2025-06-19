@@ -73,6 +73,19 @@ body {
   gap: 5px;
 }
 
+.back-btn {
+  padding: 7px !important;
+  border-radius: 50% !important;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2) !important;
+  color: #a2a8b3 !important;
+  background-color: #FFFFFF !important;
+  margin: 0 0 8px !important;
+}
+
+.back-btn:hover {
+  color: #1F2937 !important;
+}
+
 .right-item {
   width: 130px !important;
   height: 46px !important;
