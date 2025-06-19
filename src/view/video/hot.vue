@@ -116,19 +116,6 @@ export default {
   min-width: 1200px;
 }
 
-.back-btn {
-  padding: 7px;
-  border-radius: 50%;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
-  color: #a2a8b3;
-  background-color: #FFFFFF;
-  margin: 0 0 8px;
-}
-
-.back-btn:hover {
-  color: #1F2937 !important;
-}
-
 .box-card {
   height: calc(100vh - 180px);
   border-radius: 16px;

@@ -195,19 +195,6 @@ export default {
   overflow-x: hidden;
 }
 
-.back-btn {
-  padding: 7px;
-  border-radius: 50%;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
-  color: #a2a8b3;
-  background-color: #FFFFFF;
-  margin: 0 0 8px;
-}
-
-.back-btn:hover {
-  color: #1F2937 !important;
-}
-
 .smart-generate-h-t {
   flex: 1;
   margin: 0 0 8px;

@@ -72,7 +72,7 @@ export default {
       this.$router.push({path: path})
     },
     updateActiveFromRoute() {
-      let paths = ['/digitalHuman', '/material', '/montage', '/hot', '/smartGenerate']
+      let paths = ['/digitalHuman', '/material', '/montage', '/hot', '/smartGenerate', '/syncCv']
       if (paths.includes(this.$route.path)) {
         this.active = 3;
         return;
