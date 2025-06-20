@@ -450,7 +450,7 @@ export default {
       this.subtitleParams.fontsize = parseInt(sessionStorage.getItem("figure_fontsize")) || 5
       this.subtitleParams.color = sessionStorage.getItem("figure_color") || '#ffffff'
       this.subtitleParams.font = sessionStorage.getItem("figure_font") || 'SJxingkai-C-Regular'
-      this.subtitleParams.background_color = sessionStorage.getItem("figure_background_color") || 'rgba(64,64,64,0.6)'
+      this.subtitleParams.background_color = sessionStorage.getItem("figure_background_color") || '#404040'
       this.subtitleParams.background_opacity = Number(sessionStorage.getItem("figure_background_opacity")) || 0.6
       this.subtitleParams.stroke_color = sessionStorage.getItem("figure_stroke_color") || '#000000'
 
@@ -471,7 +471,7 @@ export default {
       this.subtitleNameParams.name_fontsize = parseInt(sessionStorage.getItem("figure_name_fontsize")) || 10
       this.subtitleNameParams.name_color = sessionStorage.getItem("figure_name_color") || '#ffffff'
       this.subtitleNameParams.name_font = sessionStorage.getItem("figure_name_font") || 'SJxingkai-C-Regular'
-      this.subtitleNameParams.name_background_color = sessionStorage.getItem("figure_name_background_color") || 'rgba(64,64,64)'
+      this.subtitleNameParams.name_background_color = sessionStorage.getItem("figure_name_background_color") || '#404040'
       this.subtitleNameParams.name_background_opacity = Number(sessionStorage.getItem("figure_name_background_opacity")) || 0.6
       this.subtitleNameParams.name_stroke_color = sessionStorage.getItem("figure_name_stroke_color") || '#000000'
 

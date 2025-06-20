@@ -314,7 +314,7 @@ export default {
 
 .video-item-info {
   position: absolute;
-  bottom: 4px;
+  bottom: 0;
   width: 100%;
   background: linear-gradient(to bottom, rgba(0, 0, 0, 0), rgba(0, 0, 0, 1));
   padding: 10px 5px 10px 10px;
