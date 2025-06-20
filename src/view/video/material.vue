@@ -9,7 +9,7 @@
     </div>
     <div class="material-content">
       <div class="c-left">
-        <div style="line-height: 40px;font-weight: bold;margin-left: 15px">媒体库</div>
+        <div style="line-height: 40px;font-weight: bold;margin-left: 15px">素材库</div>
         <div class="m-card"
              @mousedown="startSelection"
              @mousemove="updateSelection"
@@ -33,7 +33,23 @@
                      v-if="item.previewing">
               </video>
             </el-popover>
-            <div class="m-item-title" :class="{'m-title-selected': material_list.includes(item.id) }">{{item.name}}</div>
+<!--            <div class="m-item-title" :class="{'m-title-selected': material_list.includes(item.id) }">{{item.name}}</div>-->
+
+            <div style="display: flex">
+              <div class="m-item-title" :class="{'m-title-selected': material_list.includes(item.id) }" :title="item.name">{{ item.name }}</div>
+              <div style="line-height: 1.5;margin-right: 5px">
+                <i class="el-icon-shengyin_fill"
+                   style="font-size: 16px; color: #6286ed;"
+                   @click.stop="addMute(item.id)"
+                   v-if="!mute_materials.includes(item.id)">
+                </i>
+                <i class="el-icon-jingyin_fill"
+                   style="font-size: 16px; color: #6286ed;"
+                   @click.stop="removeMute(item.id)"
+                   v-else>
+                </i>
+              </div>
+            </div>
           </div>
           <!-- 选框元素 -->
           <div v-if="isSelecting" class="selection-box"
@@ -339,7 +355,8 @@ export default {
     return {
       materials: [],
       filter_materials: [],
-      material_list: [],  //选择的素材id列表
+      material_list: [],
+      mute_materials: [],
       withTitle: true,
       subtitleNameParams: {
         'name_background_opacity': 0.6
@@ -441,8 +458,16 @@ export default {
     this.initParams()
   },
   methods: {
+    addMute(id) {
+      this.mute_materials.push(id)
+      sessionStorage.setItem("mute_materials", JSON.stringify(this.mute_materials))
+    },
+    removeMute(id) {
+      this.mute_materials = this.mute_materials.filter(item => item !== id)
+      sessionStorage.setItem("mute_materials", JSON.stringify(this.mute_materials))
+    },
     initParams() {
-      this.material_list = JSON.parse(sessionStorage.getItem('material_list')) || []
+      // this.material_list = JSON.parse(sessionStorage.getItem('material_list')) || []
       this.mute_materials = JSON.parse(sessionStorage.getItem('mute_materials')) || []
 
       this.topOffset = Number(sessionStorage.getItem('top_offset')) || 0
@@ -498,14 +523,20 @@ export default {
       getAction("/figure/query_success").then((res) => {
         if (res.data.status === "success") {
           let data = res.data.data.filter(item => item.status === "success");
-          data.forEach(item => {
-            item.picture = item.picture.replace('127.0.0.1', '120.86.188.249')
-          })
+          // data.forEach(item => {
+          //   item.picture = item.picture.replace('127.0.0.1', '120.86.188.249')
+          // })
           if (data.length > 0) {
             this.materials = data.filter(item => !item.lip_sync).map(item => ({
               ...item, previewing: false, size: item.height + '*' + item.width
             }))
-            this.filter_materials = this.materials
+            this.material_list = JSON.parse(sessionStorage.getItem('material_list')) || []
+            if (this.material_list.length > 0) {
+              let size = this.materials.find(item => item.id === this.material_list[0]).size
+              this.filter_materials = this.materials.filter(item => item.size === size)
+            }else {
+              this.filter_materials = this.materials
+            }
           }
         }
       }).catch((error) => {
@@ -522,6 +553,7 @@ export default {
               this.sound = sound
             } else {
               this.sound = this.voices[0];
+              sessionStorage.setItem("setting_voice", JSON.stringify(this.sound))
             }
           }
         } else {
@@ -553,9 +585,9 @@ export default {
       getAction('/get_fonts').then(res => {
         if (res.data.status === 'success') {
           this.fontFamily = res.data.data
-          this.fontFamily.forEach(item => {
-            item.img_path = item.img_path.replace('127.0.0.1', '120.86.188.249')
-          })
+          // this.fontFamily.forEach(item => {
+          //   item.img_path = item.img_path.replace('127.0.0.1', '120.86.188.249')
+          // })
         }
       }).catch((error) => {
         console.error("获取字体样式列表失败:", error);
@@ -709,7 +741,11 @@ export default {
         fontSize: (360 * this.subtitleNameParams.name_fontsize / 100) + 'px',
         top: this.topOffset + 'px'
       }
+
+      const containerHeight = this.$refs.container.clientHeight;
+      let top_offset_ratio = (this.topOffset / containerHeight).toFixed(2)
       sessionStorage.setItem('top_offset', this.topOffset)
+      sessionStorage.setItem('top_offset_ratio', top_offset_ratio)
     },
     saveSubtitleNameParams(key) {
       let value = this.subtitleNameParams[key]
@@ -753,7 +789,11 @@ export default {
         fontSize: (360 * this.subtitleParams['fontsize'] / 100) + 'px',
         top: this.bottomOffset + 'px'
       }
+
+      const containerHeight = this.$refs.container.clientHeight;
+      let bottom_offset_ratio = (this.bottomOffset / containerHeight).toFixed(2)
       sessionStorage.setItem('bottom_offset', this.bottomOffset)
+      sessionStorage.setItem('bottom_offset_ratio', bottom_offset_ratio)
     },
     saveSubtitleParams(key) {
       let value = this.subtitleParams[key]
@@ -764,6 +804,9 @@ export default {
       this.$forceUpdate()
     },
     nextStep(path) {
+      if (this.material_list.length === 0) {
+        this.$alert('请先选择需要混剪的素材', '提示')
+      }
       sessionStorage.setItem('script_type', 'material')
       this.$router.push({path: path})
     }

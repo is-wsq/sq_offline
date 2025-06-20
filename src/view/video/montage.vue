@@ -20,8 +20,8 @@
           <el-input type="textarea" :rows="3" placeholder="例如：镜头要切换快，多用特写镜头" v-model="requirement"></el-input>
         </div>
         <div class="settings-button-section">
-          <el-button @click="generate"><i class="el-icon-bianjiqi btn-icon"></i>
-            {{ already_generated? '重新生成' : '一键混剪' }}</el-button>
+          <el-button @click="generate" :loading="!!loading"><i class="el-icon-bianjiqi btn-icon" v-if="!loading"></i>
+            {{ !!loading? '生成中...' : already_generated? '重新生成' : '一键混剪' }}</el-button>
         </div>
       </div>
       <div style="width: 1px" v-if="!show_settings">
@@ -48,7 +48,7 @@
               </div>
             </template>
             <template v-else>
-              <div v-for="(item, index) in copy_list" :key="index" class="script-item"
+              <div v-for="(item, index) in montage_data" :key="index" class="script-item"
                    :class="{'active-item': activeIndex === index}"
                    @mouseleave="item.isHover = false" @mouseenter="item.isHover = true">
                 <div class="flex-center" @click="itemClick(index)">
@@ -64,16 +64,18 @@
                 <div class="script-item-content" :title="item.content"
                      @click="itemClick(index)">{{item.content}}</div>
                 <div class="material-list" v-if="openIndex === index">
-                    <div class="material-item" v-for="(item,index) in videos" :key="index">
-                      <div class="material-item-img"></div>
-                      <div class="material-item-title">{{ item.name }}</div>
+                    <div class="material-item" v-for="(material,index) in item.materials" :key="index">
+<!--                      <el-image class="material-item-img" :src="material.picture.replace('127.0.0.1','120.86.188.249')"></el-image>-->
+                      <el-image class="material-item-img" :src="material.picture"></el-image>
+                      <div class="material-item-title" :title="material.name">{{ material.name }}</div>
                     </div>
                   </div>
               </div>
             </template>
           </div>
           <div class="export-section" v-if="already_generated">
-            <el-button><i class="el-icon-fa-download" style="margin-right: 10px;"></i>导出视频</el-button>
+            <el-button @click="export_video"><i class="el-icon-fa-download" style="margin-right: 10px;"></i>
+              导出视频</el-button>
           </div>
         </div>
       </div>
@@ -86,8 +88,6 @@
           <video
             ref="videoRef"
             @ended="playNextVideo"
-            @timeupdate="updateProgress"
-            @loadedmetadata="updateDuration"
             controls
             autoplay
             preload="metadata"
@@ -102,6 +102,8 @@
 </template>
 
 <script>
+import {postAction} from "@/api/api";
+
 export default {
   name: 'Montage',
   data() {
@@ -112,45 +114,177 @@ export default {
       show_settings: true,
       openIndex: null,
       activeIndex: -1,
-      videos: [
-        {
-          name: '示例视频1',
-          url: 'http://127.0.0.1:8383/results/f2c35bcc-9773-40ca-b566-d5149f2e77cf-final.mp4'
-        },
-        {
-          name: '示例视频2',
-          url: 'http://127.0.0.1:8383/results/f4744f29-90f0-4258-8899-6018dc3ba9bb-final.mp4'
-        },
-        {
-          name: '示例视频3',
-          url: 'http://127.0.0.1:8383/results/96ba588b-800c-44e5-ae70-31821cda6db7-final.mp4'
-        },
-      ],
       currentIndex: 0,
-      currentTime: 0,
-      duration: 0,
       isPlaying: false,
-      isMuted: false,
-      volume: 0.8
+
+      material_list: [],
+      mute_materials: [],
+      sound: {},
+      bgm: {},
+      bg_volume: 0.5,
+      with_subtitle: false,
+      with_title: false,
+      top_offset_ratio: 0,
+      bottom_offset_ratio: 0,
+      subtitleParams: {},
+      subtitleNameParams: {},
+
+      montage_data: [],
+      loading: null,
     }
+  },
+  computed: {
+    preview_video() {
+      return this.montage_data.length > 0 ? this.montage_data[this.activeIndex].materials : []
+    },
   },
   mounted() {
     this.initData()
   },
   methods: {
     initData() {
-      if (sessionStorage.getItem("copy_list")) {
-        this.copy_list = JSON.parse(sessionStorage.getItem("copy_list")).map(item => ({
-          ...item, isHover: false,
-        }))
+      this.copy_list = JSON.parse(sessionStorage.getItem("copy_list")).map(item => ({
+        ...item, isHover: false,
+      }))
+      this.material_list = JSON.parse(sessionStorage.getItem('material_list')) || []
+      this.mute_materials = JSON.parse(sessionStorage.getItem('mute_materials')) || []
+      this.sound = JSON.parse(sessionStorage.getItem("setting_voice"))
+      this.bgm = JSON.parse(sessionStorage.getItem('setting_bgm')) || {}
+      this.top_offset_ratio = Number(sessionStorage.getItem('top_offset_ratio'))
+      this.bottom_offset_ratio = Number(sessionStorage.getItem('bottom_offset_ratio'))
+
+      this.withSubtitle = sessionStorage.getItem("with_subtitle") === 'true'
+      this.withTitle = sessionStorage.getItem("with_title") === 'true'
+      this.bg_volume = Number(sessionStorage.getItem("bg_volume")) || 0.5
+
+      this.subtitleParams.fontsize = parseInt(sessionStorage.getItem("fontsize")) || 5
+      this.subtitleParams.color = sessionStorage.getItem("color") || '#ffffff'
+      this.subtitleParams.font = sessionStorage.getItem("font") || 'SJxingkai-C-Regular'
+      this.subtitleParams.background_color = sessionStorage.getItem("background_color") || 'rgba(64,64,64,0.6)'
+      this.subtitleParams.background_opacity = Number(sessionStorage.getItem("background_opacity")) || 0.6
+      this.subtitleParams.stroke_color = sessionStorage.getItem("stroke_color") || '#000000'
+
+      this.subtitleNameParams.name_fontsize = parseInt(sessionStorage.getItem("name_fontsize")) || 10
+      this.subtitleNameParams.name_color = sessionStorage.getItem("name_color") || '#ffffff'
+      this.subtitleNameParams.name_font = sessionStorage.getItem("name_font") || 'SJxingkai-C-Regular'
+      this.subtitleNameParams.name_background_color = sessionStorage.getItem("name_background_color") || 'rgba(64,64,64)'
+      this.subtitleNameParams.name_background_opacity = Number(sessionStorage.getItem("name_background_opacity")) || 0.6
+      this.subtitleNameParams.name_stroke_color = sessionStorage.getItem("name_stroke_color") || '#000000'
+    },
+    setName() {
+      let data = new Date();
+      let year = data.getFullYear();
+      let month = String(data.getMonth() + 1).padStart(2, "0");
+      let day = String(data.getDate()).padStart(2, "0");
+      let hours = String(data.getHours()).padStart(2, "0");
+      let minutes = String(data.getMinutes()).padStart(2, "0");
+      let seconds = String(data.getSeconds()).padStart(2, "0");
+      let base = year + '-' + month + '-' + day + '_' + hours + '-' + minutes + '-' + seconds
+
+      let result = [];
+      for (let i = 1; i <= this.copy_list.length; i++) {
+        result.push(base + '_' + i);
       }
+
+      return result;
     },
     generate() {
-      this.already_generated = true
-      this.activeIndex = 0
-      this.$nextTick(() => {
-        this.loadVideo(this.currentIndex);
+      this.loading = this.$loading({
+        lock: true,
+        text: '一键混剪，请耐心等待...',
+        spinner: 'el-icon-loading',
+        background: 'rgba(0, 0, 0, 0.7)'
+      });
+      let params = {
+        material_list: this.material_list,
+        text_list: this.copy_list.map(item => item.content),
+        text_title_list: this.copy_list.map(item => item.title),
+        user_request: this.requirement,
+        timbre_id: this.sound.voice_id,
+        with_subtitle: true
+      }
+      postAction('/figure/video_mix_edit',params, 180000).then(res => {
+        if (res.data.status === 'success') {
+          this.montage_data = res.data.data
+          this.already_generated = true
+          this.activeIndex = 0
+          this.currentIndex = 0
+          this.loading.close();
+          this.loading = null;
+          this.$nextTick(() => {
+            this.loadVideo(this.currentIndex);
+          })
+        } else {
+          this.$alert(res.data.message, "混剪失败");
+          this.loading.close();
+          this.loading = null;
+        }
+      }).catch(error => {
+        this.loading.close();
+        this.loading = null;
+        console.log(error)
       })
+    },
+    export_video() {
+      let bool_list = this.material_list.map(item => this.mute_materials.includes(item))
+      let name = this.setName()
+      let params = {
+        audio_file_id_list: this.montage_data.map(item => item.audio_file_id),
+        text_list: this.montage_data.map(item => item.content),
+        timestamp_path_list: this.montage_data.map(item => item.timestamp_path),
+        material_list: this.montage_data.map(item => item.materials.map(material => material.id)),
+        bool_list: bool_list,
+
+        bgm_id: this.bgm.id,
+        bg_volume: this.bg_volume,
+        with_subtitle: true,
+        with_title: true,
+        filename_list: name,
+        subtitle_params: {
+          y_offset: this.bottom_offset_ratio,
+          font: this.subtitleParams.font,
+          fontsize: this.subtitleParams['fontsize'],
+          color: this.subtitleParams.color,
+          stroke_color: this.subtitleParams.stroke_color,
+          use_background: true,
+          background_color: this.subtitleParams.background_color,
+          background_opacity: this.subtitleParams.background_opacity
+        },
+        title_params: {
+          y_offset: this.top_offset_ratio,
+          title_text_list: this.montage_data.map(item => item.title),
+          font: this.subtitleNameParams.name_font,
+          fontsize: this.subtitleNameParams.name_fontsize,
+          color: this.subtitleNameParams.name_color,
+          stroke_color: this.subtitleNameParams.name_stroke_color,
+          use_background: true,
+          background_color: this.subtitleNameParams.background_color,
+          background_opacity: this.subtitleNameParams.background_color
+        }
+      }
+      postAction('/figure/export_video',params).then(res => {
+        if (res.data.status === "success") {
+          this.$alert('已创建视频生成任务，视频生成成功后会自动下载到本地', "任务创建提醒");
+          sessionStorage.removeItem('copy_list')
+          setTimeout(() => {
+            this.$router.push({path: '/videoList'})
+          }, 500)
+        } else {
+          this.$notify({
+            title: "创建失败",
+            message: `创建视频生成任务失败，${res.data.message}`,
+            duration: 0,
+            type: "error",
+          });
+        }
+      }).catch((error) => {
+        this.$notify({
+          title: "创建失败",
+          message: `创建视频生成任务失败，${error}`,
+          duration: 0,
+          type: "error",
+        });
+      });
     },
     itemClick(index) {
       this.openIndex = this.openIndex === index ? null : index
@@ -161,9 +295,10 @@ export default {
       sessionStorage.setItem("copy_list", JSON.stringify(this.copy_list))
     },
     loadVideo(index) {
-      if (index >= 0 && index < this.videos.length) {
+      if (index >= 0 && index < this.preview_video.length) {
         this.currentIndex = index;
-        this.$refs.videoRef.src = this.videos[index].url;
+        // this.$refs.videoRef.src = this.preview_video[index].filepath.replace('127.0.0.1', '120.86.188.249');
+        this.$refs.videoRef.src = this.preview_video[index].filepath
         this.$refs.videoRef.load();
         this.playVideo();
       }
@@ -177,16 +312,9 @@ export default {
       });
     },
     playNextVideo() {
-      const nextIndex = (this.currentIndex + 1) % this.videos.length;
+      const nextIndex = (this.currentIndex + 1) % this.preview_video.length;
       this.loadVideo(nextIndex);
     },
-    updateProgress() {
-      this.currentTime = this.$refs.videoRef.currentTime;
-    },
-    updateDuration() {
-      this.duration = this.$refs.videoRef.duration;
-    },
-
   }
 }
 </script>

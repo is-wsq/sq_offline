@@ -196,6 +196,10 @@ export default {
       sessionStorage.setItem("copy_list", JSON.stringify(this.copy_list))
     },
     nextStep() {
+      if (this.copy_list.length === 0) {
+        this.$alert('请先添加口播文案', "提示")
+        return;
+      }
       this.$router.push({path: '/montage'})
     },
     verify() {
@@ -212,7 +216,7 @@ export default {
     initParams() {
       this.figure = JSON.parse(sessionStorage.getItem('figure')) || {}
       this.sound = JSON.parse(sessionStorage.getItem('figure_setting_voice')) || {}
-      this.bgm = JSON.parse(sessionStorage.getItem('setting_bgm')) || {}
+      this.bgm = JSON.parse(sessionStorage.getItem('figure_setting_bgm')) || {}
 
       this.top_offset_ratio = Number(sessionStorage.getItem('figure_top_offset_ratio'))
       this.bottom_offset_ratio = Number(sessionStorage.getItem('figure_bottom_offset_ratio'))
