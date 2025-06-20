@@ -6,6 +6,20 @@
   "description": "",
   "glyphs": [
     {
+      "icon_id": "1478673",
+      "name": "ic_timeline",
+      "font_class": "timeline",
+      "unicode": "e9a36",
+      "unicode_decimal": 956982
+    },
+    {
+      "icon_id": "8474363",
+      "name": "shuffle",
+      "font_class": "shuffle",
+      "unicode": "e62d4",
+      "unicode_decimal": 942804
+    },
+    {
       "icon_id": "35336123",
       "name": "film",
       "font_class": "film-c",
