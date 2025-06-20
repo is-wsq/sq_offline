@@ -291,6 +291,10 @@ export default {
       this.activeIndex = index
     },
     removeCopy(index) {
+      if (this.already_generated) {
+        this.montage_data.splice(index, 1)
+        return
+      }
       this.copy_list.splice(index, 1)
       sessionStorage.setItem("copy_list", JSON.stringify(this.copy_list))
     },
