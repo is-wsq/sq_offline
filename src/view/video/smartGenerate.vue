@@ -211,8 +211,8 @@ export default {
     },
     initParams() {
       this.figure = JSON.parse(sessionStorage.getItem('figure')) || {}
-      this.figure = JSON.parse(sessionStorage.getItem('figure_setting_voice')) || {}
-      this.figure = JSON.parse(sessionStorage.getItem('setting_bgm')) || {}
+      this.sound = JSON.parse(sessionStorage.getItem('figure_setting_voice')) || {}
+      this.bgm = JSON.parse(sessionStorage.getItem('setting_bgm')) || {}
 
       this.top_offset_ratio = Number(sessionStorage.getItem('figure_top_offset_ratio'))
       this.bottom_offset_ratio = Number(sessionStorage.getItem('figure_bottom_offset_ratio'))
@@ -256,7 +256,7 @@ export default {
         with_subtitle: this.withSubtitle,
         with_title: this.withTitle,
         subtitle_params: {
-          y_offset: 100,
+          y_offset: this.bottom_offset_ratio,
           font: this.subtitleParams.font,
           fontsize: this.subtitleParams['fontsize'],
           color: this.subtitleParams.color,
@@ -266,7 +266,7 @@ export default {
           background_opacity: this.subtitleParams.background_opacity
         },
         title_params: {
-          y_offset: 0,
+          y_offset: this.top_offset_ratio,
           title_text_list: this.copy_list.map(item => item.title),
           font: this.subtitleNameParams.name_font,
           fontsize: this.subtitleNameParams.name_fontsize,
