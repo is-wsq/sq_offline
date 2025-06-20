@@ -108,6 +108,24 @@ export default {
       return this.videoTasks.filter((item) => item.status === 'success').map((item) => ({ ...item, show: false, isEdit: false }));
     },
   },
+  watch: {
+    processList: {
+      handler(newVal, oldVal) {
+        if (newVal !== oldVal) {
+          this.filterVideo();
+        }
+      },
+      deep: true
+    },
+    videoList: {
+      handler(newVal, oldVal) {
+        if (newVal !== oldVal) {
+          this.filterVideo();
+        }
+      },
+      deep: true
+    }
+  },
   mounted() {
     this.startDotAnimation();
     this.$store.dispatch("task/pollVideoTasks").then(() => {

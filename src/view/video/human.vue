@@ -518,6 +518,7 @@ export default {
             this.bgm = bgm
           } else {
             this.bgm = this.bgmList[0]
+            sessionStorage.setItem("figure_setting_bgm", JSON.stringify(this.bgm))
           }
         } else {
           this.$message.error("获取背景音乐列表失败。");
