@@ -8,18 +8,19 @@
       <div v-for="item in filterProcess" :key="item.id" style="text-align: center">
         <div class="image-wrapper shining">
           <el-image
-              style="width: 180px; height: 240px; border-radius: 8px;filter: blur(15px);opacity: 0.8"
+              style="width: 100%;height: 100%;border-radius: 8px;filter: blur(15px);opacity: 0.8"
               :src="require('/public/images/4.jpg')"
-              fit="cover">
+              fit="contain">
           </el-image>
+          <div class="video-item-info">
+            <div :title="item.filename" class="video-name">{{ item.filename }}</div>
+          </div>
+
           <div class="shine-layer"></div>
           <div class="list-progress">
             <div>视频生成中</div>
             <div style="width: 10px;text-align: left;margin-left: 5px;font-size: 22px">{{ dot }}</div>
           </div>
-        </div>
-        <div class="video-name" :title="item.filename">
-          {{ item.filename }}
         </div>
       </div>
       <div class="video-list-item"
@@ -109,9 +110,9 @@ export default {
   },
   mounted() {
     this.startDotAnimation();
-    this.$store.dispatch("task/pollVideoTasks");
-    this.filterProcess = this.processList
-    this.filterVideos = this.videoList;
+    this.$store.dispatch("task/pollVideoTasks").then(() => {
+      this.filterVideo()
+    });
   },
   methods: {
     filterVideo() {
@@ -274,6 +275,8 @@ export default {
 .video-list-item {
   aspect-ratio: 9 / 16;
   position: relative;
+  display: flex;
+  justify-content: center;
 }
 
 .video-list-item:hover {

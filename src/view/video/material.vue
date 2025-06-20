@@ -137,7 +137,7 @@
                     <el-col :span="12">
                       <div class="voice-item">
                         <el-upload
-                            action="http://120.86.188.249:6006/bgm/upload"
+                            action="http://127.0.0.1:6006/bgm/upload"
                             :show-file-list="false"
                             accept=".mp3, .wav"
                             :on-success="bgmUploadSuccess">
@@ -1042,6 +1042,7 @@ export default {
   align-items: center;
   font-size: 13px;
   color: #6286ed;
+  cursor: pointer;
 }
 
 .popover-content {

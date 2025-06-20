@@ -93,10 +93,8 @@
             <div class="right-label">背景声音</div>
             <div class="s-voice-content">
               <div class="s-voice-btn">
-                <div class="s-voice-btn">
-                  <i class="el-icon-play" @click="previewAudio(bgm, -2)" v-if="audioIndex !== -2"></i>
-                  <i class="el-icon-pause" @click="stopAudio" v-else></i>
-                </div>
+                <i class="el-icon-play" @click="previewAudio(bgm, -2)" v-if="audioIndex !== -2"></i>
+                <i class="el-icon-pause" @click="stopAudio" v-else></i>
               </div>
               <el-popover placement="bottom" trigger="click" @hide="stopAudio">
                 <div class="popover-content">
@@ -104,7 +102,7 @@
                     <el-col :span="12">
                       <div class="voice-item">
                         <el-upload
-                            action="http://120.86.188.249:6006/bgm/upload"
+                            action="http://127.0.0.1:6006/bgm/upload"
                             :show-file-list="false"
                             accept=".mp3, .wav"
                             :on-success="bgmUploadSuccess">
@@ -922,6 +920,7 @@ export default {
   align-items: center;
   font-size: 13px;
   color: #6286ed;
+  cursor: pointer;
 }
 
 .popover-content {

@@ -116,9 +116,11 @@ body {
 }
 
 .image-wrapper {
+  width: 100%;
+  height: 100%;
   position: relative;
   display: inline-block;
-  border-radius: 12px;
+  border-radius: 8px;
   overflow: hidden;
 }
 
