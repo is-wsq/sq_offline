@@ -28,12 +28,8 @@
                     class="margin-b-12" v-model="example_copy"></el-input>
           <div style="display: flex;gap: 12px" class="margin-b-12">
             <div style="flex: 1">
-              <div class="panel-label">文案字数</div>
-              <el-select v-model="copy_num" placeholder="请选择">
-                <el-option label="100" value="100"></el-option>
-                <el-option label="200" value="200"></el-option>
-                <el-option label="300" value="300"></el-option>
-              </el-select>
+              <div class="panel-label">视频时长</div>
+              <el-input type="number" v-model="video_time"></el-input>
             </div>
             <div style="flex: 1">
               <div class="panel-label">文案数量</div>
@@ -142,7 +138,7 @@ export default {
       already_generated: false,
       copy_require: '',
       example_copy: '',
-      copy_num: 100,
+      video_time: 10,
       script_num: 1,
       ai_model: 'deepseek_v3',
       copy_list: [],

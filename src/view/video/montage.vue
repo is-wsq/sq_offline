@@ -203,7 +203,7 @@ export default {
         timbre_id: this.sound.voice_id,
         with_subtitle: true
       }
-      postAction('/figure/video_mix_edit',params, 180000).then(res => {
+      postAction('/figure/video_mix_edit',params, 3600000).then(res => {
         if (res.data.status === 'success') {
           this.montage_data = res.data.data
           this.already_generated = true
