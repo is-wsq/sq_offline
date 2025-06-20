@@ -103,7 +103,8 @@
             <div class="s-voice-title">主播声音</div>
             <div class="s-voice-content margin-b-16">
               <div class="s-voice-btn">
-                <i class="el-icon-play"></i>
+                <i class="el-icon-play" @click="previewAudio(sound, -1)" v-if="audioIndex !== -1"></i>
+                <i class="el-icon-pause" @click="stopAudio" v-else></i>
               </div>
               <el-popover placement="bottom" trigger="click">
                 <div class="popover-content">
@@ -127,7 +128,8 @@
             <div class="s-voice-title">背景声音</div>
             <div class="s-voice-content">
               <div class="s-voice-btn">
-                <i class="el-icon-play"></i>
+                <i class="el-icon-play" @click="previewAudio(bgm, -2)" v-if="audioIndex !== -2"></i>
+                <i class="el-icon-pause" @click="stopAudio" v-else></i>
               </div>
               <el-popover placement="bottom" trigger="click" @hide="stopAudio">
                 <div class="popover-content">
@@ -806,6 +808,7 @@ export default {
     nextStep(path) {
       if (this.material_list.length === 0) {
         this.$alert('请先选择需要混剪的素材', '提示')
+        return
       }
       sessionStorage.setItem('script_type', 'material')
       this.$router.push({path: path})

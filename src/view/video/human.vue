@@ -68,7 +68,8 @@
             <div class="right-label">主播声音</div>
             <div class="s-voice-content margin-b-16">
               <div class="s-voice-btn">
-                <i class="el-icon-play"></i>
+                <i class="el-icon-play" @click="previewAudio(sound, -1)" v-if="audioIndex !== -1"></i>
+                <i class="el-icon-pause" @click="stopAudio" v-else></i>
               </div>
               <el-popover placement="bottom" trigger="click">
                 <div class="popover-content">
@@ -92,7 +93,10 @@
             <div class="right-label">背景声音</div>
             <div class="s-voice-content">
               <div class="s-voice-btn">
-                <i class="el-icon-play"></i>
+                <div class="s-voice-btn">
+                  <i class="el-icon-play" @click="previewAudio(bgm, -2)" v-if="audioIndex !== -2"></i>
+                  <i class="el-icon-pause" @click="stopAudio" v-else></i>
+                </div>
               </div>
               <el-popover placement="bottom" trigger="click" @hide="stopAudio">
                 <div class="popover-content">
@@ -412,9 +416,9 @@ export default {
       getAction("/figure/query_success").then((res) => {
         if (res.data.status === "success") {
           let data = res.data.data.filter(item => item.status === "success");
-          data.forEach(item => {
-            item.picture = item.picture.replace('127.0.0.1', '120.86.188.249')
-          })
+          // data.forEach(item => {
+          //   item.picture = item.picture.replace('127.0.0.1', '120.86.188.249')
+          // })
           if (data.length > 0) {
             this.figures = data.filter(item => item.lip_sync && item.status === "success").map(item => ({
               ...item, previewing: false
