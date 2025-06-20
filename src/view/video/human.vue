@@ -14,15 +14,17 @@
           <div v-for="item in figures"
                :key="item.id"
                @click="selectFigure(item)">
-            <el-popover placement="right" trigger="hover" :content="''" @show="item.previewing = true"
-                        @hide="item.previewing = false"
-                        popper-class="video-preview-popover" :open-delay="1000" :close-delay="300">
-              <el-image slot="reference" class="figure-img" :class="{'figure-img-selected': item.id === figure.id }"
-                        :src="item.picture" fit="cover"></el-image>
-              <video :src="item.filepath" loop muted autoplay style="min-width: 150px" height="180"
-                     v-if="item.previewing">
-              </video>
-            </el-popover>
+            <el-image class="figure-img" :class="{'figure-img-selected': item.id === figure.id }"
+                      :src="item.picture" fit="cover"></el-image>
+<!--            <el-popover placement="right" trigger="hover" :content="''" @show="item.previewing = true"-->
+<!--                        @hide="item.previewing = false"-->
+<!--                        popper-class="video-preview-popover" :open-delay="1000" :close-delay="300">-->
+<!--              <el-image slot="reference" class="figure-img" :class="{'figure-img-selected': item.id === figure.id }"-->
+<!--                        :src="item.picture" fit="cover"></el-image>-->
+<!--              <video :src="item.filepath" loop muted autoplay style="min-width: 150px" height="180"-->
+<!--                     v-if="item.previewing">-->
+<!--              </video>-->
+<!--            </el-popover>-->
             <div class="figure-name" :class="{'figure-title-selected': item.id === figure.id }"
                  :title="item.name">{{ item.name }}</div>
           </div>

@@ -16,23 +16,27 @@
              @mouseup="endSelection"
              @mouseleave="endSelection"
              ref="videoGrid">
+<!--          <div class="m-item" v-for="item in filter_materials" :key="item.id"-->
+<!--               @mousedown="onVideoItemMouseDown"-->
+<!--               @mouseleave="onMouseLeave"-->
+<!--               @mouseenter="onMouseEnter"-->
+<!--               @click="selectMaterial(item, $event)"-->
+<!--               ref="videoItems">-->
           <div class="m-item" v-for="item in filter_materials" :key="item.id"
                @mousedown="onVideoItemMouseDown"
-               @mouseleave="onMouseLeave"
-               @mouseenter="onMouseEnter"
                @click="selectMaterial(item, $event)"
                ref="videoItems">
-<!--            <el-image class="m-item-img" :class="{'m-img-selected': material_list.includes(item.id) }"-->
-<!--                      :src="item.picture" fit="cover"></el-image>-->
-            <el-popover placement="right" trigger="hover" :content="''" @show="item.previewing = true"
-                        @hide="item.previewing = false" :disabled="isSelecting || !shouldShowPopover"
-                        popper-class="video-preview-popover" :open-delay="1000" :close-delay="300">
-              <el-image slot="reference" class="m-item-img" :class="{'m-img-selected': material_list.includes(item.id) }"
-                        :src="item.picture" fit="cover"></el-image>
-              <video :src="item.filepath" loop muted autoplay style="min-width: 150px" height="180"
-                     v-if="item.previewing">
-              </video>
-            </el-popover>
+            <el-image class="m-item-img" :class="{'m-img-selected': material_list.includes(item.id) }"
+                      :src="item.picture" fit="cover"></el-image>
+<!--            <el-popover placement="right" trigger="hover" :content="''" @show="item.previewing = true"-->
+<!--                        @hide="item.previewing = false" :disabled="isSelecting || !shouldShowPopover"-->
+<!--                        popper-class="video-preview-popover" :open-delay="1000" :close-delay="300">-->
+<!--              <el-image slot="reference" class="m-item-img" :class="{'m-img-selected': material_list.includes(item.id) }"-->
+<!--                        :src="item.picture" fit="cover"></el-image>-->
+<!--              <video :src="item.filepath" loop muted autoplay style="min-width: 150px" height="180"-->
+<!--                     v-if="item.previewing">-->
+<!--              </video>-->
+<!--            </el-popover>-->
 <!--            <div class="m-item-title" :class="{'m-title-selected': material_list.includes(item.id) }">{{item.name}}</div>-->
 
             <div style="display: flex">
