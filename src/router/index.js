@@ -8,6 +8,7 @@ import figures from '../view/figures/index.vue';
 import voice from '../view/voice/index.vue';
 import video from '../view/video/home.vue';
 import digitalHuman from '../view/video/index.vue';
+import human from '../view/video/human.vue';
 import material from '../view/video/material.vue';
 import smartGenerate from '../view/video/smartGenerate.vue';
 import syncCv from '../view/video/syncCv.vue';
@@ -41,9 +42,9 @@ const routes = [
         component: video
     },
     {
-        path: '/digitalHuman',
-        name: 'digitalHuman',
-        component: digitalHuman
+        path: '/human',
+        name: 'human',
+        component: human
     },
     {
         path: '/material',

@@ -82,7 +82,7 @@
                           popper-class="video-preview-popover" :open-delay="1000" :close-delay="300">
                 <el-image slot="reference" class="template-img" :src="item.picture" fit="cover"></el-image>
                 <video :src="item.filepath" loop muted autoplay style="min-width: 150px" height="180"
-                       @mouseenter="handleVideoMouseEnter" @mouseleave="handleVideoMouseLeave" v-if="item.previewing">
+                       v-if="item.previewing">
                 </video>
               </el-popover>
               <div class="template-name" style="width: 120px !important" :title="item.name">{{ item.name }}</div>

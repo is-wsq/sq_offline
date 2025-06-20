@@ -38,7 +38,7 @@ export default {
           icon: "el-icon-koboshuzr",
           iconClass: "icon-digital-human",
           description: "上传文本或音频，选择您的数字分身，一键生成高质量的口播视频。",
-          path: "/digitalHuman"
+          path: "/human"
         },
         {
           title: "AI 混剪",

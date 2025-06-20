@@ -88,13 +88,15 @@
       </el-row>
     </div>
     <div class="flex-center">
-      <el-button type="primary" style="width: 176px" @click="nextStep">下一步：智能成片</el-button>
+      <el-button type="primary" style="width: 176px" @click="nextStep" v-if="script_type === 'material'">下一步：智能成片</el-button>
+      <el-button type="primary" style="width: 176px" @click="verify" v-else>生成视频</el-button>
     </div>
   </div>
 </template>
 
 <script>
 import axios from "axios";
+import {getAction, postAction} from "@/api/api";
 
 export default {
   data(){
@@ -107,7 +109,19 @@ export default {
       ai_model: 'deepseek_v3',
       copy_title: '',
       copy_content: '',
-      copy_list: []
+      copy_list: [],
+      script_type: '',
+
+      figure: {},
+      sound: {},
+      bgm: {},
+      top_offset_ratio: 0,
+      bottom_offset_ratio: 0,
+      withSubtitle: false,
+      withTitle: false,
+      bg_volume: 0.5,
+      subtitleParams: {},
+      subtitleNameParams: {}
     }
   },
   mounted() {
@@ -116,6 +130,8 @@ export default {
   methods: {
     initData() {
       this.copy_list = sessionStorage.getItem("copy_list") ? JSON.parse(sessionStorage.getItem("copy_list")) : []
+      this.script_type = sessionStorage.getItem("script_type")
+      this.initParams()
     },
     batchGenerate() {
       let url = ''
@@ -181,7 +197,127 @@ export default {
     },
     nextStep() {
       this.$router.push({path: '/montage'})
-    }
+    },
+    verify() {
+      getAction('/verify/activation').then(res => {
+        if (res.data.status === 'success') {
+          this.generateVideo()
+        } else {
+          this.$alert(res.data.message, "验证失败");
+        }
+      }).catch(err => {
+        console.log(err)
+      })
+    },
+    initParams() {
+      this.figure = JSON.parse(sessionStorage.getItem('figure')) || {}
+      this.figure = JSON.parse(sessionStorage.getItem('figure_setting_voice')) || {}
+      this.figure = JSON.parse(sessionStorage.getItem('setting_bgm')) || {}
+
+      this.top_offset_ratio = Number(sessionStorage.getItem('figure_top_offset_ratio'))
+      this.bottom_offset_ratio = Number(sessionStorage.getItem('figure_bottom_offset_ratio'))
+
+      this.withSubtitle = sessionStorage.getItem("figure_with_subtitle") === 'true'
+      this.withTitle = sessionStorage.getItem("figure_with_title") === 'true'
+      this.bg_volume = Number(sessionStorage.getItem("figure_bg_volume")) || 0.5
+
+      this.subtitleParams.fontsize = parseInt(sessionStorage.getItem("figure_fontsize")) || 5
+      this.subtitleParams.color = sessionStorage.getItem("figure_color") || '#ffffff'
+      this.subtitleParams.font = sessionStorage.getItem("figure_font") || 'SJxingkai-C-Regular'
+      this.subtitleParams.background_color = sessionStorage.getItem("figure_background_color") || 'rgba(64,64,64,0.6)'
+      this.subtitleParams.background_opacity = Number(sessionStorage.getItem("figure_background_opacity")) || 0.6
+      this.subtitleParams.stroke_color = sessionStorage.getItem("figure_stroke_color") || '#000000'
+
+      this.subtitleNameParams.name_fontsize = parseInt(sessionStorage.getItem("figure_name_fontsize")) || 10
+      this.subtitleNameParams.name_color = sessionStorage.getItem("figure_name_color") || '#ffffff'
+      this.subtitleNameParams.name_font = sessionStorage.getItem("figure_name_font") || 'SJxingkai-C-Regular'
+      this.subtitleNameParams.name_background_color = sessionStorage.getItem("figure_name_background_color") || 'rgba(64,64,64)'
+      this.subtitleNameParams.name_background_opacity = Number(sessionStorage.getItem("figure_name_background_opacity")) || 0.6
+      this.subtitleNameParams.name_stroke_color = sessionStorage.getItem("figure_name_stroke_color") || '#000000'
+    },
+    generateVideo() {
+      if (this.copy_list.length === 0) {
+        this.$alert('请先添加口播文案', "提示")
+        return;
+      }
+      if (this.copy_list.some(item => item.title === "" || item.content === "")) {
+        this.$alert('文案标题、内容不能为空', "提示");
+        return
+      }
+
+      let name = this.setName()
+      let params = {
+        video_id: this.figure.video_id,
+        voice_id: this.sound.voice_id,
+        bgm_id: this.bgm.id,
+        bg_volume: this.bg_volume,
+        filename_list: name,
+        text_list: this.copy_list.map(item => item.content),
+        with_subtitle: this.withSubtitle,
+        with_title: this.withTitle,
+        subtitle_params: {
+          y_offset: 100,
+          font: this.subtitleParams.font,
+          fontsize: this.subtitleParams['fontsize'],
+          color: this.subtitleParams.color,
+          stroke_color: this.subtitleParams.stroke_color,
+          use_background: true,
+          background_color: this.subtitleParams.background_color,
+          background_opacity: this.subtitleParams.background_opacity
+        },
+        title_params: {
+          y_offset: 0,
+          title_text_list: this.copy_list.map(item => item.title),
+          font: this.subtitleNameParams.name_font,
+          fontsize: this.subtitleNameParams.name_fontsize,
+          color: this.subtitleNameParams.name_color,
+          stroke_color: this.subtitleNameParams.name_stroke_color,
+          use_background: true,
+          background_color: this.subtitleNameParams.background_color,
+          background_opacity: this.subtitleNameParams.background_color
+        },
+      };
+      postAction("/figure/generate_video_v2", params).then((res) => {
+        if (res.data.status === "success") {
+          this.$alert('已创建视频生成任务，视频生成成功后会自动下载到本地', "任务创建提醒");
+          sessionStorage.removeItem('copy_list')
+          setTimeout(() => {
+            this.$router.push({path: '/videoList'})
+          }, 500)
+        } else {
+          this.$notify({
+            title: "创建失败",
+            message: `创建视频生成任务失败，${res.data.message}`,
+            duration: 0,
+            type: "error",
+          });
+        }
+      }).catch((error) => {
+        this.$notify({
+          title: "创建失败",
+          message: `创建视频生成任务失败，${error}`,
+          duration: 0,
+          type: "error",
+        });
+      });
+    },
+    setName() {
+      let data = new Date();
+      let year = data.getFullYear();
+      let month = String(data.getMonth() + 1).padStart(2, "0");
+      let day = String(data.getDate()).padStart(2, "0");
+      let hours = String(data.getHours()).padStart(2, "0");
+      let minutes = String(data.getMinutes()).padStart(2, "0");
+      let seconds = String(data.getSeconds()).padStart(2, "0");
+      let base = year + '-' + month + '-' + day + '_' + hours + '-' + minutes + '-' + seconds
+
+      let result = [];
+      for (let i = 1; i <= this.copy_list.length; i++) {
+        result.push(base + '_' + i);
+      }
+
+      return result;
+    },
   }
 }
 </script>
@@ -336,6 +472,8 @@ export default {
 }
 
 .copy-item-close {
+  width: 20px;
+  height: 20px;
   color: #9ca3af;
   font-size: 20px;
   font-weight: bold;

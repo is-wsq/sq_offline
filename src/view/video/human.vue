@@ -1,70 +1,52 @@
 <template>
-  <div class="material">
+  <div class="human">
     <div class="flex-center">
       <el-button type="text" class="back-btn" @click="$router.go(-1)">
         <i class="el-icon-arrow-left" style="font-size: 20px;"></i>
       </el-button>
-      <div class="material-h-t">素材选择</div>
+      <div class="human-h-t">数字人选择</div>
       <div style="width: 36px"></div>
     </div>
-    <div class="material-content">
-      <div class="c-left">
-        <div style="line-height: 40px;font-weight: bold;margin-left: 15px">媒体库</div>
-        <div class="m-card"
-             @mousedown="startSelection"
-             @mousemove="updateSelection"
-             @mouseup="endSelection"
-             @mouseleave="endSelection"
-             ref="videoGrid">
-          <div class="m-item" v-for="item in filter_materials" :key="item.id"
-               @mousedown="onVideoItemMouseDown"
-               @mouseleave="onMouseLeave"
-               @mouseenter="onMouseEnter"
-               @click="selectMaterial(item, $event)"
-               ref="videoItems">
-<!--            <el-image class="m-item-img" :class="{'m-img-selected': material_list.includes(item.id) }"-->
-<!--                      :src="item.picture" fit="cover"></el-image>-->
+    <div class="human-content">
+      <div class="figure-left-panel">
+        <div class="left-title">数字人库</div>
+        <div class="figure-list">
+          <div v-for="item in figures"
+               :key="item.id"
+               @click="selectFigure(item)">
             <el-popover placement="right" trigger="hover" :content="''" @show="item.previewing = true"
-                        @hide="item.previewing = false" :disabled="isSelecting || !shouldShowPopover"
+                        @hide="item.previewing = false"
                         popper-class="video-preview-popover" :open-delay="1000" :close-delay="300">
-              <el-image slot="reference" class="m-item-img" :class="{'m-img-selected': material_list.includes(item.id) }"
+              <el-image slot="reference" class="figure-img" :class="{'figure-img-selected': item.id === figure.id }"
                         :src="item.picture" fit="cover"></el-image>
               <video :src="item.filepath" loop muted autoplay style="min-width: 150px" height="180"
                      v-if="item.previewing">
               </video>
             </el-popover>
-            <div class="m-item-title" :class="{'m-title-selected': material_list.includes(item.id) }">{{item.name}}</div>
-          </div>
-          <!-- 选框元素 -->
-          <div v-if="isSelecting" class="selection-box"
-               :style="{
-                    left: `${selectionLeft}px`,
-                    top: `${selectionTop}px`,
-                    width: `${selectionWidth}px`,
-                    height: `${selectionHeight}px`
-                 }">
+            <div class="figure-name" :class="{'figure-title-selected': item.id === figure.id }"
+                 :title="item.name">{{ item.name }}</div>
           </div>
         </div>
       </div>
-      <div class="c-center">
-        <div class="c-center-preview">
-          <div class="c-center-preview-content">
-            <div class="c-preview-setting"
+      <div style="flex: 1">
+        <div class="figure-preview">
+          <div class="figure-preview-content">
+            <div class="figure-preview-setting"
                  ref="container"
                  @mousemove="onMouseMove"
                  @mouseup="onMouseUp"
                  @mouseleave="onMouseUp">
-              <el-image style="width: 100%;border-radius: 8px" :src="mentionList[0].picture"
-                        fit="contain" v-if="mentionList[0]"></el-image>
+              <el-image style="width: 100%;border-radius: 8px" :src="figure.picture"
+                        fit="contain" v-if="figure.picture"></el-image>
               <div style="width: 360px;height: 640px" v-else></div>
-              <div class="c-preview-title"
+              <div class="figure-preview-title"
                    ref="titleContainer"
                    :style="titleTextStyle"
                    v-if="withTitle"
                    @mousedown="onMouseDown('top', $event)">
                 示例标题
               </div>
-              <div class="c-preview-content"
+              <div class="figure-preview-text"
                    ref="contentContainer"
                    :style="textStyle"
                    v-if="withSubtitle"
@@ -74,17 +56,16 @@
             </div>
           </div>
         </div>
-        <div class="c-center-btn">
-          <el-button type="primary" class="next-btn" @click="nextStep('/smartGenerate')">下一步：编辑文案</el-button>
-          <el-button type="primary" class="next-btn" @click="nextStep('/syncCv')">下一步：一键混剪</el-button>
+        <div class="figure-center-btn">
+          <el-button type="primary" style="width: 176px;" @click="nextStep('/smartGenerate')">下一步：编辑文案</el-button>
         </div>
       </div>
-      <div class="c-right">
+      <div class="figure-right-panel">
         <div class="margin-b-12 font-weight">样式设置</div>
-        <div class="s-card">
-          <div class="s-card-item margin-b-16">
+        <div class="style-card">
+          <div class="style-card-item margin-b-16">
             <div class="margin-b-12 font-weight">音频</div>
-            <div class="s-voice-title">主播声音</div>
+            <div class="right-label">主播声音</div>
             <div class="s-voice-content margin-b-16">
               <div class="s-voice-btn">
                 <i class="el-icon-play"></i>
@@ -108,7 +89,7 @@
                 <div class="s-voice-name" style="min-width: 350px" slot="reference" :title="sound.name">{{ sound.name }}</div>
               </el-popover>
             </div>
-            <div class="s-voice-title">背景声音</div>
+            <div class="right-label">背景声音</div>
             <div class="s-voice-content">
               <div class="s-voice-btn">
                 <i class="el-icon-play"></i>
@@ -151,20 +132,20 @@
                 </div>
                 <div class="s-voice-name" slot="reference" style="min-width: 200px" :title="bgm.name">{{ bgm.name }}</div>
               </el-popover>
-              <div class="s-voice-title volume">音量</div>
+              <div class="right-label volume">音量</div>
               <div class="s-btn-volume">
                 <el-slider v-model="bg_volume" :step="0.1" style="width: 80px" :min="0.1" :max="1"
                            @change="saveBgmVolume('bg_volume')"></el-slider>
               </div>
             </div>
           </div>
-          <div class="s-card-item margin-b-16">
+          <div class="style-card-item margin-b-16">
             <div class="margin-b-12 font-weight flex-center">
               <div style="flex: 1">口播标题</div>
               <el-checkbox v-model="withTitle" @change="switchTitle"></el-checkbox>
             </div>
             <div class="flex-center">
-              <div class="s-voice-title" style="flex: 1">预设样式</div>
+              <div class="right-label" style="flex: 1">预设样式</div>
               <div class="preset-style"
                    v-for="item in titlePresets"
                    :key="item.id"
@@ -179,7 +160,7 @@
               </div>
             </div>
             <div class="flex-center margin-t-8">
-              <div class="s-voice-title" style="flex: 1;display: flex;align-items: center">
+              <div class="right-label" style="flex: 1;display: flex;align-items: center">
                 <div style="margin-right: 10px">字体</div>
                 <el-select v-model="subtitleNameParams.name_font" placeholder="请选择" style="width: 180px"
                            @change="saveSubtitleNameParams('name_font')">
@@ -195,7 +176,7 @@
                   </el-option>
                 </el-select>
               </div>
-              <div class="s-voice-title" style="display: flex;align-items: center">
+              <div class="right-label" style="display: flex;align-items: center">
                 <div>字号</div>
                 <el-input-number class="input-number"
                                  v-model="subtitleNameParams.name_fontsize"
@@ -208,44 +189,44 @@
               </div>
             </div>
             <div class="flex-center margin-t-8">
-              <div class="s-voice-title" style="flex: 1">字体颜色</div>
+              <div class="right-label" style="flex: 1">字体颜色</div>
               <el-color-picker size="small" v-model="subtitleNameParams.name_color"
                                @change="saveSubtitleNameParams('name_color')"></el-color-picker>
             </div>
             <div class="flex-center margin-t-8 margin-b-16">
-              <div class="s-voice-title" style="flex: 1">描边颜色</div>
+              <div class="right-label" style="flex: 1">描边颜色</div>
               <el-color-picker size="small" v-model="subtitleNameParams.name_stroke_color"
                                @change="saveSubtitleNameParams('name_stroke_color')"></el-color-picker>
             </div>
             <div class="flex-center" :class="{'margin-b-16': name_background_setting}" style="cursor: pointer"
                  @click="name_background_setting = !name_background_setting">
-              <div class="s-voice-title" style="flex: 1">背景颜色</div>
+              <div class="right-label" style="flex: 1">背景颜色</div>
               <i class="el-icon-arrow-down" style="color: #374151" v-if="name_background_setting"></i>
               <i class="el-icon-arrow-right" style="color: #374151" v-else></i>
             </div>
             <div class="flex-center margin-b-12 bg-color" v-if="name_background_setting">
-              <div class="s-voice-title" style="margin-right: 12px">颜色</div>
+              <div class="right-label" style="margin-right: 12px">颜色</div>
               <el-color-picker size="small" v-model="subtitleNameParams.name_background_color"
                                @change="saveSubtitleNameParams('name_background_color')"></el-color-picker>
               <div style="flex: 1"></div>
             </div>
             <div class="flex-center opacity" v-if="name_background_setting">
-              <div class="s-voice-title" style="margin-right: 12px">不透明度</div>
+              <div class="right-label" style="margin-right: 12px">不透明度</div>
               <el-slider v-model="subtitleNameParams.name_background_opacity"
                          :step="0.01" style="flex: 1" :min="0" :max="1"
                          @input="saveSubtitleNameParams('name_background_opacity')"></el-slider>
-              <div class="s-voice-title" style="margin-left: 8px;width: 30px">
+              <div class="right-label" style="margin-left: 8px;width: 30px">
                 {{ (subtitleNameParams.name_background_opacity * 100).toFixed(0) + '%' }}
               </div>
             </div>
           </div>
-          <div class="s-card-item">
+          <div class="style-card-item">
             <div class="margin-b-12 font-weight flex-center">
               <div style="flex: 1">口播内容</div>
               <el-checkbox v-model="withSubtitle" @change="switchSubtitle"></el-checkbox>
             </div>
             <div class="flex-center">
-              <div class="s-voice-title" style="flex: 1;display: flex">预设样式</div>
+              <div class="right-label" style="flex: 1;display: flex">预设样式</div>
               <div class="preset-style"
                    v-for="item in titlePresets"
                    :key="item.id"
@@ -260,7 +241,7 @@
               </div>
             </div>
             <div class="flex-center margin-t-8">
-              <div class="s-voice-title" style="flex: 1;display: flex;align-items: center">
+              <div class="right-label" style="flex: 1;display: flex;align-items: center">
                 <div style="margin-right: 10px">字体</div>
                 <el-select v-model="subtitleParams.font" placeholder="请选择" style="width: 180px"
                            @change="saveSubtitleParams('font')">
@@ -276,7 +257,7 @@
                   </el-option>
                 </el-select>
               </div>
-              <div class="s-voice-title" style="display: flex;align-items: center">
+              <div class="right-label" style="display: flex;align-items: center">
                 <div>字号</div>
                 <el-input-number class="input-number"
                                  v-model="subtitleParams.fontsize"
@@ -289,33 +270,33 @@
               </div>
             </div>
             <div class="flex-center margin-t-8">
-              <div class="s-voice-title" style="flex: 1">字体颜色</div>
+              <div class="right-label" style="flex: 1">字体颜色</div>
               <el-color-picker size="small" v-model="subtitleParams.color"
                                @change="saveSubtitleParams('color')"></el-color-picker>
             </div>
             <div class="flex-center margin-t-8 margin-b-16">
-              <div class="s-voice-title" style="flex: 1">描边颜色</div>
+              <div class="right-label" style="flex: 1">描边颜色</div>
               <el-color-picker size="small" v-model="subtitleParams.stroke_color"
                                @change="saveSubtitleParams('stroke_color')"></el-color-picker>
             </div>
             <div class="flex-center" :class="{'margin-b-16': background_setting}" style="cursor: pointer"
                  @click="background_setting = !background_setting">
-              <div class="s-voice-title" style="flex: 1">背景颜色</div>
+              <div class="right-label" style="flex: 1">背景颜色</div>
               <i class="el-icon-arrow-down" style="color: #374151" v-if="background_setting"></i>
               <i class="el-icon-arrow-right" style="color: #374151" v-else></i>
             </div>
             <div class="flex-center margin-b-12 bg-color" v-if="background_setting">
-              <div class="s-voice-title" style="margin-right: 12px">颜色</div>
+              <div class="right-label" style="margin-right: 12px">颜色</div>
               <el-color-picker size="small" v-model="subtitleParams.background_color"
                                @change="saveSubtitleParams('background_color')"></el-color-picker>
               <div style="flex: 1"></div>
             </div>
             <div class="flex-center opacity" v-if="background_setting">
-              <div class="s-voice-title" style="margin-right: 12px">不透明度</div>
+              <div class="right-label" style="margin-right: 12px">不透明度</div>
               <el-slider v-model="subtitleParams.background_opacity"
                          :step="0.01" style="flex: 1" :min="0" :max="1"
                          @input="saveSubtitleParams('background_opacity')"></el-slider>
-              <div class="s-voice-title" style="margin-left: 8px;width: 30px">
+              <div class="right-label" style="margin-left: 8px;width: 30px">
                 {{ (subtitleParams.background_opacity * 100).toFixed(0) + '%' }}
               </div>
             </div>
@@ -329,17 +310,14 @@
 <script>
 import {getAction} from "@/api/api";
 import {EnhancedChoiceMixin} from "@/mixins/EnhancedChoiceMixin";
-import Video from "@/view/video/index.vue";
 
 export default {
-  name: 'Material',
-  components: {Video},
+  name: 'human',
   mixins: [EnhancedChoiceMixin],
   data() {
     return {
-      materials: [],
-      filter_materials: [],
-      material_list: [],  //选择的素材id列表
+      figures: [],
+      figure: {},
       withTitle: true,
       subtitleNameParams: {
         'name_background_opacity': 0.6
@@ -420,45 +398,59 @@ export default {
       audioIndex: null,
       titleTextStyle: {},
       textStyle: {},
-      dragging: false,
-      draggingType: '',
-      startY: 0,
-      topOffset: 0,
-      bottomOffset: 100,
     }
   },
-  computed: {
-    mentionList() {
-      return this.materials.filter(item => this.material_list.includes(item.id))
-          .sort((a, b) => this.material_list.indexOf(a.id) - this.material_list.indexOf(b.id))
-    },
-  },
   mounted() {
-    this.queryMaterials();
+    this.queryFigures()
     this.querySounds();
     this.queryBgm();
     this.queryFontFamily();
     this.initParams()
   },
   methods: {
+    queryFigures() {
+      getAction("/figure/query_success").then((res) => {
+        if (res.data.status === "success") {
+          let data = res.data.data.filter(item => item.status === "success");
+          data.forEach(item => {
+            item.picture = item.picture.replace('127.0.0.1', '120.86.188.249')
+          })
+          if (data.length > 0) {
+            this.figures = data.filter(item => item.lip_sync && item.status === "success").map(item => ({
+              ...item, previewing: false
+            }))
+          }
+        }
+      }).catch((error) => {
+        console.error("获取角色列表失败:", error);
+      });
+    },
+    selectFigure(item) {
+      this.topOffset = 0
+      this.bottomOffset = 100
+      this.updateTextStyle()
+      this.updateTitleTextStyle()
+
+      this.figure = this.figure.id === item.id ? {} : item
+      sessionStorage.setItem('figure', JSON.stringify(this.figure))
+    },
     initParams() {
-      this.material_list = JSON.parse(sessionStorage.getItem('material_list')) || []
-      this.mute_materials = JSON.parse(sessionStorage.getItem('mute_materials')) || []
+      this.figure = JSON.parse(sessionStorage.getItem('figure')) || {}
 
-      this.topOffset = Number(sessionStorage.getItem('top_offset')) || 0
-      this.bottomOffset = Number(sessionStorage.getItem('bottom_offset')) || 100
+      this.topOffset = Number(sessionStorage.getItem('figure_top_offset')) || 0
+      this.bottomOffset = Number(sessionStorage.getItem('figure_bottom_offset')) || 100
 
-      this.withSubtitle = sessionStorage.getItem("with_subtitle") === 'true'
-      this.withTitle = sessionStorage.getItem("with_title") === 'true'
-      this.bg_volume = Number(sessionStorage.getItem("bg_volume")) || 0.5
+      this.withSubtitle = sessionStorage.getItem("figure_with_subtitle") === 'true'
+      this.withTitle = sessionStorage.getItem("figure_with_title") === 'true'
+      this.bg_volume = Number(sessionStorage.getItem("figure_bg_volume")) || 0.5
 
-      this.activePresetId = sessionStorage.getItem("preset_id") || '1'
-      this.subtitleParams.fontsize = parseInt(sessionStorage.getItem("fontsize")) || 5
-      this.subtitleParams.color = sessionStorage.getItem("color") || '#ffffff'
-      this.subtitleParams.font = sessionStorage.getItem("font") || 'SJxingkai-C-Regular'
-      this.subtitleParams.background_color = sessionStorage.getItem("background_color") || 'rgba(64,64,64,0.6)'
-      this.subtitleParams.background_opacity = Number(sessionStorage.getItem("background_opacity")) || 0.6
-      this.subtitleParams.stroke_color = sessionStorage.getItem("stroke_color") || '#000000'
+      this.activePresetId = sessionStorage.getItem("figure_preset_id") || '1'
+      this.subtitleParams.fontsize = parseInt(sessionStorage.getItem("figure_fontsize")) || 5
+      this.subtitleParams.color = sessionStorage.getItem("figure_color") || '#ffffff'
+      this.subtitleParams.font = sessionStorage.getItem("figure_font") || 'SJxingkai-C-Regular'
+      this.subtitleParams.background_color = sessionStorage.getItem("figure_background_color") || 'rgba(64,64,64,0.6)'
+      this.subtitleParams.background_opacity = Number(sessionStorage.getItem("figure_background_opacity")) || 0.6
+      this.subtitleParams.stroke_color = sessionStorage.getItem("figure_stroke_color") || '#000000'
 
       let rgb_color = this.hexToRgb(this.subtitleParams.background_color)
       let rgba_color = `rgba(${rgb_color.replace('rgb(', '')
@@ -473,13 +465,13 @@ export default {
         top: this.bottomOffset + 'px'
       }
 
-      this.activeTitlePresetId = sessionStorage.getItem("title_preset_id") || '1'
-      this.subtitleNameParams.name_fontsize = parseInt(sessionStorage.getItem("name_fontsize")) || 10
-      this.subtitleNameParams.name_color = sessionStorage.getItem("name_color") || '#ffffff'
-      this.subtitleNameParams.name_font = sessionStorage.getItem("name_font") || 'SJxingkai-C-Regular'
-      this.subtitleNameParams.name_background_color = sessionStorage.getItem("name_background_color") || 'rgba(64,64,64)'
-      this.subtitleNameParams.name_background_opacity = Number(sessionStorage.getItem("name_background_opacity")) || 0.6
-      this.subtitleNameParams.name_stroke_color = sessionStorage.getItem("name_stroke_color") || '#000000'
+      this.activeTitlePresetId = sessionStorage.getItem("figure_title_preset_id") || '1'
+      this.subtitleNameParams.name_fontsize = parseInt(sessionStorage.getItem("figure_name_fontsize")) || 10
+      this.subtitleNameParams.name_color = sessionStorage.getItem("figure_name_color") || '#ffffff'
+      this.subtitleNameParams.name_font = sessionStorage.getItem("figure_name_font") || 'SJxingkai-C-Regular'
+      this.subtitleNameParams.name_background_color = sessionStorage.getItem("figure_name_background_color") || 'rgba(64,64,64)'
+      this.subtitleNameParams.name_background_opacity = Number(sessionStorage.getItem("figure_name_background_opacity")) || 0.6
+      this.subtitleNameParams.name_stroke_color = sessionStorage.getItem("figure_name_stroke_color") || '#000000'
 
       let name_rgb_color = this.hexToRgb(this.subtitleNameParams.name_background_color)
       let name_rgba_color = `rgba(${name_rgb_color.replace('rgb(', '')
@@ -494,34 +486,17 @@ export default {
         top: this.topOffset + 'px'
       }
     },
-    queryMaterials() {
-      getAction("/figure/query_success").then((res) => {
-        if (res.data.status === "success") {
-          let data = res.data.data.filter(item => item.status === "success");
-          data.forEach(item => {
-            item.picture = item.picture.replace('127.0.0.1', '120.86.188.249')
-          })
-          if (data.length > 0) {
-            this.materials = data.filter(item => !item.lip_sync).map(item => ({
-              ...item, previewing: false, size: item.height + '*' + item.width
-            }))
-            this.filter_materials = this.materials
-          }
-        }
-      }).catch((error) => {
-        console.error("获取角色列表失败:", error);
-      });
-    },
     querySounds() {
       getAction("/timbres/query_success").then((res) => {
         if (res.data.status === "success") {
           this.voices = res.data.data.filter(item => item.status === "success");
           if (this.voices.length > 0) {
-            let sound = JSON.parse(sessionStorage.getItem("setting_voice"))
+            let sound = JSON.parse(sessionStorage.getItem("figure_setting_voice"))
             if (sound && this.voices.some(item => item.id === sound.id)) {
               this.sound = sound
             } else {
               this.sound = this.voices[0];
+              sessionStorage.setItem("figure_setting_voice", JSON.stringify(this.sound))
             }
           }
         } else {
@@ -536,7 +511,7 @@ export default {
       getAction('/bgm/all').then(res => {
         if (res.data.status === 'success') {
           this.bgmList = bgmList.concat(res.data.data)
-          let bgm = JSON.parse(sessionStorage.getItem("setting_bgm"))
+          let bgm = JSON.parse(sessionStorage.getItem("figure_setting_bgm"))
           if (bgm && this.bgmList.some(item => item.id === bgm.id)) {
             this.bgm = bgm
           } else {
@@ -561,62 +536,9 @@ export default {
         console.error("获取字体样式列表失败:", error);
       });
     },
-    selectMaterial(item, event) {
-      if (this.isSelecting || !this.isVideoItemClick) {
-        event.stopPropagation()
-        return
-      }
-      const isShiftKey = event.shiftKey
-      if (this.material_list.length === 0) {
-        this.filter_materials = this.filter_materials.filter(material => material.size === item.size)
-      }
-      let index = this.filter_materials.indexOf(item)
-
-      if (!isShiftKey) {
-        this.selectResource(item)
-        this.lastClickedIndex = index
-        return
-      }
-
-      // Shift点击：处理范围选择
-      if (this.lastClickedIndex !== null) {
-        // 获取起始和结束索引
-        const start = Math.min(this.lastClickedIndex, index)
-        const end = Math.max(this.lastClickedIndex, index)
-
-        // 选中范围内的所有项
-        for (let i = start; i <= end; i++) {
-          this.selectResource(this.filter_materials[i], true)
-        }
-      } else {
-        // 第一次点击并且按住了Shift键，处理方式同普通点击
-        this.selectResource(this.filter_materials[index])
-      }
-
-      this.lastClickedIndex = index
-    },
-    selectResource(item, shiftSelect = false) {
-      this.topOffset = 0
-      this.bottomOffset = 100
-      this.updateTextStyle()
-      this.updateTitleTextStyle()
-      if (!this.material_list.includes(item.id)) {
-        this.material_list.push(item.id)
-      } else {
-        if (shiftSelect) {
-          return
-        }
-        this.material_list.splice(this.material_list.indexOf(item.id), 1)
-        if (this.material_list.length === 0) {
-          this.lastClickedIndex = null
-          this.filter_materials = this.materials
-        }
-      }
-      sessionStorage.setItem('material_list', JSON.stringify(this.material_list))
-    },
     selectVoice(voice) {
       this.sound = voice
-      sessionStorage.setItem("setting_voice", JSON.stringify(voice))
+      sessionStorage.setItem("figure_setting_voice", JSON.stringify(voice))
     },
     selectBgm(item) {
       this.bgm = item
@@ -668,24 +590,24 @@ export default {
       sessionStorage.setItem("bg_volume", this.bg_volume)
     },
     switchTitle() {
-      sessionStorage.setItem("with_title", this.withTitle)
+      sessionStorage.setItem("figure_with_title", this.withTitle)
       this.activeTitleNames = this.withTitle ? ['1'] : []
     },
     selectTitlePreset(item) {
       this.activeTitlePresetId = item.id
-      sessionStorage.setItem('title_preset_id', item.id)
+      sessionStorage.setItem('figure_title_preset_id', item.id)
       this.subtitleNameParams.name_background_color = item.backgroundColor
-      sessionStorage.setItem('name_background_color', item.backgroundColor)
+      sessionStorage.setItem('figure_name_background_color', item.backgroundColor)
       this.subtitleNameParams.name_background_opacity = 0.6
-      sessionStorage.setItem('name_background_opacity', '0.6')
+      sessionStorage.setItem('figure_name_background_opacity', '0.6')
       this.subtitleNameParams.name_color = item.color
-      sessionStorage.setItem('name_color', item.color)
+      sessionStorage.setItem('figure_name_color', item.color)
       this.subtitleNameParams.name_font = item.fontFamily
-      sessionStorage.setItem('name_font', item.fontFamily)
+      sessionStorage.setItem('figure_name_font', item.fontFamily)
       this.subtitleNameParams.name_fontsize = 10
-      sessionStorage.setItem('name_fontsize', '10')
+      sessionStorage.setItem('figure_name_fontsize', '10')
       this.subtitleNameParams.name_stroke_color = item.stroke
-      sessionStorage.setItem('name_stroke_color', item.stroke)
+      sessionStorage.setItem('figure_name_stroke_color', item.stroke)
       this.updateTitleTextStyle()
     },
     hexToRgb(hex) { //16进制颜色转RGB格式
@@ -709,35 +631,38 @@ export default {
         fontSize: (360 * this.subtitleNameParams.name_fontsize / 100) + 'px',
         top: this.topOffset + 'px'
       }
-      sessionStorage.setItem('top_offset', this.topOffset)
+      const containerHeight = this.$refs.container.clientHeight;
+      let top_offset_ratio = (this.topOffset / containerHeight).toFixed(2)
+      sessionStorage.setItem('figure_top_offset', this.topOffset)
+      sessionStorage.setItem('figure_top_offset_ratio', top_offset_ratio)
     },
     saveSubtitleNameParams(key) {
       let value = this.subtitleNameParams[key]
       this.updateTitleTextStyle()
-      sessionStorage.setItem(key, value)
+      sessionStorage.setItem('figure_' + key, value)
       this.activeTitlePresetId = '0'
-      sessionStorage.setItem('title_preset_id', '0')
+      sessionStorage.setItem('figure_title_preset_id', '0')
       this.$forceUpdate()
     },
     switchSubtitle() {
-      sessionStorage.setItem("with_subtitle", this.withSubtitle)
+      sessionStorage.setItem("figure_with_subtitle", this.withSubtitle)
       this.activeNames = this.withSubtitle ? ['1'] : []
     },
     selectPreset(item) {
       this.activePresetId = item.id
-      sessionStorage.setItem('preset_id', item.id)
+      sessionStorage.setItem('figure_preset_id', item.id)
       this.subtitleParams.background_color = item.backgroundColor
-      sessionStorage.setItem('background_color', item.backgroundColor)
+      sessionStorage.setItem('figure_background_color', item.backgroundColor)
       this.subtitleParams.background_opacity = 0.6
-      sessionStorage.setItem('background_opacity', '0.6')
+      sessionStorage.setItem('figure_background_opacity', '0.6')
       this.subtitleParams.color = item.color
-      sessionStorage.setItem('color', item.color)
+      sessionStorage.setItem('figure_color', item.color)
       this.subtitleParams.font = item.fontFamily
-      sessionStorage.setItem('font', item.fontFamily)
+      sessionStorage.setItem('figure_font', item.fontFamily)
       this.subtitleParams['fontsize'] = 5
-      sessionStorage.setItem('fontsize', '5')
+      sessionStorage.setItem('figure_fontsize', '5')
       this.subtitleParams.stroke_color = item.stroke
-      sessionStorage.setItem('stroke_color', item.stroke)
+      sessionStorage.setItem('figure_stroke_color', item.stroke)
       this.updateTextStyle()
     },
     updateTextStyle() {
@@ -753,32 +678,39 @@ export default {
         fontSize: (360 * this.subtitleParams['fontsize'] / 100) + 'px',
         top: this.bottomOffset + 'px'
       }
-      sessionStorage.setItem('bottom_offset', this.bottomOffset)
+      const containerHeight = this.$refs.container.clientHeight;
+      let bottom_offset_ratio = (this.bottomOffset / containerHeight).toFixed(2)
+      sessionStorage.setItem('figure_bottom_offset', this.bottomOffset)
+      sessionStorage.setItem('figure_bottom_offset_ratio', bottom_offset_ratio)
     },
     saveSubtitleParams(key) {
       let value = this.subtitleParams[key]
       this.updateTextStyle()
-      sessionStorage.setItem(key, value)
+      sessionStorage.setItem('figure_' + key, value)
       this.activePresetId = '0'
-      sessionStorage.setItem('preset_id', '0')
+      sessionStorage.setItem('figure_preset_id', '0')
       this.$forceUpdate()
     },
     nextStep(path) {
-      sessionStorage.setItem('script_type', 'material')
+      if (!this.figure.id) {
+        this.$alert('请先选择您的数字人分身','提示')
+        return
+      }
       this.$router.push({path: path})
+      sessionStorage.setItem('script_type', 'figure')
     }
   }
 }
 </script>
 
 <style scoped>
-.material {
+.human {
   min-width: 1200px;
   min-height: 800px;
   height: 100%;
 }
 
-.material-h-t {
+.human-h-t {
   flex: 1;
   margin: 0 0 8px;
   font-weight: bold;
@@ -786,12 +718,12 @@ export default {
   justify-content: center;
 }
 
-.material-content {
+.human-content {
   display: flex;
   height: calc(100% - 60px);
 }
 
-.c-left {
+.figure-left-panel {
   flex: 1;
   box-sizing: border-box;
   background-color: #ffffff;
@@ -799,16 +731,13 @@ export default {
   border: 1px solid #e5e7eb;
 }
 
-.selection-box {
-  position: absolute;
-  border: 1px dashed #409eff;
-  background-color: rgba(64, 158, 255, 0.1);
-  pointer-events: none;
-  z-index: 20;
-  transition: all 0.1s ease;
+.left-title {
+  line-height: 40px;
+  font-weight: bold;
+  margin-left: 15px;
 }
 
-.m-card {
+.figure-list {
   height: calc(100% - 80px);
   display: grid;
   gap: 15px;
@@ -820,7 +749,7 @@ export default {
   overflow-y: auto;
 }
 
-.m-item-img {
+.figure-img {
   width: 100%;
   max-width: 140px;
   aspect-ratio: 3 / 4;
@@ -828,30 +757,30 @@ export default {
   box-sizing: border-box;
 }
 
-.m-img-selected {
-  border: 2px solid #4c8df1;
+.figure-img:hover {
+  transform: scale(1.05);
 }
 
-.m-title-selected {
-  color: #4c8df1 !important;
-}
-
-.m-item-title {
+.figure-name {
   font-size: 15px;
   color: #1e1f20;
-  width: 100%;
-  max-width: 140px;
+  width: 100px;
   text-align: center;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  margin: 0 auto;
 }
 
-.c-center {
-  flex: 1;
+.figure-img-selected {
+  border: 2px solid #4c8df1;
 }
 
-.c-center-preview {
+.figure-title-selected {
+  color: #4c8df1 !important;
+}
+
+.figure-preview {
   height: calc(100% - 60px);
   display: flex;
   justify-content: center;
@@ -859,7 +788,7 @@ export default {
   overflow: auto;
 }
 
-.c-center-preview-content {
+.figure-preview-content {
   width: 360px;
   height: 640px;
   background-color: #111827;
@@ -869,14 +798,14 @@ export default {
   align-items: center;
 }
 
-.c-preview-setting {
+.figure-preview-setting {
   position: relative;
   overflow: hidden;
   display: flex;
   justify-content: center;
 }
 
-.c-preview-title {
+.figure-preview-title {
   position: absolute;
   width: 100%;
   text-align: center;
@@ -885,7 +814,7 @@ export default {
   user-select: none;
 }
 
-.c-preview-content {
+.figure-preview-text {
   position: absolute;
   width: 100%;
   text-align: center;
@@ -894,18 +823,15 @@ export default {
   user-select: none;
 }
 
-.c-center-btn {
+.figure-center-btn {
   height: 60px;
   display: flex;
   justify-content: center;
   align-items: end;
 }
 
-.next-btn {
-  width: 176px;
-}
 
-.c-right {
+.figure-right-panel {
   flex: 1;
   padding: 12px;
   box-sizing: border-box;
@@ -914,12 +840,12 @@ export default {
   border: 1px solid #e5e7eb;
 }
 
-.s-card {
+.style-card {
   height: calc(100% - 35px);
   overflow-y: auto;
 }
 
-.s-card-item {
+.style-card-item {
   padding: 12px;
   box-sizing: border-box;
   background-color: #f9fafb;
@@ -927,18 +853,14 @@ export default {
   border-radius: 6px;
 }
 
-.s-card-item >>> .el-checkbox__inner {
+.style-card-item >>> .el-checkbox__inner {
   width: 16px;
   height: 16px;
 }
 
-.s-voice-title {
+.right-label {
   font-size: 12px;
   color: #374151;
-}
-
-.bg-color >>> .el-color-picker__trigger {
-  width: 132px;
 }
 
 .opacity >>> .el-slider__button {
