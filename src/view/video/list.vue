@@ -1,11 +1,11 @@
 <template>
   <div class="video-list">
-    <div class="list-search">
-      <el-input class="list-search-input" prefix-icon="el-icon-search" placeholder="通过标题搜索视频..."
-                v-model="keyword" @change="filterVideo"></el-input>
-    </div>
+<!--    <div class="list-search">-->
+<!--      <el-input class="list-search-input" prefix-icon="el-icon-search" placeholder="通过标题搜索视频..."-->
+<!--                v-model="keyword" @change="filterVideo"></el-input>-->
+<!--    </div>-->
     <div class="list-content">
-      <div v-for="item in filterProcess" :key="item.id" style="text-align: center">
+      <div v-for="item in processList" :key="item.id" style="text-align: center">
         <div class="image-wrapper shining">
           <el-image
               style="width: 100%;height: 100%;border-radius: 8px;filter: blur(15px);opacity: 0.8"
@@ -24,7 +24,7 @@
         </div>
       </div>
       <div class="video-list-item"
-           v-for="item in filterVideos"
+           v-for="item in videoList"
            :key="item.id"
            :class="{'activeClass': item.id === selected.id}" @contextmenu.stop="handleContextMenu(item, $event)"
            @click="preview(item)">
@@ -108,29 +108,30 @@ export default {
       return this.videoTasks.filter((item) => item.status === 'success').map((item) => ({ ...item, show: false, isEdit: false }));
     },
   },
-  watch: {
-    processList: {
-      handler(newVal, oldVal) {
-        if (newVal !== oldVal) {
-          this.filterVideo();
-        }
-      },
-      deep: true
-    },
-    videoList: {
-      handler(newVal, oldVal) {
-        if (newVal !== oldVal) {
-          this.filterVideo();
-        }
-      },
-      deep: true
-    }
-  },
+  // watch: {
+  //   processList: {
+  //     handler(newVal, oldVal) {
+  //       if (newVal !== oldVal) {
+  //         this.filterVideo();
+  //       }
+  //     },
+  //     deep: true
+  //   },
+  //   videoList: {
+  //     handler(newVal, oldVal) {
+  //       if (newVal !== oldVal) {
+  //         this.filterVideo();
+  //       }
+  //     },
+  //     deep: true
+  //   }
+  // },
   mounted() {
     this.startDotAnimation();
-    this.$store.dispatch("task/pollVideoTasks").then(() => {
-      this.filterVideo()
-    });
+    this.$store.dispatch("task/pollVideoTasks")
+    // .then(() => {
+    //   this.filterVideo()
+    // });
   },
   methods: {
     filterVideo() {
