@@ -158,7 +158,7 @@ export default {
         this.loading = null;
         if (res.data.status === "success") {
           this.copy_list = this.copy_list.concat(res.data.data.map(
-              (item, index) => ({title: `AI生成标题${index + 1}`, content: item, isEdit: false})))
+              (item, index) => ({title: item.title, content: item.script, isEdit: false})))
           sessionStorage.setItem("copy_list", JSON.stringify(this.copy_list))
         } else {
           this.$notify({
