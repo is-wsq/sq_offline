@@ -225,6 +225,32 @@ export default {
   backdrop-filter: blur(10px);
 }
 
+.feature-card-sub:hover {
+  transform: translateY(-6px) scale(1.01)
+}
+
+.feature-card-sub::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 50%;
+  width: 100%;
+  height: 4px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 80%, #f093fb 100%);
+  transform: translateX(-50%) scaleX(0);
+  transform-origin: center;
+  opacity: 0;
+  transition:
+      transform 0.5s ease,
+      opacity 0.3s ease;
+}
+
+.feature-card-sub:hover::before {
+  transform: translateX(-50%) scaleX(1);
+  opacity: 1;
+}
+
+
 .feature-card-content {
   width: 60px;
   height: 60px;
@@ -285,7 +311,15 @@ export default {
   overflow: hidden;
 }
 
-.sub-option-button::before {
+.sub-option-button .sub-icon {
+  color: #64748b;
+}
+
+.sub-option-button:hover .sub-icon {
+  color: #3B82F6;
+}
+
+.sub-option-button:before {
   content: '';
   position: absolute;
   top: 0;
@@ -295,10 +329,26 @@ export default {
   background: linear-gradient(90deg, transparent, rgba(59, 130, 246, 0.1), transparent);
   transition: left 0.6s ease;
 }
+/* 悬浮时：背景滑入 + 平移 + 边框 */
+.sub-option-button:hover {
+  background-color: #f8faff;
+  transform: translateX(6px);
+  border-color: #3B82F6;
+  color: #3B82F6;
+}
+
+.sub-option-button:hover:before {
+  left: 100%; /* 修改left值为100% */
+}
+
+/* 内容在上面，避免被遮挡 */
+.sub-option-button > * {
+  position: relative;
+  z-index: 1;
+}
 
 .sub-icon {
   font-size: 24px;
-  color: #64748b;
   margin-top: 4px;
 }
 
@@ -311,7 +361,6 @@ export default {
   font-size: 15px;
   margin-bottom: 4px;
   transition: color 0.3s ease;
-  color: #0f172a;
 }
 
 .desc {
