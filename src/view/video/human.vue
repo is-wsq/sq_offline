@@ -143,7 +143,7 @@
               <div class="right-label volume">音量</div>
               <div class="s-btn-volume">
                 <el-slider v-model="bg_volume" :step="0.1" style="width: 80px" :min="0.1" :max="1"
-                           @change="saveBgmVolume('bg_volume')"></el-slider>
+                           @change="saveBgmVolume('bg_volume')" :format-tooltip="formatTooltip"></el-slider>
               </div>
             </div>
           </div>
@@ -425,6 +425,9 @@ export default {
     this.initParams()
   },
   methods: {
+    formatTooltip(val) {
+      return val * 100 + '%';
+    },
     queryFigures() {
       getAction("/figure/query_success").then((res) => {
         if (res.data.status === "success") {

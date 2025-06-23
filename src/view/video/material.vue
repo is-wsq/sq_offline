@@ -180,7 +180,7 @@
               <div class="s-voice-title volume">音量</div>
               <div class="s-btn-volume">
                 <el-slider v-model="bg_volume" :step="0.1" style="width: 80px" :min="0.1" :max="1"
-                           @change="saveBgmVolume('bg_volume')"></el-slider>
+                           @change="saveBgmVolume('bg_volume')" :format-tooltip="formatTooltip"></el-slider>
               </div>
             </div>
           </div>
@@ -475,6 +475,9 @@ export default {
     this.initParams()
   },
   methods: {
+    formatTooltip(val) {
+      return val * 100 + '%';
+    },
     addMute(id) {
       this.mute_materials.push(id)
       sessionStorage.setItem("mute_materials", JSON.stringify(this.mute_materials))
