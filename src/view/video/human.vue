@@ -14,6 +14,8 @@
           <div v-for="item in figures"
                :key="item.id"
                @click="selectFigure(item)">
+<!--            <el-image class="figure-img" :class="{'figure-img-selected': item.id === figure.id }"-->
+<!--                      :src="item.picture.replace('127.0.0.1','192.168.0.102')" fit="cover"></el-image>-->
             <el-image class="figure-img" :class="{'figure-img-selected': item.id === figure.id }"
                       :src="item.picture" fit="cover"></el-image>
 <!--            <el-popover placement="right" trigger="hover" :content="''" @show="item.previewing = true"-->
@@ -38,6 +40,8 @@
                  @mousemove="onMouseMove"
                  @mouseup="onMouseUp"
                  @mouseleave="onMouseUp">
+<!--              <el-image style="width: 100%;border-radius: 8px" :src="figure.picture.replace('127.0.0.1','192.168.0.102')"-->
+<!--                        fit="contain" v-if="figure.picture"></el-image>-->
               <el-image style="width: 100%;border-radius: 8px" :src="figure.picture"
                         fit="contain" v-if="figure.picture"></el-image>
               <div style="width: 360px;height: 640px" v-else></div>
@@ -174,6 +178,7 @@
                       :label="item.name"
                       :value="item.font_id">
                     <div style="display: flex; align-items: center">
+<!--                      <img :src="item.img_path.replace('127.0.0.1','192.168.0.102')" style="width: 150px; height: 50px; margin-right: 8px;"/>-->
                       <img :src="item.img_path" style="width: 150px; height: 50px; margin-right: 8px;"/>
                       <span>{{ item.name }}</span>
                     </div>
@@ -255,6 +260,7 @@
                       :label="item.name"
                       :value="item.font_id">
                     <div style="display: flex; align-items: center">
+<!--                      <img :src="item.img_path.replace('127.0.0.1','192.168.0.102')" style="width: 150px; height: 50px; margin-right: 8px;"/>-->
                       <img :src="item.img_path" style="width: 150px; height: 50px; margin-right: 8px;"/>
                       <span>{{ item.name }}</span>
                     </div>
@@ -402,6 +408,9 @@ export default {
       audioIndex: null,
       titleTextStyle: {},
       textStyle: {},
+      contentHeight: 640,
+      topRatio: 0.25,
+      bottomRatio: 0.75,
     }
   },
   mounted() {
@@ -416,9 +425,6 @@ export default {
       getAction("/figure/query_success").then((res) => {
         if (res.data.status === "success") {
           let data = res.data.data.filter(item => item.status === "success");
-          // data.forEach(item => {
-          //   item.picture = item.picture.replace('127.0.0.1', '120.86.188.249')
-          // })
           if (data.length > 0) {
             this.figures = data.filter(item => item.lip_sync && item.status === "success").map(item => ({
               ...item, previewing: false
@@ -430,19 +436,26 @@ export default {
       });
     },
     selectFigure(item) {
-      this.topOffset = 0
-      this.bottomOffset = 100
-      this.updateTextStyle()
-      this.updateTitleTextStyle()
-
       this.figure = this.figure.id === item.id ? {} : item
+      this.contentHeight = item.height / (item.width / 360)
+
       sessionStorage.setItem('figure', JSON.stringify(this.figure))
+      sessionStorage.setItem('figure_content_height', this.contentHeight)
+
+      this.topRatio = 0.25
+      this.bottomRatio = 0.75
+
+      this.$nextTick(() => {
+        this.updateTextStyle()
+        this.updateTitleTextStyle()
+      })
     },
     initParams() {
       this.figure = JSON.parse(sessionStorage.getItem('figure')) || {}
 
-      this.topOffset = Number(sessionStorage.getItem('figure_top_offset')) || 0
-      this.bottomOffset = Number(sessionStorage.getItem('figure_bottom_offset')) || 100
+      this.contentHeight = Number(sessionStorage.getItem('figure_content_height')) || 640
+      this.topRatio = Number(sessionStorage.getItem('figure_top_offset_ratio')) || 0.25
+      this.bottomRatio = Number(sessionStorage.getItem('figure_bottom_offset_ratio')) || 0.75
 
       this.withSubtitle = sessionStorage.getItem("figure_with_subtitle") === 'true'
       this.withTitle = sessionStorage.getItem("figure_with_title") === 'true'
@@ -466,7 +479,7 @@ export default {
         lineHeight: 1,
         '-webkit-text-stroke': `0.5px ${this.subtitleParams.stroke_color}`,
         fontSize: (360 * this.subtitleParams['fontsize'] / 100) + 'px',
-        top: this.bottomOffset + 'px'
+        top: this.bottomRatio * this.contentHeight + 'px'
       }
 
       this.activeTitlePresetId = sessionStorage.getItem("figure_title_preset_id") || '1'
@@ -487,7 +500,7 @@ export default {
         lineHeight: 1,
         '-webkit-text-stroke': `0.5px ${this.subtitleNameParams.name_stroke_color}`,
         fontSize: (360 * this.subtitleNameParams.name_fontsize / 100) + 'px',
-        top: this.topOffset + 'px'
+        top: this.topRatio * this.contentHeight + 'px'
       }
     },
     querySounds() {
@@ -533,9 +546,6 @@ export default {
       getAction('/get_fonts').then(res => {
         if (res.data.status === 'success') {
           this.fontFamily = res.data.data
-          this.fontFamily.forEach(item => {
-            item.img_path = item.img_path.replace('127.0.0.1', '120.86.188.249')
-          })
         }
       }).catch((error) => {
         console.error("获取字体样式列表失败:", error);
@@ -634,12 +644,10 @@ export default {
         lineHeight: 1,
         '-webkit-text-stroke': `0.5px ${this.subtitleNameParams.name_stroke_color}`,
         fontSize: (360 * this.subtitleNameParams.name_fontsize / 100) + 'px',
-        top: this.topOffset + 'px'
+        top: this.topRatio * this.contentHeight + 'px'
       }
-      const containerHeight = this.$refs.container.clientHeight;
-      let top_offset_ratio = (this.topOffset / containerHeight).toFixed(2)
-      sessionStorage.setItem('figure_top_offset', this.topOffset)
-      sessionStorage.setItem('figure_top_offset_ratio', top_offset_ratio)
+
+      sessionStorage.setItem('figure_top_offset_ratio', this.topRatio)
     },
     saveSubtitleNameParams(key) {
       let value = this.subtitleNameParams[key]
@@ -681,12 +689,9 @@ export default {
         lineHeight: 1,
         '-webkit-text-stroke': `0.5px ${this.subtitleParams.stroke_color}`,
         fontSize: (360 * this.subtitleParams['fontsize'] / 100) + 'px',
-        top: this.bottomOffset + 'px'
+        top: this.bottomRatio * this.contentHeight + 'px'
       }
-      const containerHeight = this.$refs.container.clientHeight;
-      let bottom_offset_ratio = (this.bottomOffset / containerHeight).toFixed(2)
-      sessionStorage.setItem('figure_bottom_offset', this.bottomOffset)
-      sessionStorage.setItem('figure_bottom_offset_ratio', bottom_offset_ratio)
+      sessionStorage.setItem('figure_bottom_offset_ratio', this.bottomRatio)
     },
     saveSubtitleParams(key) {
       let value = this.subtitleParams[key]
@@ -814,7 +819,7 @@ export default {
   position: absolute;
   width: 100%;
   text-align: center;
-  padding: 20px 0;
+  padding: 0;
   cursor: move;
   user-select: none;
 }
@@ -823,7 +828,7 @@ export default {
   position: absolute;
   width: 100%;
   text-align: center;
-  padding: 20px 0;
+  padding: 0;
   cursor: move;
   user-select: none;
 }

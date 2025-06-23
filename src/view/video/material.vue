@@ -26,6 +26,8 @@
                @mousedown="onVideoItemMouseDown"
                @click="selectMaterial(item, $event)"
                ref="videoItems">
+<!--            <el-image class="m-item-img" :class="{'m-img-selected': material_list.includes(item.id) }"-->
+<!--                      :src="item.picture.replace('127.0.0.1','192.168.0.102')" fit="cover"></el-image>-->
             <el-image class="m-item-img" :class="{'m-img-selected': material_list.includes(item.id) }"
                       :src="item.picture" fit="cover"></el-image>
 <!--            <el-popover placement="right" trigger="hover" :content="''" @show="item.previewing = true"-->
@@ -74,6 +76,8 @@
                  @mousemove="onMouseMove"
                  @mouseup="onMouseUp"
                  @mouseleave="onMouseUp">
+<!--              <el-image style="width: 100%;border-radius: 8px" :src="mentionList[0].picture.replace('127.0.0.1','192.168.0.102')"-->
+<!--                        fit="contain" v-if="mentionList[0]"></el-image>-->
               <el-image style="width: 100%;border-radius: 8px" :src="mentionList[0].picture"
                         fit="contain" v-if="mentionList[0]"></el-image>
               <div style="width: 360px;height: 640px" v-else></div>
@@ -211,6 +215,7 @@
                       :label="item.name"
                       :value="item.font_id">
                     <div style="display: flex; align-items: center">
+<!--                      <img :src="item.img_path.replace('127.0.0.1','192.168.0.102')" style="width: 150px; height: 50px; margin-right: 8px;"/>-->
                       <img :src="item.img_path" style="width: 150px; height: 50px; margin-right: 8px;"/>
                       <span>{{ item.name }}</span>
                     </div>
@@ -292,6 +297,7 @@
                       :label="item.name"
                       :value="item.font_id">
                     <div style="display: flex; align-items: center">
+<!--                      <img :src="item.img_path.replace('127.0.0.1','192.168.0.102')" style="width: 150px; height: 50px; margin-right: 8px;"/>-->
                       <img :src="item.img_path" style="width: 150px; height: 50px; margin-right: 8px;"/>
                       <span>{{ item.name }}</span>
                     </div>
@@ -446,8 +452,9 @@ export default {
       dragging: false,
       draggingType: '',
       startY: 0,
-      topOffset: 0,
-      bottomOffset: 100,
+      contentHeight: 640,
+      topRatio: 0.25,
+      bottomRatio: 0.75,
     }
   },
   computed: {
@@ -476,8 +483,9 @@ export default {
       // this.material_list = JSON.parse(sessionStorage.getItem('material_list')) || []
       this.mute_materials = JSON.parse(sessionStorage.getItem('mute_materials')) || []
 
-      this.topOffset = Number(sessionStorage.getItem('top_offset')) || 0
-      this.bottomOffset = Number(sessionStorage.getItem('bottom_offset')) || 100
+      this.contentHeight = Number(sessionStorage.getItem('content_height')) || 640
+      this.topRatio = Number(sessionStorage.getItem('top_offset_ratio')) || 0.25
+      this.bottomRatio = Number(sessionStorage.getItem('bottom_offset_ratio')) || 0.75
 
       this.withSubtitle = sessionStorage.getItem("with_subtitle") === 'true'
       this.withTitle = sessionStorage.getItem("with_title") === 'true'
@@ -501,7 +509,7 @@ export default {
         lineHeight: 1,
         '-webkit-text-stroke': `0.5px ${this.subtitleParams.stroke_color}`,
         fontSize: (360 * this.subtitleParams['fontsize'] / 100) + 'px',
-        top: this.bottomOffset + 'px'
+        top: this.bottomRatio * this.contentHeight + 'px'
       }
 
       this.activeTitlePresetId = sessionStorage.getItem("title_preset_id") || '1'
@@ -522,16 +530,13 @@ export default {
         lineHeight: 1,
         '-webkit-text-stroke': `0.5px ${this.subtitleNameParams.name_stroke_color}`,
         fontSize: (360 * this.subtitleNameParams.name_fontsize / 100) + 'px',
-        top: this.topOffset + 'px'
+        top: this.topRatio * this.contentHeight + 'px'
       }
     },
     queryMaterials() {
       getAction("/figure/query_success").then((res) => {
         if (res.data.status === "success") {
           let data = res.data.data.filter(item => item.status === "success");
-          // data.forEach(item => {
-          //   item.picture = item.picture.replace('127.0.0.1', '120.86.188.249')
-          // })
           if (data.length > 0) {
             this.materials = data.filter(item => !item.lip_sync).map(item => ({
               ...item, previewing: false, size: item.height + '*' + item.width
@@ -592,9 +597,6 @@ export default {
       getAction('/get_fonts').then(res => {
         if (res.data.status === 'success') {
           this.fontFamily = res.data.data
-          // this.fontFamily.forEach(item => {
-          //   item.img_path = item.img_path.replace('127.0.0.1', '120.86.188.249')
-          // })
         }
       }).catch((error) => {
         console.error("获取字体样式列表失败:", error);
@@ -635,8 +637,8 @@ export default {
       this.lastClickedIndex = index
     },
     selectResource(item, shiftSelect = false) {
-      this.topOffset = 0
-      this.bottomOffset = 100
+      this.topRatio = 0.25
+      this.bottomRatio = 0.75
       this.updateTextStyle()
       this.updateTitleTextStyle()
       if (!this.material_list.includes(item.id)) {
@@ -651,7 +653,13 @@ export default {
           this.filter_materials = this.materials
         }
       }
+      this.contentHeight = 640
+      if (this.mentionList.length > 0) {
+        let material = this.mentionList[0]
+        this.contentHeight = material.height / (material.width / 360)
+      }
       sessionStorage.setItem('material_list', JSON.stringify(this.material_list))
+      sessionStorage.setItem('content_height', this.contentHeight)
     },
     selectVoice(voice) {
       this.sound = voice
@@ -746,13 +754,10 @@ export default {
         lineHeight: 1,
         '-webkit-text-stroke': `0.5px ${this.subtitleNameParams.name_stroke_color}`,
         fontSize: (360 * this.subtitleNameParams.name_fontsize / 100) + 'px',
-        top: this.topOffset + 'px'
+        top: this.topRatio * this.contentHeight + 'px'
       }
 
-      const containerHeight = this.$refs.container.clientHeight;
-      let top_offset_ratio = (this.topOffset / containerHeight).toFixed(2)
-      sessionStorage.setItem('top_offset', this.topOffset)
-      sessionStorage.setItem('top_offset_ratio', top_offset_ratio)
+      sessionStorage.setItem('top_offset_ratio', this.topRatio)
     },
     saveSubtitleNameParams(key) {
       let value = this.subtitleNameParams[key]
@@ -794,13 +799,10 @@ export default {
         lineHeight: 1,
         '-webkit-text-stroke': `0.5px ${this.subtitleParams.stroke_color}`,
         fontSize: (360 * this.subtitleParams['fontsize'] / 100) + 'px',
-        top: this.bottomOffset + 'px'
+        top: this.bottomRatio * this.contentHeight + 'px'
       }
 
-      const containerHeight = this.$refs.container.clientHeight;
-      let bottom_offset_ratio = (this.bottomOffset / containerHeight).toFixed(2)
-      sessionStorage.setItem('bottom_offset', this.bottomOffset)
-      sessionStorage.setItem('bottom_offset_ratio', bottom_offset_ratio)
+      sessionStorage.setItem('bottom_offset_ratio', this.bottomRatio)
     },
     saveSubtitleParams(key) {
       let value = this.subtitleParams[key]
@@ -931,7 +933,7 @@ export default {
   position: absolute;
   width: 100%;
   text-align: center;
-  padding: 20px 0;
+  padding: 0;
   cursor: move;
   user-select: none;
 }
@@ -940,7 +942,7 @@ export default {
   position: absolute;
   width: 100%;
   text-align: center;
-  padding: 20px 0;
+  padding: 0;
   cursor: move;
   user-select: none;
 }
@@ -986,10 +988,6 @@ export default {
 .s-voice-title {
   font-size: 12px;
   color: #374151;
-}
-
-.bg-color >>> .el-color-picker__trigger {
-  width: 132px;
 }
 
 .opacity >>> .el-slider__button {

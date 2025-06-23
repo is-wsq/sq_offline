@@ -42,27 +42,29 @@ export const EnhancedChoiceMixin = {
             const containerHeight = this.$refs.container.clientHeight;
             const titleHeight = this.$refs.titleContainer?this.$refs.titleContainer.clientHeight:0;
             const contentHeight = this.$refs.contentContainer?this.$refs.contentContainer.clientHeight:0;
+            let topOffset = this.topRatio * containerHeight
+            let bottomOffset = this.bottomRatio * containerHeight
 
             if (this.draggingType === 'top') {
-                let newTop = this.topOffset + deltaY;
+                let newTop = topOffset + deltaY;
                 if (this.$refs.contentContainer) {
-                    newTop = Math.max(0, Math.min(this.bottomOffset - titleHeight, newTop));
+                    newTop = Math.max(0, Math.min(bottomOffset - titleHeight, newTop));
                 }else {
                     newTop = Math.max(0, Math.min(containerHeight - titleHeight, newTop));
                 }
-                this.topOffset = newTop;
+                this.topRatio = Number((newTop / containerHeight).toFixed(2));
                 this.updateTitleTextStyle()
             }
 
             if (this.draggingType === 'bottom') {
-                let newBottom = this.bottomOffset + deltaY;
+                let newBottom = bottomOffset + deltaY;
                 if (this.$refs.titleContainer) {
-                    newBottom = Math.max(this.topOffset + titleHeight,
+                    newBottom = Math.max(topOffset + titleHeight,
                         Math.min(containerHeight - contentHeight, newBottom));
                 } else {
                     newBottom = Math.max(titleHeight,Math.min(containerHeight - contentHeight, newBottom));
                 }
-                this.bottomOffset = newBottom;
+                this.bottomRatio = Number((newBottom / containerHeight).toFixed(2));
                 this.updateTextStyle()
             }
         },
@@ -179,8 +181,14 @@ export const EnhancedChoiceMixin = {
                 }
             })
             sessionStorage.setItem('material_list', JSON.stringify(this.material_list))
-            this.topOffset = 0
-            this.bottomOffset = 100
+            this.contentHeight = 640
+            if (this.mentionList.length > 0) {
+                let material = this.mentionList[0]
+                this.contentHeight = material.height / (material.width / 360)
+            }
+            sessionStorage.setItem('content_height', this.contentHeight)
+            this.topRatio = 0.25
+            this.bottomRatio = 0.75
             this.updateTextStyle()
             this.updateTitleTextStyle()
         }
