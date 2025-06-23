@@ -5,9 +5,10 @@
         <div style="margin-bottom: 10px">素材</div>
         <div class="figures-list">
           <div v-for="item in processMaterials" :key="item.id">
-            <div class="image-wrapper shining">
+            <div class="figure-image-wrapper shining">
               <el-image
-                  style="width: 120px; height: 158px; border-radius: 8px;filter: blur(15px);opacity: 0.8"
+                  class="figures-img"
+                  style="filter: blur(15px);opacity: 0.8"
                   :src="require('/public/images/4.jpg')"
                   fit="cover">
               </el-image>
@@ -19,6 +20,7 @@
             </div>
             <div class="figure-name" :title="item.name">{{ item.name }}</div>
           </div>
+
           <div v-for="(item, index) in materials"
                :key="index"
                @contextmenu.stop="handleContextMenu(item, $event)"
