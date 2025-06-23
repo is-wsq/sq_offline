@@ -26,10 +26,10 @@
                @mousedown="onVideoItemMouseDown"
                @click="selectMaterial(item, $event)"
                ref="videoItems">
-<!--            <el-image class="m-item-img" :class="{'m-img-selected': material_list.includes(item.id) }"-->
-<!--                      :src="item.picture.replace('127.0.0.1','192.168.0.102')" fit="cover"></el-image>-->
             <el-image class="m-item-img" :class="{'m-img-selected': material_list.includes(item.id) }"
-                      :src="item.picture" fit="cover"></el-image>
+                      :src="item.picture.replace('127.0.0.1','192.168.0.102')" fit="cover"></el-image>
+<!--            <el-image class="m-item-img" :class="{'m-img-selected': material_list.includes(item.id) }"-->
+<!--                      :src="item.picture" fit="cover"></el-image>-->
 <!--            <el-popover placement="right" trigger="hover" :content="''" @show="item.previewing = true"-->
 <!--                        @hide="item.previewing = false" :disabled="isSelecting || !shouldShowPopover"-->
 <!--                        popper-class="video-preview-popover" :open-delay="1000" :close-delay="300">-->
@@ -76,10 +76,10 @@
                  @mousemove="onMouseMove"
                  @mouseup="onMouseUp"
                  @mouseleave="onMouseUp">
-<!--              <el-image style="width: 100%;border-radius: 8px" :src="mentionList[0].picture.replace('127.0.0.1','192.168.0.102')"-->
-<!--                        fit="contain" v-if="mentionList[0]"></el-image>-->
-              <el-image style="width: 100%;border-radius: 8px" :src="mentionList[0].picture"
+              <el-image style="width: 100%;border-radius: 8px" :src="mentionList[0].picture.replace('127.0.0.1','192.168.0.102')"
                         fit="contain" v-if="mentionList[0]"></el-image>
+<!--              <el-image style="width: 100%;border-radius: 8px" :src="mentionList[0].picture"-->
+<!--                        fit="contain" v-if="mentionList[0]"></el-image>-->
               <div style="width: 360px;height: 640px" v-else></div>
               <div class="c-preview-title"
                    ref="titleContainer"
@@ -99,8 +99,10 @@
           </div>
         </div>
         <div class="c-center-btn">
-          <el-button type="primary" class="next-btn" @click="nextStep('/smartGenerate')">下一步：编辑文案</el-button>
-          <el-button type="primary" class="next-btn" @click="nextStep('/syncCv')">下一步：一键混剪</el-button>
+          <el-button type="primary" class="next-btn" @click="nextStep('/smartGenerate')"
+                     v-if="nextType === 'montage'">下一步：编辑文案</el-button>
+          <el-button type="primary" class="next-btn" @click="nextStep('/syncCv')"
+                     v-else>下一步：一键混剪</el-button>
         </div>
       </div>
       <div class="c-right">
@@ -215,8 +217,8 @@
                       :label="item.name"
                       :value="item.font_id">
                     <div style="display: flex; align-items: center">
-<!--                      <img :src="item.img_path.replace('127.0.0.1','192.168.0.102')" style="width: 150px; height: 50px; margin-right: 8px;"/>-->
-                      <img :src="item.img_path" style="width: 150px; height: 50px; margin-right: 8px;"/>
+                      <img :src="item.img_path.replace('127.0.0.1','192.168.0.102')" style="width: 150px; height: 50px; margin-right: 8px;"/>
+<!--                      <img :src="item.img_path" style="width: 150px; height: 50px; margin-right: 8px;"/>-->
                       <span>{{ item.name }}</span>
                     </div>
                   </el-option>
@@ -298,8 +300,8 @@
                       :label="item.name"
                       :value="item.font_id">
                     <div style="display: flex; align-items: center">
-<!--                      <img :src="item.img_path.replace('127.0.0.1','192.168.0.102')" style="width: 150px; height: 50px; margin-right: 8px;"/>-->
-                      <img :src="item.img_path" style="width: 150px; height: 50px; margin-right: 8px;"/>
+                      <img :src="item.img_path.replace('127.0.0.1','192.168.0.102')" style="width: 150px; height: 50px; margin-right: 8px;"/>
+<!--                      <img :src="item.img_path" style="width: 150px; height: 50px; margin-right: 8px;"/>-->
                       <span>{{ item.name }}</span>
                     </div>
                   </el-option>
@@ -459,6 +461,8 @@ export default {
       contentHeight: 640,
       topRatio: 0.25,
       bottomRatio: 0.75,
+
+      nextType: 'montage'
     }
   },
   computed: {
@@ -487,6 +491,8 @@ export default {
       sessionStorage.setItem("mute_materials", JSON.stringify(this.mute_materials))
     },
     initParams() {
+      this.nextType = sessionStorage.getItem('next_type') || 'montage'
+
       // this.material_list = JSON.parse(sessionStorage.getItem('material_list')) || []
       this.mute_materials = JSON.parse(sessionStorage.getItem('mute_materials')) || []
 
@@ -646,10 +652,6 @@ export default {
       this.lastClickedIndex = index
     },
     selectResource(item, shiftSelect = false) {
-      this.topRatio = 0.25
-      this.bottomRatio = 0.75
-      this.updateTextStyle()
-      this.updateTitleTextStyle()
       if (!this.material_list.includes(item.id)) {
         this.material_list.push(item.id)
       } else {
@@ -667,6 +669,10 @@ export default {
         let material = this.mentionList[0]
         this.contentHeight = material.height / (material.width / 360)
       }
+      this.topRatio = 0.25
+      this.bottomRatio = 0.75
+      this.updateTextStyle()
+      this.updateTitleTextStyle()
       sessionStorage.setItem('material_list', JSON.stringify(this.material_list))
       sessionStorage.setItem('content_height', this.contentHeight)
     },

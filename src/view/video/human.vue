@@ -14,10 +14,10 @@
           <div v-for="item in figures"
                :key="item.id"
                @click="selectFigure(item)">
-<!--            <el-image class="figure-img" :class="{'figure-img-selected': item.id === figure.id }"-->
-<!--                      :src="item.picture.replace('127.0.0.1','192.168.0.102')" fit="cover"></el-image>-->
             <el-image class="figure-img" :class="{'figure-img-selected': item.id === figure.id }"
-                      :src="item.picture" fit="cover"></el-image>
+                      :src="item.picture.replace('127.0.0.1','192.168.0.102')" fit="cover"></el-image>
+<!--            <el-image class="figure-img" :class="{'figure-img-selected': item.id === figure.id }"-->
+<!--                      :src="item.picture" fit="cover"></el-image>-->
 <!--            <el-popover placement="right" trigger="hover" :content="''" @show="item.previewing = true"-->
 <!--                        @hide="item.previewing = false"-->
 <!--                        popper-class="video-preview-popover" :open-delay="1000" :close-delay="300">-->
@@ -40,10 +40,10 @@
                  @mousemove="onMouseMove"
                  @mouseup="onMouseUp"
                  @mouseleave="onMouseUp">
-<!--              <el-image style="width: 100%;border-radius: 8px" :src="figure.picture.replace('127.0.0.1','192.168.0.102')"-->
-<!--                        fit="contain" v-if="figure.picture"></el-image>-->
-              <el-image style="width: 100%;border-radius: 8px" :src="figure.picture"
+              <el-image style="width: 100%;border-radius: 8px" :src="figure.picture.replace('127.0.0.1','192.168.0.102')"
                         fit="contain" v-if="figure.picture"></el-image>
+<!--              <el-image style="width: 100%;border-radius: 8px" :src="figure.picture"-->
+<!--                        fit="contain" v-if="figure.picture"></el-image>-->
               <div style="width: 360px;height: 640px" v-else></div>
               <div class="figure-preview-title"
                    ref="titleContainer"
@@ -178,8 +178,8 @@
                       :label="item.name"
                       :value="item.font_id">
                     <div style="display: flex; align-items: center">
-<!--                      <img :src="item.img_path.replace('127.0.0.1','192.168.0.102')" style="width: 150px; height: 50px; margin-right: 8px;"/>-->
-                      <img :src="item.img_path" style="width: 150px; height: 50px; margin-right: 8px;"/>
+                      <img :src="item.img_path.replace('127.0.0.1','192.168.0.102')" style="width: 150px; height: 50px; margin-right: 8px;"/>
+<!--                      <img :src="item.img_path" style="width: 150px; height: 50px; margin-right: 8px;"/>-->
                       <span>{{ item.name }}</span>
                     </div>
                   </el-option>
@@ -261,8 +261,8 @@
                       :label="item.name"
                       :value="item.font_id">
                     <div style="display: flex; align-items: center">
-<!--                      <img :src="item.img_path.replace('127.0.0.1','192.168.0.102')" style="width: 150px; height: 50px; margin-right: 8px;"/>-->
-                      <img :src="item.img_path" style="width: 150px; height: 50px; margin-right: 8px;"/>
+                      <img :src="item.img_path.replace('127.0.0.1','192.168.0.102')" style="width: 150px; height: 50px; margin-right: 8px;"/>
+<!--                      <img :src="item.img_path" style="width: 150px; height: 50px; margin-right: 8px;"/>-->
                       <span>{{ item.name }}</span>
                     </div>
                   </el-option>

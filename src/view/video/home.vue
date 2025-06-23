@@ -29,14 +29,14 @@
         <div class="feature-title">AI混剪</div>
         <div class="feature-desc">提供两种强大的混剪模式，无论追求效率还是精度，都能满足您的创作需求。</div>
         <div class="card-actions">
-          <button class="sub-option-button" @click="gotoPage('/material')">
+          <button class="sub-option-button" @click="gotoPage('/material', 'montage')">
             <i class="el-icon-shuffle sub-icon"></i>
             <div class="sub-option-text-wrapper">
               <div class="title">一键混剪</div>
               <div class="desc">AI根据文案随机匹配素材，快速生成视频。</div>
             </div>
           </button>
-          <button class="sub-option-button">
+          <button class="sub-option-button" @click="gotoPage('/material', 'storyboard')">
             <i class="el-icon-timeline sub-icon"></i>
             <div class="sub-option-text-wrapper">
               <div class="title">分镜打磨</div>
@@ -49,17 +49,17 @@
         <div class="feature-card-content baokuan">
           <i class="el-icon-baokuan"></i>
         </div>
-        <div class="feature-title">AI混剪</div>
-        <div class="feature-desc">提供两种强大的混剪模式，无论追求效率还是精度，都能满足您的创作需求。</div>
+        <div class="feature-title">爆款复刻</div>
+        <div class="feature-desc">借鉴热门作品的成功经验，通过智能分析与内容替换，快速创作您的爆款视频。</div>
         <div class="card-actions">
-          <button class="sub-option-button" @click="gotoPage('/hot')">
+          <button class="sub-option-button" @click="gotoPage('/hot', 'montage')">
             <i class="el-icon-shuffle sub-icon"></i>
             <div class="sub-option-text-wrapper">
               <div class="title">一键混剪</div>
               <div class="desc">AI根据文案随机匹配素材，快速生成视频。</div>
             </div>
           </button>
-          <button class="sub-option-button">
+          <button class="sub-option-button" @click="gotoPage('/hot', 'storyboard')">
             <i class="el-icon-timeline sub-icon"></i>
             <div class="sub-option-text-wrapper">
               <div class="title">分镜打磨</div>
@@ -79,7 +79,8 @@ export default {
     return {};
   },
   methods: {
-    gotoPage(path) {
+    gotoPage(path, type) {
+      sessionStorage.setItem('next_type', type)
       this.$router.push({path: path})
     }
   }
