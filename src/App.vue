@@ -115,6 +115,15 @@ body {
   color: #fff !important;
 }
 
+.figure-image-wrapper {
+  width: 120px;
+  height: 160px;
+  position: relative;
+  display: inline-block;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
 .image-wrapper {
   width: 100%;
   height: 100%;
