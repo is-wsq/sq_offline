@@ -26,10 +26,10 @@
                @mousedown="onVideoItemMouseDown"
                @click="selectMaterial(item, $event)"
                ref="videoItems">
-            <el-image class="m-item-img" :class="{'m-img-selected': material_list.includes(item.id) }"
-                      :src="item.picture.replace('127.0.0.1','192.168.0.102')" fit="cover"></el-image>
 <!--            <el-image class="m-item-img" :class="{'m-img-selected': material_list.includes(item.id) }"-->
-<!--                      :src="item.picture" fit="cover"></el-image>-->
+<!--                      :src="item.picture.replace('127.0.0.1','192.168.0.102')" fit="cover"></el-image>-->
+            <el-image class="m-item-img" :class="{'m-img-selected': material_list.includes(item.id) }"
+                      :src="item.picture" fit="cover"></el-image>
 <!--            <el-popover placement="right" trigger="hover" :content="''" @show="item.previewing = true"-->
 <!--                        @hide="item.previewing = false" :disabled="isSelecting || !shouldShowPopover"-->
 <!--                        popper-class="video-preview-popover" :open-delay="1000" :close-delay="300">-->
@@ -76,10 +76,10 @@
                  @mousemove="onMouseMove"
                  @mouseup="onMouseUp"
                  @mouseleave="onMouseUp">
-              <el-image style="width: 100%;border-radius: 8px" :src="mentionList[0].picture.replace('127.0.0.1','192.168.0.102')"
-                        fit="contain" v-if="mentionList[0]"></el-image>
-<!--              <el-image style="width: 100%;border-radius: 8px" :src="mentionList[0].picture"-->
+<!--              <el-image style="width: 100%;border-radius: 8px" :src="mentionList[0].picture.replace('127.0.0.1','192.168.0.102')"-->
 <!--                        fit="contain" v-if="mentionList[0]"></el-image>-->
+              <el-image style="width: 100%;border-radius: 8px" :src="mentionList[0].picture"
+                        fit="contain" v-if="mentionList[0]"></el-image>
               <div style="width: 360px;height: 640px" v-else></div>
               <div class="c-preview-title"
                    ref="titleContainer"
@@ -217,8 +217,8 @@
                       :label="item.name"
                       :value="item.font_id">
                     <div style="display: flex; align-items: center">
-                      <img :src="item.img_path.replace('127.0.0.1','192.168.0.102')" style="width: 150px; height: 50px; margin-right: 8px;"/>
-<!--                      <img :src="item.img_path" style="width: 150px; height: 50px; margin-right: 8px;"/>-->
+<!--                      <img :src="item.img_path.replace('127.0.0.1','192.168.0.102')" style="width: 150px; height: 50px; margin-right: 8px;"/>-->
+                      <img :src="item.img_path" style="width: 150px; height: 50px; margin-right: 8px;"/>
                       <span>{{ item.name }}</span>
                     </div>
                   </el-option>
@@ -300,8 +300,8 @@
                       :label="item.name"
                       :value="item.font_id">
                     <div style="display: flex; align-items: center">
-                      <img :src="item.img_path.replace('127.0.0.1','192.168.0.102')" style="width: 150px; height: 50px; margin-right: 8px;"/>
-<!--                      <img :src="item.img_path" style="width: 150px; height: 50px; margin-right: 8px;"/>-->
+<!--                      <img :src="item.img_path.replace('127.0.0.1','192.168.0.102')" style="width: 150px; height: 50px; margin-right: 8px;"/>-->
+                      <img :src="item.img_path" style="width: 150px; height: 50px; margin-right: 8px;"/>
                       <span>{{ item.name }}</span>
                     </div>
                   </el-option>
