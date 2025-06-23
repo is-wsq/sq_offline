@@ -78,7 +78,7 @@
                   </template>
                   <div class="copy-item-materials">
                     <div class="copy-item-material" v-for="(material, index) in item.materials" :key="index">
-                      <div class="copy-item-material-img"></div>
+                      <el-image class="copy-item-material-img" :src="material.picture.replace('127.0.0.1', '192.168.0.102')"></el-image>
                       <div class="copy-item-material-name">{{ material.name }}</div>
                     </div>
                   </div>
@@ -101,8 +101,8 @@
         <div class="panel-title margin-b-16">分镜文案详情</div>
         <div class="storyboard-content">
           <div class="storyboard-item" v-for="(item, index) in selectedCopy.materials" :key="index">
-            <div class="storyboard-item-img"></div>
-            <div class="storyboard-item-detail">{{ item.detail }}</div>
+            <el-image class="storyboard-item-img" :src="item.picture.replace('127.0.0.1', '192.168.0.102')"></el-image>
+            <div class="storyboard-item-detail">{{ selectedCopy.script[index].copy }}</div>
           </div>
         </div>
       </div>
@@ -130,6 +130,8 @@
 </template>
 
 <script>
+import {postAction} from "@/api/api";
+
 export default {
   data() {
     return {
@@ -198,18 +200,61 @@ export default {
       ],
       currentIndex: 0,
       isPlaying: false,
+
+      loading: null,
+      material_list: [],
+      sound: {},
+      with_subtitle: false,
     }
   },
+  mounted() {
+    this.initData()
+  },
   methods: {
+    initData() {
+      this.material_list = JSON.parse(sessionStorage.getItem('material_list')) || []
+      this.sound = JSON.parse(sessionStorage.getItem('figure_setting_voice')) || {}
+      this.withSubtitle = sessionStorage.getItem("with_subtitle") === 'true'
+    },
     generate() {
-      this.show_left_panel = false;
-      this.already_generated = true;
-      this.copy_list = this.copy_list_default
-      this.openIndex = 0;
-      this.activeIndex = 0;
-      this.selectedCopy = this.copy_list[0]
-      this.$nextTick(() => {
-        this.loadVideo(this.currentIndex);
+      this.loading = this.$loading({
+        lock: true,
+        text: '一键混剪，请耐心等待...',
+        spinner: 'el-icon-loading',
+        background: 'rgba(0, 0, 0, 0.7)'
+      });
+      let params = {
+        requirements: this.copy_require,
+        video_time: parseInt(this.video_time),
+        example: this.example_copy,
+        count: parseInt(this.script_num),
+        material_list: this.material_list,
+        user_request: this.requirement,
+        timbre_id: this.sound.voice_id,
+        with_subtitle: this.withSubtitle
+      }
+      postAction('/figure/video_mix_edit_sync', params, 3600000).then(res => {
+        if (res.data.status === 'success') {
+          this.show_left_panel = false;
+          this.already_generated = true;
+          this.copy_list = res.data.data
+          this.openIndex = 0;
+          this.activeIndex = 0;
+          this.selectedCopy = this.copy_list[0]
+          this.loading.close();
+          this.loading = null;
+          this.$nextTick(() => {
+            this.loadVideo(this.currentIndex);
+          })
+        } else {
+          this.$alert(res.data.message, "混剪失败");
+          this.loading.close();
+          this.loading = null;
+        }
+      }).catch(error => {
+        this.loading.close();
+        this.loading = null;
+        console.log(error)
       })
     },
     collapseChange(val) {
@@ -226,7 +271,8 @@ export default {
     loadVideo(index) {
       if (index >= 0 && index < this.videos.length) {
         this.currentIndex = index;
-        this.$refs.videoRef.src = this.videos[index].url;
+        // this.$refs.videoRef.src = this.videos[index].url;
+        this.$refs.videoRef.src = this.selectedCopy.materials[index].filepath.replace('127.0.0.1', '192.168.0.102');
         this.$refs.videoRef.load();
         this.playVideo();
       }

@@ -205,7 +205,7 @@ export default {
         text_title_list: this.copy_list.map(item => item.title),
         user_request: this.requirement,
         timbre_id: this.sound.voice_id,
-        with_subtitle: true
+        with_subtitle: this.withSubtitle
       }
       postAction('/figure/video_mix_edit',params, 3600000).then(res => {
         if (res.data.status === 'success') {
