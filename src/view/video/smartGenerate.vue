@@ -121,7 +121,9 @@ export default {
       withTitle: false,
       bg_volume: 0.5,
       subtitleParams: {},
-      subtitleNameParams: {}
+      subtitleNameParams: {},
+      use_background: false,
+      name_use_background: false,
     }
   },
   mounted() {
@@ -225,6 +227,8 @@ export default {
       this.withTitle = sessionStorage.getItem("figure_with_title") === 'true'
       this.bg_volume = Number(sessionStorage.getItem("figure_bg_volume")) || 0.5
 
+      this.use_background = sessionStorage.getItem("use_background") === 'true'
+      this.name_use_background = sessionStorage.getItem("name_use_background") === 'true'
       this.subtitleParams.fontsize = parseInt(sessionStorage.getItem("figure_fontsize")) || 5
       this.subtitleParams.color = sessionStorage.getItem("figure_color") || '#ffffff'
       this.subtitleParams.font = sessionStorage.getItem("figure_font") || 'SJxingkai-C-Regular'
@@ -265,7 +269,7 @@ export default {
           fontsize: this.subtitleParams['fontsize'],
           color: this.subtitleParams.color,
           stroke_color: this.subtitleParams.stroke_color,
-          use_background: true,
+          use_background: this.use_background,
           background_color: this.subtitleParams.background_color,
           background_opacity: this.subtitleParams.background_opacity
         },
@@ -276,7 +280,7 @@ export default {
           fontsize: this.subtitleNameParams.name_fontsize,
           color: this.subtitleNameParams.name_color,
           stroke_color: this.subtitleNameParams.name_stroke_color,
-          use_background: true,
+          use_background: this.name_use_background,
           background_color: this.subtitleNameParams.name_background_color,
           background_opacity: this.subtitleNameParams.name_background_opacity
         },

@@ -207,9 +207,10 @@
               <el-color-picker size="small" v-model="subtitleNameParams.name_stroke_color"
                                @change="saveSubtitleNameParams('name_stroke_color')"></el-color-picker>
             </div>
-            <div class="flex-center" :class="{'margin-b-16': name_background_setting}" style="cursor: pointer"
+            <div class="flex-center back-checkbox" :class="{'margin-b-16': name_background_setting}" style="cursor: pointer"
                  @click="name_background_setting = !name_background_setting">
-              <div class="right-label" style="flex: 1">背景颜色</div>
+              <el-checkbox v-model="name_use_background" @change="switchNameUseBackground"></el-checkbox>
+              <div class="right-label" style="flex: 1">背景</div>
               <i class="el-icon-arrow-down" style="color: #374151" v-if="name_background_setting"></i>
               <i class="el-icon-arrow-right" style="color: #374151" v-else></i>
             </div>
@@ -289,9 +290,10 @@
               <el-color-picker size="small" v-model="subtitleParams.stroke_color"
                                @change="saveSubtitleParams('stroke_color')"></el-color-picker>
             </div>
-            <div class="flex-center" :class="{'margin-b-16': background_setting}" style="cursor: pointer"
+            <div class="flex-center back-checkbox" :class="{'margin-b-16': background_setting}" style="cursor: pointer"
                  @click="background_setting = !background_setting">
-              <div class="right-label" style="flex: 1">背景颜色</div>
+              <el-checkbox v-model="use_background" @change="switchUseBackground"></el-checkbox>
+              <div class="right-label" style="flex: 1">背景</div>
               <i class="el-icon-arrow-down" style="color: #374151" v-if="background_setting"></i>
               <i class="el-icon-arrow-right" style="color: #374151" v-else></i>
             </div>
@@ -337,6 +339,8 @@ export default {
       subtitleParams: {
         background_opacity: 0.6
       },
+      use_background: false,
+      name_use_background: false,
       background_setting: false,
       titlePresets: [
         {
@@ -461,6 +465,8 @@ export default {
       this.withTitle = sessionStorage.getItem("figure_with_title") === 'true'
       this.bg_volume = Number(sessionStorage.getItem("figure_bg_volume")) || 0.5
 
+      this.use_background = sessionStorage.getItem("figure_use_background") === 'true'
+      this.name_use_background = sessionStorage.getItem("figure_name_use_background") === 'true'
       this.activePresetId = sessionStorage.getItem("figure_preset_id") || '1'
       this.subtitleParams.fontsize = parseInt(sessionStorage.getItem("figure_fontsize")) || 5
       this.subtitleParams.color = sessionStorage.getItem("figure_color") || '#ffffff'
@@ -473,7 +479,7 @@ export default {
       let rgba_color = `rgba(${rgb_color.replace('rgb(', '')
           .replace(')', '')}, ${this.subtitleParams.background_opacity})`
       this.textStyle = {
-        backgroundColor: rgba_color,
+        backgroundColor: this.use_background? rgba_color : '',
         color: this.subtitleParams.color,
         fontFamily: this.subtitleParams.font,
         lineHeight: 1,
@@ -494,7 +500,7 @@ export default {
       let name_rgba_color = `rgba(${name_rgb_color.replace('rgb(', '')
           .replace(')', '')}, ${this.subtitleNameParams.name_background_opacity})`
       this.titleTextStyle = {
-        backgroundColor: name_rgba_color,
+        backgroundColor: this.name_use_background? name_rgba_color : '',
         color: this.subtitleNameParams.name_color,
         fontFamily: this.subtitleNameParams.name_font,
         lineHeight: 1,
@@ -638,7 +644,7 @@ export default {
       let rgba_color = `rgba(${rgb_color.replace('rgb(', '')
           .replace(')', '')}, ${this.subtitleNameParams.name_background_opacity})`
       this.titleTextStyle = {
-        backgroundColor: rgba_color,
+        backgroundColor: this.name_use_background? rgba_color : '',
         color: this.subtitleNameParams.name_color,
         fontFamily: this.subtitleNameParams.name_font,
         lineHeight: 1,
@@ -656,6 +662,16 @@ export default {
       this.activeTitlePresetId = '0'
       sessionStorage.setItem('figure_title_preset_id', '0')
       this.$forceUpdate()
+    },
+    switchUseBackground() {
+      this.background_setting = this.use_background
+      sessionStorage.setItem("figure_use_background", this.use_background)
+      this.updateTextStyle()
+    },
+    switchNameUseBackground() {
+      this.name_background_setting = this.name_use_background
+      sessionStorage.setItem("figure_name_use_background", this.name_use_background)
+      this.updateTitleTextStyle()
     },
     switchSubtitle() {
       sessionStorage.setItem("figure_with_subtitle", this.withSubtitle)
@@ -683,7 +699,7 @@ export default {
       let rgba_color = `rgba(${rgb_color.replace('rgb(', '')
           .replace(')', '')}, ${this.subtitleParams.background_opacity})`
       this.textStyle = {
-        backgroundColor: rgba_color,
+        backgroundColor: this.use_background? rgba_color : '',
         color: this.subtitleParams.color,
         fontFamily: this.subtitleParams.font,
         lineHeight: 1,
@@ -866,6 +882,16 @@ export default {
 .style-card-item >>> .el-checkbox__inner {
   width: 16px;
   height: 16px;
+}
+
+.back-checkbox >>> .el-checkbox__inner {
+  width: 14px;
+  height: 14px;
+  border-radius: 4px;
+}
+
+.back-checkbox >>> .el-checkbox__input {
+  height: 14px;
 }
 
 .right-label {
