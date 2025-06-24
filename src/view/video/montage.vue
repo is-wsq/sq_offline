@@ -107,17 +107,29 @@
           <i class="el-icon-film-c" style="font-size: 48px"></i>
           <div>视频预览区</div>
         </div>
-        <div class="video-placeholder-preview" v-else>
+        <div class="video-placeholder-preview" v-if="activeIndex !== -1">
           <video
             ref="videoRef"
             @ended="playNextVideo"
-            controls
-            autoplay
             preload="metadata"
             style="width: 280px; aspect-ratio: 9 / 16;"
           >
             您的浏览器不支持HTML5视频播放。
           </video>
+          <audio ref="audioRef" controls class="audio-element" v-show="false">
+            <source :src="montage_data[activeIndex].audio_file_path" type="audio/mpeg">
+            您的浏览器不支持音频播放
+          </audio>
+        </div>
+        <div class="volume-control" v-if="activeIndex !== -1">
+          <el-button-group>
+            <el-button @click="playBoth"><i class="el-icon-video-play" style="font-size: 16px"></i></el-button>
+            <el-button @click="pauseBoth"><i class="el-icon-video-pause" style="font-size: 16px"></i></el-button>
+          </el-button-group>
+          <div class="volume-label">音量</div>
+          <div class="volume-slider">
+            <el-slider v-model="media_volume" :step="0.1" :min="0" :max="1" @change="updateMediaVolume"></el-slider>
+          </div>
         </div>
       </div>
     </div>
@@ -171,6 +183,7 @@ export default {
 
       montage_data: [],
       loading: null,
+      media_volume: 0.5,
     }
   },
   computed: {
@@ -318,8 +331,8 @@ export default {
       this.bgm = JSON.parse(sessionStorage.getItem('setting_bgm')) || {}
       this.bg_volume = Number(sessionStorage.getItem("bg_volume")) || 0.5
 
-      this.top_offset_ratio = Number(sessionStorage.getItem('top_offset_ratio'))
-      this.bottom_offset_ratio = Number(sessionStorage.getItem('bottom_offset_ratio'))
+      this.top_offset_ratio = Number(sessionStorage.getItem('top_offset_ratio')) || 0.25
+      this.bottom_offset_ratio = Number(sessionStorage.getItem('bottom_offset_ratio')) || 0.75
 
       this.withSubtitle = sessionStorage.getItem("with_subtitle") === 'true'
       this.withTitle = sessionStorage.getItem("with_title") === 'true'
@@ -388,6 +401,8 @@ export default {
           this.loading = null;
           this.$nextTick(() => {
             this.loadVideo(this.currentIndex);
+            this.$refs.audioRef.volume = this.media_volume;
+            this.$refs.audioRef.play()
           })
         } else {
           this.$alert(res.data.message, "混剪失败");
@@ -476,7 +491,11 @@ export default {
     loadVideo(index) {
       if (index >= 0 && index < this.preview_video.length) {
         this.currentIndex = index;
+        this.$refs.videoRef.volume = this.media_volume;
         this.$refs.videoRef.src = this.preview_video[index].filepath
+        if (this.mute_materials.includes(this.preview_video[index].id)) {
+          this.$refs.videoRef.muted = true
+        }
         this.$refs.videoRef.load();
         this.playVideo();
       }
@@ -490,8 +509,42 @@ export default {
       });
     },
     playNextVideo() {
-      const nextIndex = (this.currentIndex + 1) % this.preview_video.length;
+      if (this.currentIndex === this.preview_video.length - 1) {
+        this.$refs.videoRef.src = this.preview_video[0].filepath
+        this.isPlaying = false;
+        return
+      }
+      const nextIndex = this.currentIndex + 1;
       this.loadVideo(nextIndex);
+    },
+
+    playBoth() {
+      // if (this.isPlaying) {
+      //   return
+      // }
+      const video = this.$refs.videoRef;
+      const audio = this.$refs.audioRef;
+      // 同步播放
+      Promise.all([
+        video.play(),
+        audio.play()
+      ]).catch(error => {
+        console.error('播放失败:', error);
+      });
+    },
+
+    // 暂停视频和音频
+    pauseBoth() {
+      if (!this.isPlaying) {
+        return
+      }
+      this.$refs.videoRef.pause();
+      this.$refs.audioRef.pause();
+    },
+
+    updateMediaVolume() {
+      this.$refs.videoRef.volume = this.media_volume;
+      this.$refs.audioRef.volume = this.media_volume;
     },
   }
 }
@@ -748,6 +801,7 @@ export default {
   background-color: #ffffff;
   height: 100%;
   display: flex;
+  flex-direction: column;
   justify-content: center;
   align-items: center;
 }
@@ -836,5 +890,37 @@ export default {
   box-shadow: none;
   resize: none;
   transition: border-color 0.2s ease-in-out;
+}
+
+.volume-control {
+  margin-top: 20px;
+  display: flex;
+  align-items: center;
+  width: 100%;
+}
+
+.volume-control >>> .el-button {
+  padding: 7px 10px;
+}
+
+.volume-label {
+  font-size: 13px;
+  color: #4b5563;
+  font-weight: 500;
+  margin-left: 15px;
+}
+
+.volume-slider {
+  flex: 1;
+  margin: 0 20px;
+}
+
+.volume-slider >>> .el-slider__button {
+  height: 10px;
+  width: 10px;
+}
+
+.volume-slider >>> .el-slider__runway {
+  height: 4px;
 }
 </style>
