@@ -15,7 +15,7 @@
             <el-collapse v-model="activeName" accordion>
               <el-collapse-item title="AI批量生成" name="1">
                 <div class="smart-generate-c-l-ai">
-                  <div style="height: 350px; overflow-y: auto" ref="scriptForm">
+                  <div style="max-height: 400px; overflow-y: auto" ref="scriptForm">
                     <div class="smart-generate-c-l-ai-title">文案要求</div>
                     <el-input type="textarea" :rows="2" placeholder="例如：写一个关于猫咪的搞笑段子"
                               class="margin-b-12" v-model="copy_require"></el-input>
@@ -403,20 +403,20 @@ export default {
 .smart-generate-c-l-ai >>> .el-textarea__inner,
 .smart-generate-c-l-manual >>> .el-textarea__inner,
 .copy-item-content >>> .el-textarea__inner {
-  padding: 6px 12px;
+  padding: 8px;
   font-size: 13px;
   color: #4f5153;
-  background-color: #f3f4f6;
-  border: none;
-  border-radius: 6px;
+  background-color: #f9f9f9;
+  border: 1px solid #DCDFE6;
+  border-radius: 4px;
 }
 
 .smart-generate-c-l-ai >>> .el-input__inner,
 .smart-generate-c-l-manual >>> .el-input__inner,
 .copy-item-content >>> .el-input__inner {
-  background-color: #f3f4f6;
-  border-radius: 6px;
-  border: none;
+  background-color: #f9f9f9;
+  border-radius: 4px;
+  border: 1px solid #DCDFE6;
   height: 30px;
   line-height: 30px;
   padding: 0 5px 0 15px;

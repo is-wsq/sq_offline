@@ -54,6 +54,10 @@ body {
   margin-bottom: 12px;
 }
 
+.margin-b-8 {
+  margin-bottom: 8px;
+}
+
 .margin-b-16 {
   margin-bottom: 16px;
 }

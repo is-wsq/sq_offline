@@ -14,11 +14,35 @@
             <i class="el-icon-arrow-left" style="font-size: 16px;font-weight: bold;color: #ffffff"></i>
           </div>
         </el-tooltip>
+
         <div class="settings-content-area">
           <div class="panel-title">混剪设置</div>
           <div class="setting-require">自定义要求（选填）</div>
-          <el-input type="textarea" :rows="3" placeholder="例如：镜头要切换快，多用特写镜头" v-model="requirement"></el-input>
+          <div style="position: relative;">
+            <div class="highlight-content"
+                 v-html="highlightedText"
+                 :style="{height: replaceDivHeight + 'px'}"
+                 ref="highlightDiv">
+            </div>
+            <el-input type="textarea"
+                      :rows="4"
+                      placeholder="例如：镜头要切换快，多用特写镜头"
+                      v-model="requirement"
+                      @input="onInput"
+                      ref="inputRef"
+                      class="input-layer"
+                      @scroll="handleScroll">
+            </el-input>
+            <div v-if="showDropdown" class="dropdown" :style="dropdownStyle">
+              <ul>
+                <li v-for="(item, index) in mention_list" :key="index" @click="selectMention(item)">
+                  {{ item.name }}
+                </li>
+              </ul>
+            </div>
+          </div>
         </div>
+
         <div class="settings-button-section">
           <el-button @click="generate" :loading="!!loading"><i class="el-icon-bianjiqi btn-icon" v-if="!loading"></i>
             {{ !!loading? '生成中...' : already_generated? '重新生成' : '一键混剪' }}</el-button>
@@ -65,7 +89,6 @@
                      @click="itemClick(index)">{{item.content}}</div>
                 <div class="material-list" v-if="openIndex === index">
                     <div class="material-item" v-for="(material,index) in item.materials" :key="index">
-<!--                      <el-image class="material-item-img" :src="material.picture.replace('127.0.0.1','120.86.188.249')"></el-image>-->
                       <el-image class="material-item-img" :src="material.picture"></el-image>
                       <div class="material-item-title" :title="material.name">{{ material.name }}</div>
                     </div>
@@ -119,15 +142,30 @@ export default {
 
       material_list: [],
       mute_materials: [],
+      mention_list: [],
+      lastInput: '',
+      replaceDivHeight: 102,
+      showDropdown: false,
+      dropdownStyle: {
+        position: 'absolute',
+        top: '0px',
+        left: '0px'
+      },
+      mentionRanges: [],
+
       sound: {},
       bgm: {},
       bg_volume: 0.5,
+
       with_subtitle: false,
       with_title: false,
+
       top_offset_ratio: 0,
       bottom_offset_ratio: 0,
+
       subtitleParams: {},
       subtitleNameParams: {},
+
       use_background: false,
       name_use_background: false,
 
@@ -139,28 +177,156 @@ export default {
     preview_video() {
       return this.montage_data.length > 0 ? this.montage_data[this.activeIndex].materials : []
     },
+    highlightedText() {
+      // 使用正则替换所有 @人名 为高亮样式
+      let result = this.requirement;
+      let names = this.mention_list.map(item => '@' + item.name);
+      names.forEach(item => {
+        const regex = new RegExp(`${item}`, 'g'); // 使用全局标志
+        result = result.replace(regex, (match) => {
+          return `<span style="color: #4c8df1">${match}</span>`
+        });
+      });
+      result = result.replace(/\n/g, '<br>'); // 支持换行
+      return result; // 返回最终结果
+    },
+  },
+  beforeDestroy() {
+    document.removeEventListener('click', this.handleClickOutside);
+    const inputEl = this.$refs.inputRef.$el.querySelector('textarea')
+    inputEl.removeEventListener('scroll', this.handleScroll);
   },
   mounted() {
     this.initData()
+    document.addEventListener('click', this.handleClickOutside);
+    const inputEl = this.$refs.inputRef.$el.querySelector('textarea')
+    this.replaceDivHeight = inputEl.clientHeight
+    inputEl.addEventListener('scroll', this.handleScroll);
   },
   methods: {
+    handleScroll(event) {
+      const inputEl = this.$refs.inputRef.$el.querySelector('textarea');
+      const highlightEl = this.$refs.highlightDiv;
+
+      // 同步滚动位置
+      highlightEl.scrollTop = inputEl.scrollTop;
+      highlightEl.scrollLeft = inputEl.scrollLeft;
+    },
+    updateMentionRanges() {
+      let result = []
+      let names = this.mention_list.map(item => '@' + item.name);
+      names.forEach(name => {
+        let startIndex = 0;
+        while ((startIndex = this.requirement.indexOf(name, startIndex)) !== -1) {
+          result.push({
+            start: startIndex + 1,
+            end: startIndex + name.length,
+            name: name
+          });
+          startIndex += name.length; // 移动索引避免死循环
+        }
+      });
+      this.mentionRanges = result;
+    },
+    onInput() {
+      let isDel = this.lastInput.length > this.requirement.length;
+      this.lastInput = this.requirement;
+      const inputEl = this.$refs.inputRef.$el.querySelector('textarea');
+      const cursorPos = inputEl.selectionStart;
+      if (isDel) { // 删除@内容
+        for (let mention of this.mentionRanges) {
+          const {start, end, name} = mention;
+          if (cursorPos >= start && cursorPos < end) { //删除@内容
+            this.requirement =
+                this.requirement.slice(0, start - 1) + this.requirement.slice(end - 1);
+          }
+        }
+      }
+
+      // 更新提及范围数组
+      this.updateMentionRanges()
+
+      const textBeforeCursorUpdated = this.requirement.slice(0, cursorPos);
+      const validMention = textBeforeCursorUpdated.charAt(textBeforeCursorUpdated.length - 1) === '@';
+      if (validMention) {
+        this.showDropdown = true;
+
+        this.$nextTick(() => {
+          const paddingLeft = parseFloat(getComputedStyle(inputEl).paddingLeft) || 0;
+
+          const canvas = document.createElement('canvas');
+          const context = canvas.getContext('2d');
+          const computedStyle = getComputedStyle(inputEl);
+          context.font = `${computedStyle.fontSize} ${computedStyle.fontFamily}`;
+
+          const textWidth = context.measureText(textBeforeCursorUpdated).width;
+          const inputWidth = inputEl.clientWidth - 30;
+
+          const lineHeight = parseFloat(computedStyle.lineHeight) || parseFloat(computedStyle.fontSize);
+
+          let offsetTop = Math.floor((paddingLeft + textWidth + 10) / inputWidth) + 1;
+          offsetTop = Math.min(offsetTop, 4); // 限制最大显示数量
+          let remainder = (paddingLeft + textWidth + 5) % inputWidth;
+
+          this.dropdownStyle.top = `${window.scrollY + offsetTop * lineHeight}px`;
+          this.dropdownStyle.left = `${remainder}px`;
+        });
+      } else {
+        this.showDropdown = false;
+      }
+    },
+    selectMention(item) {  //选择@
+      const inputEl = this.$refs.inputRef.$el.querySelector('textarea');
+      const cursorPos = inputEl.selectionStart;
+      const atIndex = this.requirement.lastIndexOf('@', cursorPos - 1);
+      if (atIndex !== -1) {
+        this.requirement =
+            this.requirement.slice(0, atIndex) + '@' + item.name + this.requirement.slice(cursorPos);
+        this.showDropdown = false;
+        this.lastInput = this.requirement;
+
+        // 记录提及的范围
+        this.updateMentionRanges()
+
+        // 设置光标位置到提及内容的末尾
+        inputEl.selectionStart = this.mentionRanges[this.mentionRanges.length - 1].end;
+        inputEl.selectionEnd = this.mentionRanges[this.mentionRanges.length - 1].end;
+      }
+    },
+    handleClickOutside(event) {
+      if (!this.$refs.inputRef)
+        return;
+      const inputEl = this.$refs.inputRef.$el.querySelector('textarea');
+      const dropdownEl = this.$refs.dropdownRef; // 假设选择框有一个引用
+
+      // 检查点击是否发生在输入框或选择框内
+      if (!inputEl.contains(event.target) && (!dropdownEl || !dropdownEl.contains(event.target))) {
+        this.showDropdown = false;
+      }
+    },
+
     initData() {
       this.copy_list = JSON.parse(sessionStorage.getItem("copy_list")).map(item => ({
         ...item, isHover: false,
       }))
+
       this.material_list = JSON.parse(sessionStorage.getItem('material_list')) || []
       this.mute_materials = JSON.parse(sessionStorage.getItem('mute_materials')) || []
+      this.mention_list = JSON.parse(sessionStorage.getItem('mention_list')) || []
+
       this.sound = JSON.parse(sessionStorage.getItem("setting_voice"))
       this.bgm = JSON.parse(sessionStorage.getItem('setting_bgm')) || {}
+      this.bg_volume = Number(sessionStorage.getItem("bg_volume")) || 0.5
+
       this.top_offset_ratio = Number(sessionStorage.getItem('top_offset_ratio'))
       this.bottom_offset_ratio = Number(sessionStorage.getItem('bottom_offset_ratio'))
 
       this.withSubtitle = sessionStorage.getItem("with_subtitle") === 'true'
       this.withTitle = sessionStorage.getItem("with_title") === 'true'
-      this.bg_volume = Number(sessionStorage.getItem("bg_volume")) || 0.5
 
       this.use_background = sessionStorage.getItem("use_background") === 'true'
       this.name_use_background = sessionStorage.getItem("name_use_background") === 'true'
+
       this.subtitleParams.fontsize = parseInt(sessionStorage.getItem("fontsize")) || 5
       this.subtitleParams.color = sessionStorage.getItem("color") || '#ffffff'
       this.subtitleParams.font = sessionStorage.getItem("font") || 'SJxingkai-C-Regular'
@@ -199,11 +365,16 @@ export default {
         spinner: 'el-icon-loading',
         background: 'rgba(0, 0, 0, 0.7)'
       });
+      let actualRequest = this.requirement
+      let names = this.mention_list.map(item => '@' + item.name);
+      names.forEach((item, index) => {
+        actualRequest = actualRequest.replace(item, `@{${this.material_list[index]}}`)
+      })
       let params = {
         material_list: this.material_list,
         text_list: this.copy_list.map(item => item.content),
         text_title_list: this.copy_list.map(item => item.title),
-        user_request: this.requirement,
+        user_request: actualRequest,
         timbre_id: this.sound.voice_id,
         with_subtitle: this.withSubtitle
       }
@@ -305,7 +476,6 @@ export default {
     loadVideo(index) {
       if (index >= 0 && index < this.preview_video.length) {
         this.currentIndex = index;
-        // this.$refs.videoRef.src = this.preview_video[index].filepath.replace('127.0.0.1', '120.86.188.249');
         this.$refs.videoRef.src = this.preview_video[index].filepath
         this.$refs.videoRef.load();
         this.playVideo();
@@ -601,5 +771,70 @@ export default {
 .video-placeholder-preview {
   background-color: #e5e7eb;
   border-radius: 12px;
+}
+
+
+.dropdown {
+  background: white;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  position: absolute;
+  z-index: 999;
+  width: 180px;
+  height: 200px;
+  overflow: auto;
+}
+
+.dropdown ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.dropdown li {
+  padding: 6px 10px;
+  cursor: pointer;
+}
+
+.dropdown li:hover {
+  background-color: #f0f0f0;
+}
+
+.highlight-content {
+  padding: 8px;
+  box-sizing: border-box;
+  border-radius: 4px;
+  background-color: #f9f9f9;
+  position: absolute;
+  overflow-y: auto;
+  overflow-x: hidden;
+  top: 0;
+  left: 0;
+  right: 0;
+  font-size: 14px;
+  line-height: 1.5;
+  pointer-events: none;
+  z-index: 1;
+  word-wrap: break-word;
+}
+
+.input-layer {
+  position: relative;
+  z-index: 2;
+  background-color: transparent;
+  color: transparent; /* 让文字看不见 */
+  caret-color: black;
+}
+
+.input-layer >>> .el-textarea__inner {
+  background-color: transparent;
+  color: transparent; /* 让文字看不见 */
+  font-size: 14px;
+  font-family: "Helvetica Neue", Arial, sans-serif;
+  line-height: 1.5;
+  border-radius: 4px;
+  box-shadow: none;
+  resize: none;
+  transition: border-color 0.2s ease-in-out;
 }
 </style>

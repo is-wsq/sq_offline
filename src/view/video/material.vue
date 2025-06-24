@@ -26,8 +26,6 @@
                @mousedown="onVideoItemMouseDown"
                @click="selectMaterial(item, $event)"
                ref="videoItems">
-<!--            <el-image class="m-item-img" :class="{'m-img-selected': material_list.includes(item.id) }"-->
-<!--                      :src="item.picture.replace('127.0.0.1','192.168.0.102')" fit="cover"></el-image>-->
             <el-image class="m-item-img" :class="{'m-img-selected': material_list.includes(item.id) }"
                       :src="item.picture" fit="cover"></el-image>
 <!--            <el-popover placement="right" trigger="hover" :content="''" @show="item.previewing = true"-->
@@ -76,8 +74,6 @@
                  @mousemove="onMouseMove"
                  @mouseup="onMouseUp"
                  @mouseleave="onMouseUp">
-<!--              <el-image style="width: 100%;border-radius: 8px" :src="mentionList[0].picture.replace('127.0.0.1','192.168.0.102')"-->
-<!--                        fit="contain" v-if="mentionList[0]"></el-image>-->
               <el-image style="width: 100%;border-radius: 8px" :src="mentionList[0].picture"
                         fit="contain" v-if="mentionList[0]"></el-image>
               <div style="width: 360px;height: 640px" v-else></div>
@@ -217,7 +213,6 @@
                       :label="item.name"
                       :value="item.font_id">
                     <div style="display: flex; align-items: center">
-<!--                      <img :src="item.img_path.replace('127.0.0.1','192.168.0.102')" style="width: 150px; height: 50px; margin-right: 8px;"/>-->
                       <img :src="item.img_path" style="width: 150px; height: 50px; margin-right: 8px;"/>
                       <span>{{ item.name }}</span>
                     </div>
@@ -300,7 +295,6 @@
                       :label="item.name"
                       :value="item.font_id">
                     <div style="display: flex; align-items: center">
-<!--                      <img :src="item.img_path.replace('127.0.0.1','192.168.0.102')" style="width: 150px; height: 50px; margin-right: 8px;"/>-->
                       <img :src="item.img_path" style="width: 150px; height: 50px; margin-right: 8px;"/>
                       <span>{{ item.name }}</span>
                     </div>
@@ -556,7 +550,12 @@ export default {
             this.materials = data.filter(item => !item.lip_sync).map(item => ({
               ...item, previewing: false, size: item.height + '*' + item.width
             }))
-            this.material_list = JSON.parse(sessionStorage.getItem('material_list')) || []
+
+            let validMaterialsId = this.materials.map(item => item.id);
+            this.material_list = (JSON.parse(sessionStorage.getItem('material_list')) || [])
+                .filter(id => validMaterialsId.includes(id)); //剔除已经删除掉的素材
+            sessionStorage.setItem('material_list', JSON.stringify(this.material_list))
+
             if (this.material_list.length > 0) {
               let size = this.materials.find(item => item.id === this.material_list[0]).size
               this.filter_materials = this.materials.filter(item => item.size === size)
@@ -843,6 +842,7 @@ export default {
         return
       }
       sessionStorage.setItem('script_type', 'material')
+      sessionStorage.setItem('mention_list', JSON.stringify(this.mentionList))
       this.$router.push({path: path})
     }
   }

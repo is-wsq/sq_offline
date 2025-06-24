@@ -16,41 +16,64 @@
         </el-tooltip>
         <div class="left-content-area">
           <div class="panel-title">分镜设置</div>
-            <div class="panel-label">自定义要求（选填）</div>
-            <el-input type="textarea" :rows="3" placeholder="例如：镜头要切换快，多用特写镜头..."
-                      class="margin-b-12" v-model="requirement"></el-input>
+          <div class="panel-label">自定义要求（选填）</div>
+<!--          <el-input type="textarea" :rows="3" placeholder="例如：镜头要切换快，多用特写镜头..."-->
+<!--                    class="margin-b-12" v-model="requirement"></el-input>-->
+          <div style="position: relative;">
+            <div class="highlight-content"
+                 v-html="highlightedText"
+                 :style="{height: replaceDivHeight + 'px'}"
+                 ref="highlightDiv">
+            </div>
+            <el-input type="textarea"
+                      :rows="4"
+                      placeholder="例如：镜头要切换快，多用特写镜头"
+                      v-model="requirement"
+                      @input="onInput"
+                      ref="inputRef"
+                      class="input-layer"
+                      @scroll="handleScroll">
+            </el-input>
+            <div v-if="showDropdown" class="dropdown" :style="dropdownStyle">
+              <ul>
+                <li v-for="(item, index) in mention_list" :key="index" @click="selectMention(item)">
+                  {{ item.name }}
+                </li>
+              </ul>
+            </div>
+          </div>
+          <div class="without_at">
             <div class="panel-title margin-t-8">文案设置</div>
-          <div style="height: 185px; overflow-y: auto" ref="scriptForm">
-            <div class="panel-label">文案要求</div>
-            <el-input type="textarea" :rows="2" placeholder="例如：写一个关于猫咪的搞笑段子"
-                      class="margin-b-12" v-model="copy_require"></el-input>
-
-            <div class="panel-label">示例文案</div>
-            <div class="flex-center margin-b-8" v-for="(text, index) in exampleTexts" :key="index">
-              <el-input type="textarea" :rows="3" placeholder="提供一个你喜欢的风格的例子"
-                        v-model="exampleTexts[index]"></el-input>
-              <el-button size="mini" type="danger" icon="el-icon-delete" @click="removeText(index)"></el-button>
+            <div style="max-height: 185px; overflow-y: auto" ref="scriptForm">
+              <div class="panel-label">文案要求</div>
+              <el-input type="textarea" :rows="2" placeholder="例如：写一个关于猫咪的搞笑段子"
+                        class="margin-b-12" v-model="copy_require"></el-input>
+              <div class="panel-label">示例文案</div>
+              <div class="flex-center margin-b-8" v-for="(text, index) in exampleTexts" :key="index">
+                <el-input type="textarea" :rows="2" placeholder="提供一个你喜欢的风格的例子"
+                          v-model="exampleTexts[index]"></el-input>
+                <el-button size="mini" type="danger" icon="el-icon-delete" @click="removeText(index)"></el-button>
+              </div>
             </div>
-          </div>
-          <div class="margin-b-12">
-            <el-button size="mini" type="primary" @click="addExampleText">添加示例文案</el-button>
-          </div>
-
-          <div style="display: flex;gap: 12px" class="margin-b-12">
-            <div style="flex: 1">
-              <div class="panel-label">视频时长</div>
-              <el-input type="number" v-model="video_time"></el-input>
+            <div class="margin-b-12">
+              <el-button size="mini" type="primary" @click="addExampleText">添加示例文案</el-button>
             </div>
-            <div style="flex: 1">
-              <div class="panel-label">文案数量</div>
-              <el-input type="number" v-model="script_num"></el-input>
+            <div style="display: flex;gap: 12px" class="margin-b-12">
+              <div style="flex: 1">
+                <div class="panel-label">视频时长</div>
+                <el-input type="number" v-model="video_time"></el-input>
+              </div>
+              <div style="flex: 1">
+                <div class="panel-label">文案数量</div>
+                <el-input type="number" v-model="script_num"></el-input>
+              </div>
             </div>
+            <div class="panel-label">模型选择</div>
+            <el-select v-model="ai_model" style="width: 100%" class="margin-b-12">
+              <el-option label="本地大模型" value="local_model"></el-option>
+              <el-option label="deepseek v3" value="deepseek_v3"></el-option>
+            </el-select>
           </div>
-          <div class="panel-label">模型选择</div>
-          <el-select v-model="ai_model" style="width: 100%" class="margin-b-12">
-            <el-option label="本地大模型" value="local_model"></el-option>
-            <el-option label="deepseek v3" value="deepseek_v3"></el-option>
-          </el-select>
         </div>
         <div class="settings-button-section">
           <el-button @click="generate"><i class="el-icon-bianjiqi btn-icon"></i>
@@ -88,7 +111,6 @@
                   </template>
                   <div class="copy-item-materials">
                     <div class="copy-item-material" v-for="(material, index) in item.materials" :key="index">
-<!--                      <el-image class="copy-item-material-img" :src="material.picture.replace('127.0.0.1', '192.168.0.102')"></el-image>-->
                       <el-image class="copy-item-material-img" :src="material.picture"></el-image>
                       <div class="copy-item-material-name">{{ material.name }}</div>
                     </div>
@@ -112,7 +134,6 @@
         <div class="panel-title margin-b-16">分镜文案详情</div>
         <div class="storyboard-content">
           <div class="storyboard-item" v-for="(item, index) in selectedCopy.materials" :key="index">
-<!--            <el-image class="storyboard-item-img" :src="item.picture.replace('127.0.0.1', '192.168.0.102')"></el-image>-->
             <el-image class="storyboard-item-img" :src="item.picture"></el-image>
             <div class="storyboard-item-detail">{{ selectedCopy.script[index].copy }}</div>
           </div>
@@ -149,6 +170,23 @@ export default {
     return {
       show_left_panel: true,
       requirement: '',
+
+      material_list: [],
+      mute_materials: [],
+      mention_list: [],
+      sound: {},
+      with_subtitle: false,
+
+      lastInput: '',
+      replaceDivHeight: 102,
+      showDropdown: false,
+      dropdownStyle: {
+        position: 'absolute',
+        top: '0px',
+        left: '0px'
+      },
+      mentionRanges: [],
+
       already_generated: false,
       copy_require: '',
       example_copy: '',
@@ -165,15 +203,138 @@ export default {
       isPlaying: false,
 
       loading: null,
-      material_list: [],
-      sound: {},
-      with_subtitle: false,
     }
+  },
+  beforeDestroy() {
+    document.removeEventListener('click', this.handleClickOutside);
+    const inputEl = this.$refs.inputRef.$el.querySelector('textarea')
+    inputEl.removeEventListener('scroll', this.handleScroll);
   },
   mounted() {
     this.initData()
+    document.addEventListener('click', this.handleClickOutside);
+    const inputEl = this.$refs.inputRef.$el.querySelector('textarea')
+    this.replaceDivHeight = inputEl.clientHeight
+    inputEl.addEventListener('scroll', this.handleScroll);
+  },
+  computed: {
+    highlightedText() {
+      // 使用正则替换所有 @人名 为高亮样式
+      let result = this.requirement;
+      let names = this.mention_list.map(item => '@' + item.name);
+      names.forEach(item => {
+        const regex = new RegExp(`${item}`, 'g'); // 使用全局标志
+        result = result.replace(regex, (match) => {
+          return `<span style="color: #4c8df1">${match}</span>`
+        });
+      });
+      result = result.replace(/\n/g, '<br>'); // 支持换行
+      return result; // 返回最终结果
+    },
   },
   methods: {
+    handleScroll(event) {
+      const inputEl = this.$refs.inputRef.$el.querySelector('textarea');
+      const highlightEl = this.$refs.highlightDiv;
+
+      // 同步滚动位置
+      highlightEl.scrollTop = inputEl.scrollTop;
+      highlightEl.scrollLeft = inputEl.scrollLeft;
+    },
+    updateMentionRanges() {
+      let result = []
+      let names = this.mention_list.map(item => '@' + item.name);
+      names.forEach(name => {
+        let startIndex = 0;
+        while ((startIndex = this.requirement.indexOf(name, startIndex)) !== -1) {
+          result.push({
+            start: startIndex + 1,
+            end: startIndex + name.length,
+            name: name
+          });
+          startIndex += name.length; // 移动索引避免死循环
+        }
+      });
+      this.mentionRanges = result;
+    },
+    onInput() {
+      let isDel = this.lastInput.length > this.requirement.length;
+      this.lastInput = this.requirement;
+      const inputEl = this.$refs.inputRef.$el.querySelector('textarea');
+      const cursorPos = inputEl.selectionStart;
+      if (isDel) { // 删除@内容
+        for (let mention of this.mentionRanges) {
+          const {start, end, name} = mention;
+          if (cursorPos >= start && cursorPos < end) { //删除@内容
+            this.requirement =
+                this.requirement.slice(0, start - 1) + this.requirement.slice(end - 1);
+          }
+        }
+      }
+
+      // 更新提及范围数组
+      this.updateMentionRanges()
+
+      const textBeforeCursorUpdated = this.requirement.slice(0, cursorPos);
+      const validMention = textBeforeCursorUpdated.charAt(textBeforeCursorUpdated.length - 1) === '@';
+      if (validMention) {
+        this.showDropdown = true;
+
+        this.$nextTick(() => {
+          const paddingLeft = parseFloat(getComputedStyle(inputEl).paddingLeft) || 0;
+
+          const canvas = document.createElement('canvas');
+          const context = canvas.getContext('2d');
+          const computedStyle = getComputedStyle(inputEl);
+          context.font = `${computedStyle.fontSize} ${computedStyle.fontFamily}`;
+
+          const textWidth = context.measureText(textBeforeCursorUpdated).width;
+          const inputWidth = inputEl.clientWidth - 30;
+
+          const lineHeight = parseFloat(computedStyle.lineHeight) || parseFloat(computedStyle.fontSize);
+
+          let offsetTop = Math.floor((paddingLeft + textWidth + 10) / inputWidth) + 1;
+          offsetTop = Math.min(offsetTop, 4); // 限制最大显示数量
+          let remainder = (paddingLeft + textWidth + 5) % inputWidth;
+
+          this.dropdownStyle.top = `${window.scrollY + offsetTop * lineHeight}px`;
+          this.dropdownStyle.left = `${remainder}px`;
+        });
+      } else {
+        this.showDropdown = false;
+      }
+    },
+    selectMention(item) {  //选择@
+      const inputEl = this.$refs.inputRef.$el.querySelector('textarea');
+      const cursorPos = inputEl.selectionStart;
+      const atIndex = this.requirement.lastIndexOf('@', cursorPos - 1);
+      if (atIndex !== -1) {
+        this.requirement =
+            this.requirement.slice(0, atIndex) + '@' + item.name + this.requirement.slice(cursorPos);
+        this.showDropdown = false;
+        this.lastInput = this.requirement;
+
+        // 记录提及的范围
+        this.updateMentionRanges()
+
+        // 设置光标位置到提及内容的末尾
+        inputEl.selectionStart = this.mentionRanges[this.mentionRanges.length - 1].end;
+        inputEl.selectionEnd = this.mentionRanges[this.mentionRanges.length - 1].end;
+      }
+    },
+    handleClickOutside(event) {
+      if (!this.$refs.inputRef)
+        return;
+      const inputEl = this.$refs.inputRef.$el.querySelector('textarea');
+      const dropdownEl = this.$refs.dropdownRef; // 假设选择框有一个引用
+
+      // 检查点击是否发生在输入框或选择框内
+      if (!inputEl.contains(event.target) && (!dropdownEl || !dropdownEl.contains(event.target))) {
+        this.showDropdown = false;
+      }
+    },
+
+
     addExampleText() {
       this.exampleTexts.push('');
       this.$nextTick(() => { //自动滚到到底部
@@ -186,6 +347,9 @@ export default {
     },
     initData() {
       this.material_list = JSON.parse(sessionStorage.getItem('material_list')) || []
+      this.mute_materials = JSON.parse(sessionStorage.getItem('mute_materials')) || []
+      this.mention_list = JSON.parse(sessionStorage.getItem('mention_list')) || []
+
       this.sound = JSON.parse(sessionStorage.getItem('figure_setting_voice')) || {}
       this.withSubtitle = sessionStorage.getItem("with_subtitle") === 'true'
     },
@@ -196,6 +360,11 @@ export default {
         spinner: 'el-icon-loading',
         background: 'rgba(0, 0, 0, 0.7)'
       });
+      let actualRequest = this.requirement
+      let names = this.mention_list.map(item => '@' + item.name);
+      names.forEach((item, index) => {
+        actualRequest = actualRequest.replace(item, `@{${this.material_list[index]}}`)
+      })
       const cleanTexts = this.exampleTexts.map(text => text.trim()).filter(text => text !== '');
       let params = {
         requirements: this.copy_require,
@@ -245,7 +414,6 @@ export default {
     loadVideo(index) {
       if (index >= 0 && index < this.selectedCopy.materials.length) {
         this.currentIndex = index;
-        // this.$refs.videoRef.src = this.selectedCopy.materials[index].filepath.replace('127.0.0.1', '192.168.0.102');
         this.$refs.videoRef.src = this.selectedCopy.materials[index].filepath;
         this.$refs.videoRef.load();
         this.playVideo();
@@ -349,26 +517,26 @@ export default {
   height: calc(100% - 60px);
 }
 
-.left-content-area >>> .el-textarea__inner {
-  padding: 6px 12px;
+.without_at >>> .el-textarea__inner {
+  padding: 8px;
   color: #1f2937;
-  background-color: #f3f4f6;
-  border: none;
-  border-radius: 6px;
+  background-color: #f9f9f9;
+  border: 1px solid #DCDFE6;
+  border-radius: 4px;
   font-size: 13px;
   font-family: 'Inter', sans-serif;
 }
 
-.left-content-area >>> .el-input__inner {
-  background-color: #f3f4f6;
-  border-radius: 6px;
-  border: none;
+.without_at >>> .el-input__inner {
+  background-color: #f9f9f9;
+  border-radius: 4px;
+  border: 1px solid #DCDFE6;
   height: 30px;
   line-height: 30px;
   padding: 0 5px 0 15px;
 }
 
-.left-content-area >>> .el-input__icon{
+.without_at >>> .el-input__icon{
   line-height: 30px;
 }
 
@@ -629,5 +797,71 @@ export default {
 .video-placeholder-preview {
   background-color: #e5e7eb;
   border-radius: 12px;
+}
+
+
+.dropdown {
+  background: white;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  position: absolute;
+  z-index: 999;
+  width: 180px;
+  height: 200px;
+  overflow: auto;
+}
+
+.dropdown ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.dropdown li {
+  padding: 6px 10px;
+  cursor: pointer;
+}
+
+.dropdown li:hover {
+  background-color: #f0f0f0;
+}
+
+.highlight-content {
+  padding: 8px;
+  box-sizing: border-box;
+  border-radius: 4px;
+  background-color: #f9f9f9;
+  position: absolute;
+  overflow-y: auto;
+  overflow-x: hidden;
+  top: 0;
+  left: 0;
+  right: 0;
+  font-size: 14px;
+  line-height: 1.5;
+  pointer-events: none;
+  z-index: 1;
+  word-wrap: break-word;
+}
+
+.input-layer {
+  position: relative;
+  z-index: 2;
+  background-color: transparent;
+  color: transparent; /* 让文字看不见 */
+  caret-color: black;
+}
+
+.input-layer >>> .el-textarea__inner {
+  padding: 8px;
+  background-color: transparent;
+  color: transparent; /* 让文字看不见 */
+  font-size: 14px;
+  font-family: "Helvetica Neue", Arial, sans-serif;
+  line-height: 1.5;
+  border-radius: 4px;
+  box-shadow: none;
+  resize: none;
+  transition: border-color 0.2s ease-in-out;
 }
 </style>
