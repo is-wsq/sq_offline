@@ -17,8 +17,6 @@
         <div class="left-content-area">
           <div class="panel-title">分镜设置</div>
           <div class="panel-label">自定义要求（选填）</div>
-<!--          <el-input type="textarea" :rows="3" placeholder="例如：镜头要切换快，多用特写镜头..."-->
-<!--                    class="margin-b-12" v-model="requirement"></el-input>-->
           <div style="position: relative;">
             <div class="highlight-content"
                  v-html="highlightedText"
@@ -48,7 +46,7 @@
               <div class="panel-label">文案要求</div>
               <el-input type="textarea" :rows="2" placeholder="例如：写一个关于猫咪的搞笑段子"
                         class="margin-b-12" v-model="copy_require"></el-input>
-              <div class="panel-label">示例文案</div>
+              <div class="panel-label">示例文案（选填）</div>
               <div class="flex-center margin-b-8" v-for="(text, index) in exampleTexts" :key="index">
                 <el-input type="textarea" :rows="2" placeholder="提供一个你喜欢的风格的例子"
                           v-model="exampleTexts[index]"></el-input>
@@ -125,7 +123,7 @@
             <div class="copy-list-none-desc">请使用左侧工具生成您的第一条文案</div>
           </div>
           <div class="export-section" v-if="already_generated">
-            <el-button><i class="el-icon-fa-download" style="margin-right: 10px;"></i>导出视频</el-button>
+            <el-button @click="export_video"><i class="el-icon-fa-download" style="margin-right: 10px;"></i>导出视频</el-button>
           </div>
         </div>
       </div>
@@ -171,11 +169,22 @@ export default {
       show_left_panel: true,
       requirement: '',
 
+      /* initData 前面素材选择、样式设置所选参数 */
       material_list: [],
       mute_materials: [],
       mention_list: [],
       sound: {},
-      with_subtitle: false,
+      bgm: {},
+      bg_volume: 0.5,
+      top_offset_ratio: 0.25,
+      bottom_offset_ratio: 0.75,
+      withSubtitle: false,
+      withTitle: false,
+      use_background: false,
+      name_use_background: false,
+      subtitleParams: {},
+      subtitleNameParams: {},
+      /* --end-- */
 
       lastInput: '',
       replaceDivHeight: 102,
@@ -195,6 +204,75 @@ export default {
       script_num: 1,
       ai_model: 'deepseek_v3',
       copy_list: [],
+      test_list: [
+          {
+            audio_file_id: "dfe25e40-b6be-405a-84c0-196761e6491b",
+            audio_file_path: "http://127.0.0.1:6006/temp_audio/dfe25e40-b6be-405a-84c0-196761e6491b.wav",
+            content: "清晨的烟火气，从这家「XIN SHI」肠粉店开始\n推开门就是现蒸的米香，米浆凌晨3点刚磨好，肉菜带着菜市场的露水，每卷肠粉都裹着最鲜的清晨味",
+            title: "这家肠粉店的新鲜，从凌晨就开始了",
+            materials: [
+              {
+                id: "7442b164-63bb-4a27-9fb3-cc2806fc2252",
+                name: "街景大招牌-8",
+                picture: "http://127.0.0.1:6006/static/digital_human_image/1/a8de6508-29d6-4262-843a-923726491106.jpg",
+                type: "clone",
+                filepath: "http://127.0.0.1:6006/uploads/f6bb10aa-b8c3-49aa-adbd-c3b3b46ad204.mp4",
+                // filepath: "https://www.w3school.com.cn/example/html5/mov_bbb.mp4",
+                video_id: "6e083734-fb97-4dd9-a51f-e5b6400df4c7",
+                user_id: 1,
+                timbre_id: null,
+                status: "success",
+                message: null,
+                lip_sync: false,
+                material_summary: "### 1. 镜头语言\n- **镜头类型与运动**：视频采用**特写镜头**，镜头从左向右**平移**，依次展示店铺招牌的不同部分，通过连续的平移运动逐步呈现招牌信息，起到清晰传递店铺视觉标识的叙事功能。\n- **转场方式**：无明显转场，依靠镜头的平移实现场景内容的自然过渡。\n\n### 2. 视觉氛围\n- **光线效果**：光线均匀，无强烈明暗对比，整体色调以暖色系为主，红色招牌与白色文字形成鲜明对比，营造出**醒目、热情**的氛围。\n- **色彩搭配**：红色招牌占据视觉主导，白色文字点缀其中，色彩对比强烈，传递出活力与清晰的情绪感受。\n\n### 3. 画面构成\n- **场景布置**：聚焦于店铺招牌部分，背景为建筑物，简洁明了。\n- **重要道具**：招牌上的文字（如“XIN”“SHI”等）和火焰形状图案是重要道具，文字是店铺标识的核心，火焰图案象征着与餐饮相关的热烈氛围，构图上突出招牌元素，视觉重点明确。\n- **构图**：画面构图简洁，以招牌为核心，通过特写和平移镜头，使招牌的文字和图案成为视觉焦点。\n\n### 4. 人物表现\n- 视频中无人物出现，不存在人物的着装、表情、肢体语言等相关内容。\n\n### 5. 叙事节奏\n- **时间流动感**：镜头的平移运动使时间呈现平稳的流动状态，观众能逐步获取招牌信息。\n- **内容密度**：内容密度适中，依次展示招牌的不同部分，信息传递清晰。\n- **情绪变化曲线**：情绪始终保持在醒目、稳定的状态，无明显情绪起伏。\n\n### 6. 视频类型\n- 该视频属于**其他**类型，主要是对店铺招牌的展示，目的是呈现店铺的视觉标识和相关信息。",
+                duration: 4.04,
+                tag: null,
+                category: null,
+                width: 2160,
+                height: 3840,
+                segments: null,
+                video_type: "material",
+                created_at: "2025-06-24T15:52:35.835714",
+                updated_at: "2025-06-24T15:53:26.031685"
+              },
+              {
+                id: "7f454967-b673-4deb-9c43-0953cf5ccba2",
+                name: "街景大招牌-2",
+                picture: "http://127.0.0.1:6006/static/digital_human_image/1/1aaa7b9a-90ed-4557-b097-ce41d9ca4565.jpg",
+                type: "clone",
+                filepath: "http://127.0.0.1:6006/uploads/745555d0-3b16-458e-b517-61216e9f211e.mp4",
+                // filepath: "https://www.w3school.com.cn/example/html5/mov_bbb.mp4",
+                video_id: "6a8afd11-a167-4010-9841-092597533979",
+                user_id: 1,
+                timbre_id: null,
+                status: "success",
+                message: null,
+                lip_sync: false,
+                material_summary: "### 1. 镜头语言\n- **镜头类型与运动**：视频主要采用特写和全景镜头，镜头运动为平移。通过平移镜头依次展示店铺的不同招牌部分，清晰地呈现店铺的外观信息，叙事功能在于逐步展现店铺的整体标识和相关内容。\n- **转场方式**：镜头平移过程中自然衔接，无特殊转场效果，依靠画面内容的连续切换实现场景转换，使观众能顺畅地浏览店铺的不同区域标识。\n\n### 2. 视觉氛围\n- **光线效果**：光线均匀，无强烈明暗对比，整体色调偏冷，营造出一种平实、客观的视觉氛围。\n- **色彩搭配**：以红色招牌为主色调，搭配白色文字，与灰色建筑背景形成对比，色彩简洁明了，传递出普通商业场景的沉稳感。\n\n### 3. 画面构成\n- **场景布置**：场景为店铺外观，主要展示红色招牌、玻璃门窗等元素。\n- **重要道具**：店铺招牌是核心道具，招牌上的文字标识象征着店铺的名称和经营范畴，是画面的视觉重点。\n- **画面构图**：镜头围绕店铺招牌进行平移构图，始终将招牌文字和外观结构作为视觉焦点，构图紧凑，突出主体。\n\n### 4. 人物表现\n- 视频中无人物出现，不存在人物的着装、表情、肢体语言等相关内容。\n\n### 5. 叙事节奏\n- **时间流动感**：镜头平稳平移，时间流动感适中，观众能匀速获取店铺信息。\n- **内容密度**：内容密度适中，依次呈现店铺不同部分的招牌信息，信息传递有条不紊。\n- **情绪变化曲线**：情绪平稳，自始至终围绕店铺外观展示展开，无明显情绪起伏。\n\n### 6. 视频类型\n- 该视频属于**其他**类型，主要是对店铺外观及招牌的展示介绍，目的是呈现店铺的基本标识信息。",
+                duration: 9.48,
+                tag: null,
+                category: null,
+                width: 2160,
+                height: 3840,
+                segments: null,
+                video_type: "material",
+                created_at: "2025-06-24T15:52:32.633482",
+                updated_at: "2025-06-24T15:53:22.936511"
+              }
+            ],
+            timestamp_path: null,
+            script: [
+              {
+                copy: "清晨的烟火气，从这家「XIN SHI」肠粉店开始",
+                materialId: "0"
+              },
+              {
+                copy: "推开门就是现蒸的米香，米浆凌晨3点刚磨好，肉菜带着菜市场的露水，每卷肠粉都裹着最鲜的清晨味",
+                materialId: "1"
+              }
+            ]
+          }
+      ],
       openIndex: null,
       activeIndex: -1,
       selectedCopy: null,
@@ -333,8 +411,6 @@ export default {
         this.showDropdown = false;
       }
     },
-
-
     addExampleText() {
       this.exampleTexts.push('');
       this.$nextTick(() => { //自动滚到到底部
@@ -346,14 +422,48 @@ export default {
       this.exampleTexts.splice(index, 1);
     },
     initData() {
+      // 选择的素材id列表、素材列表、静音素材列表
       this.material_list = JSON.parse(sessionStorage.getItem('material_list')) || []
       this.mute_materials = JSON.parse(sessionStorage.getItem('mute_materials')) || []
       this.mention_list = JSON.parse(sessionStorage.getItem('mention_list')) || []
-
-      this.sound = JSON.parse(sessionStorage.getItem('figure_setting_voice')) || {}
+      // 视频音色、背景音乐、背景音乐音量
+      this.sound = JSON.parse(sessionStorage.getItem("setting_voice")) || {}
+      this.bgm = JSON.parse(sessionStorage.getItem('setting_bgm')) || {}
+      this.bg_volume = Number(sessionStorage.getItem("bg_volume")) || 0.5
+      // 字幕标题、内容位置
+      this.top_offset_ratio = Number(sessionStorage.getItem('top_offset_ratio')) || 0.25
+      this.bottom_offset_ratio = Number(sessionStorage.getItem('bottom_offset_ratio')) || 0.75
+      // 是否开启字幕标题、内容
       this.withSubtitle = sessionStorage.getItem("with_subtitle") === 'true'
+      this.withTitle = sessionStorage.getItem("with_title") === 'true'
+      // 字幕标题、内容是否使用背景
+      this.use_background = sessionStorage.getItem("use_background") === 'true'
+      this.name_use_background = sessionStorage.getItem("name_use_background") === 'true'
+      // 字幕内容样式设置
+      this.subtitleParams.fontsize = parseInt(sessionStorage.getItem("fontsize")) || 5
+      this.subtitleParams.color = sessionStorage.getItem("color") || '#ffffff'
+      this.subtitleParams.font = sessionStorage.getItem("font") || 'SJxingkai-C-Regular'
+      this.subtitleParams.background_color = sessionStorage.getItem("background_color") || '#404040'
+      this.subtitleParams.background_opacity = Number(sessionStorage.getItem("background_opacity")) || 0.6
+      this.subtitleParams.stroke_color = sessionStorage.getItem("stroke_color") || '#000000'
+      // 字幕标题样式设置
+      this.subtitleNameParams.name_fontsize = parseInt(sessionStorage.getItem("name_fontsize")) || 10
+      this.subtitleNameParams.name_color = sessionStorage.getItem("name_color") || '#ffffff'
+      this.subtitleNameParams.name_font = sessionStorage.getItem("name_font") || 'SJxingkai-C-Regular'
+      this.subtitleNameParams.name_background_color = sessionStorage.getItem("name_background_color") || '#404040'
+      this.subtitleNameParams.name_background_opacity = Number(sessionStorage.getItem("name_background_opacity")) || 0.6
+      this.subtitleNameParams.name_stroke_color = sessionStorage.getItem("name_stroke_color") || '#000000'
     },
     generate() {
+      // this.show_left_panel = false;
+      // this.already_generated = true;
+      // this.copy_list = this.test_list
+      // this.openIndex = 0;
+      // this.activeIndex = 0;
+      // this.selectedCopy = this.copy_list[0]
+      // this.$nextTick(() => {
+      //   this.loadVideo(this.currentIndex);
+      // })
       this.loading = this.$loading({
         lock: true,
         text: '一键混剪，请耐心等待...',
@@ -406,9 +516,85 @@ export default {
         this.selectedCopy = this.copy_list[val]
       }
     },
-
     removeCopy(index) {
       this.copy_list.splice(index, 1)
+    },
+
+    setName() {
+      let data = new Date();
+      let year = data.getFullYear();
+      let month = String(data.getMonth() + 1).padStart(2, "0");
+      let day = String(data.getDate()).padStart(2, "0");
+      let hours = String(data.getHours()).padStart(2, "0");
+      let minutes = String(data.getMinutes()).padStart(2, "0");
+      let seconds = String(data.getSeconds()).padStart(2, "0");
+      let base = year + '-' + month + '-' + day + '_' + hours + '-' + minutes + '-' + seconds
+
+      let result = [];
+      for (let i = 1; i <= this.copy_list.length; i++) {
+        result.push(base + '_' + i);
+      }
+      return result;
+    },
+    export_video() {
+      if (this.copy_list.length === 0) {
+        this.$alert('文案列表为空，请先使用左侧工具生成', '提示')
+        return
+      }
+      let bool_list = this.material_list.map(item => this.mute_materials.includes(item))
+
+      let name = this.setName()
+      let params = {
+        data: this.copy_list,
+        filename_list: name, //视频文件名
+        bgm_id: this.bgm.id || '',
+        bg_volume: this.bg_volume,// bgm的音量大小，不传默认是0.5
+        with_subtitle: this.withSubtitle, // 是否要字幕
+        with_title: this.withTitle,// 是否要字幕标题
+        bool_list: bool_list,// 需要静音的素材id列表
+        subtitle_params: {
+          y_offset: this.bottom_offset_ratio,
+          font: this.subtitleParams.font,
+          fontsize: this.subtitleParams['fontsize'],
+          color: this.subtitleParams.color,
+          stroke_color: this.subtitleParams.stroke_color,
+          use_background: this.use_background,
+          background_color: this.subtitleParams.background_color,
+          background_opacity: this.subtitleParams.background_opacity
+        },
+        title_params: {
+          y_offset: this.top_offset_ratio,
+          font: this.subtitleNameParams.name_font,
+          fontsize: this.subtitleNameParams.name_fontsize,
+          color: this.subtitleNameParams.name_color,
+          stroke_color: this.subtitleNameParams.name_stroke_color,
+          use_background: this.name_use_background,
+          background_color: this.subtitleNameParams.name_background_color,
+          background_opacity: this.subtitleNameParams.name_background_opacity
+        }
+      }
+      postAction('/figure/export_video_sync',params).then(res => {
+        if (res.data.status === "success") {
+          this.$alert('已创建视频生成任务，视频生成成功后会自动下载到本地', "任务创建提醒");
+          setTimeout(() => {
+            this.$router.push({path: '/videoList'})
+          }, 500)
+        } else {
+          this.$notify({
+            title: "创建失败",
+            message: `创建视频生成任务失败，${res.data.message}`,
+            duration: 0,
+            type: "error",
+          });
+        }
+      }).catch((error) => {
+        this.$notify({
+          title: "创建失败",
+          message: `创建视频生成任务失败，${error}`,
+          duration: 0,
+          type: "error",
+        });
+      });
     },
 
     loadVideo(index) {
@@ -774,6 +960,7 @@ export default {
   background-color: #ffffff;
   height: 100%;
   display: flex;
+  flex-direction: column;
   justify-content: center;
   align-items: center;
 }
