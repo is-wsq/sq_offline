@@ -16,16 +16,26 @@
         </el-tooltip>
         <div class="left-content-area">
           <div class="panel-title">分镜设置</div>
-          <div class="panel-label">自定义要求（选填）</div>
-          <el-input type="textarea" :rows="3" placeholder="例如：镜头要切换快，多用特写镜头..."
-                    class="margin-b-12" v-model="requirement"></el-input>
-          <div class="panel-title margin-t-8">文案设置</div>
-          <div class="panel-label">文案要求</div>
-          <el-input type="textarea" :rows="2" placeholder="例如：写一个关于猫咪的搞笑段子"
-                    class="margin-b-12" v-model="copy_require"></el-input>
-          <div class="panel-label">示例文案</div>
-          <el-input type="textarea" :rows="2" placeholder="提供一个你喜欢的风格的例子"
-                    class="margin-b-12" v-model="example_copy"></el-input>
+            <div class="panel-label">自定义要求（选填）</div>
+            <el-input type="textarea" :rows="3" placeholder="例如：镜头要切换快，多用特写镜头..."
+                      class="margin-b-12" v-model="requirement"></el-input>
+            <div class="panel-title margin-t-8">文案设置</div>
+          <div style="height: 185px; overflow-y: auto" ref="scriptForm">
+            <div class="panel-label">文案要求</div>
+            <el-input type="textarea" :rows="2" placeholder="例如：写一个关于猫咪的搞笑段子"
+                      class="margin-b-12" v-model="copy_require"></el-input>
+
+            <div class="panel-label">示例文案</div>
+            <div class="flex-center margin-b-8" v-for="(text, index) in exampleTexts" :key="index">
+              <el-input type="textarea" :rows="3" placeholder="提供一个你喜欢的风格的例子"
+                        v-model="exampleTexts[index]"></el-input>
+              <el-button size="mini" type="danger" icon="el-icon-delete" @click="removeText(index)"></el-button>
+            </div>
+          </div>
+          <div class="margin-b-12">
+            <el-button size="mini" type="primary" @click="addExampleText">添加示例文案</el-button>
+          </div>
+
           <div style="display: flex;gap: 12px" class="margin-b-12">
             <div style="flex: 1">
               <div class="panel-label">视频时长</div>
@@ -142,64 +152,15 @@ export default {
       already_generated: false,
       copy_require: '',
       example_copy: '',
+      exampleTexts: [''],
       video_time: 10,
       script_num: 1,
       ai_model: 'deepseek_v3',
       copy_list: [],
-      copy_list_default: [
-        {
-          title: 'AI 随机生成标题 1',
-          content: '算力的持续增强，我们可以预见一个更加智能、便捷、个性化的生活。然而，技术的进步也伴随着新的挑战，如何确保AI的公平性、透明度和安全性，如何处理人机协作关系，是我们必须深入思考的课题。拥抱变革，审慎前行，人类与AI共同演化的新篇章，正缓缓展开。这段文字旨在提供一个足够长的示例文本，以满足不同场景下的内容填充需求。在飞速发展的数字时代，人工智能（AI）正以前所未有的深度和广度重塑着我们的世界。从智能手机中的语音助手，到自动驾驶汽车的精准导航，再到医疗领域的辅助诊断，AI技术已经渗透到社会生活的方方面面。它不仅是提升生产效率的强大工具，更开启了人类探索未知、解决复杂问题的全新可能。未来，随着算法的不断优化和算力的持续增强，我们可以预见一个更加智能、便捷、个性化的生活。然而，技术...',
-          materials: [
-            { name: '咖啡拉花', detail: '算力的持续增强，我们可以预见一个更加智' },
-            { name: '油画创作', detail: '能、便捷、个性化的生活。然而，技术的进' },
-            { name: '时间流逝', detail: '步也伴随着新的挑战，如何确保AI的公平' },
-            { name: '雨中舞者', detail: '性、透明度和安全性，如何处理人机协作关'  },
-            { name: '咖啡拉花', detail: '系，是我们必须深入思考的课题。拥抱变革'  },
-            { name: '油画创作', detail: '，审慎前行，人类与AI共同演化的新篇章'  },
-            { name: '时间流逝', detail: '，正缓缓展开。这段文字旨在提供一个足够' },
-            { name: '雨中舞者', detail: '长的示例文本，以满足不同场景下的内容填'  },
-            { name: '咖啡拉花', detail: '充需求。在飞速发展的数字时代，人工智能'  },
-            { name: '油画创作', detail: '（AI）正以前所未有的深度和广度重塑着'  },
-            { name: '时间流逝', detail: '我们的世界。从智能手机中的语音助手，到'  },
-            { name: '雨中舞者', detail: '自动驾驶汽车的精准导航，再到医疗领域的'  },
-          ]
-        },
-        {
-          title: 'AI 随机生成标题 1',
-          isHover: false,
-          content: '算力的持续增强，我们可以预见一个更加智能、便捷、个性化的生活。然而，技术的进步也伴随着新的挑战，如何确保AI的公平性、透明度和安全性，如何处理人机协作关系，是我们必须深入思考的课题。拥抱变革，审慎前行，人类与AI共同演化的新篇章，正缓缓展开。这段文字旨在提供一个足够长的示例文本，以满足不同场景下的内容填充需求。在飞速发展的数字时代，人工智能（AI）正以前所未有的深度和广度重塑着我们的世界。从智能手机中的语音助手，到自动驾驶汽车的精准导航，再到医疗领域的辅助诊断，AI技术已经渗透到社会生活的方方面面。它不仅是提升生产效率的强大工具，更开启了人类探索未知、解决复杂问题的全新可能。未来，随着算法的不断优化和算力的持续增强，我们可以预见一个更加智能、便捷、个性化的生活。然而，技术...',
-          materials: [
-            { name: '咖啡拉花' },{ name: '油画创作' },{ name: '时间流逝' },{ name: '雨中舞者' },{ name: '咖啡拉花' },{ name: '油画创作' },{ name: '时间流逝' },{ name: '雨中舞者' },{ name: '咖啡拉花' },{ name: '油画创作' },{ name: '时间流逝' },{ name: '雨中舞者' },
-          ]
-        },
-        {
-          title: 'AI 随机生成标题 1',
-          isHover: false,
-          content: '算力的持续增强，我们可以预见一个更加智能、便捷、个性化的生活。然而，技术的进步也伴随着新的挑战，如何确保AI的公平性、透明度和安全性，如何处理人机协作关系，是我们必须深入思考的课题。拥抱变革，审慎前行，人类与AI共同演化的新篇章，正缓缓展开。这段文字旨在提供一个足够长的示例文本，以满足不同场景下的内容填充需求。在飞速发展的数字时代，人工智能（AI）正以前所未有的深度和广度重塑着我们的世界。从智能手机中的语音助手，到自动驾驶汽车的精准导航，再到医疗领域的辅助诊断，AI技术已经渗透到社会生活的方方面面。它不仅是提升生产效率的强大工具，更开启了人类探索未知、解决复杂问题的全新可能。未来，随着算法的不断优化和算力的持续增强，我们可以预见一个更加智能、便捷、个性化的生活。然而，技术...',
-          materials: [
-            { name: '咖啡拉花' },{ name: '油画创作' },{ name: '时间流逝' },{ name: '雨中舞者' },{ name: '咖啡拉花' },{ name: '油画创作' },{ name: '时间流逝' },{ name: '雨中舞者' },{ name: '咖啡拉花' },{ name: '油画创作' },{ name: '时间流逝' },{ name: '雨中舞者' },
-          ]
-        },
-      ],
       openIndex: null,
       activeIndex: -1,
       selectedCopy: null,
 
-      videos: [
-        {
-          name: '示例视频1',
-          url: 'http://127.0.0.1:8383/results/f2c35bcc-9773-40ca-b566-d5149f2e77cf-final.mp4'
-        },
-        {
-          name: '示例视频2',
-          url: 'http://127.0.0.1:8383/results/f4744f29-90f0-4258-8899-6018dc3ba9bb-final.mp4'
-        },
-        {
-          name: '示例视频3',
-          url: 'http://127.0.0.1:8383/results/96ba588b-800c-44e5-ae70-31821cda6db7-final.mp4'
-        },
-      ],
       currentIndex: 0,
       isPlaying: false,
 
@@ -213,6 +174,16 @@ export default {
     this.initData()
   },
   methods: {
+    addExampleText() {
+      this.exampleTexts.push('');
+      this.$nextTick(() => { //自动滚到到底部
+        const scriptForm = this.$refs.scriptForm;
+        scriptForm.scrollTop = scriptForm.scrollHeight;
+      });
+    },
+    removeText(index) {
+      this.exampleTexts.splice(index, 1);
+    },
     initData() {
       this.material_list = JSON.parse(sessionStorage.getItem('material_list')) || []
       this.sound = JSON.parse(sessionStorage.getItem('figure_setting_voice')) || {}
@@ -225,10 +196,11 @@ export default {
         spinner: 'el-icon-loading',
         background: 'rgba(0, 0, 0, 0.7)'
       });
+      const cleanTexts = this.exampleTexts.map(text => text.trim()).filter(text => text !== '');
       let params = {
         requirements: this.copy_require,
         video_time: parseInt(this.video_time),
-        example: this.example_copy,
+        example: cleanTexts,
         count: parseInt(this.script_num),
         material_list: this.material_list,
         user_request: this.requirement,
@@ -271,7 +243,7 @@ export default {
     },
 
     loadVideo(index) {
-      if (index >= 0 && index < this.videos.length) {
+      if (index >= 0 && index < this.selectedCopy.materials.length) {
         this.currentIndex = index;
         // this.$refs.videoRef.src = this.selectedCopy.materials[index].filepath.replace('127.0.0.1', '192.168.0.102');
         this.$refs.videoRef.src = this.selectedCopy.materials[index].filepath;
@@ -288,7 +260,7 @@ export default {
       });
     },
     playNextVideo() {
-      const nextIndex = (this.currentIndex + 1) % this.videos.length;
+      const nextIndex = (this.currentIndex + 1) % this.selectedCopy.materials.length;
       this.loadVideo(nextIndex);
     },
   }

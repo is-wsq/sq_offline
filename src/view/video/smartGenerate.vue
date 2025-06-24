@@ -15,32 +15,42 @@
             <el-collapse v-model="activeName" accordion>
               <el-collapse-item title="AI批量生成" name="1">
                 <div class="smart-generate-c-l-ai">
-                  <div class="smart-generate-c-l-ai-title">文案要求</div>
-                  <el-input type="textarea" :rows="2" placeholder="例如：写一个关于猫咪的搞笑段子"
-                      class="margin-b-12" v-model="copy_require"></el-input>
-                  <div class="smart-generate-c-l-ai-title">示例文案（选填）</div>
-                  <el-input type="textarea" :rows="2" placeholder="提供一个你喜欢的风格的例子"
-                      class="margin-b-12" v-model="example_copy"></el-input>
-                  <div style="display: flex;gap: 12px" class="margin-b-12">
-                    <div style="flex: 1">
-                      <div class="smart-generate-c-l-ai-title">文案字数</div>
-                      <el-select v-model="copy_num" placeholder="请选择">
-                        <el-option label="100" value="100"></el-option>
-                        <el-option label="200" value="200"></el-option>
-                        <el-option label="300" value="300"></el-option>
-                      </el-select>
+                  <div style="height: 350px; overflow-y: auto" ref="scriptForm">
+                    <div class="smart-generate-c-l-ai-title">文案要求</div>
+                    <el-input type="textarea" :rows="2" placeholder="例如：写一个关于猫咪的搞笑段子"
+                              class="margin-b-12" v-model="copy_require"></el-input>
+                    <div class="smart-generate-c-l-ai-title">示例文案（选填）</div>
+                    <div class="flex-center margin-b-8" v-for="(text, index) in exampleTexts" :key="index">
+                      <el-input type="textarea" :rows="3" placeholder="提供一个你喜欢的风格的例子"
+                                v-model="exampleTexts[index]"></el-input>
+                      <el-button size="mini" type="danger" icon="el-icon-delete" @click="removeText(index)"></el-button>
                     </div>
-                    <div style="flex: 1">
-                      <div class="smart-generate-c-l-ai-title">文案数量</div>
-                      <el-input type="number" v-model="script_num"></el-input>
+                    <div class="margin-b-12">
+                      <el-button size="mini" type="primary" @click="addExampleText">添加示例文案</el-button>
                     </div>
+                    <div style="display: flex;gap: 12px" class="margin-b-12">
+                      <div style="flex: 1">
+                        <div class="smart-generate-c-l-ai-title">文案字数</div>
+                        <el-select v-model="copy_num" placeholder="请选择">
+                          <el-option label="100" value="100"></el-option>
+                          <el-option label="200" value="200"></el-option>
+                          <el-option label="300" value="300"></el-option>
+                        </el-select>
+                      </div>
+                      <div style="flex: 1">
+                        <div class="smart-generate-c-l-ai-title">文案数量</div>
+                        <el-input type="number" v-model="script_num"></el-input>
+                      </div>
+                    </div>
+                    <div class="smart-generate-c-l-ai-title">模型选择</div>
+                    <el-select v-model="ai_model" style="width: 100%" class="margin-b-12">
+                      <el-option label="本地大模型" value="local_model"></el-option>
+                      <el-option label="deepseek v3" value="deepseek_v3"></el-option>
+                    </el-select>
                   </div>
-                  <div class="smart-generate-c-l-ai-title">模型选择</div>
-                  <el-select v-model="ai_model" style="width: 100%" class="margin-b-12">
-                    <el-option label="本地大模型" value="local_model"></el-option>
-                    <el-option label="deepseek v3" value="deepseek_v3"></el-option>
-                  </el-select>
-                  <el-button class="batch-btn" @click="batchGenerate">批量生成</el-button>
+                  <div class="smart-generate-c-l-ai-generate">
+                    <el-button class="batch-btn" @click="batchGenerate">批量生成</el-button>
+                  </div>
                 </div>
               </el-collapse-item>
               <el-collapse-item title="手动添加文案" name="2">
@@ -104,6 +114,7 @@ export default {
       activeName: '1',
       copy_require: '',
       example_copy: '',
+      exampleTexts: [''],
       copy_num: 100,
       script_num: 1,
       ai_model: 'deepseek_v3',
@@ -130,6 +141,16 @@ export default {
     this.initData()
   },
   methods: {
+    addExampleText() {
+      this.exampleTexts.push('');
+      this.$nextTick(() => { //自动滚到到底部
+        const scriptForm = this.$refs.scriptForm;
+        scriptForm.scrollTop = scriptForm.scrollHeight;
+      });
+    },
+    removeText(index) {
+      this.exampleTexts.splice(index, 1);
+    },
     initData() {
       this.copy_list = sessionStorage.getItem("copy_list") ? JSON.parse(sessionStorage.getItem("copy_list")) : []
       this.script_type = sessionStorage.getItem("script_type")
@@ -145,8 +166,9 @@ export default {
           url = 'http://127.0.0.1:9669/api/generate_script'
           break
       }
+      const cleanTexts = this.exampleTexts.map(text => text.trim()).filter(text => text !== '');
       let params = {
-        examples: this.example_copy,
+        examples: cleanTexts,
         requirements: this.copy_require,
         num_of_words: parseInt(this.copy_num),
         script_count: parseInt(this.script_num)
@@ -409,7 +431,7 @@ export default {
   width: 100%;
 }
 
-.smart-generate-c-l-ai >>> .el-button,
+.smart-generate-c-l-ai-generate >>> .el-button,
 .smart-generate-c-l-manual >>> .el-button{
   cursor: pointer;
   border: 1px solid #DCDFE6;
@@ -419,7 +441,7 @@ export default {
   font-weight: bold;
 }
 
-.smart-generate-c-l-ai >>> .el-button {
+.smart-generate-c-l-ai-generate >>> .el-button {
   background: #6366fe;
 }
 
