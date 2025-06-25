@@ -225,7 +225,7 @@ export default {
 
 <style scoped>
 .hot {
-  min-width: 1200px;
+  min-width: 1000px;
 }
 
 .box-card {
