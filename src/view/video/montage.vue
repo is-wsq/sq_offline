@@ -426,8 +426,8 @@ export default {
 
         bgm_id: this.bgm.id,
         bg_volume: this.bg_volume,
-        with_subtitle: true,
-        with_title: true,
+        with_subtitle: this.withSubtitle,
+        with_title: this.withTitle,
         filename_list: name,
         subtitle_params: {
           y_offset: this.bottom_offset_ratio,
