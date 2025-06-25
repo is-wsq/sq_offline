@@ -112,12 +112,12 @@
             ref="videoRef"
             @ended="playNextVideo"
             preload="metadata"
-            style="width: 280px; aspect-ratio: 9 / 16;"
+            style="width: 280px; aspect-ratio: 9 / 16; border-radius: 12px"
           >
             您的浏览器不支持HTML5视频播放。
           </video>
           <audio ref="audioRef" controls class="audio-element" v-show="false">
-            <source :src="montage_data[activeIndex].audio_file_path" type="audio/mpeg">
+            <source type="audio/mpeg">
             您的浏览器不支持音频播放
           </audio>
         </div>
@@ -401,8 +401,7 @@ export default {
           this.loading = null;
           this.$nextTick(() => {
             this.loadVideo(this.currentIndex);
-            this.$refs.audioRef.volume = this.media_volume;
-            this.$refs.audioRef.play()
+            this.loadAudio()
           })
         } else {
           this.$alert(res.data.message, "混剪失败");
@@ -478,7 +477,19 @@ export default {
     },
     itemClick(index) {
       this.openIndex = this.openIndex === index ? null : index
-      this.activeIndex = index
+      if (this.activeIndex !== index) {
+        this.activeIndex = index
+        if (this.isPlaying) {
+          this.$refs.videoRef.pause()
+          this.$refs.audioRef.pause()
+          this.isPlaying = false
+        }
+        this.currentIndex = 0
+        this.$nextTick(() => {
+          this.loadVideo(0);
+          this.loadAudio()
+        })
+      }
     },
     removeCopy(index) {
       if (this.already_generated) {
@@ -487,6 +498,11 @@ export default {
       }
       this.copy_list.splice(index, 1)
       sessionStorage.setItem("copy_list", JSON.stringify(this.copy_list))
+    },
+    loadAudio() {
+      this.$refs.audioRef.src = this.montage_data[this.activeIndex].audio_file_path
+      this.$refs.audioRef.volume = this.media_volume;
+      this.$refs.audioRef.play()
     },
     loadVideo(index) {
       if (index >= 0 && index < this.preview_video.length) {

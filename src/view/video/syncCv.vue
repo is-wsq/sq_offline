@@ -153,7 +153,7 @@
             您的浏览器不支持HTML5视频播放。
           </video>
           <audio ref="audioRef" controls class="audio-element" v-show="false">
-            <source :src="copy_list[activeIndex].audio_file_path" type="audio/mpeg">
+            <source type="audio/mpeg">
             您的浏览器不支持音频播放
           </audio>
         </div>
@@ -240,6 +240,9 @@ export default {
     inputEl.addEventListener('scroll', this.handleScroll);
   },
   computed: {
+    preview_video() {
+      return this.copy_list.length > 0 ? this.copy_list[this.activeIndex].materials : []
+    },
     highlightedText() {
       // 使用正则替换所有 @人名 为高亮样式
       let result = this.requirement;
@@ -433,8 +436,7 @@ export default {
           this.loading = null;
           this.$nextTick(() => {
             this.loadVideo(this.currentIndex);
-            this.$refs.audioRef.volume = this.media_volume;
-            this.$refs.audioRef.play()
+            this.loadAudio()
           })
         } else {
           this.$alert(res.data.message, "混剪失败");
@@ -451,6 +453,16 @@ export default {
       if (val !== '') {
         this.activeIndex = val
         this.selectedCopy = this.copy_list[val]
+        if (this.isPlaying) {
+          this.$refs.videoRef.pause()
+          this.$refs.audioRef.pause()
+          this.isPlaying = false
+        }
+        this.currentIndex = 0
+        this.$nextTick(() => {
+          this.loadVideo(0);
+          this.loadAudio()
+        })
       }
     },
     removeCopy(index) {
@@ -533,13 +545,17 @@ export default {
         });
       });
     },
-
+    loadAudio() {
+      this.$refs.audioRef.src = this.copy_list[this.activeIndex].audio_file_path
+      this.$refs.audioRef.volume = this.media_volume;
+      this.$refs.audioRef.play()
+    },
     loadVideo(index) {
-      if (index >= 0 && index < this.selectedCopy.materials.length) {
+      if (index >= 0 && index < this.preview_video.length) {
         this.currentIndex = index;
         this.$refs.videoRef.volume = this.media_volume;
-        this.$refs.videoRef.src = this.selectedCopy.materials[index]
-        if (this.mute_materials.includes(this.selectedCopy.materials[index].id)) {
+        this.$refs.videoRef.src = this.preview_video[index].filepath
+        if (this.mute_materials.includes(this.preview_video[index].id)) {
           this.$refs.videoRef.muted = true
         }
         this.$refs.videoRef.load();
@@ -555,8 +571,8 @@ export default {
       });
     },
     playNextVideo() {
-      if (this.currentIndex === this.selectedCopy.materials.length - 1) {
-        this.$refs.videoRef.src = this.selectedCopy.materials[0].filepath
+      if (this.currentIndex === this.preview_video.length - 1) {
+        this.$refs.videoRef.src = this.preview_video[0].filepath
         this.isPlaying = false;
         return
       }
