@@ -543,11 +543,14 @@ export default {
       }
     },
     queryMaterials() {
-      getAction("/figure/query_success").then((res) => {
+      let params = {
+        video_type: 'material'
+      }
+      getAction("/figure/query_success",params).then((res) => {
         if (res.data.status === "success") {
           let data = res.data.data.filter(item => item.status === "success");
           if (data.length > 0) {
-            this.materials = data.filter(item => !item.lip_sync).map(item => ({
+            this.materials = data.map(item => ({
               ...item, previewing: false, size: item.height + '*' + item.width
             }))
 

@@ -183,10 +183,10 @@ export default {
       return this.figureTasks.filter((item) => item.status === "ready");
     },
     figures() {
-      return this.figureTasks.filter((item) => item.status === "success" && item.lip_sync);
+      return this.figureTasks.filter((item) => item.status === "success" && item.video_type === 'figure');
     },
     materials() {
-      return this.figureTasks.filter((item) => item.status === "success" && !item.lip_sync);
+      return this.figureTasks.filter((item) => item.status === "success" && item.video_type === 'material');
     },
   },
   mounted() {

@@ -423,14 +423,13 @@ export default {
       return val * 100 + '%';
     },
     queryFigures() {
-      getAction("/figure/query_success").then((res) => {
+      let params = {
+        video_type: 'figure'
+      }
+      getAction("/figure/query_success", params).then((res) => {
         if (res.data.status === "success") {
-          let data = res.data.data.filter(item => item.status === "success");
-          if (data.length > 0) {
-            this.figures = data.filter(item => item.lip_sync && item.status === "success").map(item => ({
-              ...item, previewing: false
-            }))
-          }
+          let data = res.data.data.filter(item => item.status === "success")
+          this.figures = data.map(item => ({ ...item, previewing: false }))
         }
       }).catch((error) => {
         console.error("获取角色列表失败:", error);
