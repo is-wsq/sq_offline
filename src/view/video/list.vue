@@ -281,12 +281,12 @@ export default {
 
 .list-content {
   height: calc(100% - 63px);
-  padding: 10px 0;
+  padding: 10px;
   margin-top: 20px;
   box-sizing: border-box;
   display: grid;
   gap: 20px;
-  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
   grid-auto-rows: min-content;
   overflow: auto;
 }

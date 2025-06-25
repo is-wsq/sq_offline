@@ -1127,9 +1127,6 @@ export default {
       getAction('/get_fonts').then(res => {
         if (res.data.status === 'success') {
           this.fontFamily = res.data.data
-          // this.fontFamily.forEach(item => {
-          //   item.img_path = item.img_path.replace('127.0.0.1', '192.168.0.108')
-          // })
         }
       }).catch((error) => {
         console.error("获取字体样式列表失败:", error);
@@ -1139,15 +1136,12 @@ export default {
       getAction("/figure/query_success").then((res) => {
         if (res.data.status === "success") {
           let data = res.data.data.filter(item => item.status === "success");
-          // data.forEach(item => {
-          //   item.picture = item.picture.replace('127.0.0.1', '192.168.0.108')
-          // })
           if (data.length > 0) {
-            this.materials = data.filter(item => !item.lip_sync && item.status === "success").map(item => ({
+            this.materials = data.filter(item => item.video_type === 'material').map(item => ({
               ...item, previewing: false, size: item.height + '*' + item.width
             }))
             this.filter_materials = this.materials
-            this.figures = data.filter(item => item.lip_sync && item.status === "success").map(item => ({
+            this.figures = data.filter(item => item.video_type === 'figure').map(item => ({
               ...item, previewing: false
             }))
           }

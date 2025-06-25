@@ -27,7 +27,7 @@
         <div v-for="(video, index) in filter_hots" :key="index" class="video-card" @mouseleave="video.isHover = false"
              @mouseenter="video.isHover = true">
           <template v-if="!video.isHover">
-            <el-image style="width: 100%; height: 100%;border-radius: 8px;" :src="video.picture.replace('127.0.0.1','192.168.1.4')" fit="cover">
+            <el-image style="width: 100%; height: 100%;border-radius: 8px;" :src="video.picture" fit="cover">
             </el-image>
             <el-tag size="mini" v-if="video.category" class="video-tag"
                     :style="{ backgroundColor: classifies.find(item => item.name === video.category).color }">
@@ -36,8 +36,8 @@
             <div class="video-title">{{ video.name }}</div>
           </template>
           <template v-else>
-            <video :src="video.filepath.replace('127.0.0.1','192.168.1.4')" loop muted
-                   style="width: 100%; height: 100%;border-radius: 8px;" autoplay>
+            <video :src="video.filepath" style="width: 100%; height: 100%;border-radius: 8px;"
+                   loop muted autoplay>
             </video>
             <div class="video-title-hover">
               <div style="margin-bottom: 8px">{{ video.name }}</div>
