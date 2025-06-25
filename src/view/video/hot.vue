@@ -58,6 +58,7 @@
     <el-dialog class="upload-dialog" :visible.sync="uploadDialogVisible" width="32rem"
                title="上传爆款视频" :before-close="beforeUploadClose">
       <el-upload
+          v-if="!use_link"
           drag
           ref="hotUpload"
           class="video-uploader"
@@ -73,6 +74,13 @@
         <i class="el-icon-upload"></i>
         <div class="el-upload__text">将文件拖到此处，或<em>点击上传</em></div>
       </el-upload>
+
+      <div class="flex-center" style="margin: 10px 0 5px 0">
+        <el-checkbox v-model="use_link"></el-checkbox>
+        <div style="font-size: 15px;font-weight: bold;flex: 1">使用链接上传</div>
+      </div>
+      <el-input prefix-icon="el-icon-link" v-model="dy_link" placeholder="粘贴抖音视频分享链接上传" :disabled="!use_link"></el-input>
+
       <div style="margin: 10px 0 5px 0;font-size: 15px;font-weight: bold">标题</div>
       <el-input v-model="title" placeholder="请输入视频标题"></el-input>
       <div style="margin: 10px 0 5px 0;font-size: 15px;font-weight: bold">分类</div>
@@ -104,6 +112,8 @@ export default {
       filter_hots: [],
       uploadDialogVisible: false,
       uploadFile: null,
+      use_link: false,
+      dy_link: '',
       title: '',
       uploadTag: '',
       classifies: [
@@ -176,11 +186,22 @@ export default {
       this.uploadDialogVisible = false
     },
     handleSubmit() {
-      if (this.title === '') {
+      if (!this.title) {
         this.$alert('请填写标题')
         return
       }
-      this.$refs.hotUpload.submit()
+
+      if (!this.use_link) {
+        this.$refs.hotUpload.submit()
+        return;
+      }
+
+      if (!this.dy_link) {
+        this.$alert('请粘贴抖音视频分享链接')
+        return;
+      }
+
+      this.$alert('接口未完善，待接入')
     },
     uploadSuccess(res, file) {
       if (res.status === "success") {
