@@ -74,7 +74,7 @@
     </div>
     <div style="display: flex;margin-top: 30px;gap: 100px">
       <div style="text-align: end;flex: 1">
-        <el-button type="primary" @click="uploadDialogVisible = true">上传素材</el-button>
+        <el-button type="primary" @click="upload_material">上传素材</el-button>
       </div>
       <div style="flex: 1">
         <el-upload
@@ -346,17 +346,22 @@ export default {
         if (this.response_list.length === this.materialList.length) {
           let success = this.response_list.filter(item => item.status === "success").map(res => res.name);
           let failed = this.response_list.filter(item => item.status === "failed")
-          let content = ''
+          let success_content = ''
+          let error_content = ''
           if (success.length > 0)
-            content += `创建${success.join('、')}素材上传任务成功\n`
+            success_content += `创建${success.join('、')}素材上传任务成功`
           if (failed.length > 0) {
             failed.forEach(item => {
-              content += `创建${item.name}素材上传任务失败，${item.msg}\n`
+              error_content += `创建${item.name}素材上传任务失败，${item.msg}\n`
             })
           }
           this.response_list = [];
           this.materialList = [];
-          this.$alert(content, "任务创建提醒");
+          this.$alert(success_content, "素材上传成功任务").then(() => {
+            this.$alert(error_content, "素材上传失败任务")
+          }).catch(() => {
+            this.$alert(error_content, "素材上传失败任务")
+          })
         }
       }
     },
