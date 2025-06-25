@@ -103,7 +103,7 @@
       </div>
       <div class="c-right">
         <div class="margin-b-12 font-weight">样式设置</div>
-        <div class="s-card">
+        <div class="s-card" ref="styleCard">
           <div class="s-card-item margin-b-16">
             <div class="margin-b-12 font-weight">音频</div>
             <div class="s-voice-title">主播声音</div>
@@ -733,7 +733,6 @@ export default {
     },
     switchTitle() {
       sessionStorage.setItem("with_title", this.withTitle)
-      this.activeTitleNames = this.withTitle ? ['1'] : []
     },
     selectTitlePreset(item) {
       this.activeTitlePresetId = item.id
@@ -787,6 +786,10 @@ export default {
     switchUseBackground() {
       this.background_setting = this.use_background
       sessionStorage.setItem("use_background", this.use_background)
+      this.$nextTick(() => {
+        const container = this.$refs.styleCard
+        container.scrollTop = container.scrollHeight
+      })
       this.updateTextStyle()
     },
     switchNameUseBackground() {
@@ -795,8 +798,9 @@ export default {
       this.updateTitleTextStyle()
     },
     switchSubtitle() {
+      const container = this.$refs.styleCard
+      container.scrollTop = container.scrollHeight
       sessionStorage.setItem("with_subtitle", this.withSubtitle)
-      this.activeNames = this.withSubtitle ? ['1'] : []
     },
     selectPreset(item) {
       this.activePresetId = item.id
@@ -855,7 +859,7 @@ export default {
 <style scoped>
 .material {
   min-width: 1200px;
-  min-height: 800px;
+  min-height: 700px;
   height: 100%;
 }
 
