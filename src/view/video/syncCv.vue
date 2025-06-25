@@ -439,7 +439,7 @@ export default {
             this.loadAudio()
           })
         } else {
-          this.$alert(res.data.message, "混剪失败");
+          this.$alert(res.data.data, "混剪失败");
           this.loading.close();
           this.loading = null;
         }
