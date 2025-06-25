@@ -6,12 +6,15 @@
     <div class="box-card">
       <div class="search-content">
         <el-input prefix-icon="el-icon-search" placeholder="一句话搜模板，例如：科技感转场"
-                  class="search-input" v-model="searchText"></el-input>
+                  class="search-input" v-model="searchText" @change="searchFilter"></el-input>
       </div>
       <div class="tags">
-        <el-tag v-for="(tag, index) in tags" :key="index" size="small" class="tag"
-                :class="{ 'tag-active': tag === activeTag }" @click="activeTag = tag">
-          {{ tag }}
+        <el-tag size="small" class="tag" :class="{ 'tag-active': activeTag === '全部推荐' }"
+                @click="tagFilter('全部推荐')">全部推荐
+        </el-tag>
+        <el-tag v-for="(tag, index) in classifies" :key="index" size="small" class="tag"
+                :class="{ 'tag-active': tag.name === activeTag }" @click="tagFilter(tag.name)">
+          {{ tag.name }}
         </el-tag>
       </div>
       <div class="hot-list">
@@ -21,34 +24,50 @@
             <span style="font-size: 12px;margin-top: 8px">上传爆款视频</span>
           </div>
         </div>
-        <div v-for="(video, index) in videos" :key="index" class="video-card" @mouseleave="video.isHover = false"
+        <div v-for="(video, index) in filter_hots" :key="index" class="video-card" @mouseleave="video.isHover = false"
              @mouseenter="video.isHover = true">
-          <el-image style="width: 100%; height: 100%;border-radius: 8px;" :src="`https://picsum.photos/seed/video${video.id}/300/200`" fit="cover">
-          </el-image>
-          <el-tag size="mini" v-if="video.tag" class="video-tag" :style="{ backgroundColor: video.color }">{{ video.tag }}</el-tag>
-          <div class="video-title" v-if="!video.isHover">{{ video.title }}</div>
-          <div class="video-title-hover" v-if="video.isHover">
-            <div style="margin-bottom: 8px">{{ video.title }}</div>
-            <div style="display: flex;justify-content: center;align-items: center">
-              <i class="el-icon-video-play" style="font-size: 14px"></i>
-              <div style="margin-left: 8px;flex: 1">{{ video.duration }}</div>
-              <i class="el-icon-film" style="font-size: 14px"></i>
-              <div style="margin-left: 8px;">{{ video.storyboard }}</div>
+          <template v-if="!video.isHover">
+            <el-image style="width: 100%; height: 100%;border-radius: 8px;" :src="video.picture.replace('127.0.0.1','192.168.1.4')" fit="cover">
+            </el-image>
+            <el-tag size="mini" v-if="video.category" class="video-tag"
+                    :style="{ backgroundColor: classifies.find(item => item.name === video.category).color }">
+              {{ video.category }}
+            </el-tag>
+            <div class="video-title">{{ video.name }}</div>
+          </template>
+          <template v-else>
+            <video :src="video.filepath.replace('127.0.0.1','192.168.1.4')" loop muted
+                   style="width: 100%; height: 100%;border-radius: 8px;" autoplay>
+            </video>
+            <div class="video-title-hover">
+              <div style="margin-bottom: 8px">{{ video.name }}</div>
+              <div style="display: flex;justify-content: center;align-items: center">
+                <i class="el-icon-video-play" style="font-size: 14px"></i>
+                <div style="margin-left: 8px;flex: 1">{{ formattedDuration(video.duration) }}</div>
+                <i class="el-icon-film" style="font-size: 14px"></i>
+                <div style="margin-left: 8px;">{{ video.segments.data.total_segments + '分镜' }}</div>
+              </div>
             </div>
-          </div>
+          </template>
         </div>
       </div>
     </div>
     <div style="text-align: center; margin-top: 12px;">
       <el-button type="primary" class="foot-btn">一键复刻</el-button>
     </div>
-    <el-dialog class="upload-dialog" :visible.sync="uploadDialogVisible" width="32rem" title="上传爆款视频" :before-close="beforeUploadClose">
+    <el-dialog class="upload-dialog" :visible.sync="uploadDialogVisible" width="32rem"
+               title="上传爆款视频" :before-close="beforeUploadClose">
       <el-upload
           drag
-          ref="upload"
+          ref="hotUpload"
           class="video-uploader"
           style="width: 100%"
-          action="http://127.0.0.1:6006/figure/clone_only"
+          :multiple="false"
+          action="http://192.168.1.4:6006/figure/add_hot_video"
+          :data="{ title: title, category: classify, tag: uploadTag }"
+          :on-success="uploadSuccess"
+          :on-error="uploadError"
+          :before-upload="beforeUpload"
           accept=".mp4, .mov"
           :auto-upload="false">
         <i class="el-icon-upload"></i>
@@ -59,12 +78,12 @@
       <div style="margin: 10px 0 5px 0;font-size: 15px;font-weight: bold">分类</div>
       <div class="classifies">
         <el-tag v-for="(tag, index) in classifies" :key="index" size="small" class="tag"
-                :class="{ 'tag-active': tag === classify }" @click="classify = tag">
-          {{ tag }}
+                :class="{ 'tag-active': tag.name === classify }" @click="classify = tag.name">
+          {{ tag.name }}
         </el-tag>
       </div>
       <div style="margin: 10px 0 5px 0;font-size: 15px;font-weight: bold">标签</div>
-      <el-input v-model="tag" placeholder="多标签使用逗号(，)分隔，用于匹配搜索"></el-input>
+      <el-input v-model="uploadTag" placeholder="多标签使用逗号(，)分隔，用于匹配搜索"></el-input>
       <span slot="footer" class="dialog-footer">
         <el-button @click="uploadDialogVisible = false" size="small" style="border-radius: 6px">取消</el-button>
         <el-button type="primary" @click="handleSubmit" size="small" style="border-radius: 6px">确认上传</el-button>
@@ -74,30 +93,82 @@
 </template>
 
 <script>
+import {getAction} from "@/api/api";
+
 export default {
   data() {
     return {
       searchText: '',
-      tags: ['全部推荐','行业热点','产品展示','口播','企业故事'],
       activeTag: '全部推荐',
-      videos: [
-        {id: 1, title: '企业宣传片模板', duration: '00:15', tag: '产品展示', storyboard: '12分镜', isHover: false, color: '#3b82f6'},
-        {id: 2, title: '新品发布口播', duration: '00:08', tag: '口播', storyboard: '5分镜', isHover: false, color: '#22c55e'},
-        {id: 3, title: '科技前沿动态', duration: '00:21', tag: '行业热点', storyboard: '18分镜', isHover: false, color: '#f97316'},
-        {id: 4, title: '品牌发展历程', duration: '00:30', tag: '企业故事', storyboard: '25分镜', isHover: false, color: '#a855f7'},
-        {id: 5, title: '我们招人啦', duration: '00:12', tag: '口播', storyboard: '8分镜', isHover: false, color: '#22c55e'},
-        {id: 6, title: '城市美食探店', duration: '00:18', tag: '行业热点', storyboard: '15分镜', isHover: false, color: '#f97316'},
-        {id: 7, title: '3D产品展示', duration: '00:15', tag: '产品展示', storyboard: '12分镜', isHover: false, color: '#3b82f6'}
-      ],
+      hots: [],
+      filter_hots: [],
       uploadDialogVisible: false,
       uploadFile: null,
       title: '',
-      tag: '',
-      classifies: ['行业热点','产品展示','口播','企业故事','教程干货','生活Vlog','搞笑段子','特效转场','AIGC','活动宣传'],
-      classify: '行业热点'
+      uploadTag: '',
+      classifies: [
+        { name: '行业热点', color: '#f97316' },
+        { name: '产品展示', color: '#3b82f6' },
+        { name: '口播', color: '#22c55e' },
+        { name: '企业故事', color: '#a855f7' },
+        { name: '教程干货', color: '#f97316' },
+        { name: '生活Vlog', color: '#22c55e' },
+        { name: '搞笑段子', color: '#a855f7' },
+        { name: '特效转场', color: '#f97316' },
+        { name: 'AIGC', color: '#22c55e' },
+        { name: '活动宣传', color: '#a855f7' },
+      ],
+      classify: '行业热点',
+      loading: false,
     }
   },
+  mounted() {
+    this.queryHots()
+  },
   methods: {
+    formattedDuration(duration) {
+      const totalSeconds = parseInt(duration.toFixed(0));
+      const minutes = Math.floor(totalSeconds / 60);
+      const seconds = totalSeconds % 60;
+      const formattedSeconds = seconds < 10 ? `0${seconds}` : seconds;
+      return `${minutes}:${formattedSeconds}`;
+    },
+    searchFilter() {
+      let filteredItems = this.hots;
+
+      if (this.searchText) {
+        filteredItems = filteredItems.filter(item =>
+            item.name.includes(this.searchText) ||
+            item.tag.split(/[,，]/).includes(this.searchText)
+        );
+      }
+
+      if (this.activeTag !== '全部推荐') {
+        filteredItems = filteredItems.filter(item => item.category === this.activeTag);
+      }
+
+      this.filter_hots = filteredItems;
+    },
+    tagFilter(name) {
+      this.activeTag = name
+      this.searchFilter()
+    },
+    queryHots() {
+      let params = {
+        video_type: 'hot_video',
+      }
+      getAction("/figure/query_success",params).then((res) => {
+        if (res.data.status === "success") {
+          let data = res.data.data.filter(item => item.status === "success");
+          this.hots = data.map(item => ({ ...item, isHover: false }))
+          this.searchText = ''
+          this.activeTag = '全部推荐'
+          this.filter_hots = this.hots
+        }
+      }).catch((error) => {
+        console.error("获取角色列表失败:", error);
+      });
+    },
     beforeUploadClose() {
       this.uploadFile = null
       this.title = ''
@@ -105,7 +176,48 @@ export default {
       this.uploadDialogVisible = false
     },
     handleSubmit() {
+      if (this.title === '') {
+        this.$alert('请填写标题')
+        return
+      }
+      this.$refs.hotUpload.submit()
+    },
+    uploadSuccess(res, file) {
+      if (res.status === "success") {
+        this.$notify({
+          title: "上传提示",
+          message: `${file.name}爆款视频上传成功`,
+          duration: 20000,
+          type: "success",
+        });
+      } else {
+        this.$notify({
+          title: "上传提示",
+          message: `${file.name}爆款视频上传失败，${res.message}`,
+          duration: 0,
+          type: "error",
+        });
+      }
+      if (this.loading) {
+        this.loading.close();
+        this.loading = null;
+      }
+      this.queryHots()
+    },
+    uploadError() {
+      if (this.loading) {
+        this.loading.close();
+        this.loading = null;
+      }
+    },
+    beforeUpload() {
       this.uploadDialogVisible = false
+      this.loading = this.$loading({
+        lock: true,
+        text: '爆款视频上传中，请耐心等待...',
+        spinner: 'el-icon-loading',
+        background: 'rgba(0, 0, 0, 0.7)'
+      });
     },
   }
 }
