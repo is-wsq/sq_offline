@@ -445,6 +445,8 @@ export default {
         count: parseInt(this.script_num),
         material_list: this.material_list,
         user_request: this.requirement,
+        bgm_id: this.bgm.id,
+        bg_volume: this.bg_volume,
         timbre_id: this.sound.voice_id,
         with_subtitle: this.withSubtitle
       }

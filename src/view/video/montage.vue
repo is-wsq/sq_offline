@@ -403,6 +403,8 @@ export default {
         text_list: this.copy_list.map(item => item.content),
         text_title_list: this.copy_list.map(item => item.title),
         user_request: actualRequest,
+        bgm_id: this.bgm.id,
+        bg_volume: this.bg_volume,
         timbre_id: this.sound.voice_id,
         with_subtitle: this.withSubtitle
       }
