@@ -31,15 +31,17 @@
                     <div style="display: flex;gap: 12px" class="margin-b-12">
                       <div style="flex: 1">
                         <div class="smart-generate-c-l-ai-title">文案字数</div>
-                        <el-select v-model="copy_num" placeholder="请选择">
+                        <el-select v-model="copy_num" placeholder="请选择" style="width: 100%">
                           <el-option label="100" value="100"></el-option>
                           <el-option label="200" value="200"></el-option>
                           <el-option label="300" value="300"></el-option>
+                          <el-option label="400" value="400"></el-option>
+                          <el-option label="500" value="500"></el-option>
                         </el-select>
                       </div>
                       <div style="flex: 1">
                         <div class="smart-generate-c-l-ai-title">文案数量</div>
-                        <el-input type="number" v-model="script_num"></el-input>
+                        <el-input type="number" v-model="script_num" min="1" max="10" @input="validateNum"></el-input>
                       </div>
                     </div>
                     <div class="smart-generate-c-l-ai-title">模型选择</div>
@@ -141,6 +143,15 @@ export default {
     this.initData()
   },
   methods: {
+    validateNum(val) {
+      if (val < 1) {
+        this.script_num = 1
+      } else if (val > 10) {
+        this.script_num = 10
+      } else {
+        this.script_num = val
+      }
+    },
     addExampleText() {
       this.exampleTexts.push('');
       this.$nextTick(() => { //自动滚到到底部

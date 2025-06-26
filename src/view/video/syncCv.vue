@@ -63,12 +63,12 @@
             </div>
             <div style="display: flex;gap: 12px" class="margin-b-12">
               <div style="flex: 1">
-                <div class="panel-label">视频时长</div>
+                <div class="panel-label">视频时长 (秒)</div>
                 <el-input type="number" v-model="video_time"></el-input>
               </div>
               <div style="flex: 1">
                 <div class="panel-label">文案数量</div>
-                <el-input type="number" v-model="script_num"></el-input>
+                <el-input type="number" v-model="script_num" min="1" max="10" @input="validateNum"></el-input>
               </div>
             </div>
             <div class="panel-label">模型选择</div>
@@ -264,6 +264,15 @@ export default {
     },
   },
   methods: {
+    validateNum(val) {
+      if (val < 1) {
+        this.script_num = 1
+      } else if (val > 10) {
+        this.script_num = 10
+      } else {
+        this.script_num = val
+      }
+    },
     liLeave(item) {
       item.isHover = false
       this.hover_li = null
