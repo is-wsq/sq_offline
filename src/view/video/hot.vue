@@ -63,14 +63,14 @@
           ref="hotUpload"
           class="video-uploader"
           style="width: 100%"
-          :multiple="false"
-          action="http://192.168.1.4:6006/figure/add_hot_video"
+          action="http://127.0.0.1:6006/figure/add_hot_video"
           :data="{ title: title, category: classify, tag: uploadTag }"
           :on-success="uploadSuccess"
           :on-error="uploadError"
           :before-upload="beforeUpload"
           accept=".mp4, .mov"
-          :auto-upload="false">
+          :auto-upload="false"
+          multiple>
         <i class="el-icon-upload"></i>
         <div class="el-upload__text">将文件拖到此处，或<em>点击上传</em></div>
       </el-upload>
@@ -81,8 +81,8 @@
       </div>
       <el-input prefix-icon="el-icon-link" v-model="dy_link" placeholder="粘贴抖音视频分享链接上传" :disabled="!use_link"></el-input>
 
-      <div style="margin: 10px 0 5px 0;font-size: 15px;font-weight: bold">标题</div>
-      <el-input v-model="title" placeholder="请输入视频标题"></el-input>
+<!--      <div style="margin: 10px 0 5px 0;font-size: 15px;font-weight: bold">标题</div>-->
+<!--      <el-input v-model="title" placeholder="请输入视频标题"></el-input>-->
       <div style="margin: 10px 0 5px 0;font-size: 15px;font-weight: bold">分类</div>
       <div class="classifies">
         <el-tag v-for="(tag, index) in classifies" :key="index" size="small" class="tag"
@@ -186,10 +186,10 @@ export default {
       this.uploadDialogVisible = false
     },
     handleSubmit() {
-      if (!this.title) {
-        this.$alert('请填写标题')
-        return
-      }
+      // if (!this.title) {
+      //   this.$alert('请填写标题')
+      //   return
+      // }
 
       if (!this.use_link) {
         this.$refs.hotUpload.submit()
