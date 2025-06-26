@@ -115,8 +115,13 @@
         <div class="video-placeholder-preview" v-if="activeIndex !== -1">
           <video
             ref="videoRef"
-            @ended="playNextVideo"
             preload="metadata"
+            controls
+            controlsList="noplaybackrate nodownload"
+            @ended="playNextVideo"
+            @play="mediaPlay"
+            @pause="mediaPause"
+            @volumechange="mediaVolumeChange"
             style="width: 280px; aspect-ratio: 9 / 16; border-radius: 12px"
           >
             您的浏览器不支持HTML5视频播放。
@@ -125,16 +130,6 @@
             <source type="audio/mpeg">
             您的浏览器不支持音频播放
           </audio>
-        </div>
-        <div class="volume-control" v-if="activeIndex !== -1">
-          <el-button-group>
-            <el-button @click="playBoth"><i class="el-icon-video-play" style="font-size: 16px"></i></el-button>
-            <el-button @click="pauseBoth"><i class="el-icon-video-pause" style="font-size: 16px"></i></el-button>
-          </el-button-group>
-          <div class="volume-label">音量</div>
-          <div class="volume-slider">
-            <el-slider v-model="media_volume" :step="0.1" :min="0" :max="1" @change="updateMediaVolume"></el-slider>
-          </div>
         </div>
       </div>
     </div>
@@ -550,34 +545,15 @@ export default {
       const nextIndex = this.currentIndex + 1;
       this.loadVideo(nextIndex);
     },
-
-    playBoth() {
-      // if (this.isPlaying) {
-      //   return
-      // }
-      const video = this.$refs.videoRef;
-      const audio = this.$refs.audioRef;
-      // 同步播放
-      Promise.all([
-        video.play(),
-        audio.play()
-      ]).catch(error => {
-        console.error('播放失败:', error);
-      });
+    mediaPlay() {
+      this.$refs.audioRef.play()
     },
-
-    // 暂停视频和音频
-    pauseBoth() {
-      if (!this.isPlaying) {
-        return
-      }
-      this.$refs.videoRef.pause();
-      this.$refs.audioRef.pause();
+    mediaPause() {
+      this.$refs.audioRef.pause()
     },
-
-    updateMediaVolume() {
-      this.$refs.videoRef.volume = this.media_volume;
-      this.$refs.audioRef.volume = this.media_volume;
+    mediaVolumeChange() {
+      this.$refs.audioRef.volume = this.$refs.videoRef.volume
+      this.$refs.audioRef.muted = this.$refs.videoRef.muted
     },
   }
 }
@@ -858,6 +834,21 @@ export default {
 .video-placeholder-preview {
   background-color: #e5e7eb;
   border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.video-placeholder-preview video::-webkit-media-controls-timeline {
+  display: none !important;
+}
+
+.video-placeholder-preview video::-moz-controls-progressbar {
+  display: none !important;
+}
+
+.video-placeholder-preview video::-ms-media-controls-timeline {
+  display: none !important;
 }
 
 .li-video {
