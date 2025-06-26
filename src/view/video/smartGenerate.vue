@@ -15,7 +15,7 @@
             <el-collapse v-model="activeName" accordion>
               <el-collapse-item title="AI批量生成" name="1">
                 <div class="smart-generate-c-l-ai">
-                  <div style="max-height: 400px; overflow-y: auto" ref="scriptForm">
+                  <div style="max-height: 370px; overflow-y: auto" ref="scriptForm">
                     <div class="smart-generate-c-l-ai-title">文案要求</div>
                     <el-input type="textarea" :rows="2" placeholder="例如：写一个关于猫咪的搞笑段子"
                               class="margin-b-12" v-model="copy_require"></el-input>
