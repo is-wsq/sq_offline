@@ -40,7 +40,7 @@
                 </li>
               </ul>
               <div class="li-video" v-if="hover_li">
-                <video :src="hover_li.filepath.replace('127.0.0.1','192.168.1.4')" style="width: 100%; height: 100%;border-radius: 4px;"
+                <video :src="hover_li.filepath" style="width: 100%; height: 100%;border-radius: 4px;"
                        loop muted autoplay></video>
               </div>
             </div>
