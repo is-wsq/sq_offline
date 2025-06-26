@@ -34,10 +34,15 @@
             </el-input>
             <div v-if="showDropdown" class="dropdown" :style="dropdownStyle">
               <ul>
-                <li v-for="(item, index) in mention_list" :key="index" @click="selectMention(item)">
+                <li v-for="(item, index) in mention_list" :key="index" @click="selectMention(item)"
+                    @mouseleave="liLeave(item)" @mouseenter="liEnter(item)">
                   {{ item.name }}
                 </li>
               </ul>
+              <div class="li-video" v-if="hover_li">
+                <video :src="hover_li.filepath.replace('127.0.0.1','192.168.1.4')" style="width: 100%; height: 100%;border-radius: 4px;"
+                       loop muted autoplay></video>
+              </div>
             </div>
           </div>
           <div class="without_at">
@@ -185,6 +190,7 @@ export default {
       material_list: [],
       mute_materials: [],
       mention_list: [],
+      hover_li: null,
       sound: {},
       bgm: {},
       bg_volume: 0.5,
@@ -258,6 +264,14 @@ export default {
     },
   },
   methods: {
+    liLeave(item) {
+      item.isHover = false
+      this.hover_li = null
+    },
+    liEnter(item) {
+      item.isHover = true
+      this.hover_li = item
+    },
     handleScroll(event) {
       const inputEl = this.$refs.inputRef.$el.querySelector('textarea');
       const highlightEl = this.$refs.highlightDiv;
@@ -372,7 +386,8 @@ export default {
       // 选择的素材id列表、素材列表、静音素材列表
       this.material_list = JSON.parse(sessionStorage.getItem('material_list')) || []
       this.mute_materials = JSON.parse(sessionStorage.getItem('mute_materials')) || []
-      this.mention_list = JSON.parse(sessionStorage.getItem('mention_list')) || []
+      let mention_list = JSON.parse(sessionStorage.getItem('mention_list')) || []
+      this.mention_list = mention_list.map(item => ({...item, isHover: false}))
       // 视频音色、背景音乐、背景音乐音量
       this.sound = JSON.parse(sessionStorage.getItem("setting_voice")) || {}
       this.bgm = JSON.parse(sessionStorage.getItem('setting_bgm')) || {}
@@ -974,31 +989,44 @@ export default {
   border-radius: 12px;
 }
 
+.li-video {
+  height: 200px;
+  background-color: #ffffff;
+  padding: 3px;
+  aspect-ratio: 9 / 16;
+  border: 2px solid #DBEAFE;
+  border-radius: 8px;
+}
 
 .dropdown {
-  background: white;
-  border: 1px solid #ccc;
-  border-radius: 4px;
   position: absolute;
   z-index: 999;
-  width: 180px;
-  height: 200px;
-  overflow: auto;
+  display: flex;
+  gap: 10px;
 }
 
 .dropdown ul {
   list-style: none;
   margin: 0;
   padding: 0;
+  background: white;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  width: 180px;
+  height: 200px;
+  overflow: auto;
 }
 
 .dropdown li {
-  padding: 6px 10px;
+  padding: 10px;
   cursor: pointer;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .dropdown li:hover {
-  background-color: #f0f0f0;
+  background-color: #DBEAFE;
 }
 
 .highlight-content {
