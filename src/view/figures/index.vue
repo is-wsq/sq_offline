@@ -74,7 +74,7 @@
     </div>
     <div style="display: flex;margin-top: 30px;gap: 100px">
       <div style="text-align: end;flex: 1">
-        <el-button type="primary" @click="upload_material">上传素材</el-button>
+        <el-button type="primary" @click="uploadDialogVisible = true">上传素材</el-button>
       </div>
       <div style="flex: 1">
         <el-upload
@@ -90,7 +90,8 @@
         </el-upload>
       </div>
     </div>
-    <el-dialog class="upload-dialog" :visible.sync="uploadDialogVisible" width="800px" title="上传素材" :before-close="beforeUploadClose">
+    <el-dialog class="upload-dialog" :visible.sync="uploadDialogVisible" width="32rem"
+               title="上传素材" :before-close="beforeUploadClose">
       <el-upload
           drag
           ref="materialUpload"
@@ -103,20 +104,21 @@
           :before-upload="beforeUpload"
           :on-progress="handleFileChange"
           :file-list.sync="materialList"
-          :data="{ lip_sync: true, tag: tag }"
+          :data="{ lip_sync: true, tag: uploadTag }"
           :auto-upload="false"
           multiple>
         <i class="el-icon-upload"></i>
         <div class="el-upload__text">将文件拖到此处，或<em>点击上传</em></div>
       </el-upload>
       <div style="margin: 20px 0 10px 0;font-size: 15px;font-weight: bold">标签</div>
-      <el-input v-model="tag" placeholder="多标签使用逗号(，)分隔，用于匹配搜索"></el-input>
+      <el-input v-model="uploadTag" placeholder="多标签使用逗号(，)分隔，用于匹配搜索"></el-input>
       <span slot="footer" class="dialog-footer">
         <el-button @click="uploadDialogVisible = false" size="small">取消</el-button>
         <el-button type="primary" @click="handleSubmit" size="small">确认上传</el-button>
       </span>
     </el-dialog>
-    <el-dialog class="preview-dialog" :visible.sync="dialogVisible" :before-close="beforeClose" :width="aspectRatio > 1? '640px' : '390px'">
+    <el-dialog class="preview-dialog" :visible.sync="dialogVisible" :before-close="beforeClose"
+               :width="aspectRatio > 1? '640px' : '390px'">
       <div style="width: 100%;text-align: center;position: relative">
         <video style="border-radius: 10px;width: calc(100% - 40px)"
                ref="video"
@@ -159,7 +161,7 @@ export default {
   data() {
     return {
       uploadDialogVisible: false,
-      tag: '',
+      uploadTag: '',
       dialogVisible: false,
       drawer: false,
       src: "",
@@ -199,7 +201,7 @@ export default {
   methods: {
     beforeUploadClose() {
       this.materialList = []
-      this.tag = ''
+      this.uploadTag = ''
       this.uploadDialogVisible = false
     },
     handleSubmit() {
@@ -472,8 +474,21 @@ export default {
   color: #6d7177;
 }
 
+.upload-dialog >>> .el-dialog {
+  border-radius: 10px;
+}
+
+.upload-dialog >>> .el-dialog__title {
+  font-weight: 700;
+}
+
+.upload-dialog >>> .el-dialog__close {
+  color: #9ca3af;
+  font-size: 24px;
+}
+
 .upload-dialog >>> .el-dialog__body {
-  padding-top: 10px !important;
+  padding: 10px 20px !important;
 }
 
 .material-uploader >>> .el-upload {
