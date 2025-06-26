@@ -10,21 +10,16 @@
     <div class="human-content">
       <div class="figure-left-panel">
         <div class="left-title">数字人库</div>
+        <div class="filter-content">
+          <el-input prefix-icon="el-icon-search" placeholder="输入数字人名称匹配搜索"
+                    class="filter-input" v-model="filter_text" @change="filterFigure"></el-input>
+        </div>
         <div class="figure-list">
-          <div v-for="item in figures"
+          <div v-for="item in filter_figures"
                :key="item.id"
                @click="selectFigure(item)">
             <el-image class="figure-img" :class="{'figure-img-selected': item.id === figure.id }"
                       :src="item.picture" fit="cover"></el-image>
-<!--            <el-popover placement="right" trigger="hover" :content="''" @show="item.previewing = true"-->
-<!--                        @hide="item.previewing = false"-->
-<!--                        popper-class="video-preview-popover" :open-delay="1000" :close-delay="300">-->
-<!--              <el-image slot="reference" class="figure-img" :class="{'figure-img-selected': item.id === figure.id }"-->
-<!--                        :src="item.picture" fit="cover"></el-image>-->
-<!--              <video :src="item.filepath" loop muted autoplay style="min-width: 150px" height="180"-->
-<!--                     v-if="item.previewing">-->
-<!--              </video>-->
-<!--            </el-popover>-->
             <div class="figure-name" :class="{'figure-title-selected': item.id === figure.id }"
                  :title="item.name">{{ item.name }}</div>
           </div>
@@ -322,7 +317,9 @@ export default {
   mixins: [EnhancedChoiceMixin],
   data() {
     return {
+      filter_text: '',
       figures: [],
+      filter_figures: [],
       figure: {},
       withTitle: true,
       subtitleNameParams: {
@@ -419,6 +416,13 @@ export default {
     this.initParams()
   },
   methods: {
+    filterFigure() {
+      let filteredItems = this.figures;
+      if (this.filter_text) {
+        filteredItems = filteredItems.filter(item => item.name.includes(this.filter_text));
+      }
+      this.filter_figures = filteredItems;
+    },
     formatTooltip(val) {
       return val * 100 + '%';
     },
@@ -430,6 +434,7 @@ export default {
         if (res.data.status === "success") {
           let data = res.data.data.filter(item => item.status === "success")
           this.figures = data.map(item => ({ ...item, previewing: false }))
+          this.filter_figures = this.figures
         }
       }).catch((error) => {
         console.error("获取角色列表失败:", error);
@@ -759,8 +764,30 @@ export default {
   margin-left: 15px;
 }
 
+.filter-content {
+  text-align: center;
+  padding: 10px 20px;
+}
+
+.filter-content >>> .el-input__icon {
+  line-height: 30px;
+}
+
+.filter-content >>> .el-input__inner {
+  height: 30px;
+  line-height: 30px;
+  border-radius: 15px;
+  background-color: #f9fafb;
+  font-size: 12px;
+}
+
+.filter-input {
+  width: 100%;
+  max-width: 400px;
+}
+
 .figure-list {
-  height: calc(100% - 80px);
+  height: calc(100% - 130px);
   display: grid;
   gap: 15px;
   grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));

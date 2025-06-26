@@ -10,35 +10,22 @@
     <div class="material-content">
       <div class="c-left">
         <div style="line-height: 40px;font-weight: bold;margin-left: 15px">素材库</div>
+        <div class="filter-content">
+          <el-input prefix-icon="el-icon-search" placeholder="输入素材名称、标签匹配搜索"
+                    class="filter-input" v-model="filter_text" @change="filterMaterials"></el-input>
+        </div>
         <div class="m-card"
              @mousedown="startSelection"
              @mousemove="updateSelection"
              @mouseup="endSelection"
              @mouseleave="endSelection"
              ref="videoGrid">
-<!--          <div class="m-item" v-for="item in filter_materials" :key="item.id"-->
-<!--               @mousedown="onVideoItemMouseDown"-->
-<!--               @mouseleave="onMouseLeave"-->
-<!--               @mouseenter="onMouseEnter"-->
-<!--               @click="selectMaterial(item, $event)"-->
-<!--               ref="videoItems">-->
           <div class="m-item" v-for="item in filter_materials" :key="item.id"
                @mousedown="onVideoItemMouseDown"
                @click="selectMaterial(item, $event)"
                ref="videoItems">
             <el-image class="m-item-img" :class="{'m-img-selected': material_list.includes(item.id) }"
                       :src="item.picture" fit="cover"></el-image>
-<!--            <el-popover placement="right" trigger="hover" :content="''" @show="item.previewing = true"-->
-<!--                        @hide="item.previewing = false" :disabled="isSelecting || !shouldShowPopover"-->
-<!--                        popper-class="video-preview-popover" :open-delay="1000" :close-delay="300">-->
-<!--              <el-image slot="reference" class="m-item-img" :class="{'m-img-selected': material_list.includes(item.id) }"-->
-<!--                        :src="item.picture" fit="cover"></el-image>-->
-<!--              <video :src="item.filepath" loop muted autoplay style="min-width: 150px" height="180"-->
-<!--                     v-if="item.previewing">-->
-<!--              </video>-->
-<!--            </el-popover>-->
-<!--            <div class="m-item-title" :class="{'m-title-selected': material_list.includes(item.id) }">{{item.name}}</div>-->
-
             <div style="display: flex">
               <div class="m-item-title" :class="{'m-title-selected': material_list.includes(item.id) }" :title="item.name">{{ item.name }}</div>
               <div style="line-height: 1.5;margin-right: 5px">
@@ -363,6 +350,7 @@ export default {
   mixins: [EnhancedChoiceMixin],
   data() {
     return {
+      filter_text: '',
       materials: [],
       filter_materials: [],
       material_list: [],
@@ -473,6 +461,23 @@ export default {
     this.initParams()
   },
   methods: {
+    filterMaterials() {
+      let filteredItems = this.materials;
+
+      if (this.filter_text) {
+        filteredItems = filteredItems.filter(item =>
+            item.name.includes(this.filter_text) ||
+            (item.tag && item.tag.split(/[,，]/).includes(this.filter_text))
+        );
+      }
+
+      if (this.material_list.length > 0) {
+        let size = this.materials.find(item => item.id === this.material_list[0]).size
+        filteredItems = filteredItems.filter(item => item.size === size)
+      }
+
+      this.filter_materials = filteredItems;
+    },
     formatTooltip(val) {
       return val * 100 + '%';
     },
@@ -663,7 +668,15 @@ export default {
         this.material_list.splice(this.material_list.indexOf(item.id), 1)
         if (this.material_list.length === 0) {
           this.lastClickedIndex = null
-          this.filter_materials = this.materials
+
+          let filteredItems = this.materials;
+          if (this.filter_text) {
+            filteredItems = filteredItems.filter(item =>
+                item.name.includes(this.filter_text) ||
+                (item.tag && item.tag.split(/[,，]/).includes(this.filter_text))
+            );
+          }
+          this.filter_materials = filteredItems
         }
       }
       this.contentHeight = 640
@@ -893,8 +906,30 @@ export default {
   transition: all 0.1s ease;
 }
 
+.filter-content {
+  text-align: center;
+  padding: 10px 20px;
+}
+
+.filter-content >>> .el-input__icon {
+  line-height: 30px;
+}
+
+.filter-content >>> .el-input__inner {
+  height: 30px;
+  line-height: 30px;
+  border-radius: 15px;
+  background-color: #f9fafb;
+  font-size: 12px;
+}
+
+.filter-input {
+  width: 100%;
+  max-width: 400px;
+}
+
 .m-card {
-  height: calc(100% - 80px);
+  height: calc(100% - 130px);
   display: grid;
   gap: 15px;
   grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
