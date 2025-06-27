@@ -107,8 +107,8 @@
       <div style="margin: 10px 0 5px 0;font-size: 15px;font-weight: bold">标签</div>
       <el-input v-model="uploadTag" placeholder="多标签使用逗号(，)分隔，用于匹配搜索"></el-input>
       <span slot="footer" class="dialog-footer">
-        <el-button @click="uploadDialogVisible = false" size="small" style="border-radius: 6px">取消</el-button>
-        <el-button type="primary" @click="handleSubmit" size="small" style="border-radius: 6px">确认上传</el-button>
+        <el-button @click="uploadDialogVisible = false" size="small">取消</el-button>
+        <el-button type="primary" @click="handleSubmit" size="small">确认上传</el-button>
       </span>
     </el-dialog>
   </div>

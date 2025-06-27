@@ -101,7 +101,7 @@
               </div>
             </template>
           </div>
-          <div class="export-section" v-if="already_generated">
+          <div class="export-section" v-if="!already_generated">
             <el-button @click="export_video"><i class="el-icon-fa-download" style="margin-right: 10px;"></i>
               导出视频</el-button>
           </div>
@@ -673,14 +673,7 @@ export default {
   font-weight: 600;
   width: 100%;
   line-height: 18px;
-}
-
-.settings-button-section >>> .el-button {
-  background-color: #4f46e5;
-}
-
-.export-section >>> .el-button {
-  background-color: #059669;
+  background-color: #6366fe;
 }
 
 .btn-icon {

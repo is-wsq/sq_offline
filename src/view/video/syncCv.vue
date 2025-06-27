@@ -59,7 +59,7 @@
               </div>
             </div>
             <div class="margin-b-12">
-              <el-button size="mini" class="system-btn" @click="addExampleText">添加示例文案</el-button>
+              <el-button size="mini" type="primary" @click="addExampleText">添加示例文案</el-button>
             </div>
             <div style="display: flex;gap: 12px" class="margin-b-12">
               <div style="flex: 1">
@@ -732,14 +732,7 @@ export default {
   font-weight: 600;
   width: 100%;
   line-height: 18px;
-}
-
-.settings-button-section >>> .el-button {
-  background-color: #4f46e5;
-}
-
-.export-section >>> .el-button {
-  background-color: #059669;
+  background-color: #6366fe;
 }
 
 .btn-icon {

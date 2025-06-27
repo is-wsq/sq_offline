@@ -83,7 +83,7 @@
             <el-input v-model="newName" placeholder="请输入新名称"></el-input>
           </el-form-item>
           <el-form-item>
-            <el-button class="system-btn" @click="onSave">保存</el-button>
+            <el-button type="primary" @click="onSave">保存</el-button>
           </el-form-item>
         </el-form>
       </div>
