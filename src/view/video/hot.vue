@@ -24,13 +24,26 @@
             <span style="font-size: 12px;margin-top: 8px">上传爆款视频</span>
           </div>
         </div>
+        <div v-for="(file, index) in processFile" :key="index" class="video-card">
+          <div class="figure-image-wrapper shining" style="width: 100% !important; height: 100% !important">
+            <el-image style="width: 100%; height: 100%;border-radius: 8px;filter: blur(15px);opacity: 0.8"
+                      :src="require('/public/images/4.jpg')" fit="cover">
+            </el-image>
+            <div class="shine-layer"></div>
+          </div>
+          <div class="file-progress">
+            <div>视频上传中</div>
+            <div style="width: 10px;text-align: left;margin-left: 5px;font-size: 22px">{{ dot }}</div>
+          </div>
+          <div class="video-title">{{ file.name }}</div>
+        </div>
         <div v-for="(video, index) in filter_hots" :key="index" class="video-card" @mouseleave="video.isHover = false"
              @mouseenter="video.isHover = true">
           <template v-if="!video.isHover">
             <el-image style="width: 100%; height: 100%;border-radius: 8px;" :src="video.picture" fit="cover">
             </el-image>
             <el-tag size="mini" v-if="video.category" class="video-tag"
-                    :style="{ backgroundColor: classifies.find(item => item.name === video.category).color }">
+                    :style="{ backgroundColor: classifies.find(item => item.name === video.category).color || '' }">
               {{ video.category }}
             </el-tag>
             <div class="video-title">{{ video.name }}</div>
@@ -63,13 +76,14 @@
           ref="hotUpload"
           class="video-uploader"
           style="width: 100%"
-          action="http://127.0.0.1:6006/figure/add_hot_video"
+          action="http://192.168.1.4:6006/figure/add_hot_video"
           :data="{ title: title, category: classify, tag: uploadTag }"
           :on-success="uploadSuccess"
           :on-error="uploadError"
           :before-upload="beforeUpload"
           accept=".mp4, .mov"
           :auto-upload="false"
+          :limit="6"
           multiple>
         <i class="el-icon-upload"></i>
         <div class="el-upload__text">将文件拖到此处，或<em>点击上传</em></div>
@@ -130,12 +144,26 @@ export default {
       ],
       classify: '行业热点',
       loading: false,
+      processFile: [],
+      dotCount: 1,
+      dotTimer: null,
+      dot: '.',
     }
   },
   mounted() {
     this.queryHots()
+    this.startDotAnimation();
+  },
+  beforeDestroy() {
+    clearInterval(this.dotTimer);
   },
   methods: {
+    startDotAnimation() {
+      this.dotTimer = setInterval(() => {
+        this.dotCount = this.dotCount % 3 + 1;
+        this.dot = '.'.repeat(this.dotCount);
+      }, 1000);
+    },
     formattedDuration(duration) {
       const totalSeconds = parseInt(duration.toFixed(0));
       const minutes = Math.floor(totalSeconds / 60);
@@ -186,11 +214,6 @@ export default {
       this.uploadDialogVisible = false
     },
     handleSubmit() {
-      // if (!this.title) {
-      //   this.$alert('请填写标题')
-      //   return
-      // }
-
       if (!this.use_link) {
         this.$refs.hotUpload.submit()
         return;
@@ -214,15 +237,16 @@ export default {
       } else {
         this.$notify({
           title: "上传提示",
-          message: `${file.name}爆款视频上传失败，${res.message}`,
+          message: `${file.name}爆款视频上传失败，${res.data}`,
           duration: 0,
           type: "error",
         });
       }
-      if (this.loading) {
-        this.loading.close();
-        this.loading = null;
-      }
+      this.processFile = this.processFile.filter(item => item.name !== file.name)
+      // if (this.loading) {
+      //   this.loading.close();
+      //   this.loading = null;
+      // }
       this.queryHots()
     },
     uploadError() {
@@ -231,14 +255,15 @@ export default {
         this.loading = null;
       }
     },
-    beforeUpload() {
+    beforeUpload(file) {
+      this.processFile.unshift(file)
       this.uploadDialogVisible = false
-      this.loading = this.$loading({
-        lock: true,
-        text: '爆款视频上传中，请耐心等待...',
-        spinner: 'el-icon-loading',
-        background: 'rgba(0, 0, 0, 0.7)'
-      });
+      // this.loading = this.$loading({
+      //   lock: true,
+      //   text: '爆款视频上传中，请耐心等待...',
+      //   spinner: 'el-icon-loading',
+      //   background: 'rgba(0, 0, 0, 0.7)'
+      // });
     },
   }
 }
@@ -346,6 +371,20 @@ export default {
   padding: 0 5px;
   font-size: 11px;
   border-radius: 2px;
+}
+
+.file-progress {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  font-size: 14px;
+  font-family: "Helvetica Neue", Arial, sans-serif;
+  font-weight: 500;
+  transform: translate(-50%, -50%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
 }
 
 .video-title {
