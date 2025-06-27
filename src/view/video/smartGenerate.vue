@@ -26,7 +26,7 @@
                       <el-button size="mini" type="danger" icon="el-icon-delete" @click="removeText(index)"></el-button>
                     </div>
                     <div class="margin-b-12">
-                      <el-button size="mini" type="primary" @click="addExampleText">添加示例文案</el-button>
+                      <el-button class="system-btn" size="mini" @click="addExampleText">添加示例文案</el-button>
                     </div>
                     <div style="display: flex;gap: 12px" class="margin-b-12">
                       <div style="flex: 1">
@@ -61,7 +61,7 @@
                             v-model="copy_title"></el-input>
                   <el-input type="textarea" :rows="3" placeholder="文案内容..." class="margin-b-12"
                             v-model="copy_content"></el-input>
-                  <el-button class="batch-btn" @click="addCopy">添加文案</el-button>
+                  <el-button class="system-btn" style="width: 100%" @click="addCopy">添加文案</el-button>
                 </div>
               </el-collapse-item>
             </el-collapse>
@@ -100,8 +100,8 @@
       </el-row>
     </div>
     <div class="flex-center">
-      <el-button type="primary" style="width: 176px" @click="nextStep" v-if="script_type === 'material'">下一步：智能成片</el-button>
-      <el-button type="primary" style="width: 176px" @click="verify" v-else>生成视频</el-button>
+      <el-button class="system-btn" style="width: 176px" @click="nextStep" v-if="script_type === 'material'">下一步：智能成片</el-button>
+      <el-button class="system-btn" style="width: 176px" @click="verify" v-else>生成视频</el-button>
     </div>
   </div>
 </template>

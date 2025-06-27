@@ -54,7 +54,7 @@
           </div>
         </div>
         <div class="figure-center-btn">
-          <el-button type="primary" style="width: 176px;" @click="nextStep('/smartGenerate')">下一步：编辑文案</el-button>
+          <el-button class='system-btn' style="width: 176px;" @click="nextStep('/smartGenerate')">下一步：编辑文案</el-button>
         </div>
       </div>
       <div class="figure-right-panel">

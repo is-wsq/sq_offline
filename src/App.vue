@@ -77,6 +77,17 @@ body {
   gap: 5px;
 }
 
+.system-btn {
+  background-color: #6366fe !important;
+  cursor: pointer !important;
+  border: 1px solid #DCDFE6 !important;
+  color: white !important;
+  font-size: 14px !important;
+  border-radius: 6px !important;
+  font-weight: bold !important;
+  line-height: 18px !important;
+}
+
 .back-btn {
   padding: 7px !important;
   border-radius: 50% !important;
