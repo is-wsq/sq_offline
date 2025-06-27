@@ -218,6 +218,7 @@ export default {
       isPlaying: false,
 
       loading: null,
+      segments_description: [],
     }
   },
   beforeDestroy() {
@@ -370,7 +371,9 @@ export default {
     },
     initData() {
       let hots = JSON.parse(sessionStorage.getItem("select_hots"))
-      this.exampleTexts = hots.map(item => item.segments.map(segment => segment.asr_text).join(''));
+      this.exampleTexts = []
+      this.exampleTexts[0] = hots.segments.map(segment => segment.asr_text).join('');
+      this.segments_description = hots.segments.map(item => item.description)
 
       // 选择的素材id列表、素材列表、静音素材列表
       this.material_list = JSON.parse(sessionStorage.getItem('material_list')) || []
@@ -428,7 +431,8 @@ export default {
         bgm_id: this.bgm.id,
         bg_volume: this.bg_volume,
         timbre_id: this.sound.voice_id,
-        with_subtitle: this.withSubtitle
+        with_subtitle: this.withSubtitle,
+        reference_segments: this.segments_description,
       }
       postAction('/figure/video_mix_edit_sync', params, 3600000).then(res => {
         if (res.data.status === 'success') {

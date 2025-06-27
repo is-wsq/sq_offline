@@ -185,6 +185,7 @@ export default {
       montage_data: [],
       loading: null,
       media_volume: 0.5,
+      nextType: ''
     }
   },
   computed: {
@@ -328,9 +329,9 @@ export default {
     },
 
     initData() {
-      let nextType = sessionStorage.getItem('next_type')
+      this.nextType = sessionStorage.getItem('next_type')
 
-      if (nextType === 'hot_montage') {
+      if (this.nextType === 'hot_montage') {
         this.copy_list = JSON.parse(sessionStorage.getItem("hot_copy_list")).map(item => ({
           ...item, isHover: false,
         }))
@@ -401,6 +402,11 @@ export default {
       names.forEach((item, index) => {
         actualRequest = actualRequest.replace(item, `@{${this.material_list[index]}}`)
       })
+      let reference_segments = null
+      if (this.nextType === 'hot_montage') {
+        let hots = JSON.parse(sessionStorage.getItem("select_hots"))
+        reference_segments = hots.segments.map(item => item.description)
+      }
       let params = {
         material_list: this.material_list,
         text_list: this.copy_list.map(item => item.content),
@@ -409,7 +415,8 @@ export default {
         bgm_id: this.bgm.id,
         bg_volume: this.bg_volume,
         timbre_id: this.sound.voice_id,
-        with_subtitle: this.withSubtitle
+        with_subtitle: this.withSubtitle,
+        reference_segments: reference_segments
       }
       postAction('/figure/video_mix_edit',params, 3600000).then(res => {
         if (res.data.status === 'success') {

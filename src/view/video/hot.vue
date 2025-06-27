@@ -38,13 +38,13 @@
           <div class="video-title">{{ name }}</div>
         </div>
         <div v-for="(video, index) in filter_hots" :key="index" @click="selectVideo(video)"
-             :class="{ 'video-active': select_hots.map(item => item.id).includes(video.id) }" class="video-card"
+             :class="{ 'video-active': select_hots.id === video.id }" class="video-card"
              @mouseleave="video.isHover = false" @mouseenter="video.isHover = true">
           <el-tag size="mini" v-if="video.category" class="video-tag"
                   :style="{ backgroundColor: classifies.find(item => item.name === video.category).color }">
             {{ video.category }}
           </el-tag>
-          <div class="selection-tick" v-if="select_hots.map(item => item.id).includes(video.id)">
+          <div class="selection-tick" v-if="select_hots.id === video.id">
             <i class="el-icon-check" style="padding: 2px"></i>
           </div>
           <template v-if="!video.isHover">
@@ -125,7 +125,7 @@ export default {
       activeTag: '全部推荐',
       hots: [],
       filter_hots: [],
-      select_hots: [],
+      select_hots: {},
       uploadDialogVisible: false,
       uploadFile: null,
       use_link: false,
@@ -195,17 +195,11 @@ export default {
       this.searchFilter()
     },
     selectVideo(item) {
-      let index = this.select_hots.indexOf(item)
-      if (index === -1) {
-        this.select_hots.push(item)
-      } else {
-        this.select_hots.splice(index, 1)
-      }
+      this.select_hots = item
       sessionStorage.setItem('select_hots', JSON.stringify(this.select_hots))
     },
     initData() {
-      this.select_hots = JSON.parse(sessionStorage.getItem('select_hots')) || []
-      console.log(this.select_hots)
+      this.select_hots = JSON.parse(sessionStorage.getItem('select_hots')) || {}
     },
     queryHots() {
       let params = {
@@ -248,7 +242,6 @@ export default {
         category: this.classify,
       }
       postAction('/figure/add_hot_video_by_link',params).then(res => {
-        console.log(res)
         if (res.data.status === 'success') {
           this.$notify({
             title: "上传提示",

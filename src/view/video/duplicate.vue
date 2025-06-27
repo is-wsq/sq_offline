@@ -120,7 +120,8 @@ export default {
       this.hot_copy_list = sessionStorage.getItem("hot_copy_list") ?
           JSON.parse(sessionStorage.getItem("hot_copy_list")) : []
       let hots = JSON.parse(sessionStorage.getItem("select_hots"))
-      this.exampleTexts = hots.map(item => item.segments.map(segment => segment.asr_text).join(''));
+      this.exampleTexts = []
+      this.exampleTexts[0] = hots.segments.map(segment => segment.asr_text).join('');
     },
     batchGenerate() {
       let url = ''
