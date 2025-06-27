@@ -24,7 +24,7 @@
             <span style="font-size: 12px;margin-top: 8px">上传爆款视频</span>
           </div>
         </div>
-        <div v-for="(file, index) in processFile" :key="index" class="video-card">
+        <div v-for="(name, index) in processFile" :key="index" class="video-card">
           <div class="figure-image-wrapper shining" style="width: 100% !important; height: 100% !important">
             <el-image style="width: 100%; height: 100%;border-radius: 8px;filter: blur(15px);opacity: 0.8"
                       :src="require('/public/images/4.jpg')" fit="cover">
@@ -35,21 +35,25 @@
             <div>视频上传中</div>
             <div style="width: 10px;text-align: left;margin-left: 5px;font-size: 22px">{{ dot }}</div>
           </div>
-          <div class="video-title">{{ file.name }}</div>
+          <div class="video-title">{{ name }}</div>
         </div>
-        <div v-for="(video, index) in filter_hots" :key="index" class="video-card" @mouseleave="video.isHover = false"
-             @mouseenter="video.isHover = true">
+        <div v-for="(video, index) in filter_hots" :key="index" @click="selectVideo(video)"
+             :class="{ 'video-active': select_hots.map(item => item.id).includes(video.id) }" class="video-card"
+             @mouseleave="video.isHover = false" @mouseenter="video.isHover = true">
+          <el-tag size="mini" v-if="video.category" class="video-tag"
+                  :style="{ backgroundColor: classifies.find(item => item.name === video.category).color }">
+            {{ video.category }}
+          </el-tag>
+          <div class="selection-tick" v-if="select_hots.map(item => item.id).includes(video.id)">
+            <i class="el-icon-check" style="padding: 2px"></i>
+          </div>
           <template v-if="!video.isHover">
-            <el-image style="width: 100%; height: 100%;border-radius: 8px;" :src="video.picture" fit="cover">
+            <el-image class="hot-img" :src="video.picture" fit="cover">
             </el-image>
-            <el-tag size="mini" v-if="video.category" class="video-tag"
-                    :style="{ backgroundColor: classifies.find(item => item.name === video.category).color || '' }">
-              {{ video.category }}
-            </el-tag>
             <div class="video-title">{{ video.name }}</div>
           </template>
           <template v-else>
-            <video :src="video.filepath" style="width: 100%; height: 100%;border-radius: 8px;"
+            <video class="hot-img" :src="video.filepath"
                    loop muted autoplay>
             </video>
             <div class="video-title-hover">
@@ -58,7 +62,7 @@
                 <i class="el-icon-video-play" style="font-size: 14px"></i>
                 <div style="margin-left: 8px;flex: 1">{{ formattedDuration(video.duration) }}</div>
                 <i class="el-icon-film" style="font-size: 14px"></i>
-                <div style="margin-left: 8px;">{{ video.segments.data.total_segments + '分镜' }}</div>
+                <div style="margin-left: 8px;">{{ video.segments.length + '分镜' }}</div>
               </div>
             </div>
           </template>
@@ -66,7 +70,7 @@
       </div>
     </div>
     <div style="text-align: center; margin-top: 12px;">
-      <el-button type="primary" class="foot-btn">一键复刻</el-button>
+      <el-button type="primary" class="foot-btn" @click="duplicate">一键复刻</el-button>
     </div>
     <el-dialog class="upload-dialog" :visible.sync="uploadDialogVisible" width="32rem"
                title="上传爆款视频" :before-close="beforeUploadClose">
@@ -94,9 +98,6 @@
         <div style="font-size: 15px;font-weight: bold;flex: 1">使用链接上传</div>
       </div>
       <el-input prefix-icon="el-icon-link" v-model="dy_link" placeholder="粘贴抖音视频分享链接上传" :disabled="!use_link"></el-input>
-
-<!--      <div style="margin: 10px 0 5px 0;font-size: 15px;font-weight: bold">标题</div>-->
-<!--      <el-input v-model="title" placeholder="请输入视频标题"></el-input>-->
       <div style="margin: 10px 0 5px 0;font-size: 15px;font-weight: bold">分类</div>
       <div class="classifies">
         <el-tag v-for="(tag, index) in classifies" :key="index" size="small" class="tag"
@@ -115,7 +116,7 @@
 </template>
 
 <script>
-import {getAction} from "@/api/api";
+import {getAction, postAction} from "@/api/api";
 
 export default {
   data() {
@@ -124,6 +125,7 @@ export default {
       activeTag: '全部推荐',
       hots: [],
       filter_hots: [],
+      select_hots: [],
       uploadDialogVisible: false,
       uploadFile: null,
       use_link: false,
@@ -151,6 +153,7 @@ export default {
     }
   },
   mounted() {
+    this.initData()
     this.queryHots()
     this.startDotAnimation();
   },
@@ -191,6 +194,19 @@ export default {
       this.activeTag = name
       this.searchFilter()
     },
+    selectVideo(item) {
+      let index = this.select_hots.indexOf(item)
+      if (index === -1) {
+        this.select_hots.push(item)
+      } else {
+        this.select_hots.splice(index, 1)
+      }
+      sessionStorage.setItem('select_hots', JSON.stringify(this.select_hots))
+    },
+    initData() {
+      this.select_hots = JSON.parse(sessionStorage.getItem('select_hots')) || []
+      console.log(this.select_hots)
+    },
     queryHots() {
       let params = {
         video_type: 'hot_video',
@@ -223,8 +239,33 @@ export default {
         this.$alert('请粘贴抖音视频分享链接')
         return;
       }
-
-      this.$alert('接口未完善，待接入')
+      this.uploadDialogVisible = false
+      let name = 'dy' + new Date().getTime()
+      this.processFile.unshift(name)
+      let params = {
+        url: this.dy_link,
+        tag: this.uploadTag,
+        category: this.classify,
+      }
+      postAction('/figure/add_hot_video_by_link',params).then(res => {
+        console.log(res)
+        if (res.data.status === 'success') {
+          this.$notify({
+            title: "上传提示",
+            message: `${name}爆款视频上传成功`,
+            duration: 20000,
+            type: "success",
+          });
+        } else {
+          this.$notify({
+            title: "上传提示",
+            message: `${name}爆款视频上传失败，${res.data.data}`,
+            duration: 0,
+            type: "error",
+          });
+        }
+        this.processFile = this.processFile.filter(item => item !== name)
+      })
     },
     uploadSuccess(res, file) {
       if (res.status === "success") {
@@ -242,11 +283,7 @@ export default {
           type: "error",
         });
       }
-      this.processFile = this.processFile.filter(item => item.name !== file.name)
-      // if (this.loading) {
-      //   this.loading.close();
-      //   this.loading = null;
-      // }
+      this.processFile = this.processFile.filter(item => item !== file.name)
       this.queryHots()
     },
     uploadError() {
@@ -256,15 +293,12 @@ export default {
       }
     },
     beforeUpload(file) {
-      this.processFile.unshift(file)
+      this.processFile.unshift(file.name)
       this.uploadDialogVisible = false
-      // this.loading = this.$loading({
-      //   lock: true,
-      //   text: '爆款视频上传中，请耐心等待...',
-      //   spinner: 'el-icon-loading',
-      //   background: 'rgba(0, 0, 0, 0.7)'
-      // });
     },
+    duplicate() {
+      this.$router.push({path: '/material'})
+    }
   }
 }
 </script>
@@ -353,10 +387,23 @@ export default {
 .video-card {
   aspect-ratio: 9 / 16;
   position: relative;
+  border-radius: 8px;
+  display: flex;
 }
 
 .video-card:hover {
+  background-color: #f5f5f5;
   transform: scale(1.05);
+}
+
+.video-active {
+  border: 2px solid #3b82f6;
+}
+
+.hot-img {
+  width: 100%;
+  aspect-ratio: 9 / 16;
+  border-radius: 6px;
 }
 
 .video-tag {
@@ -387,9 +434,21 @@ export default {
   width: 100%;
 }
 
-.video-title {
+.selection-tick {
   position: absolute;
-  bottom: 4px;
+  top: 5px;
+  right: 5px;
+  background-color: #3b82f6;
+  border-radius: 50%;
+  justify-content: center;
+  align-items: center;
+  color: white;
+  z-index: 5;
+}
+
+.video-title, .video-title-hover {
+  position: absolute;
+  bottom: 0;
   width: 100%;
   background: linear-gradient(to bottom, rgba(0, 0, 0, 0), rgba(0, 0, 0, 1));
   padding: 10px;
@@ -398,19 +457,9 @@ export default {
   font-size: 12px;
   border-bottom-left-radius: 8px;
   border-bottom-right-radius: 8px;
-}
-
-.video-title-hover {
-  position: absolute;
-  bottom: 4px;
-  width: 100%;
-  background: linear-gradient(to bottom, rgba(0, 0, 0, 0), rgba(0, 0, 0, 1));
-  padding: 2px 10px 10px 10px;
-  box-sizing: border-box;
-  color: #FFFFFF;
-  font-size: 12px;
-  border-bottom-left-radius: 8px;
-  border-bottom-right-radius: 8px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .foot-btn {

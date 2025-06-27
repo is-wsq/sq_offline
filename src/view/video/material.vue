@@ -82,10 +82,9 @@
           </div>
         </div>
         <div class="c-center-btn">
-          <el-button type="primary" class="next-btn" @click="nextStep('/smartGenerate')"
-                     v-if="nextType === 'montage'">下一步：编辑文案</el-button>
-          <el-button type="primary" class="next-btn" @click="nextStep('/syncCv')"
-                     v-else>下一步：一键混剪</el-button>
+          <el-button type="primary" class="next-btn" @click="nextStep">
+            {{ nextType.includes('montage')? '下一步：编辑文案' : '下一步：一键混剪' }}
+          </el-button>
         </div>
       </div>
       <div class="c-right">
@@ -856,13 +855,28 @@ export default {
       sessionStorage.setItem('preset_id', '0')
       this.$forceUpdate()
     },
-    nextStep(path) {
+    nextStep() {
       if (this.material_list.length === 0) {
         this.$alert('请先选择需要混剪的素材', '提示')
         return
       }
       sessionStorage.setItem('script_type', 'material')
       sessionStorage.setItem('mention_list', JSON.stringify(this.mentionList))
+      let path = ''
+      switch (this.nextType) {
+        case "montage":
+          path = '/smartGenerate'
+          break;
+        case "hot_montage":
+          path = '/duplicate'
+          break;
+        case "storyboard":
+          path = '/syncCv'
+          break;
+        case "hot_storyboard":
+          path = '/segments'
+          break;
+      }
       this.$router.push({path: path})
     }
   }

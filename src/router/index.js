@@ -7,11 +7,12 @@ import ai from '../view/ai/index.vue';
 import figures from '../view/figures/index.vue';
 import voice from '../view/voice/index.vue';
 import video from '../view/video/home.vue';
-import digitalHuman from '../view/video/index.vue';
 import human from '../view/video/human.vue';
 import material from '../view/video/material.vue';
 import smartGenerate from '../view/video/smartGenerate.vue';
 import syncCv from '../view/video/syncCv.vue';
+import duplicate from '../view/video/duplicate.vue';
+import segments from '../view/video/segments.vue';
 import montage from '../view/video/montage.vue';
 import hot from '../view/video/hot.vue';
 import videoList from '../view/video/list.vue';
@@ -60,6 +61,16 @@ const routes = [
         path: '/syncCv',
         name: 'syncCv',
         component: syncCv
+    },
+    {
+        path: '/duplicate',
+        name: 'duplicate',
+        component: duplicate
+    },
+    {
+        path: '/segments',
+        name: 'segments',
+        component: segments
     },
     {
         path: '/montage',

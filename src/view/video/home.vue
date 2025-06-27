@@ -52,14 +52,14 @@
         <div class="feature-title">爆款复刻</div>
         <div class="feature-desc">借鉴热门作品的成功经验，通过智能分析与内容替换，快速创作您的爆款视频。</div>
         <div class="card-actions">
-          <button class="sub-option-button" @click="gotoPage('/hot', 'montage')">
+          <button class="sub-option-button" @click="gotoPage('/hot', 'hot_montage')">
             <i class="el-icon-shuffle sub-icon"></i>
             <div class="sub-option-text-wrapper">
               <div class="title">一键混剪</div>
               <div class="desc">AI根据文案随机匹配素材，快速生成视频。</div>
             </div>
           </button>
-          <button class="sub-option-button" @click="gotoPage('/hot', 'storyboard')">
+          <button class="sub-option-button" @click="gotoPage('/hot', 'hot_storyboard')">
             <i class="el-icon-timeline sub-icon"></i>
             <div class="sub-option-text-wrapper">
               <div class="title">分镜打磨</div>
