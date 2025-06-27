@@ -6,7 +6,7 @@ export const RightMenuMixin = {
                 top: '0',
                 left: '0',
                 border: '1px solid #eee',
-                'border-radius': '10px',
+                'border-radius': '6px',
                 'background-color': '#fff',
                 'z-index': 9999
             },

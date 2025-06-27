@@ -91,10 +91,10 @@ body {
 }
 
 .right-item {
-  width: 130px !important;
+  width: 170px !important;
   height: 46px !important;
   line-height: 46px !important;
-  border-radius: 10px !important;
+  border-radius: 6px !important;
   padding-left: 20px !important;
 }
 

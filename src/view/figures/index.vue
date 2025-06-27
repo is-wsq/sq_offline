@@ -70,6 +70,10 @@
           <i class="el-icon-delete-solid menu-icon"></i>
           <span style="margin-top: 2px">删除</span>
         </div>
+        <div class="right-item" @click="detail">
+          <i class="el-icon-document menu-icon"></i>
+          <span style="margin-top: 2px">详情</span>
+        </div>
       </div>
     </div>
     <div style="display: flex;margin-top: 30px;gap: 100px">
@@ -90,6 +94,9 @@
         </el-upload>
       </div>
     </div>
+    <el-dialog class="detail-dialog" title="素材分析结果" :visible.sync="detailDialogVisible" width="640px">
+      <div v-html="htmlContent" class="markdown-content"></div>
+    </el-dialog>
     <el-dialog class="upload-dialog" :visible.sync="uploadDialogVisible" width="32rem"
                title="上传素材" :before-close="beforeUploadClose">
       <el-upload
@@ -154,7 +161,7 @@ import {RightMenuMixin} from "@/mixins/RightMenuMixin";
 import {delAction, getAction, postAction} from "@/api/api";
 import {mapGetters} from "vuex";
 import axios from "axios";
-
+import {marked} from "marked";
 export default {
   name: "figures",
   mixins: [RightMenuMixin],
@@ -174,6 +181,8 @@ export default {
       dot: '.',
       materialList: [],
       response_list: [],
+      detailDialogVisible: false,
+      detail_content: '',
     };
   },
   computed: {
@@ -190,6 +199,9 @@ export default {
     materials() {
       return this.figureTasks.filter((item) => item.status === "success" && item.video_type === 'material');
     },
+    htmlContent() {
+      return marked(this.detail_content);
+    }
   },
   mounted() {
     this.startDotAnimation();
@@ -269,6 +281,11 @@ export default {
       }).catch((err) => {
         this.$message.error("删除失败，请稍后重试！");
       });
+    },
+    detail() {
+      console.log(this.selectedItem)
+      this.detailDialogVisible = true;
+      this.detail_content = this.selectedItem.material_summary;
     },
     checkAspectRatio() {
       const video = this.$refs.video;
@@ -472,6 +489,23 @@ export default {
   height: 80px;
   margin-top: 20px;
   color: #6d7177;
+}
+
+.markdown-content {
+  max-height: 400px;
+  overflow: auto;
+}
+
+.detail-dialog {
+  border-radius: 8px !important;
+}
+
+.detail-dialog >>> .el-dialog__title {
+  font-weight: bold;
+}
+
+.detail-dialog >>> .el-dialog__body {
+  padding: 0 20px 20px 20px !important;
 }
 
 .upload-dialog >>> .el-dialog {
