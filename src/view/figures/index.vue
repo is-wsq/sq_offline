@@ -25,7 +25,7 @@
                :key="index"
                @contextmenu.stop="handleContextMenu(item, $event)"
                @click="selectItem(item)">
-            <el-image class="figures-img" :src="item.picture" fit="cover"></el-image>
+            <el-image class="figures-img" :src="item.picture.replace('127.0.0.1','192.168.1.4')" fit="cover"></el-image>
             <div class="figure-name" :title="item.name">{{ item.name }}</div>
           </div>
         </div>
@@ -52,7 +52,7 @@
                :key="index"
                @contextmenu.stop="handleContextMenu(item, $event)"
                @click="selectItem(item)">
-            <el-image class="figures-img" :src="item.picture" fit="cover"></el-image>
+            <el-image class="figures-img" :src="item.picture.replace('127.0.0.1','192.168.1.4')" fit="cover"></el-image>
             <div class="figure-name" :title="item.name">{{ item.name }}</div>
           </div>
         </div>
@@ -70,7 +70,7 @@
           <i class="el-icon-delete-solid menu-icon"></i>
           <span style="margin-top: 2px">删除</span>
         </div>
-        <div class="right-item" @click="detail">
+        <div class="right-item" @click="detail" v-if="selectedItem.video_type === 'material'">
           <i class="el-icon-document menu-icon"></i>
           <span style="margin-top: 2px">详情</span>
         </div>
