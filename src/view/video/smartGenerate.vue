@@ -15,14 +15,14 @@
             <el-collapse v-model="activeName" accordion>
               <el-collapse-item title="AI批量生成" name="1">
                 <div class="smart-generate-c-l-ai">
-                  <div style="max-height: 400px; overflow-y: auto" ref="scriptForm">
+                  <div style="max-height: max(calc(100vh - 360px), 380px); overflow-y: auto" ref="scriptForm">
                     <div class="smart-generate-c-l-ai-title">文案要求</div>
-                    <el-input type="textarea" :rows="2" placeholder="例如：写一个关于猫咪的搞笑段子"
-                              class="margin-b-12" v-model="copy_require"></el-input>
+                    <el-input type="textarea" :autosize="{ minRows: 3, maxRows: 6 }" placeholder="例如：写一个关于猫咪的搞笑段子"
+                              class="margin-b-12" v-model="copy_require" resize="none"></el-input>
                     <div class="smart-generate-c-l-ai-title">示例文案（选填）</div>
                     <div class="flex-center margin-b-8" v-for="(text, index) in exampleTexts" :key="index">
-                      <el-input type="textarea" :rows="3" placeholder="提供一个你喜欢的风格的例子"
-                                v-model="exampleTexts[index]"></el-input>
+                      <el-input type="textarea" :autosize="{ minRows: 3, maxRows: 6 }" placeholder="提供一个你喜欢的风格的例子"
+                                v-model="exampleTexts[index]" resize="none"></el-input>
                       <el-button size="mini" type="danger" icon="el-icon-delete" @click="removeText(index)"></el-button>
                     </div>
                     <div class="margin-b-12">
@@ -57,10 +57,10 @@
               </el-collapse-item>
               <el-collapse-item title="手动添加文案" name="2">
                 <div class="smart-generate-c-l-manual">
-                  <el-input type="textarea" :rows="1" placeholder="文案标题..." class="margin-b-12"
-                            v-model="copy_title"></el-input>
-                  <el-input type="textarea" :rows="3" placeholder="文案内容..." class="margin-b-12"
-                            v-model="copy_content"></el-input>
+                  <el-input type="textarea" :autosize="{ minRows: 1, maxRows: 3 }" placeholder="文案标题..."
+                            class="margin-b-12" v-model="copy_title" resize="none"></el-input>
+                  <el-input type="textarea" :autosize="{ minRows: 3, maxRows: 6 }" placeholder="文案内容..."
+                            class="margin-b-12"v-model="copy_content" resize="none"></el-input>
                   <el-button type="primary" style="width: 100%" @click="addCopy">添加文案</el-button>
                 </div>
               </el-collapse-item>
@@ -75,16 +75,16 @@
                 <div v-for="(item, index) in copy_list" :key="index" class="copy-item">
                   <i class="el-icon-tuodong" style="color: #9ca3af;font-size: 18px"></i>
                   <div class="copy-item-content" style="cursor: pointer"
-                       v-if="!item.isEdit" @click="item.isEdit = true">
+                       v-if="!item.isEdit" @click="showEdit(item)">
                     <div class="copy-item-title" :title="item.title">{{ item.title }}</div>
                     <div class="copy-item-desc">{{ item.content }}</div>
                   </div>
                   <div class="copy-item-content" v-else>
-                    <el-input type="textarea" :rows="1" placeholder="文案标题..." class="margin-b-12"
-                              v-model="item.title"></el-input>
-                    <el-input type="textarea" :rows="3" placeholder="文案内容..." class="margin-b-12"
-                              v-model="item.content"></el-input>
-                    <el-button class="copy-item-save" type="primary" @click="item.isEdit = false">保存修改</el-button>
+                    <el-input type="textarea" :autosize="{ minRows: 1, maxRows: 3 }" placeholder="文案标题..."
+                              class="margin-b-12" v-model="new_title" resize="none"></el-input>
+                    <el-input type="textarea" :autosize="{ minRows: 3, maxRows: 6 }" placeholder="文案内容..."
+                              class="margin-b-12" v-model="new_content" resize="none"></el-input>
+                    <el-button class="copy-item-save" type="primary" @click="saveCopy(index)">保存修改</el-button>
                   </div>
                   <i class="el-icon-close copy-item-close" @click="removeCopy(index)"></i>
                 </div>
@@ -125,6 +125,8 @@ export default {
       copy_title: '',
       copy_content: '',
       copy_list: [],
+      new_title: '',
+      new_content: '',
       script_type: '',
 
       figure: {},
@@ -227,6 +229,17 @@ export default {
       this.copy_title = '';
       this.copy_content = '';
       sessionStorage.setItem("copy_list", JSON.stringify(this.copy_list))
+    },
+    showEdit(item) {
+      item.isEdit = true;
+      this.new_title = item.title
+      this.new_content = item.content
+    },
+    saveCopy(index) {
+      this.copy_list[index].isEdit = false;
+      this.copy_list[index].title = this.new_title;
+      this.copy_list[index].content = this.new_content;
+      sessionStorage.setItem("copy_list", JSON.stringify(this.copy_list));
     },
     removeCopy(index) {
       this.copy_list.splice(index, 1);
@@ -422,6 +435,7 @@ export default {
   background-color: #f9f9f9;
   border: 1px solid #DCDFE6;
   border-radius: 4px;
+  font-family: "Helvetica Neue", Arial, sans-serif;
 }
 
 .smart-generate-c-l-ai >>> .el-input__inner,
@@ -433,6 +447,7 @@ export default {
   height: 30px;
   line-height: 30px;
   padding: 0 5px 0 15px;
+  font-family: "Helvetica Neue", Arial, sans-serif;
 }
 
 .smart-generate-c-l-ai >>> .el-input__icon,

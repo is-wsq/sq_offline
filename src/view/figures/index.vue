@@ -25,7 +25,7 @@
                :key="index"
                @contextmenu.stop="handleContextMenu(item, $event)"
                @click="selectItem(item)">
-            <el-image class="figures-img" :src="item.picture.replace('127.0.0.1','192.168.1.4')" fit="cover"></el-image>
+            <el-image class="figures-img" :src="item.picture" fit="cover"></el-image>
             <div class="figure-name" :title="item.name">{{ item.name }}</div>
           </div>
         </div>
@@ -52,7 +52,7 @@
                :key="index"
                @contextmenu.stop="handleContextMenu(item, $event)"
                @click="selectItem(item)">
-            <el-image class="figures-img" :src="item.picture.replace('127.0.0.1','192.168.1.4')" fit="cover"></el-image>
+            <el-image class="figures-img" :src="item.picture" fit="cover"></el-image>
             <div class="figure-name" :title="item.name">{{ item.name }}</div>
           </div>
         </div>
