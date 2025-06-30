@@ -11,7 +11,7 @@
       <div class="c-left">
         <div style="line-height: 40px;font-weight: bold;margin-left: 15px">素材库</div>
         <div class="filter-content">
-          <el-input prefix-icon="el-icon-search" placeholder="输入素材名称、标签匹配搜索"
+          <el-input prefix-icon="el-icon-search" placeholder="输入素材名称、标签匹配搜索" clearable
                     class="filter-input" v-model="filter_text" @change="filterMaterials"></el-input>
         </div>
         <div class="m-card"
@@ -974,7 +974,7 @@ export default {
   font-size: 15px;
   color: #1e1f20;
   width: 100%;
-  max-width: 140px;
+  max-width: 120px;
   text-align: center;
   white-space: nowrap;
   overflow: hidden;

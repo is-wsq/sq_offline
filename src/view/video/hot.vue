@@ -5,7 +5,7 @@
     </el-button>
     <div class="box-card">
       <div class="search-content">
-        <el-input prefix-icon="el-icon-search" placeholder="一句话搜模板，例如：科技感转场"
+        <el-input prefix-icon="el-icon-search" placeholder="一句话搜模板，例如：科技感转场" clearable
                   class="search-input" v-model="searchText" @change="searchFilter"></el-input>
       </div>
       <div class="tags">

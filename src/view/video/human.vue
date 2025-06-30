@@ -11,7 +11,7 @@
       <div class="figure-left-panel">
         <div class="left-title">数字人库</div>
         <div class="filter-content">
-          <el-input prefix-icon="el-icon-search" placeholder="输入数字人名称匹配搜索"
+          <el-input prefix-icon="el-icon-search" placeholder="输入数字人名称匹配搜索" clearable
                     class="filter-input" v-model="filter_text" @change="filterFigure"></el-input>
         </div>
         <div class="figure-list">
@@ -813,12 +813,12 @@ export default {
 .figure-name {
   font-size: 15px;
   color: #1e1f20;
-  width: 100px;
+  width: 100%;
+  max-width: 140px;
   text-align: center;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  margin: 0 auto;
 }
 
 .figure-img-selected {
