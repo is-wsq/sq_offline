@@ -1,9 +1,5 @@
 <template>
   <div class="video-list">
-<!--    <div class="list-search">-->
-<!--      <el-input class="list-search-input" prefix-icon="el-icon-search" placeholder="通过标题搜索视频..."-->
-<!--                v-model="keyword" @change="filterVideo"></el-input>-->
-<!--    </div>-->
     <div class="list-content">
       <div v-for="item in processList" :key="item.id" style="text-align: center">
         <div class="image-wrapper shining">
@@ -32,12 +28,13 @@
         <div class="video-item-info">
           <div :title="item.filename" class="video-name" v-if="!item.isEdit">{{ item.filename }}</div>
           <div v-else style="flex: 1" @click.stop="">
-            <el-input style="width: 100%" v-model="newName" @change="onSave(item)"></el-input>
+            <el-input :ref="'renameInput_' + item.id" style="width: 100%" v-model="newName" @change="onSave(item)"
+                      @blur="onSave(item)"></el-input>
           </div>
           <el-popover
               placement="left-start"
               popper-class="video-item-more-popover"
-              v-model="item.show"
+              v-model="popoverStates[item.id]"
               trigger="click">
               <div class="more-btn-item" @click="deleteVideo(item)">
                 <i class="el-icon-delete-solid menu-icon"></i>
@@ -83,7 +80,6 @@ export default {
     return {
       keyword: '',
       filterProcess: [],
-      filterVideos: [],
       dotCount: 1,
       dotTimer: null,
       dot: '.',
@@ -96,7 +92,9 @@ export default {
       isPlaying: false,
       downloadFilePath: '',
       downloadFileName: '',
-      selectedId: ''
+      selectedId: '',
+      popoverStates: {},
+      inputFocus: false,
     }
   },
   computed: {
@@ -105,44 +103,14 @@ export default {
       return this.videoTasks.filter((item) => item.status === 'pending');
     },
     videoList() {
-      return this.videoTasks.filter((item) => item.status === 'success').map((item) => ({ ...item, show: false, isEdit: false }));
+      return this.videoTasks.filter((item) => item.status === 'success').map((item) => ({ ...item, isEdit: false }));
     },
   },
-  // watch: {
-  //   processList: {
-  //     handler(newVal, oldVal) {
-  //       if (newVal !== oldVal) {
-  //         this.filterVideo();
-  //       }
-  //     },
-  //     deep: true
-  //   },
-  //   videoList: {
-  //     handler(newVal, oldVal) {
-  //       if (newVal !== oldVal) {
-  //         this.filterVideo();
-  //       }
-  //     },
-  //     deep: true
-  //   }
-  // },
   mounted() {
     this.startDotAnimation();
     this.$store.dispatch("task/pollVideoTasks")
-    // .then(() => {
-    //   this.filterVideo()
-    // });
   },
   methods: {
-    filterVideo() {
-      if (this.keyword !== '') {
-        this.filterProcess = this.processList.filter((item) => item.filename.includes(this.keyword));
-        this.filterVideos = this.videoList.filter((item) => item.filename.includes(this.keyword));
-      } else {
-        this.filterProcess = this.processList;
-        this.filterVideos = this.videoList;
-      }
-    },
     startDotAnimation() {
       this.dotTimer = setInterval(() => {
         this.dotCount = this.dotCount % 3 + 1;
@@ -150,7 +118,7 @@ export default {
       }, 1000);
     },
     deleteVideo(item) {
-      item.show = false;
+      this.popoverStates[item.id] = false;
       this.$confirm('此操作将永久删除该文件, 是否继续?', '提示', {
         confirmButtonText: '确定',
         cancelButtonText: '取消',
@@ -159,9 +127,7 @@ export default {
         delAction(`/video_record/delete/${item.id}`).then(res => {
           if (res.data.status === 'success') {
             this.$message.success('删除成功');
-            this.$store.dispatch("task/pollVideoTasks").then(() => {
-              this.filterVideo()
-            });
+            this.$store.dispatch("task/pollVideoTasks")
           } else {
             this.$message.error(res.data.message);
           }
@@ -171,7 +137,7 @@ export default {
       });
     },
     async downloadVideo(item) {
-      item.show = false;
+      this.popoverStates[item.id] = false;
       let self = this
       window.electronAPI.selectFolder().then((path) => {
         if (path) {
@@ -181,20 +147,37 @@ export default {
       })
     },
     rename(item) {
-      item.show = false;
-      item.isEdit = true
+      this.popoverStates[item.id] = false;
+      item.isEdit = true;
       this.newName = item.filename;
       this.videoId = item.id;
-    },
-    clearOther(item) {
-      this.filterVideos.forEach((video) => {
-        if (item.id !== video.id) {
-          video.show = false;
-          video.isEdit = false
+
+      this.$nextTick(() => {
+        const inputRefs = this.$refs[`renameInput_${item.id}`];
+        if (inputRefs && inputRefs.length > 0) {
+          const input = inputRefs[0];
+          input.focus();
+          // 可选：全选内容
+          // input.select();
+        } else {
+          console.warn('未找到对应的输入框 ref', item.id);
         }
       });
     },
+    clearOther(item) {
+      this.videoList.forEach((video) => {
+        if (video.id !== item.id) {
+          video.isEdit = false
+          this.popoverStates[video.id] = false;
+        }
+      })
+    },
     onSave(item) {
+      if (this.newName === item.filename) {
+        item.isEdit = false;
+        this.$forceUpdate()
+        return
+      }
       let params = {
         id: this.videoId,
         name: this.newName,
@@ -202,9 +185,7 @@ export default {
       postAction("/video_record/update_name", params).then((res) => {
         if (res.data.status === "success") {
           this.$message.success("重命名成功");
-          this.$store.dispatch("task/pollVideoTasks").then(() => {
-            this.filterVideo()
-          });
+          this.$store.dispatch("task/pollVideoTasks")
         } else {
           this.$message.error(res.data.message);
         }
