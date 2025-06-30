@@ -15,12 +15,13 @@
             <div class="smart-generate-c-l-ai">
               <div style="height: calc(100% - 50px); overflow-y: auto">
                 <div class="smart-generate-c-l-ai-title">文案要求</div>
-                <el-input type="textarea" :rows="2" placeholder="例如：写一个关于猫咪的搞笑段子"
-                          class="margin-b-12" v-model="copy_require"></el-input>
-                <div class="smart-generate-c-l-ai-title">示例文案（选填）</div>
+                <el-input type="textarea" :autosize="{ minRows: 3, maxRows: 6 }" placeholder="例如：写一个关于猫咪的搞笑段子"
+                          class="margin-b-12" v-model="copy_require" resize="none"></el-input>
+                <div class="smart-generate-c-l-ai-title">示例文案</div>
                 <div class="flex-center margin-b-8" v-for="(text, index) in exampleTexts" :key="index">
-                  <el-input type="textarea" :rows="3" placeholder="提供一个你喜欢的风格的例子"
-                            v-model="exampleTexts[index]" disabled></el-input>
+<!--                  <el-input type="textarea" :rows="3" placeholder="提供一个你喜欢的风格的例子"-->
+<!--                            v-model="exampleTexts[index]" disabled></el-input>-->
+                  <div class="copy-item-example">{{ exampleTexts[index] }}</div>
                 </div>
                 <div style="display: flex;gap: 12px" class="margin-b-12">
                   <div style="flex: 1">
@@ -58,16 +59,16 @@
                 <div v-for="(item, index) in hot_copy_list" :key="index" class="copy-item">
                   <i class="el-icon-tuodong" style="color: #9ca3af;font-size: 18px"></i>
                   <div class="copy-item-content" style="cursor: pointer"
-                       v-if="!item.isEdit" @click="item.isEdit = true">
+                       v-if="!item.isEdit" @click="showEdit(item)">
                     <div class="copy-item-title" :title="item.title">{{ item.title }}</div>
                     <div class="copy-item-desc">{{ item.content }}</div>
                   </div>
                   <div class="copy-item-content" v-else>
-                    <el-input type="textarea" :rows="1" placeholder="文案标题..." class="margin-b-12"
-                              v-model="item.title"></el-input>
-                    <el-input type="textarea" :rows="3" placeholder="文案内容..." class="margin-b-12"
-                              v-model="item.content"></el-input>
-                    <el-button class="copy-item-save" type="primary" @click="item.isEdit = false">保存修改</el-button>
+                    <el-input type="textarea" :autosize="{ minRows: 1, maxRows: 3 }" placeholder="文案标题..."
+                              class="margin-b-12" v-model="new_title" resize="none"></el-input>
+                    <el-input type="textarea" :autosize="{ minRows: 3, maxRows: 6 }" placeholder="文案内容..."
+                              class="margin-b-12" v-model="new_content" resize="none"></el-input>
+                    <el-button class="copy-item-save" type="primary" @click="saveCopy(index)">保存修改</el-button>
                   </div>
                   <i class="el-icon-close copy-item-close" @click="removeCopy(index)"></i>
                 </div>
@@ -101,6 +102,8 @@ export default {
       script_num: 1,
       ai_model: 'deepseek_v3',
       hot_copy_list: [],
+      new_title: '',
+      new_content: '',
     }
   },
   mounted() {
@@ -163,6 +166,17 @@ export default {
           title: "文案生成失败", message: `${err}`,
           type: "error", duration: 0});
       })
+    },
+    showEdit(item) {
+      item.isEdit = true;
+      this.new_title = item.title
+      this.new_content = item.content
+    },
+    saveCopy(index) {
+      this.hot_copy_list[index].isEdit = false;
+      this.hot_copy_list[index].title = this.new_title;
+      this.hot_copy_list[index].content = this.new_content;
+      sessionStorage.setItem("hot_copy_list", JSON.stringify(this.hot_copy_list));
     },
     removeCopy(index) {
       this.hot_copy_list.splice(index, 1);
@@ -235,6 +249,7 @@ export default {
   background-color: #f9f9f9;
   border: 1px solid #DCDFE6;
   border-radius: 4px;
+  font-family: "Helvetica Neue", Arial, sans-serif;
 }
 
 .smart-generate-c-l-ai >>> .el-input__inner,
@@ -259,6 +274,18 @@ export default {
   font-size: 12px;
   color: #4b5563;
   margin-bottom: 4px;
+}
+
+.copy-item-example {
+  padding: 8px;
+  font-size: 13px;
+  color: #4f5153;
+  background-color: #f9f9f9;
+  border: 1px solid #DCDFE6;
+  border-radius: 4px;
+  max-height: 120px;
+  overflow-y: auto;
+  box-sizing: border-box;
 }
 
 .smart-generate-c-r-list {

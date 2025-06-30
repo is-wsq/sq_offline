@@ -17,7 +17,7 @@
         <div class="left-content-area">
           <div class="panel-title">分镜设置</div>
           <div class="panel-label">自定义要求（选填）</div>
-          <div style="position: relative;">
+          <div style="position: relative;border: 1px solid #d1d5db;border-radius: 4px">
             <div class="highlight-content"
                  v-html="highlightedText"
                  :style="{height: replaceDivHeight + 'px'}"
@@ -45,15 +45,18 @@
               </div>
             </div>
           </div>
-          <div class="without_at">
+          <div class="without_at" style=";height: calc(100% - 155px)">
             <div class="panel-title margin-t-8">文案设置</div>
-            <div class="panel-label">文案要求</div>
-            <el-input type="textarea" :rows="2" placeholder="例如：写一个关于猫咪的搞笑段子"
-                      class="margin-b-12" v-model="copy_require"></el-input>
-            <div class="panel-label">示例文案（选填）</div>
-            <div class="flex-center margin-b-8" v-for="(text, index) in exampleTexts" :key="index">
-              <el-input type="textarea" :rows="3" placeholder="提供一个你喜欢的风格的例子"
-                        v-model="exampleTexts[index]" disabled></el-input>
+            <div style="max-height:calc(100% - 150px);overflow-y: auto">
+              <div class="panel-label">文案要求</div>
+              <el-input type="textarea" :autosize="{ minRows: 3, maxRows: 6 }" placeholder="例如：写一个关于猫咪的搞笑段子"
+                        class="margin-b-12" v-model="copy_require" resize="none"></el-input>
+              <div class="panel-label">示例文案</div>
+              <div class="flex-center margin-b-8" v-for="(text, index) in exampleTexts" :key="index">
+                <!--              <el-input type="textarea" :rows="3" placeholder="提供一个你喜欢的风格的例子"-->
+                <!--                        v-model="exampleTexts[index]" disabled></el-input>-->
+                <div class="copy-item-example">{{ exampleTexts[index] }}</div>
+              </div>
             </div>
             <div style="display: flex;gap: 12px" class="margin-b-12">
               <div style="flex: 1">
@@ -681,7 +684,6 @@ export default {
 
 .left-content-area {
   height: calc(100% - 60px);
-  overflow-y: auto;
 }
 
 .without_at >>> .el-textarea__inner {
@@ -691,7 +693,7 @@ export default {
   border: 1px solid #DCDFE6;
   border-radius: 4px;
   font-size: 13px;
-  font-family: 'Inter', sans-serif;
+  font-family: "Helvetica Neue", Arial, sans-serif;
 }
 
 .without_at >>> .el-input__inner {
@@ -888,6 +890,18 @@ export default {
   margin-bottom: 4px;
 }
 
+.copy-item-example {
+  padding: 8px;
+  font-size: 13px;
+  color: #4f5153;
+  background-color: #f9f9f9;
+  border: 1px solid #DCDFE6;
+  border-radius: 4px;
+  max-height: 120px;
+  overflow-y: auto;
+  box-sizing: border-box;
+}
+
 .storyboard-panel {
   width: 340px;
   padding: 20px;
@@ -1050,6 +1064,7 @@ export default {
   line-height: 1.5;
   border-radius: 4px;
   box-shadow: none;
+  border: none;
   resize: none;
   transition: border-color 0.2s ease-in-out;
 }

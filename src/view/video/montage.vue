@@ -18,7 +18,7 @@
         <div class="settings-content-area">
           <div class="panel-title">混剪设置</div>
           <div class="setting-require">自定义要求（选填）</div>
-          <div style="position: relative;">
+          <div style="position: relative;border: 1px solid #d1d5db;border-radius: 4px">
             <div class="highlight-content"
                  v-html="highlightedText"
                  :style="{height: replaceDivHeight + 'px'}"
@@ -596,7 +596,7 @@ export default {
 
 .settings-panel {
   width: 280px;
-  padding: 20px;
+  padding: 19px;
   box-sizing: border-box;
   border-radius: 12px;
   background-color: #ffffff;
@@ -666,7 +666,7 @@ export default {
 .settings-content-area >>> .el-textarea__inner {
   padding: 8px;
   font-size: 14px;
-  font-family: 'Inter', sans-serif;
+  font-family: "Helvetica Neue", Arial, sans-serif;
   color: #1f2937;
   background-color: #f9fafb;
   border: 1px solid #d1d5db;
@@ -915,6 +915,7 @@ export default {
   pointer-events: none;
   z-index: 1;
   word-wrap: break-word;
+  font-family: "Helvetica Neue", Arial, sans-serif;
 }
 
 .input-layer {
@@ -928,6 +929,7 @@ export default {
 .input-layer >>> .el-textarea__inner {
   background-color: transparent;
   color: transparent; /* 让文字看不见 */
+  border: none;
   font-size: 14px;
   font-family: "Helvetica Neue", Arial, sans-serif;
   line-height: 1.5;
