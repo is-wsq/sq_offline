@@ -17,7 +17,7 @@
         <div class="left-content-area">
           <div class="panel-title">分镜设置</div>
           <div class="panel-label">自定义要求（选填）</div>
-          <div style="position: relative;border: 1px solid #d1d5db;border-radius: 4px">
+          <div style="position: relative;">
             <div class="highlight-content"
                  v-html="highlightedText"
                  :style="{height: replaceDivHeight + 'px'}"
@@ -52,14 +52,16 @@
               <el-input type="textarea" :autosize="{ minRows: 3, maxRows: 6 }" placeholder="例如：写一个关于猫咪的搞笑段子"
                         class="margin-b-12" v-model="copy_require" resize="none"></el-input>
               <div class="panel-label">示例文案（选填）</div>
-              <div class="flex-center margin-b-8" v-for="(text, index) in exampleTexts" :key="index">
+              <div class="flex-center margin-b-12 example_textarea" v-for="(text, index) in exampleTexts" :key="index">
                 <el-input type="textarea" :autosize="{ minRows: 3, maxRows: 6 }" placeholder="提供一个你喜欢的风格的例子"
                           v-model="exampleTexts[index]" resize="none"></el-input>
-                <el-button size="mini" type="danger" icon="el-icon-delete" @click="removeText(index)"></el-button>
+<!--                <el-button size="mini" type="danger" icon="el-icon-delete" @click="removeText(index)"></el-button>-->
+                <i class="el-icon-close example-close-icon" @click="removeText(index)" v-if="index !== 0"></i>
               </div>
             </div>
-            <div class="margin-b-12">
-              <el-button size="mini" type="primary" @click="addExampleText">添加示例文案</el-button>
+            <div class="margin-b-12 add_example_btn">
+              <el-button @click="addExampleText"><i class="el-icon-plus add_example_icon"></i>
+                添加示例文案</el-button>
             </div>
             <div style="display: flex;gap: 12px" class="margin-b-12">
               <div style="flex: 1">
@@ -672,21 +674,21 @@ export default {
 .setting-close {
   box-shadow: rgba(102, 126, 234, 0.3) 0 4px 20px;
   background: linear-gradient(135deg, rgb(102, 126, 234) 0%, rgb(118, 75, 162) 100%);
-  left: calc(400px);
+  left: calc(500px);
 }
 
 .setting-close:hover {
-  left: calc(404px);
+  left: calc(504px);
 }
 
 .setting-open {
   box-shadow: rgba(16, 185, 129, 0.3) 0 4px 20px;
   background: linear-gradient(135deg, rgb(16, 185, 129) 0%, rgb(5, 150, 105) 100%);
-  left: calc(100px);
+  left: calc(200px);
 }
 
 .setting-open:hover {
-  left: calc(104px);
+  left: calc(204px);
 }
 
 .left-content-area {
@@ -701,6 +703,54 @@ export default {
   border-radius: 4px;
   font-size: 13px;
   font-family: "Helvetica Neue", Arial, sans-serif;
+}
+
+
+.example_textarea {
+  position: relative;
+}
+
+.example-close-icon {
+  position: absolute;
+  right: 8px;
+  top: 8px;
+  color: #9ca3af;
+  font-size: 16px;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.example-close-icon:hover {
+  color: #ef4444;
+}
+
+.example_textarea >>> .el-textarea__inner {
+  padding-right: 30px !important;
+}
+
+.without_at >>> .el-textarea__inner:focus {
+  outline: none;
+  background: white;
+  border-color: #8b5cf6;
+  box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.1);
+}
+
+.add_example_btn >>> .el-button {
+  width: 100%;
+  background-color: #eef2ff;
+  color: #4338ca;
+  font-weight: 600;
+  font-size: 14px;
+  line-height: 20px;
+  padding: 8px 16px;
+  border-radius: 6px;
+  border: 1px solid #c7d2fe;
+}
+
+.add_example_icon {
+  font-size: 10px;
+  font-weight: bold;
+  line-height: 16px;
 }
 
 .without_at >>> .el-input__inner {
@@ -1060,10 +1110,15 @@ export default {
   border-radius: 4px;
   box-shadow: none;
   resize: none;
-  border: none;
+  border: 1px solid #d1d5db;
   transition: border-color 0.2s ease-in-out;
 }
 
+.input-layer >>> .el-textarea__inner:focus {
+  outline: none;
+  border-color: #8b5cf6;
+  box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.1);
+}
 
 .volume-control {
   margin-top: 20px;

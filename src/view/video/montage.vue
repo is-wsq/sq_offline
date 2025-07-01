@@ -606,7 +606,7 @@ export default {
 .toggle-btn-open {
   position: fixed;
   top: 50%;
-  left: calc(400px);
+  left: calc(500px);
   transform: translateY(-50%);
   width: 20px;
   height: 80px;
@@ -628,13 +628,13 @@ export default {
 }
 
 .toggle-btn-open:hover {
-  left: calc(404px);
+  left: calc(504px);
 }
 
 .toggle-btn-close {
   position: fixed;
   top: 50%;
-  left: calc(100px);
+  left: calc(200px);
   transform: translateY(-50%);
   width: 20px;
   height: 80px;
@@ -656,7 +656,7 @@ export default {
 }
 
 .toggle-btn-close:hover {
-  left: calc(104px);
+  left: calc(204px);
 }
 
 .settings-content-area {

@@ -20,13 +20,15 @@
                     <el-input type="textarea" :autosize="{ minRows: 3, maxRows: 6 }" placeholder="例如：写一个关于猫咪的搞笑段子"
                               class="margin-b-12" v-model="copy_require" resize="none"></el-input>
                     <div class="smart-generate-c-l-ai-title">示例文案（选填）</div>
-                    <div class="flex-center margin-b-8" v-for="(text, index) in exampleTexts" :key="index">
+                    <div class="flex-center margin-b-16 example_textarea" v-for="(text, index) in exampleTexts" :key="index">
                       <el-input type="textarea" :autosize="{ minRows: 3, maxRows: 6 }" placeholder="提供一个你喜欢的风格的例子"
                                 v-model="exampleTexts[index]" resize="none"></el-input>
-                      <el-button size="mini" type="danger" icon="el-icon-delete" @click="removeText(index)"></el-button>
+  <!--                      <el-button size="mini" type="danger" icon="el-icon-delete" @click="removeText(index)"></el-button>-->
+                      <i class="el-icon-close example-close-icon" @click="removeText(index)" v-if="index !== 0"></i>
                     </div>
-                    <div class="margin-b-12">
-                      <el-button type="primary" size="mini" @click="addExampleText">添加示例文案</el-button>
+                    <div class="margin-b-16 add_example_btn">
+                      <el-button @click="addExampleText"><i class="el-icon-plus add_example_icon"></i>
+                        添加示例文案</el-button>
                     </div>
                     <div style="display: flex;gap: 12px" class="margin-b-12">
                       <div style="flex: 1">
@@ -438,6 +440,37 @@ export default {
   font-family: "Helvetica Neue", Arial, sans-serif;
 }
 
+.example_textarea {
+  position: relative;
+}
+
+.example-close-icon {
+  position: absolute;
+  right: 8px;
+  top: 8px;
+  color: #9ca3af;
+  font-size: 16px;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.example-close-icon:hover {
+  color: #ef4444;
+}
+
+.example_textarea >>> .el-textarea__inner {
+  padding-right: 30px !important;
+}
+
+.smart-generate-c-l-ai >>> .el-textarea__inner:focus,
+.smart-generate-c-l-manual >>> .el-textarea__inner:focus,
+.copy-item-content >>> .el-textarea__inner:focus {
+  outline: none;
+  background: white;
+  border-color: #8b5cf6;
+  box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.1);
+}
+
 .smart-generate-c-l-ai >>> .el-input__inner,
 .smart-generate-c-l-manual >>> .el-input__inner,
 .copy-item-content >>> .el-input__inner {
@@ -457,6 +490,24 @@ export default {
 
 .batch-btn {
   width: 100%;
+}
+
+.add_example_btn >>> .el-button {
+  width: 100%;
+  background-color: #eef2ff;
+  color: #4338ca;
+  font-weight: 600;
+  font-size: 14px;
+  line-height: 20px;
+  padding: 8px 16px;
+  border-radius: 6px;
+  border: 1px solid #c7d2fe;
+}
+
+.add_example_icon {
+  font-size: 10px;
+  font-weight: bold;
+  line-height: 16px;
 }
 
 .smart-generate-c-l-ai-title {

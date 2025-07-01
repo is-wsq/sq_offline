@@ -665,21 +665,21 @@ export default {
 .setting-close {
   box-shadow: rgba(102, 126, 234, 0.3) 0 4px 20px;
   background: linear-gradient(135deg, rgb(102, 126, 234) 0%, rgb(118, 75, 162) 100%);
-  left: calc(400px);
+  left: calc(500px);
 }
 
 .setting-close:hover {
-  left: calc(404px);
+  left: calc(504px);
 }
 
 .setting-open {
   box-shadow: rgba(16, 185, 129, 0.3) 0 4px 20px;
   background: linear-gradient(135deg, rgb(16, 185, 129) 0%, rgb(5, 150, 105) 100%);
-  left: calc(100px);
+  left: calc(200px);
 }
 
 .setting-open:hover {
-  left: calc(104px);
+  left: calc(204px);
 }
 
 .left-content-area {
