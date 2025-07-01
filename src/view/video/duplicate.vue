@@ -119,7 +119,7 @@ export default {
     },
     initData() {
       this.hot_copy_list = sessionStorage.getItem("hot_copy_list") ?
-          JSON.parse(sessionStorage.getItem("hot_copy_list")) : [{title: '123',content: '456',isEdit:false}]
+          JSON.parse(sessionStorage.getItem("hot_copy_list")) : []
       let hots = JSON.parse(sessionStorage.getItem("select_hots"))
       this.exampleTexts = []
       this.exampleTexts[0] = hots.segments.map(segment => segment.asr_text).join('');
