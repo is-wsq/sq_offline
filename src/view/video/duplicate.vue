@@ -19,8 +19,6 @@
                           class="margin-b-12" v-model="copy_require" resize="none"></el-input>
                 <div class="smart-generate-c-l-ai-title">示例文案</div>
                 <div class="flex-center margin-b-8" v-for="(text, index) in exampleTexts" :key="index">
-<!--                  <el-input type="textarea" :rows="3" placeholder="提供一个你喜欢的风格的例子"-->
-<!--                            v-model="exampleTexts[index]" disabled></el-input>-->
                   <div class="copy-item-example">{{ exampleTexts[index] }}</div>
                 </div>
                 <div style="display: flex;gap: 12px" class="margin-b-12">
@@ -121,7 +119,7 @@ export default {
     },
     initData() {
       this.hot_copy_list = sessionStorage.getItem("hot_copy_list") ?
-          JSON.parse(sessionStorage.getItem("hot_copy_list")) : []
+          JSON.parse(sessionStorage.getItem("hot_copy_list")) : [{title: '123',content: '456',isEdit:false}]
       let hots = JSON.parse(sessionStorage.getItem("select_hots"))
       this.exampleTexts = []
       this.exampleTexts[0] = hots.segments.map(segment => segment.asr_text).join('');
@@ -252,6 +250,14 @@ export default {
   font-family: "Helvetica Neue", Arial, sans-serif;
 }
 
+.smart-generate-c-l-ai >>> .el-textarea__inner:focus,
+.copy-item-content >>> .el-textarea__inner:focus {
+  outline: none;
+  background: white;
+  border-color: #8b5cf6;
+  box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.1);
+}
+
 .smart-generate-c-l-ai >>> .el-input__inner,
 .copy-item-content >>> .el-input__inner {
   background-color: #f9f9f9;
@@ -264,10 +270,6 @@ export default {
 
 .smart-generate-c-l-ai >>> .el-input__icon {
   line-height: 30px;
-}
-
-.batch-btn {
-  width: 100%;
 }
 
 .smart-generate-c-l-ai-title {

@@ -705,6 +705,12 @@ export default {
   font-family: "Helvetica Neue", Arial, sans-serif;
 }
 
+.without_at >>> .el-textarea__inner:focus {
+  outline: none;
+  background: white;
+  border-color: #8b5cf6;
+  box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.1);
+}
 
 .example_textarea {
   position: relative;
@@ -726,13 +732,6 @@ export default {
 
 .example_textarea >>> .el-textarea__inner {
   padding-right: 30px !important;
-}
-
-.without_at >>> .el-textarea__inner:focus {
-  outline: none;
-  background: white;
-  border-color: #8b5cf6;
-  box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.1);
 }
 
 .add_example_btn >>> .el-button {
