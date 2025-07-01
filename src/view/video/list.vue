@@ -95,6 +95,7 @@ export default {
       selectedId: '',
       popoverStates: {},
       inputFocus: false,
+      videoList: []
     }
   },
   computed: {
@@ -102,9 +103,19 @@ export default {
     processList() {
       return this.videoTasks.filter((item) => item.status === 'pending');
     },
-    videoList() {
-      return this.videoTasks.filter((item) => item.status === 'success').map((item) => ({ ...item, isEdit: false }));
+    videos() {
+      return this.videoTasks.reduce((acc, item) => {
+        if (item.status === 'success') {
+          acc.push({ ...item, isEdit: false });
+        }
+        return acc;
+      }, []);
     },
+  },
+  watch: {
+    videos: function (newVal, oldVal) {
+      this.videoList = newVal
+    }
   },
   mounted() {
     this.startDotAnimation();
