@@ -199,7 +199,7 @@ export default {
         this.loading = null;
         if (res.data.status === "success") {
           this.copy_list = this.copy_list.concat(res.data.data.map(
-              (item, index) => ({title: item.title, content: item.script, isEdit: false})))
+              item => ({title: item.title, content: item.script, isEdit: false, bgm: this.bgm})))
           sessionStorage.setItem("copy_list", JSON.stringify(this.copy_list))
         } else {
           this.$notify({
@@ -226,7 +226,8 @@ export default {
       this.copy_list.push({
         title: this.copy_title,
         content: this.copy_content,
-        isEdit: false
+        isEdit: false,
+        bgm: this.bgm
       });
       this.copy_title = '';
       this.copy_content = '';

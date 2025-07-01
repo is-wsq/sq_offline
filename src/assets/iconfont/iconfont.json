@@ -6,6 +6,13 @@
   "description": "",
   "glyphs": [
     {
+      "icon_id": "5634251",
+      "name": "music",
+      "font_class": "music",
+      "unicode": "f059",
+      "unicode_decimal": 61529
+    },
+    {
       "icon_id": "1478673",
       "name": "ic_timeline",
       "font_class": "timeline",
@@ -144,6 +151,13 @@
       "font_class": "robot",
       "unicode": "e61c",
       "unicode_decimal": 58908
+    },
+    {
+      "icon_id": "44774741",
+      "name": "1C添加人员e",
+      "font_class": "figuree-copy",
+      "unicode": "e9a37",
+      "unicode_decimal": 956983
     },
     {
       "icon_id": "7636785",

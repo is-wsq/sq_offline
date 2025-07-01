@@ -66,11 +66,61 @@
           <div class="script-list">
             <template v-if="!already_generated" style="width: 100%">
               <div v-for="(item, index) in copy_list" :key="index" class="script-item"
-                   @mouseleave="item.isHover = false" @mouseenter="item.isHover = true">
-                <div class="flex-center" style="width: 100%">
+                   :class="{ 'script-item-active': selected_index === index}" @click="selectItem(index)">
+                <div class="flex-center margin-b-8" style="width: 100%">
                   <div class="script-item-title" :title="item.title">{{item.title}}</div>
-                  <div style="width: 16px">
-                    <i class="el-icon-close close-icon" v-if="item.isHover" @click="removeCopy(index)"></i>
+                  <div class="script-item-btn">
+                    <el-popover :ref="'popover_'+ index" placement="bottom" trigger="click" @hide="stopAudio"
+                                v-if="!item.bgm.id">
+                      <div class="bgm-popover-content">
+                        <el-row>
+                          <el-col :span="12" v-for="(bgm, bgm_index) in bgm_options" :key="bgm.id">
+                            <div class="bgm-item" @click="selectBgm(bgm, index)">
+                              <div class="bgm-icon"
+                                   @click="previewAudio(item, 10000 + bgm_index)"
+                                   v-if="audioIndex !== (10000 + bgm_index)">
+                                <i :class="bgm.isPlay ? 'el-icon-pause' : 'el-icon-play'"
+                                   style="font-size: 13px; color: #6286ed">
+                                </i>
+                              </div>
+                              <div class="bgm-icon" @click="stopAudio" v-else>
+                                <i class="el-icon-pause" style="font-size: 13px; color: #6286ed"></i>
+                              </div>
+                              <div class="bgm-name" :title="bgm.name">{{ bgm.name }}</div>
+                            </div>
+                          </el-col>
+                        </el-row>
+                      </div>
+                      <el-button slot="reference"><i class="el-icon-plus" style="font-weight: bold"></i>
+                        添加音乐</el-button>
+                    </el-popover>
+                    <div class="music-topbar" v-else>
+                      <i class="el-icon-music" style="line-height: 21px"></i>
+                      <div class="music-name">{{ item.bgm.name }}</div>
+                      <el-popover :ref="'popover_'+ index" placement="bottom" trigger="click" @hide="stopAudio">
+                        <div class="bgm-popover-content">
+                          <el-row>
+                            <el-col :span="12" v-for="(bgm, bgm_index) in bgm_options" :key="bgm.id">
+                              <div class="bgm-item" :class="{ 'bgm-selected': bgm.id === item.bgm.id }"
+                                   @click="selectBgm(bgm, index)">
+                                <div class="bgm-icon"
+                                     @click="previewAudio(item, 10000 + bgm_index)"
+                                     v-if="audioIndex !== (10000 + bgm_index)">
+                                  <i :class="bgm.isPlay ? 'el-icon-pause' : 'el-icon-play'"
+                                     style="font-size: 13px; color: #6286ed">
+                                  </i>
+                                </div>
+                                <div class="bgm-icon" @click="stopAudio" v-else>
+                                  <i class="el-icon-pause" style="font-size: 13px; color: #6286ed"></i>
+                                </div>
+                                <div class="bgm-name" :title="bgm.name">{{ bgm.name }}</div>
+                              </div>
+                            </el-col>
+                          </el-row>
+                        </div>
+                        <span class="music-edit" data-action="music" data-id="2" slot="reference">修改</span>
+                      </el-popover>
+                    </div>
                   </div>
                 </div>
                 <div class="script-item-content" :title="item.content">{{item.content}}</div>
@@ -78,7 +128,7 @@
             </template>
             <template v-else>
               <div v-for="(item, index) in montage_data" :key="index" class="script-item"
-                   :class="{'active-item': activeIndex === index}"
+                   :class="{'script-item-active': activeIndex === index}"
                    @mouseleave="item.isHover = false" @mouseenter="item.isHover = true">
                 <div class="flex-center" @click="itemClick(index)">
                   <div class="script-item-title" :title="item.title">{{item.title}}</div>
@@ -137,7 +187,7 @@
 </template>
 
 <script>
-import {postAction} from "@/api/api";
+import {getAction, postAction} from "@/api/api";
 
 export default {
   name: 'Montage',
@@ -145,6 +195,7 @@ export default {
     return {
       requirement: '',
       copy_list: [],
+      selected_index: {},
       already_generated: false,
       show_settings: true,
       openIndex: null,
@@ -185,7 +236,11 @@ export default {
       montage_data: [],
       loading: null,
       media_volume: 0.5,
-      nextType: ''
+      nextType: '',
+
+      bgm_options: [],
+      audio: null,
+      audioIndex: null,
     }
   },
   computed: {
@@ -213,12 +268,25 @@ export default {
   },
   mounted() {
     this.initData()
+    this.queryBgm()
     document.addEventListener('click', this.handleClickOutside);
     const inputEl = this.$refs.inputRef.$el.querySelector('textarea')
     this.replaceDivHeight = inputEl.clientHeight
     inputEl.addEventListener('scroll', this.handleScroll);
   },
   methods: {
+    queryBgm() {
+      let bgm_options = [{id: '', name: '无'}]
+      getAction('/bgm/all').then(res => {
+        if (res.data.status === 'success') {
+          this.bgm_options = bgm_options.concat(res.data.data)
+        } else {
+          this.$message.error("获取背景音乐列表失败。");
+        }
+      }).catch((error) => {
+        console.error("获取背景音乐列表失败:", error);
+      })
+    },
     liLeave(item) {
       item.isHover = false
       this.hover_li = null
@@ -408,11 +476,11 @@ export default {
         reference_segments = hots.segments.map(item => item.description)
       }
       let params = {
+        user_request: actualRequest,
         material_list: this.material_list,
         text_list: this.copy_list.map(item => item.content),
         text_title_list: this.copy_list.map(item => item.title),
-        user_request: actualRequest,
-        bgm_id: this.bgm.id,
+        bgm_id_list: this.copy_list.map(item => item.bgm.id),
         bg_volume: this.bg_volume,
         timbre_id: this.sound.voice_id,
         with_subtitle: this.withSubtitle,
@@ -502,6 +570,47 @@ export default {
         });
       });
     },
+    selectItem(index) {
+      this.selected_index = index
+    },
+    selectBgm(item,index) {
+      this.copy_list[index].bgm = item
+      this.$nextTick(() => {
+        const popoverRefs = this.$refs[`popover_${index}`];
+        if (popoverRefs && popoverRefs.length > 0) {
+          const popover = popoverRefs[0];
+          popover.showPopper = false;
+        } else {
+          console.warn('未找到对应的输入框 ref', item.id);
+        }
+      });
+      this.$forceUpdate()
+    },
+    previewAudio(voice, index) {
+      if (voice.id === '') {
+        this.$message.warning("无音频预览");
+        return;
+      }
+      this.stopAudio();
+
+      setTimeout(() => {
+        this.audio = new Audio(voice.filepath);
+        this.audio.play();
+        this.audioIndex = index;
+        this.audio.onended = () => {
+          this.audio = null;
+          this.audioIndex = null;
+        };
+      }, 100);
+    },
+    stopAudio() {
+      if (this.audio) {
+        this.audio.pause();
+        this.audio = null;
+        this.audioIndex = null;
+      }
+    },
+
     itemClick(index) {
       this.openIndex = this.openIndex === index ? null : index
       if (this.activeIndex !== index) {
@@ -721,17 +830,30 @@ export default {
   display: flex;
   flex-direction: column;
   gap: 12px;
+  padding-top: 10px;
+}
+
+.script-item-active {
+  background: linear-gradient(135deg, #dbeafe 0%, #ede9fe 100%) !important;
+  border-color: #8b5cf6 !important;
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.15), 0 4px 12px rgba(139, 92, 246, 0.15) !important;
 }
 
 .script-item {
   width: 100%;
-  padding: 12px;
   box-sizing: border-box;
   color: #1f2937;
-  border: 1px solid #e5e7eb;
-  background-color: #f9fafb;
-  border-radius: 8px;
   cursor: pointer;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 20px;
+  transition: all 0.2s ease;
+  position: relative;
+}
+
+.script-item:hover {
+  transform: translateY(-4px);
 }
 
 .active-item {
@@ -741,12 +863,65 @@ export default {
 
 .script-item-title {
   flex: 1;
-  font-weight: 500;
-  font-size: 14px;
   line-height: 28px;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  color: #1e293b;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.script-item-btn {
+  width: 170px;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.script-item-btn >>> .el-button {
+  color: #2563eb;
+  font-size: 13px;
+  font-weight: 500;
+  background: #dbeafe;
+  border-radius: 6px;
+  padding: 4px 10px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  cursor: pointer;
+  border: none;
+  outline: none;
+  transition: background 0.2s;
+}
+
+.script-item-btn >>> .el-button:hover {
+  background: #bfdbfe;
+}
+
+.music-topbar {
+  color: #7c3aed;
+  font-size: 13px;
+  font-weight: 500;
+  background: #f3e8ff;
+  border-radius: 6px;
+  padding: 2px 10px;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.music-name {
+  max-width: 95px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.music-edit {
+  color: #7c3aed;
+  font-size: 13px;
+  cursor: pointer;
+  text-decoration: underline;
 }
 
 .close-icon {
@@ -762,12 +937,13 @@ export default {
 
 .script-item-content {
   width: 100%;
-  font-size: 16px;
-  line-height: 24px;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
   cursor: pointer;
+  color: #64748b;
+  font-size: 14px;
+  line-height: 1.5;
 }
 
 .material-list {
@@ -943,5 +1119,46 @@ export default {
   outline: none;
   border-color: #8b5cf6;
   box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.1);
+}
+
+.bgm-popover-content {
+  width: 350px;
+  height: 250px;
+  border-radius: 10px;
+  overflow: auto;
+}
+
+.bgm-selected {
+  background-color: #e0e7fb;
+}
+
+.bgm-item {
+  height: 80px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.bgm-icon {
+  width: 42px;
+  height: 37px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  cursor: pointer;
+  background-color: #c7d4f8;
+  border-radius: 10px;
+}
+
+.bgm-name {
+  width: 100px;
+  margin-left: 10px;
+  font-size: 14px;
+  color: #101010;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 </style>
