@@ -49,8 +49,13 @@
         </div>
 
         <div class="settings-button-section">
-          <el-button @click="generate" :loading="!!loading"><i class="el-icon-bianjiqi btn-icon" v-if="!loading"></i>
-            {{ !!loading? '生成中...' : already_generated? '重新生成' : '一键混剪' }}</el-button>
+          <div class="generate-btn">
+            <el-button @click="generate" :loading="!!loading"><i class="el-icon-bianjiqi btn-icon" v-if="!loading"></i>
+              {{ !!loading? '生成中...' : already_generated? '重新生成' : '一键混剪' }}</el-button>
+          </div>
+          <div class="batch-download">
+            <el-button @click="centerDialogVisible = true"><i class="el-icon-arrow-down" style="font-size: 16px"></i></el-button>
+          </div>
         </div>
       </div>
       <div style="width: 1px" v-if="!show_settings">
@@ -209,6 +214,27 @@
           </audio>
         </div>
       </div>
+      <el-dialog :visible.sync="centerDialogVisible" width="480px" center :show-close="false" top="calc(50vh - 150px)">
+        <div class="download-hint">
+          <div class="batch-export-icon">
+            <i class="el-icon-fa-download"></i>
+          </div>
+          <div class="batch-export-title">确认批量导出</div>
+          <div class="batch-export-desc">
+            将直接生成所有文案的视频并导出，无需预览。
+            <br>
+            此过程可能需要较长时间，是否继续？
+          </div>
+          <div class="batch-export-actions">
+            <div class="cancel-btn">
+              <el-button @click="centerDialogVisible = false">取消</el-button>
+            </div>
+            <div class="confirm-btn">
+              <el-button @click="batchExport">确认导出</el-button>
+            </div>
+          </div>
+        </div>
+      </el-dialog>
     </div>
   </div>
 </template>
@@ -268,6 +294,8 @@ export default {
       bgm_options: [],
       audio: null,
       audioIndex: null,
+
+      centerDialogVisible: false,
     }
   },
   computed: {
@@ -624,6 +652,41 @@ export default {
         });
       });
     },
+    batchExport() {
+      this.centerDialogVisible = false
+      //先混剪
+      let actualRequest = this.requirement
+      let names = this.mention_list.map(item => '@' + item.name);
+      names.forEach((item, index) => {
+        actualRequest = actualRequest.replace(item, `@{${this.material_list[index]}}`)
+      })
+      let reference_segments = null
+      if (this.nextType === 'hot_montage') {
+        let hots = JSON.parse(sessionStorage.getItem("select_hots"))
+        reference_segments = hots.segments.map(item => item.description)
+      }
+      let params = {
+        user_request: actualRequest,
+        material_list: this.material_list,
+        text_list: this.copy_list.map(item => item.content),
+        text_title_list: this.copy_list.map(item => item.title),
+        bgm_id_list: this.copy_list.map(item => item.bgm.id),
+        bg_volume: this.bg_volume,
+        timbre_id: this.sound.voice_id,
+        with_subtitle: this.withSubtitle,
+        reference_segments: reference_segments
+      }
+      postAction('/figure/video_mix_edit',params, 3600000).then(res => {
+        if (res.data.status === 'success') {
+          this.export_video()
+        } else {
+          this.$alert(res.data.data, "混剪失败");
+        }
+      }).catch(error => {
+        this.$alert(error, "混剪错误");
+        console.log(error)
+      })
+    },
     selectItem(index) {
       this.selected_index = index
     },
@@ -836,11 +899,44 @@ export default {
   border-radius: 6px;
 }
 
-.settings-button-section, .export-section {
+.settings-button-section {
+  margin-top: 16px;
+  display: flex;
+  width: 100%;
+}
+
+.export-section {
   margin-top: 16px;
 }
 
-.settings-button-section >>> .el-button,
+.generate-btn {
+  flex: 1;
+}
+
+.generate-btn >>> .el-button {
+  width: 100%;
+  background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
+  border: none;
+  padding: 12px 24px;;
+  color: white;
+  font-weight: 600;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s;
+  border-radius: 8px 0 0 8px;
+}
+
+.batch-download >>> .el-button {
+  background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
+  border: none;
+  border-left: 1px solid rgba(255, 255, 255, 0.2);
+  padding: 12px;
+  color: white;
+  cursor: pointer;
+  transition: all 0.2s;
+  border-radius: 0 8px 8px 0;
+}
+
 .export-section >>> .el-button {
   cursor: pointer;
   border: 1px solid #DCDFE6;
@@ -855,8 +951,8 @@ export default {
 }
 
 .btn-icon {
-  font-size: 18px;
-  margin-right: 12px;
+  font-size: 16px;
+  margin-right: 4px;
 }
 
 .script-panel {
@@ -1342,5 +1438,82 @@ export default {
 .shot-name:hover {
   background-color: #6366f1;
   color: #ffffff;
+}
+
+.montage >>> .el-dialog {
+  border-radius: 16px;
+}
+
+.montage >>> .el-dialog__header {
+  padding: 0;
+}
+
+.montage >>> .el-dialog__body {
+  padding: 32px;
+}
+
+.download-hint {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+.batch-export-icon {
+  color: #8b5cf6;
+  font-size: 48px;
+  line-height: 72px;
+  margin-bottom: 16px;
+}
+
+.batch-export-title {
+  color: #1e293b;
+  font-size: 20px;
+  font-weight: 600;
+  margin-bottom: 12px;
+  line-height: 30px;
+}
+
+.batch-export-desc {
+  color: #64748b;
+  font-size: 14px;
+  line-height: 1.5;
+  margin-bottom: 24px;
+  text-align: center;
+}
+
+.batch-export-actions {
+  display: flex;
+  gap: 12px;
+}
+
+.batch-export-actions >>> .el-button {
+  padding: 12px 24px;
+  border-radius: 8px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border: none;
+  font-size: 14px;
+}
+
+.cancel-btn >>> .el-button {
+  background: #f1f5f9;
+  color: #64748b;
+}
+
+.cancel-btn >>> .el-button:hover {
+  background: #e2e8f0;
+  color: #475569;
+}
+
+.confirm-btn >>> .el-button {
+  background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
+  color: white;
+}
+
+.confirm-btn >>> .el-button:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.25), 0 4px 12px rgba(139, 92, 246, 0.25);
 }
 </style>
