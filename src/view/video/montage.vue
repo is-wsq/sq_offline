@@ -126,7 +126,7 @@
                 <div class="script-item-content" :title="item.content">{{item.content}}</div>
               </div>
             </template>
-            <template v-else>
+            <template v-else style="width: 100%">
               <div v-for="(item, index) in montage_data" :key="index" class="script-item"
                    :class="{'script-item-active': activeIndex === index}"
                    @mouseleave="item.isHover = false" @mouseenter="item.isHover = true">
@@ -143,11 +143,38 @@
                 <div class="script-item-content" :title="item.content"
                      @click="itemClick(index)">{{item.content}}</div>
                 <div class="material-list" v-if="openIndex === index">
-                    <div class="material-item" v-for="(material,index) in item.materials" :key="index">
-                      <el-image class="material-item-img" :src="material.picture"></el-image>
-                      <div class="material-item-title" :title="material.name">{{ material.name }}</div>
+                  <div class="material-item" v-for="(material,maI) in item.materials" :key="material.id">
+                    <el-popover placement="bottom" width="200" :ref="'popoverRef_' + maI" trigger="click">
+                      <div class="shot-list">
+                        <div class="shot-name" v-for="(shot, shotI) in mention_list" :key="shotI"
+                          @click="addShot(index,maI,shot)">
+                          {{ shot.name }}
+                        </div>
+                      </div>
+                      <div slot="reference" class="insert-shot-btn">
+                        <div class="fa-plus">
+                          <i class="el-icon-plus" style="font-weight: bold"></i>
+                        </div>
+                      </div>
+                    </el-popover>
+                    <div class="delete-shot-btn">
+                      <i class="el-icon-close" style="font-weight: bold" @click="removeShot(index,maI)"></i>
                     </div>
+                    <el-image class="material-item-img" :src="material.picture"></el-image>
+                    <div class="material-item-title" :title="material.name">{{ material.name }}</div>
                   </div>
+                  <div class="material-item">
+                    <el-popover :ref="'pushRef_' + index" placement="bottom" width="200" trigger="click">
+                      <div class="shot-list">
+                        <div class="shot-name" v-for="val in mention_list" :key="val.id"
+                             @click="pushShot(index,val)">{{ val.name }}</div>
+                      </div>
+                      <div slot="reference" class="add-shot-btn">
+                        <i class="el-icon-plus" style="font-weight: bold"></i>
+                      </div>
+                    </el-popover>
+                  </div>
+                </div>
               </div>
             </template>
           </div>
@@ -275,6 +302,33 @@ export default {
     inputEl.addEventListener('scroll', this.handleScroll);
   },
   methods: {
+    addShot(updateI, addI, item) {
+      this.$nextTick(() => {
+        const popoverRefs = this.$refs[`popoverRef_${addI}`];
+        if (popoverRefs && popoverRefs.length > 0) {
+          const popover = popoverRefs[0];
+          popover.showPopper = false;
+        } else {
+          console.warn('未找到对应的输入框 ref', item.id);
+        }
+      });
+      this.montage_data[updateI].materials.splice(addI, 0, item);
+    },
+    pushShot(updateI, val) {
+      this.$nextTick(() => {
+        const popoverRefs = this.$refs[`pushRef_${updateI}`];
+        if (popoverRefs && popoverRefs.length > 0) {
+          const popover = popoverRefs[0];
+          popover.showPopper = false;
+        } else {
+          console.warn('未找到对应的输入框 ref', val.id);
+        }
+      });
+      this.montage_data[updateI].materials.push(val)
+    },
+    removeShot(updateI, removeI) {
+      this.montage_data[updateI].materials.splice(removeI, 1)
+    },
     queryBgm() {
       let bgm_options = [{id: '', name: '无'}]
       getAction('/bgm/all').then(res => {
@@ -949,24 +1003,121 @@ export default {
 .material-list {
   border-top: 1px solid #e5e7eb;
   margin-top: 12px;
-  padding-top: 12px;
+  padding: 12px 0 12px 20px;
   display: flex;
-  gap: 12px;
+  gap: 20px;
+  overflow-x: auto;
+}
+
+.material-item {
+  position: relative;
+  width: 100px;
+  display: flex;
+  aspect-ratio: 9 / 16;
+  border-radius: 8px;
+  flex-shrink: 0;
+}
+
+.add-shot-btn {
+  flex-shrink: 0;
+  width: 100px;
+  height: 178px;
+  border-radius: 8px;
+  background-color: #f9fafb;
+  border: 2px dashed #d1d5db;
+  color: #9ca3af;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+
+.material-item:hover .insert-shot-btn,
+.material-item:hover .delete-shot-btn {
+  opacity: 1;
+}
+
+.insert-shot-btn {
+  position: absolute;
+  left: -10px;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: 20px;
+  height: 178px;
+  background: transparent;
+  border: none;
+  color: white;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: opacity 0.2s ease;
+  z-index: 10;
+  opacity: 0;
+}
+
+.insert-shot-btn::before {
+  content: '';
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 2px;
+  height: 100%;
+  background-color: #6366f1;
+  border-radius: 1px;
+}
+
+.delete-shot-btn {
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  width: 20px;
+  height: 20px;
+  background-color: #ef4444;
+  color: white;
+  border: 2px solid white;
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transform: scale(0.8);
+  transition: all 0.2s ease;
+  z-index: 20;
+}
+
+.fa-plus {
+  position: relative;
+  background-color: #6366f1;
+  border-radius: 50%;
+  width: 20px;
+  height: 20px;
+  line-height: 20px;
+  text-align: center;
+  font-size: 12px;
+  box-shadow: 0 0 0 1px #f9fafb;
+  transition: transform 0.2s ease;
 }
 
 .material-item-img {
-  width: 60px;
-  aspect-ratio: 9 / 16;
-  background-color: #e5e7eb;
-  border-radius: 4px;
+  width: 100%;
+  height: 100%;
+  border-radius: 8px;
 }
 
 .material-item-title {
-  width: 60px;
-  text-align: center;
-  margin-top: 4px;
+  position: absolute;
+  bottom: 0;
+  width: 100%;
+  background: linear-gradient(to bottom, rgba(0, 0, 0, 0), rgba(0, 0, 0, 1));
+  padding: 10px 2px;
+  box-sizing: border-box;
+  color: #FFFFFF;
   font-size: 12px;
-  color: #4b5563;
+  border-bottom-left-radius: 8px;
+  border-bottom-right-radius: 8px;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -1160,5 +1311,36 @@ export default {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+}
+
+.montage >>> .el-popover {
+  border-radius: 8px;
+  padding: 8px;
+}
+
+.shot-list {
+  height: 200px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  overflow-y: auto;
+}
+
+.shot-name {
+  border-radius: 6px;
+  background-color: #f5f5f5;
+  padding: 10px;
+  line-height: 20px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  flex-shrink: 0;
+  cursor: pointer;
+  position: relative;
+}
+
+.shot-name:hover {
+  background-color: #6366f1;
+  color: #ffffff;
 }
 </style>
