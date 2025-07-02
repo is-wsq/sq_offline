@@ -80,7 +80,7 @@
           ref="hotUpload"
           class="video-uploader"
           style="width: 100%"
-          action="http://192.168.1.4:6006/figure/add_hot_video"
+          action="http://127.0.0.1:6006/figure/add_hot_video"
           :data="{ title: title, category: classify, tag: uploadTag }"
           :on-success="uploadSuccess"
           :on-error="uploadError"
