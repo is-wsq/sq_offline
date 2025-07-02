@@ -39,7 +39,7 @@ app.on('ready', () => {
         // mainWindow = null;
         e.preventDefault();
 
-        const batPath = "D:\\offline\\stop_backend.bat";
+        const batPath = "C:\\offline\\stop_backend.bat";
         const batProcess = spawn('cmd.exe', ['/c', 'start', '', batPath]);
 
         batProcess.stdout.on('data', (data) => {
