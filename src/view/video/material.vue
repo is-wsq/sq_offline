@@ -1,7 +1,7 @@
 <template>
   <div class="material">
     <div class="flex-center">
-      <el-button type="text" class="back-btn" @click="$router.go(-1)">
+      <el-button type="text" class="back-btn" @click="back">
         <i class="el-icon-arrow-left" style="font-size: 20px;"></i>
       </el-button>
       <div class="material-h-t">素材选择</div>
@@ -877,8 +877,14 @@ export default {
           path = '/segments'
           break;
       }
+      sessionStorage.setItem('video_path', path)
       this.$router.push({path: path})
-    }
+    },
+    back() {
+      let path = this.nextType.includes('hot_') ? '/hot' : '/video'
+      sessionStorage.setItem('video_path', path)
+      this.$router.push({path: path})
+    },
   }
 }
 </script>

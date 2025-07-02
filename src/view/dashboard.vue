@@ -73,10 +73,15 @@ export default {
         return;
       }
       this.active = type;
+      let cache_path = sessionStorage.getItem("video_path");
+      if (type === 3 && cache_path) {
+        this.$router.push({path: cache_path})
+        return;
+      }
       this.$router.push({path: path})
     },
     updateActiveFromRoute() {
-      let paths = ['/digitalHuman', '/material', '/montage', '/hot', '/smartGenerate', '/syncCv', '/human']
+      let paths = ['/human','/material','/smartGenerate','/syncCv','/duplicate','/segments','/montage','/hot']
       if (paths.includes(this.$route.path)) {
         this.active = 3;
         return;

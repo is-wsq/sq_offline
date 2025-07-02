@@ -1,6 +1,6 @@
 <template>
   <div class="hot">
-    <el-button type="text" class="back-btn" @click="$router.go(-1)">
+    <el-button type="text" class="back-btn" @click="back">
       <i class="el-icon-arrow-left" style="font-size: 20px;"></i>
     </el-button>
     <div class="box-card">
@@ -290,7 +290,12 @@ export default {
       this.uploadDialogVisible = false
     },
     duplicate() {
+      sessionStorage.setItem('video_path', '/material')
       this.$router.push({path: '/material'})
+    },
+    back() {
+      sessionStorage.setItem('video_path', '/video')
+      this.$router.push({path: '/video'})
     }
   }
 }

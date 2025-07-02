@@ -1,7 +1,7 @@
 <template>
   <div class="human">
     <div class="flex-center">
-      <el-button type="text" class="back-btn" @click="$router.go(-1)">
+      <el-button type="text" class="back-btn" @click="back">
         <i class="el-icon-arrow-left" style="font-size: 20px;"></i>
       </el-button>
       <div class="human-h-t">数字人选择</div>
@@ -723,8 +723,13 @@ export default {
         this.$alert('请先选择您的数字人分身','提示')
         return
       }
-      this.$router.push({path: path})
       sessionStorage.setItem('script_type', 'figure')
+      sessionStorage.setItem('video_path', path)
+      this.$router.push({path: path})
+    },
+    back() {
+      sessionStorage.setItem('video_path', '/video')
+      this.$router.push({path: '/video'})
     }
   }
 }

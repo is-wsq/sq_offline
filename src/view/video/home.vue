@@ -16,7 +16,7 @@
         </div>
       </div>
       <div class="figure-card-btn">
-        <el-button class="start-btn" @click="gotoPage('/human')">
+        <el-button class="start-btn" @click="gotoPage('/human', 'human')">
           立即开始<i class="el-icon-right start-btn-icon"></i></el-button>
       </div>
     </div>
@@ -81,6 +81,7 @@ export default {
   methods: {
     gotoPage(path, type) {
       sessionStorage.setItem('next_type', type)
+      sessionStorage.setItem('video_path', path)
       this.$router.push({path: path})
     }
   }

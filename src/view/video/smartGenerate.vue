@@ -1,7 +1,7 @@
 <template>
   <div class="smart-generate">
     <div class="flex-center">
-      <el-button type="text" class="back-btn" @click="$router.go(-1)">
+      <el-button type="text" class="back-btn" @click="back">
         <i class="el-icon-arrow-left" style="font-size: 20px;"></i>
       </el-button>
       <div class="smart-generate-h-t">编辑文案</div>
@@ -253,6 +253,7 @@ export default {
         this.$alert('请先添加口播文案', "提示")
         return;
       }
+      sessionStorage.setItem('video_path', '/montage')
       this.$router.push({path: '/montage'})
     },
     verify() {
@@ -341,6 +342,7 @@ export default {
           this.$alert('已创建视频生成任务，视频生成成功后会自动下载到本地', "任务创建提醒");
           sessionStorage.removeItem('copy_list')
           setTimeout(() => {
+            sessionStorage.setItem('video_path', '/video')
             this.$router.push({path: '/videoList'})
           }, 500)
         } else {
@@ -377,6 +379,11 @@ export default {
 
       return result;
     },
+    back() {
+      let path = this.script_type === 'material' ? '/material' : '/human'
+      sessionStorage.setItem('video_path', path)
+      this.$router.push({path: path})
+    }
   }
 }
 </script>

@@ -1,7 +1,7 @@
 <template>
   <div class="sync-cv">
     <div class="flex-center">
-      <el-button type="text" class="back-btn" @click="$router.go(-1)">
+      <el-button type="text" class="back-btn" @click="back">
         <i class="el-icon-arrow-left" style="font-size: 20px;"></i>
       </el-button>
       <div class="sync-title">一键混剪 · 音画同步</div>
@@ -548,6 +548,7 @@ export default {
         if (res.data.status === "success") {
           this.$alert('已创建视频生成任务，视频生成成功后会自动下载到本地', "任务创建提醒");
           setTimeout(() => {
+            sessionStorage.setItem('video_path', '/video')
             this.$router.push({path: '/videoList'})
           }, 500)
         } else {
@@ -609,6 +610,10 @@ export default {
       this.$refs.audioRef.volume = this.$refs.videoRef.volume
       this.$refs.audioRef.muted = this.$refs.videoRef.muted
     },
+    back() {
+      sessionStorage.setItem('video_path', '/material')
+      this.$router.push({path: '/material'})
+    }
   }
 }
 </script>

@@ -1,7 +1,7 @@
 <template>
   <div class="smart-generate">
     <div class="flex-center">
-      <el-button type="text" class="back-btn" @click="$router.go(-1)">
+      <el-button type="text" class="back-btn" @click="back">
         <i class="el-icon-arrow-left" style="font-size: 20px;"></i>
       </el-button>
       <div class="smart-generate-h-t">爆款复刻</div>
@@ -186,7 +186,12 @@ export default {
         return;
       }
       this.$router.push({path: '/montage'})
+      sessionStorage.setItem('video_path', '/montage')
     },
+    back() {
+      this.$router.push({path: '/material'})
+      sessionStorage.setItem('video_path', '/material')
+    }
   }
 }
 </script>
