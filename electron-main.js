@@ -39,7 +39,17 @@ app.on('ready', () => {
         // mainWindow = null;
         e.preventDefault();
 
-        const batPath = "C:\\offline\\stop_backend.bat";
+        const { execSync } = require('child_process');
+        let batPath;
+
+        try {
+            // 尝试访问D盘根目录
+            execSync('dir D:\\', { stdio: 'ignore' });
+            batPath = "D:\\offline\\stop_backend.bat";
+        } catch (error) {
+            batPath = "C:\\offline\\stop_backend.bat";
+        }
+
         const batProcess = spawn('cmd.exe', ['/c', 'start', '', batPath]);
 
         batProcess.stdout.on('data', (data) => {
