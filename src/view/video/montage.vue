@@ -148,7 +148,7 @@
                 <div class="script-item-content" :title="item.content"
                      @click="itemClick(index)">{{item.content}}</div>
                 <div class="material-list" v-if="openIndex === index">
-                  <div class="material-item" v-for="(material,maI) in item.materials" :key="material.id">
+                  <div class="material-item" v-for="(material,maI) in item.materials" :key="maI">
                     <el-popover placement="bottom" :ref="'popoverRef_' + maI" trigger="click"
                     popper-class="custom-popover-style" @show="popoverShow">
                       <div class="shot-list">
@@ -365,6 +365,11 @@ export default {
         }
       });
       this.montage_data[updateI].materials.splice(addI, 0, item);
+      this.currentIndex = 0
+      this.$nextTick(() => {
+        this.loadVideo(this.currentIndex);
+        this.loadAudio()
+      })
     },
     pushShot(updateI, val) {
       this.$nextTick(() => {
@@ -377,9 +382,21 @@ export default {
         }
       });
       this.montage_data[updateI].materials.push(val)
+      this.currentIndex = 0
+      this.$nextTick(() => {
+        this.loadVideo(this.currentIndex);
+        this.loadAudio()
+      })
     },
     removeShot(updateI, removeI) {
       this.montage_data[updateI].materials.splice(removeI, 1)
+      if (this.montage_data[updateI].materials.length !== 0) {
+        this.currentIndex = 0
+        this.$nextTick(() => {
+          this.loadVideo(this.currentIndex);
+          this.loadAudio()
+        })
+      }
     },
     queryBgm() {
       let bgm_options = [{id: '', name: '无'}]
@@ -809,7 +826,11 @@ export default {
     },
     playNextVideo() {
       if (this.currentIndex === this.preview_video.length - 1) {
+        this.currentIndex = 0;
         this.$refs.videoRef.src = this.preview_video[0].filepath
+        this.$refs.videoRef.currentTime = 0
+        this.$refs.audioRef.pause()
+        this.$refs.audioRef.currentTime = 0
         this.isPlaying = false;
         return
       }
