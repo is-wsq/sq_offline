@@ -654,7 +654,7 @@ export default {
       });
     },
     batchExport() {
-      this.centerDialogVisible = false
+      this.$alert('批量导出后台视频混剪中，混剪成功后会创建视频生成任务','提示')
       //先混剪
       let actualRequest = this.requirement
       let names = this.mention_list.map(item => '@' + item.name);
@@ -679,6 +679,7 @@ export default {
       }
       postAction('/figure/video_mix_edit',params, 3600000).then(res => {
         if (res.data.status === 'success') {
+          this.montage_data = res.data.data
           this.export_video()
         } else {
           this.$alert(res.data.data, "混剪失败");
