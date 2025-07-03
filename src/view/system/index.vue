@@ -23,11 +23,11 @@
           <div class="about-text">
             遇到问题或有任何建议？请通过以下方式联系我们：
           </div>
-          <a href="mailto:support@qidian-ai.com" class="link">support@qidian-ai.com</a>
+          <a href="#" class="link" @click="dialogVisible = true">support@qidian-ai.com</a>
         </div>
         <div class="about-title">法律条款</div>
         <div class="links-list">
-          <a href="#" class="link">用户协议</a>
+          <a href="#" class="link" @click="goto('/agreement')">用户协议</a>
           <a href="#" class="link">隐私政策</a>
         </div>
       </div>
@@ -35,6 +35,14 @@
     <div class="page-footer">
       <div class="footer-text">奇点 v2.1.0 - © 2025 奇点AI团队</div>
     </div>
+    <el-dialog class="contact-us-dialog" title="联系我们" :visible.sync="dialogVisible" width="500px">
+      <div class="contact-us">
+        <div style="font-size: 15px; font-weight: bold;color: #000000;margin: 10px 0;">广东省奇点未来软件研发</div>
+        <el-image style="width: 200px; height: 200px;" :src="require('/public/images/qrcode.png')" fit="cover">
+        </el-image>
+        <div style="margin-top: 20px;font-size: 14px;color: #000000;">使用手机微信扫一扫，添加客服微信</div>
+      </div>
+    </el-dialog>
   </div>
 </template>
 
@@ -48,7 +56,7 @@ export default {
     }
   },
   mounted() {
-    this.downloadPath = localStorage.getItem('downloadPath') || 'D:\\offline'
+    this.downloadPath = localStorage.getItem('downloadPath') || 'C:\\offline'
   },
   methods: {
     chooseFolder() {
@@ -59,6 +67,9 @@ export default {
         }
       })
     },
+    goto(path) {
+      this.$router.push(path)
+    }
   }
 }
 </script>
@@ -66,8 +77,8 @@ export default {
 <style scoped>
 .system {
   width: 100%;
-  max-width: 1024px;
-  margin: 0 auto;
+  padding: 24px;
+  box-sizing: border-box;
 }
 
 .page-title {
@@ -79,7 +90,9 @@ export default {
 }
 
 .page-content {
-  height: max(calc(100vh - 175px), 600px);
+  height: max(calc(100vh - 223px), 600px);
+  margin: 0 auto;
+  max-width: 1024px;
 }
 
 .section-title {
@@ -156,7 +169,6 @@ export default {
 
 .links-list {
   display: flex;
-  flex-direction: column;
   gap: 8px;
 }
 
@@ -168,5 +180,15 @@ export default {
 .footer-text {
   font-size: 14px;
   color: #94a3b8;
+}
+
+.contact-us-dialog >>> .el-dialog__body {
+  padding-top: 0 !important;
+}
+
+.contact-us {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
 </style>

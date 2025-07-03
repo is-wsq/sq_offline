@@ -141,7 +141,7 @@ const actions = {
                             duration: 20000
                         });
 
-                        let downloadPath = localStorage.getItem('downloadPath') || 'D:\\offline'
+                        let downloadPath = localStorage.getItem('downloadPath') || 'C:\\offline'
                         window.electronAPI.downloadFile(video.video_path, downloadPath, video.filename)
                         Vue.prototype.$message.success(`视频已保存到${downloadPath}`)
                     }else if (prev === "pending" && video.status === "failed") {
