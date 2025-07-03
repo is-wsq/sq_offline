@@ -149,11 +149,16 @@
                      @click="itemClick(index)">{{item.content}}</div>
                 <div class="material-list" v-if="openIndex === index">
                   <div class="material-item" v-for="(material,maI) in item.materials" :key="material.id">
-                    <el-popover placement="bottom" width="200" :ref="'popoverRef_' + maI" trigger="click">
+                    <el-popover placement="bottom" :ref="'popoverRef_' + maI" trigger="click"
+                    popper-class="custom-popover-style" @show="popoverShow">
                       <div class="shot-list">
                         <div class="shot-name" v-for="(shot, shotI) in mention_list" :key="shotI"
-                          @click="addShot(index,maI,shot)">
+                          @click="addShot(index,maI,shot)" @mouseleave="liLeave(shot)" @mouseenter="liEnter(shot)">
                           {{ shot.name }}
+                        </div>
+                        <div class="li-video" style="position: absolute; top: 0; right: -132px" v-if="hover_li">
+                          <video :src="hover_li.filepath" style="width: 100%; height: 100%;border-radius: 4px;"
+                                 loop muted autoplay></video>
                         </div>
                       </div>
                       <div slot="reference" class="insert-shot-btn">
@@ -169,10 +174,17 @@
                     <div class="material-item-title" :title="material.name">{{ material.name }}</div>
                   </div>
                   <div class="material-item">
-                    <el-popover :ref="'pushRef_' + index" placement="bottom" width="200" trigger="click">
+                    <el-popover :ref="'pushRef_' + index" placement="bottom" width="200" trigger="click"
+                                popper-class="custom-popover-style1" @show="popoverShow(true)">
                       <div class="shot-list">
                         <div class="shot-name" v-for="val in mention_list" :key="val.id"
-                             @click="pushShot(index,val)">{{ val.name }}</div>
+                             @click="pushShot(index,val)"  @mouseleave="liLeave(val)" @mouseenter="liEnter(val)">
+                          {{ val.name }}
+                        </div>
+                        <div class="li-video" style="position: absolute; top: 0; right: -145px" v-if="hover_li">
+                          <video :src="hover_li.filepath" style="width: 100%; height: 100%;border-radius: 4px;"
+                                 loop muted autoplay></video>
+                        </div>
                       </div>
                       <div slot="reference" class="add-shot-btn">
                         <i class="el-icon-plus" style="font-weight: bold"></i>
@@ -330,6 +342,18 @@ export default {
     inputEl.addEventListener('scroll', this.handleScroll);
   },
   methods: {
+    popoverShow(params) {
+      this.$nextTick(() => {
+        let popover = document.querySelector('.custom-popover-style');
+        if (params) {
+          popover = document.querySelector('.custom-popover-style1');
+        }
+        if (popover) {
+          popover.style.borderRadius = '10px';
+          popover.style.padding = '0 0 0 2px';
+        }
+      });
+    },
     addShot(updateI, addI, item) {
       this.$nextTick(() => {
         const popoverRefs = this.$refs[`popoverRef_${addI}`];
@@ -1328,10 +1352,13 @@ export default {
   overflow: hidden;
   text-overflow: ellipsis;
   border-radius: 8px;
+  color: #606266;
+  font-size: 14px;
 }
 
 .dropdown li:hover {
-  background-color: #DBEAFE;
+  background-color: #6366f1;
+  color: #ffffff;
 }
 
 .highlight-content {
@@ -1422,16 +1449,22 @@ export default {
 }
 
 .montage >>> .el-popover {
-  border-radius: 10px;
-  padding: 4px;
+  border-radius: 10px !important;
+  padding: 0 !important;
 }
 
 .shot-list {
+  width: 210px;
   height: 200px;
   display: flex;
   flex-direction: column;
-  gap: 4px;
   overflow-y: auto;
+  padding: 4px;
+  background-color: #ffffff;
+}
+
+.shot-list::-webkit-scrollbar {
+  width: 5px !important;
 }
 
 .shot-name {
@@ -1447,7 +1480,7 @@ export default {
 }
 
 .shot-name:hover {
-  background-color: #DBEAFE;
+  background-color: #6366f1;
   color: #ffffff;
 }
 
