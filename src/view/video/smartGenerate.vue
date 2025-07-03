@@ -134,6 +134,7 @@ export default {
       figure: {},
       sound: {},
       bgm: {},
+      material_bgm: {},
       top_offset_ratio: 0,
       bottom_offset_ratio: 0,
       withSubtitle: false,
@@ -199,7 +200,7 @@ export default {
         this.loading = null;
         if (res.data.status === "success") {
           this.copy_list = this.copy_list.concat(res.data.data.map(
-              item => ({title: item.title, content: item.script, isEdit: false, bgm: this.bgm})))
+              item => ({title: item.title, content: item.script, isEdit: false, bgm: this.material_bgm})))
           sessionStorage.setItem("copy_list", JSON.stringify(this.copy_list))
         } else {
           this.$notify({
@@ -227,7 +228,7 @@ export default {
         title: this.copy_title,
         content: this.copy_content,
         isEdit: false,
-        bgm: this.bgm
+        bgm: this.material_bgm
       });
       this.copy_title = '';
       this.copy_content = '';
@@ -271,6 +272,8 @@ export default {
       this.figure = JSON.parse(sessionStorage.getItem('figure')) || {}
       this.sound = JSON.parse(sessionStorage.getItem('figure_setting_voice')) || {}
       this.bgm = JSON.parse(sessionStorage.getItem('figure_setting_bgm')) || {}
+
+      this.material_bgm = JSON.parse(sessionStorage.getItem('setting_bgm')) || {}
 
       this.top_offset_ratio = Number(sessionStorage.getItem('figure_top_offset_ratio'))
       this.bottom_offset_ratio = Number(sessionStorage.getItem('figure_bottom_offset_ratio'))

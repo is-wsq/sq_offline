@@ -564,7 +564,7 @@ export default {
     },
     selectBgm(item) {
       this.bgm = item
-      sessionStorage.setItem("setting_bgm", JSON.stringify(item))
+      sessionStorage.setItem("figure_setting_bgm", JSON.stringify(item))
     },
     previewAudio(voice, index) {
       if (voice.id === '') {
@@ -609,7 +609,7 @@ export default {
       }
     },
     saveBgmVolume() {
-      sessionStorage.setItem("bg_volume", this.bg_volume)
+      sessionStorage.setItem("figure_bg_volume", this.bg_volume)
     },
     switchTitle() {
       sessionStorage.setItem("figure_with_title", this.withTitle)

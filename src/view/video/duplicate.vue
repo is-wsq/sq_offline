@@ -102,6 +102,7 @@ export default {
       hot_copy_list: [],
       new_title: '',
       new_content: '',
+      material_bgm: {},
     }
   },
   mounted() {
@@ -121,6 +122,7 @@ export default {
       this.hot_copy_list = sessionStorage.getItem("hot_copy_list") ?
           JSON.parse(sessionStorage.getItem("hot_copy_list")) : []
       let hots = JSON.parse(sessionStorage.getItem("select_hots"))
+      this.material_bgm = JSON.parse(sessionStorage.getItem('setting_bgm')) || {}
       this.exampleTexts = []
       this.exampleTexts[0] = hots.segments.map(segment => segment.asr_text).join('');
     },
@@ -150,7 +152,7 @@ export default {
         this.loading = null;
         if (res.data.status === "success") {
           this.hot_copy_list = this.hot_copy_list.concat(res.data.data.map(
-              item => ({title: item.title, content: item.script, isEdit: false})))
+              item => ({title: item.title, content: item.script, isEdit: false, bgm: this.material_bgm})))
           sessionStorage.setItem("hot_copy_list", JSON.stringify(this.hot_copy_list))
         } else {
           this.$notify({
