@@ -615,7 +615,7 @@ export default {
         console.log(error)
       })
     },
-    export_video() {
+    export_video(with_out_route) {
       let bool_list = this.material_list.map(item => this.mute_materials.includes(item))
       let name = this.setName()
       let params = {
@@ -656,6 +656,9 @@ export default {
         if (res.data.status === "success") {
           this.$alert('已创建视频生成任务，视频生成成功后会自动下载到本地', "任务创建提醒");
           sessionStorage.removeItem('copy_list')
+          if (with_out_route) {
+            return
+          }
           setTimeout(() => {
             sessionStorage.setItem('video_path', '/video')
             this.$router.push({path: '/videoList'})
@@ -678,6 +681,7 @@ export default {
       });
     },
     batchExport() {
+      this.centerDialogVisible = false
       this.$alert('批量导出后台视频混剪中，混剪成功后会创建视频生成任务','提示')
       //先混剪
       let actualRequest = this.requirement
@@ -704,7 +708,7 @@ export default {
       postAction('/figure/video_mix_edit',params, 3600000).then(res => {
         if (res.data.status === 'success') {
           this.montage_data = res.data.data
-          this.export_video()
+          this.export_video(true)
         } else {
           this.$alert(res.data.data, "混剪失败");
         }
