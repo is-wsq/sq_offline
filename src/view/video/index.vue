@@ -1994,6 +1994,10 @@ export default {
   padding: 0;
 }
 
+.dropdown ul::-webkit-scrollbar {
+  width: 5px !important;
+}
+
 .dropdown li {
   padding: 6px 10px;
   cursor: pointer;

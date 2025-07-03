@@ -1029,6 +1029,10 @@ export default {
   overflow: auto;
 }
 
+.dropdown ul::-webkit-scrollbar {
+  width: 5px !important;
+}
+
 .dropdown li {
   padding: 10px;
   cursor: pointer;

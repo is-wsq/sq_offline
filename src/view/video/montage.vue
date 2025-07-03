@@ -1308,7 +1308,7 @@ export default {
 .dropdown ul {
   list-style: none;
   margin: 0;
-  padding: 0;
+  padding: 4px;
   background: white;
   border: 1px solid #ccc;
   border-radius: 8px;
@@ -1317,12 +1317,17 @@ export default {
   overflow: auto;
 }
 
+.dropdown ul::-webkit-scrollbar {
+  width: 5px !important;
+}
+
 .dropdown li {
   padding: 10px;
   cursor: pointer;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  border-radius: 8px;
 }
 
 .dropdown li:hover {
@@ -1417,21 +1422,20 @@ export default {
 }
 
 .montage >>> .el-popover {
-  border-radius: 8px;
-  padding: 8px;
+  border-radius: 10px;
+  padding: 4px;
 }
 
 .shot-list {
   height: 200px;
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 4px;
   overflow-y: auto;
 }
 
 .shot-name {
   border-radius: 6px;
-  background-color: #f5f5f5;
   padding: 10px;
   line-height: 20px;
   white-space: nowrap;
@@ -1443,7 +1447,7 @@ export default {
 }
 
 .shot-name:hover {
-  background-color: #6366f1;
+  background-color: #DBEAFE;
   color: #ffffff;
 }
 
