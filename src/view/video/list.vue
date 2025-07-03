@@ -29,7 +29,7 @@
           <div :title="item.filename" class="video-name" v-if="!item.isEdit">{{ item.filename }}</div>
           <div v-else style="flex: 1" @click.stop="">
             <el-input :ref="'renameInput_' + item.id" style="width: 100%" v-model="newName" @change="onSave(item)"
-                      @blur="onSave(item)"></el-input>
+                      @blur="onBlur(item)"></el-input>
           </div>
           <el-popover
               placement="left-start"
@@ -182,6 +182,10 @@ export default {
           this.popoverStates[video.id] = false;
         }
       })
+    },
+    onBlur(item) {
+      item.isEdit = false;
+      this.$forceUpdate()
     },
     onSave(item) {
       if (this.newName === item.filename) {
