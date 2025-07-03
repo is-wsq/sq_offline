@@ -5,70 +5,94 @@ const http = require('http');
 const { spawn  } = require('child_process')
 
 let mainWindow;
+let isMainInstance = false; // 新增标志位，标识是否为主实例
 
-app.on('ready', () => {
-    const primaryDisplay = screen.getPrimaryDisplay();
-    const { width, height } = primaryDisplay.workAreaSize;
-    mainWindow = new BrowserWindow({
-        width: 1200,
-        height: 800,
-        // x: 0,
-        // y: 0,
-        frame: true,
-        show: false,
-        icon: path.join(__dirname, 'public/favicon.ico'),
-        webPreferences: {
-            preload: path.join(__dirname, 'preload.js'), // 如果需要
-            contextIsolation: true,
-            enableRemoteModule: false,
+// 确保应用只能打开一个实例
+const gotTheLock = app.requestSingleInstanceLock();
+
+if (!gotTheLock) {
+    // 如果获取锁失败，说明已经有实例在运行，则直接退出，不执行任何窗口操作
+    app.quit();
+} else {
+    // 设置当前实例为主实例
+    isMainInstance = true;
+
+    // 当第二个实例启动时，聚焦到第一个实例的窗口
+    app.on('second-instance', (event, commandLine, workingDirectory) => {
+        // 当有人试图运行第二个实例时，我们将聚焦到主窗口
+        if (mainWindow) {
+            if (mainWindow.isMinimized()) mainWindow.restore();
+            mainWindow.focus();
+            mainWindow.show();
         }
     });
 
-    // mainWindow.removeMenu();
+    app.on('ready', () => {
+        const primaryDisplay = screen.getPrimaryDisplay();
+        const {width, height} = primaryDisplay.workAreaSize;
+        mainWindow = new BrowserWindow({
+            width: 1200,
+            height: 800,
+            frame: true,
+            show: false,
+            icon: path.join(__dirname, 'public/favicon.ico'),
+            webPreferences: {
+                preload: path.join(__dirname, 'preload.js'), // 如果需要
+                contextIsolation: true,
+                enableRemoteModule: false,
+            }
+        });
 
-    // 加载 Vue 项目生成的 HTML 文件
-    const indexPath = path.join(__dirname, 'dist', 'index.html');
-    mainWindow.loadFile(indexPath);
+        // mainWindow.removeMenu();
 
-    mainWindow.webContents.once('did-finish-load', () => {
-        mainWindow.maximize()
-        mainWindow.show()
+        // 加载 Vue 项目生成的 HTML 文件
+        const indexPath = path.join(__dirname, 'dist', 'index.html');
+        mainWindow.loadFile(indexPath);
+
+        mainWindow.webContents.once('did-finish-load', () => {
+            mainWindow.maximize()
+            mainWindow.show()
+        });
+
+        mainWindow.on('close', (e) => {
+            if (!isMainInstance) {
+                // 如果不是主实例，不执行任何特殊操作，让窗口正常关闭
+                return;
+            }
+
+            e.preventDefault();
+
+            const {execSync} = require('child_process');
+            let batPath;
+
+            try {
+                // 尝试访问D盘根目录
+                execSync('dir D:\\', {stdio: 'ignore'});
+                batPath = "D:\\offline\\stop_backend.bat";
+            } catch (error) {
+                batPath = "C:\\offline\\stop_backend.bat";
+            }
+
+            const batProcess = spawn('cmd.exe', ['/c', 'start', '', batPath]);
+
+            batProcess.stdout.on('data', (data) => {
+                console.log(`stdout: ${data}`);
+            });
+
+            batProcess.stderr.on('data', (data) => {
+                console.error(`stderr: ${data}`);
+                mainWindow.removeAllListeners('close');
+                mainWindow.close();
+            });
+
+            batProcess.on('close', (code) => {
+                console.log(`子进程退出，代码：${code}`);
+                mainWindow.removeAllListeners('close');
+                mainWindow.close();
+            });
+        });
     });
-
-    mainWindow.on('close', (e) => {
-        // mainWindow = null;
-        e.preventDefault();
-
-        const { execSync } = require('child_process');
-        let batPath;
-
-        try {
-            // 尝试访问D盘根目录
-            execSync('dir D:\\', { stdio: 'ignore' });
-            batPath = "D:\\offline\\stop_backend.bat";
-        } catch (error) {
-            batPath = "C:\\offline\\stop_backend.bat";
-        }
-
-        const batProcess = spawn('cmd.exe', ['/c', 'start', '', batPath]);
-
-        batProcess.stdout.on('data', (data) => {
-            console.log(`stdout: ${data}`);
-        });
-
-        batProcess.stderr.on('data', (data) => {
-            console.error(`stderr: ${data}`);
-            mainWindow.removeAllListeners('close');
-            mainWindow.close();
-        });
-
-        batProcess.on('close', (code) => {
-            console.log(`子进程退出，代码：${code}`);
-            mainWindow.removeAllListeners('close');
-            mainWindow.close();
-        });
-    });
-});
+}
 
 app.on('window-all-closed', () => {
     if (process.platform !== 'darwin') app.quit();
