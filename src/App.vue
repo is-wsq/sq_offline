@@ -50,6 +50,10 @@ body {
   font-family: Arial, sans-serif;
 }
 
+.el-message-box__headerbtn {
+  display: none;
+}
+
 .margin-b-12 {
   margin-bottom: 12px;
 }

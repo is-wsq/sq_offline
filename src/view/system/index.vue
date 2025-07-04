@@ -84,7 +84,7 @@ export default {
   },
   methods: {
     getInfo() {
-      axios.get("http://192.168.1.25:9669/get_remaining_tokens").then((res) => {
+      axios.get("http://127.0.0.1:9669/get_remaining_tokens").then((res) => {
         if (res.data.status === 'success') {
           this.info = res.data.data
           this.percentage = (this.info.remaining_tokens / this.info.total_tokens) * 100
