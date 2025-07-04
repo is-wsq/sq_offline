@@ -33,6 +33,7 @@
                       @compositionend="onCompositionEnd"
                       ref="inputRef"
                       class="input-layer"
+                      @change="saveSetting"
                       @scroll="handleScroll">
             </el-input>
             <div v-if="showDropdown" class="dropdown" :style="dropdownStyle">
@@ -53,11 +54,11 @@
             <div style="max-height:calc(100% - 190px);overflow-y: auto" ref="scriptForm">
               <div class="panel-label">文案要求</div>
               <el-input type="textarea" :autosize="{ minRows: 3, maxRows: 6 }" placeholder="例如：写一个关于猫咪的搞笑段子"
-                        class="margin-b-12" v-model="copy_require" resize="none"></el-input>
+                        class="margin-b-12" v-model="copy_require" resize="none" @click="saveSetting"></el-input>
               <div class="panel-label">示例文案（选填）</div>
               <div class="flex-center margin-b-12 example_textarea" v-for="(text, index) in exampleTexts" :key="index">
                 <el-input type="textarea" :autosize="{ minRows: 3, maxRows: 6 }" placeholder="提供一个你喜欢的风格的例子"
-                          v-model="exampleTexts[index]" resize="none"></el-input>
+                          v-model="exampleTexts[index]" resize="none" @change="saveSetting"></el-input>
 <!--                <el-button size="mini" type="danger" icon="el-icon-delete" @click="removeText(index)"></el-button>-->
                 <i class="el-icon-close example-close-icon" @click="removeText(index)" v-if="index !== 0"></i>
               </div>
@@ -69,15 +70,15 @@
             <div style="display: flex;gap: 12px" class="margin-b-12">
               <div style="flex: 1">
                 <div class="panel-label">视频时长 (秒)</div>
-                <el-input type="number" v-model="video_time"></el-input>
+                <el-input type="number" v-model="video_time" @change="saveSetting"></el-input>
               </div>
               <div style="flex: 1">
                 <div class="panel-label">文案数量</div>
-                <el-input type="number" v-model="script_num" min="1" max="10" @input="validateNum"></el-input>
+                <el-input type="number" v-model="script_num" min="1" max="10" @blur="validateNum" @change="saveSetting"></el-input>
               </div>
             </div>
             <div class="panel-label">模型选择</div>
-            <el-select v-model="ai_model" style="width: 100%" class="margin-b-12">
+            <el-select v-model="ai_model" style="width: 100%" class="margin-b-12" @change="saveSetting">
               <el-option label="本地大模型" value="local_model"></el-option>
               <el-option label="deepseek v3" value="deepseek_v3"></el-option>
             </el-select>
@@ -216,7 +217,6 @@ export default {
 
       already_generated: false,
       copy_require: '',
-      example_copy: '',
       exampleTexts: [''],
       video_time: 10,
       script_num: 1,
@@ -263,6 +263,18 @@ export default {
     },
   },
   methods: {
+    saveSetting() {
+      this.validateNum()
+      let sync_setting = {
+        requirement: this.requirement,
+        copy_require: this.copy_require,
+        exampleTexts: this.exampleTexts,
+        video_time: this.video_time,
+        script_num: this.script_num,
+        ai_model: this.ai_model,
+      }
+      sessionStorage.setItem('sync_setting', JSON.stringify(sync_setting))
+    },
     onCompositionStart(e) {
       this.isComposing = true;
       this.compositionStart = e.target.selectionStart;
@@ -342,7 +354,8 @@ export default {
         this.showDropdown = false;
       }
     },
-    validateNum(val) {
+    validateNum() {
+      let val = this.script_num
       if (val < 1) {
         this.script_num = 1
       } else if (val > 10) {
@@ -424,11 +437,21 @@ export default {
         const scriptForm = this.$refs.scriptForm;
         scriptForm.scrollTop = scriptForm.scrollHeight;
       });
+      this.saveSetting()
     },
     removeText(index) {
       this.exampleTexts.splice(index, 1);
+      this.saveSetting()
     },
     initData() {
+      let sync_setting = JSON.parse(sessionStorage.getItem("sync_setting")) || {}
+      this.requirement = sync_setting.copy_require || ''
+      this.copy_require = sync_setting.copy_require || ''
+      this.exampleTexts = sync_setting.exampleTexts || ['']
+      this.video_time = parseInt(sync_setting.video_time) || 100
+      this.script_num = parseInt(sync_setting.script_num) || 1
+      this.ai_model = sync_setting.ai_model || 'deepseek_v3'
+
       // 选择的素材id列表、素材列表、静音素材列表
       this.material_list = JSON.parse(sessionStorage.getItem('material_list')) || []
       this.mute_materials = JSON.parse(sessionStorage.getItem('mute_materials')) || []
@@ -588,8 +611,8 @@ export default {
       postAction('/figure/export_video_sync',params).then(res => {
         if (res.data.status === "success") {
           this.$alert('已创建视频生成任务，视频生成成功后会自动下载到本地', "任务创建提醒");
+          sessionStorage.clear()
           setTimeout(() => {
-            sessionStorage.setItem('video_path', '/video')
             this.$router.push({path: '/videoList'})
           }, 500)
         } else {

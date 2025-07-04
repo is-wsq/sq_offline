@@ -16,7 +16,7 @@
               <div style="height: calc(100% - 50px); overflow-y: auto">
                 <div class="smart-generate-c-l-ai-title">文案要求</div>
                 <el-input type="textarea" :autosize="{ minRows: 3, maxRows: 6 }" placeholder="例如：写一个关于猫咪的搞笑段子"
-                          class="margin-b-12" v-model="copy_require" resize="none"></el-input>
+                          class="margin-b-12" v-model="copy_require" resize="none" @change="saveSetting"></el-input>
                 <div class="smart-generate-c-l-ai-title">示例文案</div>
                 <div class="flex-center margin-b-8" v-for="(text, index) in exampleTexts" :key="index">
                   <div class="copy-item-example">{{ exampleTexts[index] }}</div>
@@ -24,7 +24,7 @@
                 <div style="display: flex;gap: 12px" class="margin-b-12">
                   <div style="flex: 1">
                     <div class="smart-generate-c-l-ai-title">文案字数</div>
-                    <el-select v-model="copy_num" placeholder="请选择" style="width: 100%">
+                    <el-select v-model="copy_num" placeholder="请选择" style="width: 100%" @change="saveSetting">
                       <el-option label="100" value="100"></el-option>
                       <el-option label="200" value="200"></el-option>
                       <el-option label="300" value="300"></el-option>
@@ -34,11 +34,11 @@
                   </div>
                   <div style="flex: 1">
                     <div class="smart-generate-c-l-ai-title">文案数量</div>
-                    <el-input type="number" v-model="script_num" min="1" max="10" @input="validateNum"></el-input>
+                    <el-input type="number" v-model="script_num" min="1" max="10" @blur="validateNum" @change="saveSetting"></el-input>
                   </div>
                 </div>
                 <div class="smart-generate-c-l-ai-title">模型选择</div>
-                <el-select v-model="ai_model" style="width: 100%" class="margin-b-12">
+                <el-select v-model="ai_model" style="width: 100%" class="margin-b-12" @change="saveSetting">
                   <el-option label="本地大模型" value="local_model"></el-option>
                   <el-option label="deepseek v3" value="deepseek_v3"></el-option>
                 </el-select>
@@ -109,7 +109,18 @@ export default {
     this.initData()
   },
   methods: {
-    validateNum(val) {
+    saveSetting() {
+      this.validateNum()
+      let duplicate_setting = {
+        copy_require: this.copy_require,
+        copy_num: this.copy_num,
+        script_num: this.script_num,
+        ai_model: this.ai_model,
+      }
+      sessionStorage.setItem('duplicate_setting', JSON.stringify(duplicate_setting))
+    },
+    validateNum() {
+      let val = this.script_num
       if (val < 1) {
         this.script_num = 1
       } else if (val > 10) {
@@ -119,6 +130,12 @@ export default {
       }
     },
     initData() {
+      let duplicate_setting = JSON.parse(sessionStorage.getItem("duplicate_setting")) || {}
+      this.copy_require = duplicate_setting.copy_require || ''
+      this.copy_num = parseInt(duplicate_setting.copy_num) || 100
+      this.script_num = parseInt(duplicate_setting.script_num) || 1
+      this.ai_model = duplicate_setting.ai_model || 'deepseek_v3'
+
       this.hot_copy_list = sessionStorage.getItem("hot_copy_list") ?
           JSON.parse(sessionStorage.getItem("hot_copy_list")) : []
       let hots = JSON.parse(sessionStorage.getItem("select_hots"))

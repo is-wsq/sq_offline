@@ -18,11 +18,11 @@
                   <div style="max-height: max(calc(100vh - 360px), 380px); overflow-y: auto" ref="scriptForm">
                     <div class="smart-generate-c-l-ai-title">文案要求</div>
                     <el-input type="textarea" :autosize="{ minRows: 3, maxRows: 6 }" placeholder="例如：写一个关于猫咪的搞笑段子"
-                              class="margin-b-12" v-model="copy_require" resize="none"></el-input>
+                              class="margin-b-12" v-model="copy_require" resize="none" @change="saveSetting"></el-input>
                     <div class="smart-generate-c-l-ai-title">示例文案（选填）</div>
                     <div class="flex-center margin-b-16 example_textarea" v-for="(text, index) in exampleTexts" :key="index">
                       <el-input type="textarea" :autosize="{ minRows: 3, maxRows: 6 }" placeholder="提供一个你喜欢的风格的例子"
-                                v-model="exampleTexts[index]" resize="none"></el-input>
+                                v-model="exampleTexts[index]" resize="none" @change="saveSetting"></el-input>
   <!--                      <el-button size="mini" type="danger" icon="el-icon-delete" @click="removeText(index)"></el-button>-->
                       <i class="el-icon-close example-close-icon" @click="removeText(index)" v-if="index !== 0"></i>
                     </div>
@@ -33,7 +33,7 @@
                     <div style="display: flex;gap: 12px" class="margin-b-12">
                       <div style="flex: 1">
                         <div class="smart-generate-c-l-ai-title">文案字数</div>
-                        <el-select v-model="copy_num" placeholder="请选择" style="width: 100%">
+                        <el-select v-model="copy_num" placeholder="请选择" style="width: 100%" @change="saveSetting">
                           <el-option label="100" value="100"></el-option>
                           <el-option label="200" value="200"></el-option>
                           <el-option label="300" value="300"></el-option>
@@ -43,11 +43,11 @@
                       </div>
                       <div style="flex: 1">
                         <div class="smart-generate-c-l-ai-title">文案数量</div>
-                        <el-input type="number" v-model="script_num" min="1" max="10" @input="validateNum"></el-input>
+                        <el-input type="number" v-model="script_num" min="1" max="10" @change="saveSetting" @blur="validateNum"></el-input>
                       </div>
                     </div>
                     <div class="smart-generate-c-l-ai-title">模型选择</div>
-                    <el-select v-model="ai_model" style="width: 100%" class="margin-b-12">
+                    <el-select v-model="ai_model" style="width: 100%" class="margin-b-12" @change="saveSetting">
                       <el-option label="本地大模型" value="local_model"></el-option>
                       <el-option label="deepseek v3" value="deepseek_v3"></el-option>
                     </el-select>
@@ -119,7 +119,6 @@ export default {
     return {
       activeName: '1',
       copy_require: '',
-      example_copy: '',
       exampleTexts: [''],
       copy_num: 100,
       script_num: 1,
@@ -150,7 +149,19 @@ export default {
     this.initData()
   },
   methods: {
-    validateNum(val) {
+    saveSetting() {
+      this.validateNum()
+      let smart_generate_setting = {
+        copy_require: this.copy_require,
+        exampleTexts: this.exampleTexts,
+        copy_num: this.copy_num,
+        script_num: this.script_num,
+        ai_model: this.ai_model
+      }
+      sessionStorage.setItem("smart_generate_setting", JSON.stringify(smart_generate_setting))
+    },
+    validateNum() {
+      let val = this.script_num
       if (val < 1) {
         this.script_num = 1
       } else if (val > 10) {
@@ -165,13 +176,21 @@ export default {
         const scriptForm = this.$refs.scriptForm;
         scriptForm.scrollTop = scriptForm.scrollHeight;
       });
+      this.saveSetting()
     },
     removeText(index) {
       this.exampleTexts.splice(index, 1);
+      this.saveSetting()
     },
     initData() {
       this.copy_list = sessionStorage.getItem("copy_list") ? JSON.parse(sessionStorage.getItem("copy_list")) : []
       this.script_type = sessionStorage.getItem("script_type")
+      let smart_generate_setting = JSON.parse(sessionStorage.getItem("smart_generate_setting")) || {}
+      this.copy_require = smart_generate_setting.copy_require || ''
+      this.exampleTexts = smart_generate_setting.exampleTexts || ['']
+      this.copy_num = parseInt(smart_generate_setting.copy_num) || 100
+      this.script_num = parseInt(smart_generate_setting.script_num) || 1
+      this.ai_model = smart_generate_setting.ai_model || 'deepseek_v3'
       this.initParams()
     },
     batchGenerate() {
@@ -343,9 +362,8 @@ export default {
       postAction("/figure/generate_video_v2", params).then((res) => {
         if (res.data.status === "success") {
           this.$alert('已创建视频生成任务，视频生成成功后会自动下载到本地', "任务创建提醒");
-          sessionStorage.removeItem('copy_list')
+          sessionStorage.clear()
           setTimeout(() => {
-            sessionStorage.setItem('video_path', '/video')
             this.$router.push({path: '/videoList'})
           }, 500)
         } else {

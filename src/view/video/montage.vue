@@ -34,6 +34,7 @@
                       @compositionend="onCompositionEnd"
                       ref="inputRef"
                       class="input-layer"
+                      @change="saveSetting"
                       @scroll="handleScroll">
             </el-input>
             <div v-if="showDropdown" class="dropdown" :style="dropdownStyle">
@@ -345,6 +346,9 @@ export default {
     inputEl.addEventListener('scroll', this.handleScroll);
   },
   methods: {
+    saveSetting() {
+      sessionStorage.setItem('montage_setting_requirement', this.requirement)
+    },
     onCompositionStart(e) {
       this.isComposing = true;
       this.compositionStart = e.target.selectionStart;
@@ -573,6 +577,8 @@ export default {
         }))
       }
 
+      this.requirement = sessionStorage.getItem('montage_setting_requirement') || ''
+
       this.material_list = JSON.parse(sessionStorage.getItem('material_list')) || []
       this.mute_materials = JSON.parse(sessionStorage.getItem('mute_materials')) || []
       let mention_list = JSON.parse(sessionStorage.getItem('mention_list')) || []
@@ -713,12 +719,11 @@ export default {
       postAction('/figure/export_video',params).then(res => {
         if (res.data.status === "success") {
           this.$alert('已创建视频生成任务，视频生成成功后会自动下载到本地', "任务创建提醒");
-          sessionStorage.removeItem('copy_list')
           if (with_out_route) {
             return
           }
+          sessionStorage.clear()
           setTimeout(() => {
-            sessionStorage.setItem('video_path', '/video')
             this.$router.push({path: '/videoList'})
           }, 500)
         } else {
@@ -790,6 +795,12 @@ export default {
         }
       });
       this.$forceUpdate()
+
+      if (this.nextType === 'hot_montage') {
+        sessionStorage.setItem('hot_copy_list', JSON.stringify(this.copy_list))
+      } else {
+        sessionStorage.setItem('copy_list', JSON.stringify(this.copy_list))
+      }
     },
     previewAudio(voice, index) {
       if (voice.id === '') {

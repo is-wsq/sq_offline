@@ -33,6 +33,7 @@
                       @input="onInput"
                       ref="inputRef"
                       class="input-layer"
+                      @change="saveSetting"
                       @scroll="handleScroll">
             </el-input>
             <div v-if="showDropdown" class="dropdown" :style="dropdownStyle">
@@ -53,7 +54,7 @@
             <div style="max-height:calc(100% - 150px);overflow-y: auto">
               <div class="panel-label">文案要求</div>
               <el-input type="textarea" :autosize="{ minRows: 3, maxRows: 6 }" placeholder="例如：写一个关于猫咪的搞笑段子"
-                        class="margin-b-12" v-model="copy_require" resize="none"></el-input>
+                        class="margin-b-12" v-model="copy_require" resize="none" @change="saveSetting"></el-input>
               <div class="panel-label">示例文案</div>
               <div class="flex-center margin-b-8" v-for="(text, index) in exampleTexts" :key="index">
                 <!--              <el-input type="textarea" :rows="3" placeholder="提供一个你喜欢的风格的例子"-->
@@ -64,15 +65,15 @@
             <div style="display: flex;gap: 12px" class="margin-b-12">
               <div style="flex: 1">
                 <div class="panel-label">视频时长 (秒)</div>
-                <el-input type="number" v-model="video_time"></el-input>
+                <el-input type="number" v-model="video_time" @change="saveSetting"></el-input>
               </div>
               <div style="flex: 1">
                 <div class="panel-label">文案数量</div>
-                <el-input type="number" v-model="script_num" min="1" max="10" @input="validateNum"></el-input>
+                <el-input type="number" v-model="script_num" min="1" max="10" @blur="validateNum" @change="saveSetting"></el-input>
               </div>
             </div>
             <div class="panel-label">模型选择</div>
-            <el-select v-model="ai_model" style="width: 100%" class="margin-b-12">
+            <el-select v-model="ai_model" style="width: 100%" class="margin-b-12" @change="saveSetting">
               <el-option label="本地大模型" value="local_model"></el-option>
               <el-option label="deepseek v3" value="deepseek_v3"></el-option>
             </el-select>
@@ -258,6 +259,17 @@ export default {
     },
   },
   methods: {
+    saveSetting() {
+      this.validateNum()
+      let segments_setting = {
+        requirement: this.requirement,
+        copy_require: this.copy_require,
+        video_time: this.video_time,
+        script_num: this.script_num,
+        ai_model: this.ai_model,
+      }
+      sessionStorage.setItem('segments_setting',JSON.stringify(segments_setting))
+    },
     onCompositionStart(e) {
       this.isComposing = true;
       this.compositionStart = e.target.selectionStart;
@@ -337,7 +349,8 @@ export default {
         this.showDropdown = false;
       }
     },
-    validateNum(val) {
+    validateNum() {
+      let val = this.script_num
       if (val < 1) {
         this.script_num = 1
       } else if (val > 10) {
@@ -414,6 +427,15 @@ export default {
       }
     },
     initData() {
+      let segments_setting = JSON.parse(sessionStorage.getItem("segments_setting")) || {}
+      this.requirement = segments_setting.requirement || ''
+      this.copy_require = segments_setting.copy_require || ''
+      this.video_time = parseInt(segments_setting.video_time) || 100
+      this.script_num = parseInt(segments_setting.script_num) || 1
+      this.ai_model = segments_setting.ai_model || 'deepseek_v3'
+
+      sessionStorage.setItem('segments_setting',JSON.stringify(segments_setting))
+
       let hots = JSON.parse(sessionStorage.getItem("select_hots"))
       this.exampleTexts = []
       this.exampleTexts[0] = hots.segments.map(segment => segment.asr_text).join('');
@@ -579,8 +601,8 @@ export default {
       postAction('/figure/export_video_sync',params).then(res => {
         if (res.data.status === "success") {
           this.$alert('已创建视频生成任务，视频生成成功后会自动下载到本地', "任务创建提醒");
+          sessionStorage.clear()
           setTimeout(() => {
-            sessionStorage.setItem('video_path', '/video')
             this.$router.push({path: '/videoList'})
           }, 500)
         } else {
