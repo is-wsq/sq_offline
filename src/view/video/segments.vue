@@ -27,6 +27,9 @@
                       :rows="4"
                       placeholder="例如：镜头要切换快，多用特写镜头"
                       v-model="requirement"
+                      @compositionstart="onCompositionStart"
+                      @compositionupdate="onCompositionUpdate"
+                      @compositionend="onCompositionEnd"
                       @input="onInput"
                       ref="inputRef"
                       class="input-layer"
@@ -222,6 +225,12 @@ export default {
 
       loading: null,
       segments_description: [],
+
+      displayText: '',
+      isComposing: false,
+      composingText: '',
+      compositionStart: 0,
+      highlightedText: ''
     }
   },
   beforeDestroy() {
@@ -236,13 +245,59 @@ export default {
     this.replaceDivHeight = inputEl.clientHeight
     inputEl.addEventListener('scroll', this.handleScroll);
   },
+  watch: {
+    requirement(newVal) {
+      if (!this.isComposing) {
+        this.updateDisplayText();
+      }
+    }
+  },
   computed: {
     preview_video() {
       return this.copy_list.length > 0 ? this.copy_list[this.activeIndex].materials : []
     },
-    highlightedText() {
-      // 使用正则替换所有 @人名 为高亮样式
+  },
+  methods: {
+    onCompositionStart(e) {
+      this.isComposing = true;
+      this.compositionStart = e.target.selectionStart;
+    },
+
+    onCompositionUpdate(e) {
+      this.composingText = e.data;
+      this.updateDisplayText();
+    },
+
+    onCompositionEnd(e) {
+      this.isComposing = false;
+      this.composingText = '';
+      this.requirement = e.target.value;
+      this.updateDisplayText();
+    },
+    updateDisplayText() {
+      let isDel = this.lastInput.length > this.requirement.length;
+      this.lastInput = this.requirement;
+      const inputEl = this.$refs.inputRef.$el.querySelector('textarea');
+      const cursorPos = inputEl.selectionStart;
+      if (isDel) { // 删除@内容
+        for (let mention of this.mentionRanges) {
+          const {start, end, name} = mention;
+          if (cursorPos >= start && cursorPos < end) { //删除@内容
+            this.requirement =
+                this.requirement.slice(0, start - 1) + this.requirement.slice(end - 1);
+          }
+        }
+      }
+
+      // 更新提及范围数组
+      this.updateMentionRanges()
+
       let result = this.requirement;
+      if (this.isComposing && this.composingText) {
+        const before = result.substring(0, this.compositionStart);
+        const after = result.substring(this.compositionStart + this.composingText.length);
+        result = before + this.composingText + after;
+      }
       let names = this.mention_list.map(item => '@' + item.name);
       names.forEach(item => {
         const regex = new RegExp(`${item}`, 'g'); // 使用全局标志
@@ -251,10 +306,37 @@ export default {
         });
       });
       result = result.replace(/\n/g, '<br>'); // 支持换行
-      return result; // 返回最终结果
+      this.highlightedText = result; // 返回最终结果
+
+      const textBeforeCursorUpdated = this.requirement.slice(0, cursorPos);
+      const validMention = textBeforeCursorUpdated.charAt(textBeforeCursorUpdated.length - 1) === '@';
+      if (validMention) {
+        this.showDropdown = true;
+
+        this.$nextTick(() => {
+          const paddingLeft = parseFloat(getComputedStyle(inputEl).paddingLeft) || 0;
+
+          const canvas = document.createElement('canvas');
+          const context = canvas.getContext('2d');
+          const computedStyle = getComputedStyle(inputEl);
+          context.font = `${computedStyle.fontSize} ${computedStyle.fontFamily}`;
+
+          const textWidth = context.measureText(textBeforeCursorUpdated).width;
+          const inputWidth = inputEl.clientWidth - 30;
+
+          const lineHeight = parseFloat(computedStyle.lineHeight) || parseFloat(computedStyle.fontSize);
+
+          let offsetTop = Math.floor((paddingLeft + textWidth + 10) / inputWidth) + 1;
+          offsetTop = Math.min(offsetTop, 4); // 限制最大显示数量
+          let remainder = (paddingLeft + textWidth + 5) % inputWidth;
+
+          this.dropdownStyle.top = `${window.scrollY + offsetTop * lineHeight}px`;
+          this.dropdownStyle.left = `${remainder}px`;
+        });
+      } else {
+        this.showDropdown = false;
+      }
     },
-  },
-  methods: {
     validateNum(val) {
       if (val < 1) {
         this.script_num = 1
@@ -297,51 +379,10 @@ export default {
       this.mentionRanges = result;
     },
     onInput() {
-      let isDel = this.lastInput.length > this.requirement.length;
-      this.lastInput = this.requirement;
-      const inputEl = this.$refs.inputRef.$el.querySelector('textarea');
-      const cursorPos = inputEl.selectionStart;
-      if (isDel) { // 删除@内容
-        for (let mention of this.mentionRanges) {
-          const {start, end, name} = mention;
-          if (cursorPos >= start && cursorPos < end) { //删除@内容
-            this.requirement =
-                this.requirement.slice(0, start - 1) + this.requirement.slice(end - 1);
-          }
-        }
+      if (this.isComposing) {
+        return
       }
-
-      // 更新提及范围数组
-      this.updateMentionRanges()
-
-      const textBeforeCursorUpdated = this.requirement.slice(0, cursorPos);
-      const validMention = textBeforeCursorUpdated.charAt(textBeforeCursorUpdated.length - 1) === '@';
-      if (validMention) {
-        this.showDropdown = true;
-
-        this.$nextTick(() => {
-          const paddingLeft = parseFloat(getComputedStyle(inputEl).paddingLeft) || 0;
-
-          const canvas = document.createElement('canvas');
-          const context = canvas.getContext('2d');
-          const computedStyle = getComputedStyle(inputEl);
-          context.font = `${computedStyle.fontSize} ${computedStyle.fontFamily}`;
-
-          const textWidth = context.measureText(textBeforeCursorUpdated).width;
-          const inputWidth = inputEl.clientWidth - 30;
-
-          const lineHeight = parseFloat(computedStyle.lineHeight) || parseFloat(computedStyle.fontSize);
-
-          let offsetTop = Math.floor((paddingLeft + textWidth + 10) / inputWidth) + 1;
-          offsetTop = Math.min(offsetTop, 4); // 限制最大显示数量
-          let remainder = (paddingLeft + textWidth + 5) % inputWidth;
-
-          this.dropdownStyle.top = `${window.scrollY + offsetTop * lineHeight}px`;
-          this.dropdownStyle.left = `${remainder}px`;
-        });
-      } else {
-        this.showDropdown = false;
-      }
+      this.updateDisplayText();
     },
     selectMention(item) {  //选择@
       const inputEl = this.$refs.inputRef.$el.querySelector('textarea');
