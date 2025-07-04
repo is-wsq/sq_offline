@@ -4,7 +4,7 @@
       <el-aside class="aside">
         <div class="logo">
           <div class="logo-icon">奇</div>
-          <span class="logo-text">奇点</span>
+          <span class="logo-text">奇点AI矩阵</span>
         </div>
         <div class="nav-menu">
           <div v-for="(menu, index) in menus" :key="index" class="nav-item" :class="{'nav-active': active === index}"
@@ -160,7 +160,7 @@ export default {
 
 .logo-text {
   margin-left: 12px;
-  font-size: 20px;
+  font-size: 15px;
   font-weight: 700;
   background: linear-gradient(135deg, #1f2937, #4b5563);
   -webkit-background-clip: text;
