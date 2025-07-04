@@ -1,5 +1,18 @@
 <template>
-  <div class="material">
+  <div class="material"
+       @mousedown="startSelection"
+       @mousemove="updateSelection"
+       @mouseup="endSelection"
+       @mouseleave="endSelection">
+    <!-- 选框元素 -->
+    <div v-if="isSelecting" class="selection-box"
+         :style="{
+            left: `${selectionLeft}px`,
+            top: `${selectionTop}px`,
+            width: `${selectionWidth}px`,
+            height: `${selectionHeight}px`
+         }">
+    </div>
     <div class="flex-center">
       <el-button type="text" class="back-btn" @click="back">
         <i class="el-icon-arrow-left" style="font-size: 20px;"></i>
@@ -15,10 +28,6 @@
                     class="filter-input" v-model="filter_text" @change="filterMaterials"></el-input>
         </div>
         <div class="m-card"
-             @mousedown="startSelection"
-             @mousemove="updateSelection"
-             @mouseup="endSelection"
-             @mouseleave="endSelection"
              ref="videoGrid">
           <div class="m-item" v-for="item in filter_materials" :key="item.id"
                @mousedown="onVideoItemMouseDown"
@@ -41,15 +50,6 @@
                 </i>
               </div>
             </div>
-          </div>
-          <!-- 选框元素 -->
-          <div v-if="isSelecting" class="selection-box"
-               :style="{
-                    left: `${selectionLeft}px`,
-                    top: `${selectionTop}px`,
-                    width: `${selectionWidth}px`,
-                    height: `${selectionHeight}px`
-                 }">
           </div>
         </div>
       </div>
@@ -894,6 +894,9 @@ export default {
   min-width: 1200px;
   min-height: 700px;
   height: 100%;
+  padding: 20px;
+  box-sizing: border-box;
+  position: relative;
 }
 
 .material-h-t {
@@ -958,6 +961,7 @@ export default {
   cursor: pointer;
   padding: 15px;
   overflow-y: auto;
+  overflow-x: hidden;
 }
 
 .m-item-img {

@@ -20,7 +20,7 @@
           </div>
         </div>
       </el-aside>
-      <el-main class="main">
+      <el-main class="main" :class="{'padding0': $route.path === '/material'}">
         <router-view/>
       </el-main>
     </el-container>
@@ -222,5 +222,9 @@ export default {
   background-color: rgb(239, 239, 239, 1%);
   height: 100vh;
   overflow: auto;
+}
+
+.padding0 {
+  padding: 0 !important;
 }
 </style>
