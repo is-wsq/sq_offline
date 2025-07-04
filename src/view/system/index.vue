@@ -2,12 +2,30 @@
   <div class="system">
     <div class="page-title">设置</div>
     <div class="page-content">
+      <div class="section-title">账户信息</div>
+      <div class="section-card" style="margin-bottom: 24px;">
+        <div class="flex-center margin-b-8">
+          <div style="flex: 1">
+            <div class="token-label">剩余Tokens</div>
+            <div class="token-value">{{ info.remaining_tokens || 0 }}</div>
+          </div>
+          <div class="top_up_btn">
+            <el-button @click="topUp">充值</el-button>
+          </div>
+        </div>
+        <el-progress :show-text="false" :stroke-width="10" :percentage="percentage" color="#3b82f6"
+                     define-back-color="#e5e7eb"></el-progress>
+      </div>
       <div class="section-title">应用设置</div>
       <div class="section-card" style="margin-bottom: 24px;">
-        <div class="settings">
-          <div class="setting-label">视频保存路径</div>
-          <el-input v-model="downloadPath" placeholder="请选择视频下载保存路径" class="save_path" readonly/>
-          <el-button @click="chooseFolder" icon="el-icon-folder-opened" style="border-radius: 8px">选择</el-button>
+        <div class="flex-center">
+          <div style="flex: 1">
+            <div class="path-label">视频缓存路径</div>
+            <div class="path-value">{{ downloadPath }}</div>
+          </div>
+          <div class="select_btn">
+            <el-button @click="chooseFolder">选择</el-button>
+          </div>
         </div>
       </div>
       <div class="section-title">关于产品</div>
@@ -47,18 +65,39 @@
 </template>
 
 <script>
+import {getAction} from "@/api/api";
+import axios from "axios";
+
 export default {
   name: 'system',
   data() {
     return {
       dialogVisible: false,
-      downloadPath: ''
+      downloadPath: '',
+      info: {},
+      percentage: 0
     }
   },
   mounted() {
     this.downloadPath = localStorage.getItem('downloadPath') || 'C:\\offline'
+    this.getInfo()
   },
   methods: {
+    getInfo() {
+      axios.get("http://192.168.1.25:9669/get_remaining_tokens").then((res) => {
+        if (res.data.status === 'success') {
+          this.info = res.data.data
+          this.percentage = (this.info.remaining_tokens / this.info.total_tokens) * 100
+        }else {
+          this.$message.error(res.data.message)
+        }
+      }).catch(err => {
+        console.log(err)
+      })
+    },
+    topUp() {
+      this.$alert('充值功能暂未开放，充值请通过下方联系客服充值。', '提示')
+    },
     chooseFolder() {
       window.electronAPI.selectFolder().then((path) => {
         if (path) {
@@ -90,7 +129,6 @@ export default {
 }
 
 .page-content {
-  height: max(calc(100vh - 223px), 600px);
   margin: 0 auto;
   max-width: 1024px;
 }
@@ -109,29 +147,61 @@ export default {
   padding: 32px;
 }
 
-.settings {
-  display: flex;
-  gap: 16px;
-  align-items: center;
-}
-
-.setting-label {
+.token-label {
+  color: #6b7280;
   font-weight: 500;
-  color: #475569;
+  font-size: 14px;
+  line-height: 20px;
+  margin-bottom: 4px;
 }
 
-.save_path {
-  flex: 1;
-  max-width: 400px;
+.token-value {
+  color: #111827;
+  font-weight: 600;
+  font-size: 24px;
+  line-height: 32px;
 }
 
-.settings >>> .el-input__inner {
-  padding: 8px 12px;
-  background: #f8fafc;
-  border: 1px solid #e2e8f0;
-  border-radius: 8px;
-  outline: none;
-  transition: all 0.2s ease;
+.path-label {
+  color: #6b7280;
+  font-weight: 500;
+  font-size: 14px;
+  line-height: 20px;
+  margin-bottom: 4px;
+}
+
+.path-value {
+  color: #111827;
+  line-height: 32px;
+}
+
+.top_up_btn >>> .el-button {
+  color: #ffffff;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
+  padding: 8px 24px;
+  background-color: #3b82f6;
+  border-radius: 6px;
+}
+
+.top_up_btn >>> .el-button:hover {
+  background-color: #2563eb;
+}
+
+.select_btn >>> .el-button {
+  color: #374151;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
+  padding: 8px 24px;
+  background-color: transparent;
+  border-radius: 6px;
+  border: 1px solid #d1d5db;
+}
+
+.select_btn >>> .el-button:hover {
+  background-color: #f3f4f6;
 }
 
 .about-section {
