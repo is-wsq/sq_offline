@@ -86,13 +86,13 @@
                           <el-col :span="12" v-for="(bgm, bgm_index) in bgm_options" :key="bgm.id">
                             <div class="bgm-item" @click="selectBgm(bgm, index)">
                               <div class="bgm-icon"
-                                   @click="previewAudio(item, 10000 + bgm_index)"
+                                   @click.stop="previewAudio(bgm, 10000 + bgm_index)"
                                    v-if="audioIndex !== (10000 + bgm_index)">
                                 <i :class="bgm.isPlay ? 'el-icon-pause' : 'el-icon-play'"
                                    style="font-size: 13px; color: #6286ed">
                                 </i>
                               </div>
-                              <div class="bgm-icon" @click="stopAudio" v-else>
+                              <div class="bgm-icon" @click.stop="stopAudio" v-else>
                                 <i class="el-icon-pause" style="font-size: 13px; color: #6286ed"></i>
                               </div>
                               <div class="bgm-name" :title="bgm.name">{{ bgm.name }}</div>
@@ -113,13 +113,13 @@
                               <div class="bgm-item" :class="{ 'bgm-selected': bgm.id === item.bgm.id }"
                                    @click="selectBgm(bgm, index)">
                                 <div class="bgm-icon"
-                                     @click="previewAudio(item, 10000 + bgm_index)"
+                                     @click.stop="previewAudio(bgm, 10000 + bgm_index)"
                                      v-if="audioIndex !== (10000 + bgm_index)">
                                   <i :class="bgm.isPlay ? 'el-icon-pause' : 'el-icon-play'"
                                      style="font-size: 13px; color: #6286ed">
                                   </i>
                                 </div>
-                                <div class="bgm-icon" @click="stopAudio" v-else>
+                                <div class="bgm-icon" @click.stop="stopAudio" v-else>
                                   <i class="el-icon-pause" style="font-size: 13px; color: #6286ed"></i>
                                 </div>
                                 <div class="bgm-name" :title="bgm.name">{{ bgm.name }}</div>
@@ -806,6 +806,8 @@ export default {
       }
     },
     previewAudio(voice, index) {
+      console.log(voice)
+      console.log(index)
       if (voice.id === '') {
         this.$message.warning("无音频预览");
         return;
