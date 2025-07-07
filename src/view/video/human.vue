@@ -435,6 +435,9 @@ export default {
           let data = res.data.data.filter(item => item.status === "success")
           this.figures = data.map(item => ({ ...item, previewing: false }))
           this.filter_figures = this.figures
+          let figure = JSON.parse(sessionStorage.getItem('figure')) || {}
+          let validFiguresId = this.figures.map(item => item.id);
+          this.figure = validFiguresId.includes(figure.id) ? figure : {}
         }
       }).catch((error) => {
         console.error("获取角色列表失败:", error);
@@ -456,7 +459,7 @@ export default {
       })
     },
     initParams() {
-      this.figure = JSON.parse(sessionStorage.getItem('figure')) || {}
+      // this.figure = JSON.parse(sessionStorage.getItem('figure')) || {}
 
       this.contentHeight = Number(sessionStorage.getItem('figure_content_height')) || 640
       this.topRatio = Number(sessionStorage.getItem('figure_top_offset_ratio')) || 0.25

@@ -64,7 +64,7 @@
               <div class="m-card">
                 <div class="m-item" v-for="item in filter_figures" :key="item.id" @click="selectFigure(item)">
                   <el-image class="m-item-img" :class="{'m-img-selected': item.id === figure.id }"
-                            :src="item.picture" fit="cover" lazy></el-image>
+                            :src="item.picture" fit="cover"></el-image>
                   <div style="display: flex">
                     <div class="m-item-title" :class="{'m-title-selected': item.id === figure.id }"
                          :title="item.name">{{ item.name }}</div>
@@ -498,6 +498,7 @@ export default {
     },
     selectFigure(item) {
       this.figure = this.figure.id === item.id ? {} : item
+      sessionStorage.setItem('figure', JSON.stringify(this.figure))
     },
     filterMaterials() {
       let filteredItems = this.materials;
@@ -620,6 +621,9 @@ export default {
           let data = res.data.data.filter(item => item.status === "success")
           this.figures = data.map(item => ({ ...item, previewing: false }))
           this.filter_figures = this.figures
+          let figure = JSON.parse(sessionStorage.getItem('figure')) || {}
+          let validFiguresId = this.figures.map(item => item.id);
+          this.figure = validFiguresId.includes(figure.id) ? figure : {}
         }
       }).catch((error) => {
         console.error("获取角色列表失败:", error);
@@ -910,6 +914,11 @@ export default {
         this.$alert('请先选择需要混剪的素材', '提示')
         return
       }
+      if (this.figure.id) {
+        let material_list = this.material_list
+        material_list.push(this.figure.id)
+        sessionStorage.setItem('material_list', JSON.stringify(material_list))
+      }
       sessionStorage.setItem('script_type', 'material')
       sessionStorage.setItem('mention_list', JSON.stringify(this.mentionList))
       let path = ''
@@ -959,6 +968,7 @@ export default {
 
 .material-content {
   display: flex;
+  gap: 15px;
   height: calc(100% - 60px);
 }
 
