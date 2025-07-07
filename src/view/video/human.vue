@@ -398,7 +398,7 @@ export default {
       sound: {},
       bgmList: [],
       bgm: {},
-      bg_volume: 0.5,
+      bg_volume: 0.3,
       audio: null,
       audioIndex: null,
       titleTextStyle: {},
@@ -467,7 +467,7 @@ export default {
 
       this.withSubtitle = sessionStorage.getItem("figure_with_subtitle") === 'true'
       this.withTitle = sessionStorage.getItem("figure_with_title") === 'true'
-      this.bg_volume = Number(sessionStorage.getItem("figure_bg_volume")) || 0.5
+      this.bg_volume = Number(sessionStorage.getItem("figure_bg_volume")) || 0.3
 
       this.use_background = sessionStorage.getItem("figure_use_background") === 'true'
       this.name_use_background = sessionStorage.getItem("figure_name_use_background") === 'true'
@@ -728,6 +728,7 @@ export default {
       }
       sessionStorage.setItem('script_type', 'figure')
       sessionStorage.setItem('video_path', path)
+      sessionStorage.setItem("figure_bg_volume", this.bg_volume)
       this.$router.push({path: path})
     },
     back() {

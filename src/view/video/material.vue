@@ -459,7 +459,7 @@ export default {
       sound: {},
       bgmList: [],
       bgm: {},
-      bg_volume: 0.5,
+      bg_volume: 0.3,
       audio: null,
       audioIndex: null,
       titleTextStyle: {},
@@ -540,7 +540,7 @@ export default {
 
       this.withSubtitle = sessionStorage.getItem("with_subtitle") === 'true'
       this.withTitle = sessionStorage.getItem("with_title") === 'true'
-      this.bg_volume = Number(sessionStorage.getItem("bg_volume")) || 0.5
+      this.bg_volume = Number(sessionStorage.getItem("bg_volume")) || 0.3
 
       this.use_background = sessionStorage.getItem("use_background") === 'true'
       this.name_use_background = sessionStorage.getItem("name_use_background") === 'true'
@@ -920,6 +920,7 @@ export default {
         sessionStorage.setItem('material_list', JSON.stringify(material_list))
       }
       sessionStorage.setItem('script_type', 'material')
+      sessionStorage.setItem("bg_volume", this.bg_volume)
       sessionStorage.setItem('mention_list', JSON.stringify(this.mentionList))
       let path = ''
       switch (this.nextType) {
