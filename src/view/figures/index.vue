@@ -251,7 +251,7 @@ export default {
     },
     deleteItem() {
       let selectedId = this.selectedItem.id
-      this.$confirm('此操作将删除该素材, 是否继续?', '提示', {
+      this.$confirm('此操作将删除该文件, 是否继续?', '提示', {
         type: 'warning'
       }).then(() => {
         delAction("/figure/delete", {figure_id: selectedId}).then((res) => {
@@ -279,10 +279,7 @@ export default {
           this.$message.error("删除失败，请稍后重试！");
         });
       }).catch(() => {
-        this.$message({
-          type: 'info',
-          message: '已取消删除'
-        });
+        this.$message({type: 'info', message: '已取消删除'});
       });
     },
     detail() {

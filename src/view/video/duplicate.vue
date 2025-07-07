@@ -196,8 +196,12 @@ export default {
       sessionStorage.setItem("hot_copy_list", JSON.stringify(this.hot_copy_list));
     },
     removeCopy(index) {
-      this.hot_copy_list.splice(index, 1);
-      sessionStorage.setItem("hot_copy_list", JSON.stringify(this.hot_copy_list))
+      this.$confirm('确认删除该文案吗？', '提示').then(() => {
+        this.hot_copy_list.splice(index, 1);
+        sessionStorage.setItem("hot_copy_list", JSON.stringify(this.hot_copy_list))
+      }).catch((err) => {
+        this.$message({type: 'info', message: '已取消删除'});
+      });
     },
     nextStep() {
       if (this.hot_copy_list.length === 0) {

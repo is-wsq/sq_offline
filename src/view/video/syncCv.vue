@@ -554,7 +554,11 @@ export default {
       }
     },
     removeCopy(index) {
-      this.copy_list.splice(index, 1)
+      this.$confirm('确认删除该文案吗？', '提示').then(() => {
+        this.copy_list.splice(index, 1)
+      }).catch((err) => {
+        this.$message({type: 'info', message: '已取消删除'});
+      });
     },
 
     setName() {

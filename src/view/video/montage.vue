@@ -476,14 +476,18 @@ export default {
       })
     },
     removeShot(updateI, removeI) {
-      this.montage_data[updateI].materials.splice(removeI, 1)
-      if (this.montage_data[updateI].materials.length !== 0) {
-        this.currentIndex = 0
-        this.$nextTick(() => {
-          this.loadVideo(this.currentIndex);
-          this.loadAudio()
-        })
-      }
+      this.$confirm('确认删除该分镜吗？', '提示').then(() => {
+        this.montage_data[updateI].materials.splice(removeI, 1)
+        if (this.montage_data[updateI].materials.length !== 0) {
+          this.currentIndex = 0
+          this.$nextTick(() => {
+            this.loadVideo(this.currentIndex);
+            this.loadAudio()
+          })
+        }
+      }).catch((err) => {
+        this.$message({type: 'info', message: '已取消删除'});
+      });
     },
     queryBgm() {
       let bgm_options = [{id: '', name: '无'}]
@@ -849,12 +853,16 @@ export default {
       }
     },
     removeCopy(index) {
-      if (this.already_generated) {
-        this.montage_data.splice(index, 1)
-        return
-      }
-      this.copy_list.splice(index, 1)
-      sessionStorage.setItem("copy_list", JSON.stringify(this.copy_list))
+      this.$confirm('确认删除该文案吗？', '提示').then(() => {
+        if (this.already_generated) {
+          this.montage_data.splice(index, 1)
+          return
+        }
+        this.copy_list.splice(index, 1)
+        sessionStorage.setItem("copy_list", JSON.stringify(this.copy_list))
+      }).catch((err) => {
+        this.$message({type: 'info', message: '已取消删除'});
+      });
     },
     loadAudio() {
       this.$refs.audioRef.src = this.montage_data[this.activeIndex].audio_file_path

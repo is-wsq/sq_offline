@@ -178,15 +178,19 @@ export default {
       });
     },
     deleteItem() {
-      delAction(`/timbres/${this.selectedItem.id}`).then((res) => {
-        if (res.data.status === "success") {
-          this.$message.success("删除成功。");
-          this.$store.dispatch("task/pollVoiceTasks");
-        } else {
-          this.$message.error(res.data.message);
-        }
+      this.$confirm('确认删除该音色吗？', '提示').then(() => {
+        delAction(`/timbres/${this.selectedItem.id}`).then((res) => {
+          if (res.data.status === "success") {
+            this.$message.success("删除成功。");
+            this.$store.dispatch("task/pollVoiceTasks");
+          } else {
+            this.$message.error(res.data.message);
+          }
+        }).catch((err) => {
+          this.$message.error("删除失败，请稍后重试！");
+        });
       }).catch((err) => {
-        this.$message.error("删除失败，请稍后重试！");
+        this.$message({type: 'info', message: '已取消删除'});
       });
     },
     async beforeUpload(file) {
