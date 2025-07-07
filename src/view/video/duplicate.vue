@@ -196,7 +196,9 @@ export default {
       sessionStorage.setItem("hot_copy_list", JSON.stringify(this.hot_copy_list));
     },
     removeCopy(index) {
-      this.$confirm('确认删除该文案吗？', '提示').then(() => {
+      this.$confirm('确认删除该文案吗？', '提示', {
+        type: 'warning'
+      }).then(() => {
         this.hot_copy_list.splice(index, 1);
         sessionStorage.setItem("hot_copy_list", JSON.stringify(this.hot_copy_list))
       }).catch((err) => {

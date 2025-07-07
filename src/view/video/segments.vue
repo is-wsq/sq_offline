@@ -544,7 +544,9 @@ export default {
       }
     },
     removeCopy(index) {
-      this.$confirm('确认删除该文案吗？', '提示').then(() => {
+      this.$confirm('确认删除该文案吗？', '提示', {
+        type: 'warning'
+      }).then(() => {
         this.copy_list.splice(index, 1)
       }).catch((err) => {
         this.$message({type: 'info', message: '已取消删除'});

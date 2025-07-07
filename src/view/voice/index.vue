@@ -178,7 +178,9 @@ export default {
       });
     },
     deleteItem() {
-      this.$confirm('确认删除该音色吗？', '提示').then(() => {
+      this.$confirm('确认删除该音色吗？', '提示', {
+        type: 'warning'
+      }).then(() => {
         delAction(`/timbres/${this.selectedItem.id}`).then((res) => {
           if (res.data.status === "success") {
             this.$message.success("删除成功。");

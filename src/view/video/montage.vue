@@ -476,7 +476,9 @@ export default {
       })
     },
     removeShot(updateI, removeI) {
-      this.$confirm('确认删除该分镜吗？', '提示').then(() => {
+      this.$confirm('确认删除该分镜吗？', '提示', {
+        type: 'warning'
+      }).then(() => {
         this.montage_data[updateI].materials.splice(removeI, 1)
         if (this.montage_data[updateI].materials.length !== 0) {
           this.currentIndex = 0
@@ -853,7 +855,9 @@ export default {
       }
     },
     removeCopy(index) {
-      this.$confirm('确认删除该文案吗？', '提示').then(() => {
+      this.$confirm('确认删除该文案吗？', '提示', {
+        type: 'warning'
+      }).then(() => {
         if (this.already_generated) {
           this.montage_data.splice(index, 1)
           return
