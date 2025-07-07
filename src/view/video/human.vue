@@ -19,7 +19,7 @@
                :key="item.id"
                @click="selectFigure(item)">
             <el-image class="figure-img" :class="{'figure-img-selected': item.id === figure.id }"
-                      :src="item.picture" fit="cover"></el-image>
+                      :src="item.picture" fit="cover" lazy></el-image>
             <div class="figure-name" :class="{'figure-title-selected': item.id === figure.id }"
                  :title="item.name">{{ item.name }}</div>
           </div>
@@ -34,7 +34,7 @@
                  @mouseup="onMouseUp"
                  @mouseleave="onMouseUp">
               <el-image style="width: 100%;border-radius: 8px" :src="figure.picture"
-                        fit="contain" v-if="figure.picture"></el-image>
+                          fit="contain" v-if="figure.picture"></el-image>
               <div style="width: 360px;height: 640px" v-else></div>
               <div class="figure-preview-title"
                    ref="titleContainer"

@@ -23,34 +23,56 @@
     <div class="material-content">
       <div class="c-left">
         <div style="line-height: 40px;font-weight: bold;margin-left: 15px">素材库</div>
-        <div class="filter-content">
-          <el-input prefix-icon="el-icon-search" placeholder="输入素材名称、标签匹配搜索" clearable
-                    class="filter-input" v-model="filter_text" @change="filterMaterials"></el-input>
-        </div>
-        <div class="m-card"
-             ref="videoGrid">
-          <div class="m-item" v-for="item in filter_materials" :key="item.id"
-               @mousedown="onVideoItemMouseDown"
-               @click="selectMaterial(item, $event)"
-               ref="videoItems">
-            <el-image class="m-item-img" :class="{'m-img-selected': material_list.includes(item.id) }"
-                      :src="item.picture" fit="cover"></el-image>
-            <div style="display: flex">
-              <div class="m-item-title" :class="{'m-title-selected': material_list.includes(item.id) }" :title="item.name">{{ item.name }}</div>
-              <div style="line-height: 1.5;margin-right: 5px">
-                <i class="el-icon-shengyin_fill"
-                   style="font-size: 16px; color: #6286ed;"
-                   @click.stop="addMute(item.id)"
-                   v-if="!mute_materials.includes(item.id)">
-                </i>
-                <i class="el-icon-jingyin_fill"
-                   style="font-size: 16px; color: #6286ed;"
-                   @click.stop="removeMute(item.id)"
-                   v-else>
-                </i>
+        <div class="library">
+          <el-collapse v-model="activeName" accordion>
+            <el-collapse-item title="素材" name="1">
+              <div class="filter-content">
+                <el-input prefix-icon="el-icon-search" placeholder="输入素材名称、标签匹配搜索" clearable
+                          class="filter-input" v-model="filter_text" @change="filterMaterials"></el-input>
               </div>
-            </div>
-          </div>
+              <div class="m-card" ref="videoGrid">
+                <div class="m-item" v-for="item in filter_materials" :key="item.id"
+                     @mousedown="onVideoItemMouseDown"
+                     @click="selectMaterial(item, $event)"
+                     ref="videoItems">
+                  <el-image class="m-item-img" :class="{'m-img-selected': material_list.includes(item.id) }"
+                            :src="item.picture" fit="cover" lazy></el-image>
+                  <div style="display: flex">
+                    <div class="m-item-title" :class="{'m-title-selected': material_list.includes(item.id) }"
+                         :title="item.name">{{ item.name }}</div>
+                    <div style="line-height: 1.5;margin-right: 5px">
+                      <i class="el-icon-shengyin_fill"
+                         style="font-size: 16px; color: #6286ed;"
+                         @click.stop="addMute(item.id)"
+                         v-if="!mute_materials.includes(item.id)">
+                      </i>
+                      <i class="el-icon-jingyin_fill"
+                         style="font-size: 16px; color: #6286ed;"
+                         @click.stop="removeMute(item.id)"
+                         v-else>
+                      </i>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </el-collapse-item>
+            <el-collapse-item title="数字人" name="2">
+              <div class="filter-content">
+                <el-input prefix-icon="el-icon-search" placeholder="输入素材名称、标签匹配搜索" clearable
+                          class="filter-input" v-model="figure_filter_text" @change="filterFigure"></el-input>
+              </div>
+              <div class="m-card">
+                <div class="m-item" v-for="item in filter_figures" :key="item.id" @click="selectFigure(item)">
+                  <el-image class="m-item-img" :class="{'m-img-selected': item.id === figure.id }"
+                            :src="item.picture" fit="cover" lazy></el-image>
+                  <div style="display: flex">
+                    <div class="m-item-title" :class="{'m-title-selected': item.id === figure.id }"
+                         :title="item.name">{{ item.name }}</div>
+                  </div>
+                </div>
+              </div>
+            </el-collapse-item>
+          </el-collapse>
         </div>
       </div>
       <div class="c-center">
@@ -349,6 +371,12 @@ export default {
   mixins: [EnhancedChoiceMixin],
   data() {
     return {
+      activeName: '1',
+      figure_filter_text: '',
+      figures: [],
+      filter_figures: [],
+      figure: {},
+
       filter_text: '',
       materials: [],
       filter_materials: [],
@@ -454,12 +482,23 @@ export default {
   },
   mounted() {
     this.queryMaterials();
+    this.queryFigures();
     this.querySounds();
     this.queryBgm();
     this.queryFontFamily();
     this.initParams()
   },
   methods: {
+    filterFigure() {
+      let filteredItems = this.figures;
+      if (this.filter_text) {
+        filteredItems = filteredItems.filter(item => item.name.includes(this.filter_text));
+      }
+      this.filter_figures = filteredItems;
+    },
+    selectFigure(item) {
+      this.figure = this.figure.id === item.id ? {} : item
+    },
     filterMaterials() {
       let filteredItems = this.materials;
 
@@ -570,6 +609,17 @@ export default {
               this.filter_materials = this.materials
             }
           }
+        }
+      }).catch((error) => {
+        console.error("获取角色列表失败:", error);
+      });
+    },
+    queryFigures() {
+      getAction("/figure/query_success", {video_type: 'figure'}).then((res) => {
+        if (res.data.status === "success") {
+          let data = res.data.data.filter(item => item.status === "success")
+          this.figures = data.map(item => ({ ...item, previewing: false }))
+          this.filter_figures = this.figures
         }
       }).catch((error) => {
         console.error("获取角色列表失败:", error);
@@ -929,6 +979,26 @@ export default {
   transition: all 0.1s ease;
 }
 
+.library {
+  padding: 0 15px;
+  box-sizing: border-box;
+}
+
+.library >>> .el-collapse {
+  border-top: none;
+}
+
+.library >>> .el-collapse-item__header {
+  font-weight: bold;
+  font-size: 14px;
+  height: 35px;
+  line-height: 35px;
+}
+
+.library >>> .el-collapse-item__content {
+  padding-bottom: 0;
+}
+
 .filter-content {
   text-align: center;
   padding: 10px 20px;
@@ -952,14 +1022,14 @@ export default {
 }
 
 .m-card {
-  height: calc(100% - 130px);
+  max-height: calc(100vh - 300px);
   display: grid;
   gap: 15px;
   grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
   grid-auto-rows: min-content;
   position: relative;
   cursor: pointer;
-  padding: 15px;
+  margin-bottom: 15px;
   overflow-y: auto;
   overflow-x: hidden;
 }

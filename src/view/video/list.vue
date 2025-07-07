@@ -3,11 +3,8 @@
     <div class="list-content">
       <div v-for="item in processList" :key="item.id" style="text-align: center">
         <div class="image-wrapper shining">
-          <el-image
-              style="width: 100%;height: 100%;border-radius: 8px;filter: blur(15px);opacity: 0.8"
-              :src="require('/public/images/4.jpg')"
-              fit="contain">
-          </el-image>
+          <el-image style="width: 100%;height: 100%;border-radius: 8px;filter: blur(15px);opacity: 0.8"
+              :src="require('/public/images/4.jpg')" fit="contain" lazy></el-image>
           <div class="video-item-info">
             <div :title="item.filename" class="video-name">{{ item.filename }}</div>
           </div>
@@ -24,7 +21,7 @@
            :key="item.id"
            :class="{'activeClass': item.id === selected.id}" @contextmenu.stop="handleContextMenu(item, $event)"
            @click="preview(item)">
-        <el-image style="width: 100%;height: 100%;border-radius: 8px" :src="item.picture" fit="cover"></el-image>
+        <el-image style="width: 100%;height: 100%;border-radius: 8px" :src="item.picture" fit="cover" lazy></el-image>
         <div class="video-item-info">
           <div :title="item.filename" class="video-name" v-if="!item.isEdit">{{ item.filename }}</div>
           <div v-else style="flex: 1" @click.stop="">

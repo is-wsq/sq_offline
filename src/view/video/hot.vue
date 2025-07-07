@@ -27,7 +27,7 @@
         <div v-for="(name, index) in processFile" :key="index" class="video-card">
           <div class="figure-image-wrapper shining" style="width: 100% !important; height: 100% !important">
             <el-image style="width: 100%; height: 100%;border-radius: 8px;filter: blur(15px);opacity: 0.8"
-                      :src="require('/public/images/4.jpg')" fit="cover">
+                      :src="require('/public/images/4.jpg')" fit="cover" lazy>
             </el-image>
             <div class="shine-layer"></div>
           </div>
@@ -48,14 +48,11 @@
             <i class="el-icon-check" style="padding: 2px"></i>
           </div>
           <template v-if="!video.isHover">
-            <el-image class="hot-img" :src="video.picture" fit="cover">
-            </el-image>
+            <el-image class="hot-img" :src="video.picture" fit="cover" lazy></el-image>
             <div class="video-title">{{ video.name }}</div>
           </template>
           <template v-else>
-            <video class="hot-img" :src="video.filepath"
-                   loop muted autoplay>
-            </video>
+            <video class="hot-img" :src="video.filepath" loop muted autoplay></video>
             <div class="video-title-hover">
               <div style="margin-bottom: 8px">{{ video.name }}</div>
               <div style="display: flex;justify-content: center;align-items: center">

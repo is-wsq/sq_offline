@@ -174,7 +174,7 @@
                     <div class="delete-shot-btn">
                       <i class="el-icon-close" style="font-weight: bold" @click="removeShot(index,maI)"></i>
                     </div>
-                    <el-image class="material-item-img" :src="material.picture"></el-image>
+                    <el-image class="material-item-img" :src="material.picture" lazy></el-image>
                     <div class="material-item-title" :title="material.name">{{ material.name }}</div>
                   </div>
                   <div class="material-item">

@@ -115,7 +115,7 @@
                   </template>
                   <div class="copy-item-materials">
                     <div class="copy-item-material" v-for="(material, index) in item.materials" :key="index">
-                      <el-image class="copy-item-material-img" :src="material.picture"></el-image>
+                      <el-image class="copy-item-material-img" :src="material.picture" lazy></el-image>
                       <div class="copy-item-material-name">{{ material.name }}</div>
                     </div>
                   </div>
@@ -138,7 +138,7 @@
         <div class="panel-title margin-b-16">分镜文案详情</div>
         <div class="storyboard-content">
           <div class="storyboard-item" v-for="(item, index) in selectedCopy.materials" :key="index">
-            <el-image class="storyboard-item-img" :src="item.picture"></el-image>
+            <el-image class="storyboard-item-img" :src="item.picture" lazy></el-image>
             <div class="storyboard-item-detail">{{ selectedCopy.script[index].copy }}</div>
           </div>
         </div>
