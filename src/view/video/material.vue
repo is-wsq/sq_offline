@@ -26,7 +26,7 @@
         <div class="library">
           <el-collapse v-model="activeName" accordion>
             <el-collapse-item title="素材" name="1">
-              <div class="filter-content">
+              <div class="filter-content" @mousedown.stop="">
                 <el-input prefix-icon="el-icon-search" placeholder="输入素材名称、标签匹配搜索" clearable
                           class="filter-input" v-model="filter_text" @change="filterMaterials"></el-input>
               </div>
@@ -57,7 +57,7 @@
               </div>
             </el-collapse-item>
             <el-collapse-item title="数字人" name="2">
-              <div class="filter-content">
+              <div class="filter-content" @mousedown.stop="">
                 <el-input prefix-icon="el-icon-search" placeholder="输入素材名称、标签匹配搜索" clearable
                           class="filter-input" v-model="figure_filter_text" @change="filterFigure"></el-input>
               </div>
@@ -498,8 +498,8 @@ export default {
   methods: {
     filterFigure() {
       let filteredItems = this.figures;
-      if (this.filter_text) {
-        filteredItems = filteredItems.filter(item => item.name.includes(this.filter_text));
+      if (this.figure_filter_text) {
+        filteredItems = filteredItems.filter(item => item.name.includes(this.figure_filter_text));
       }
       this.filter_figures = filteredItems;
     },
