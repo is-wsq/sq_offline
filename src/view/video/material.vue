@@ -81,6 +81,7 @@
             <div class="c-preview-setting"
                  ref="container"
                  @mousemove="onMouseMove"
+                 @mousedown.stop=""
                  @mouseup="onMouseUp"
                  @mouseleave="onMouseUp">
               <el-image style="width: 100%;border-radius: 8px" :src="mentionList[0].picture"
