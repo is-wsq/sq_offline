@@ -317,7 +317,8 @@ export default {
       isComposing: false,
       composingText: '',
       compositionStart: 0,
-      highlightedText: ''
+      highlightedText: '',
+      show_model: ''
     }
   },
   watch: {
@@ -604,6 +605,7 @@ export default {
       this.subtitleParams.background_opacity = Number(sessionStorage.getItem("background_opacity")) || 0.6
       this.subtitleParams.stroke_color = sessionStorage.getItem("stroke_color") || '#000000'
 
+      this.show_model = sessionStorage.getItem('show_model') || 'begin'
       this.subtitleNameParams.name_fontsize = parseInt(sessionStorage.getItem("name_fontsize")) || 10
       this.subtitleNameParams.name_color = sessionStorage.getItem("name_color") || '#ffffff'
       this.subtitleNameParams.name_font = sessionStorage.getItem("name_font") || 'SJxingkai-C-Regular'
@@ -707,6 +709,7 @@ export default {
         title_params: {
           y_offset: this.top_offset_ratio,
           title_text_list: this.montage_data.map(item => item.title),
+          show_model: this.show_model,
           font: this.subtitleNameParams.name_font,
           fontsize: this.subtitleNameParams.name_fontsize,
           color: this.subtitleNameParams.name_color,

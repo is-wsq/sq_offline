@@ -143,6 +143,11 @@
               <div style="flex: 1">口播标题</div>
               <el-checkbox v-model="withTitle" @change="switchTitle"></el-checkbox>
             </div>
+            <div class="flex-center margin-b-12">
+              <div class="s-voice-title" style="flex: 1">展示方式</div>
+              <el-radio v-model="show_model" label="begin" @input="saveShowModel">仅开头展示</el-radio>
+              <el-radio v-model="show_model" label="full" @input="saveShowModel">全程展示</el-radio>
+            </div>
             <div class="flex-center">
               <div class="right-label" style="flex: 1">预设样式</div>
               <div class="preset-style"
@@ -322,6 +327,7 @@ export default {
       filter_figures: [],
       figure: {},
       withTitle: true,
+      show_model: 'begin',
       subtitleNameParams: {
         'name_background_opacity': 0.6
       },
@@ -467,6 +473,7 @@ export default {
 
       this.withSubtitle = sessionStorage.getItem("figure_with_subtitle") === 'true'
       this.withTitle = sessionStorage.getItem("figure_with_title") === 'true'
+      this.show_model = sessionStorage.getItem("figure_show_model") || 'begin'
       this.bg_volume = Number(sessionStorage.getItem("figure_bg_volume")) || 0.3
 
       this.use_background = sessionStorage.getItem("figure_use_background") === 'true'
@@ -617,6 +624,9 @@ export default {
     switchTitle() {
       sessionStorage.setItem("figure_with_title", this.withTitle)
       this.activeTitleNames = this.withTitle ? ['1'] : []
+    },
+    saveShowModel() {
+      sessionStorage.setItem("figure_show_model", this.show_model)
     },
     selectTitlePreset(item) {
       this.activeTitlePresetId = item.id
@@ -911,9 +921,8 @@ export default {
   border-radius: 6px;
 }
 
-.style-card-item >>> .el-checkbox__inner {
-  width: 16px;
-  height: 16px;
+.style-card-item >>> .el-radio__label {
+  font-size: 12px;
 }
 
 .back-checkbox >>> .el-checkbox__inner {

@@ -143,6 +143,7 @@ export default {
       subtitleNameParams: {},
       use_background: false,
       name_use_background: false,
+      show_model: ''
     }
   },
   mounted() {
@@ -310,6 +311,7 @@ export default {
       this.subtitleParams.background_opacity = Number(sessionStorage.getItem("figure_background_opacity")) || 0.6
       this.subtitleParams.stroke_color = sessionStorage.getItem("figure_stroke_color") || '#000000'
 
+      this.show_model = sessionStorage.getItem('figure_show_model') || 'begin'
       this.subtitleNameParams.name_fontsize = parseInt(sessionStorage.getItem("figure_name_fontsize")) || 10
       this.subtitleNameParams.name_color = sessionStorage.getItem("figure_name_color") || '#ffffff'
       this.subtitleNameParams.name_font = sessionStorage.getItem("figure_name_font") || 'SJxingkai-C-Regular'
@@ -350,6 +352,7 @@ export default {
         title_params: {
           y_offset: this.top_offset_ratio,
           title_text_list: this.copy_list.map(item => item.title),
+          show_model: this.show_model,
           font: this.subtitleNameParams.name_font,
           fontsize: this.subtitleNameParams.name_fontsize,
           color: this.subtitleNameParams.name_color,
