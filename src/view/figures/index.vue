@@ -257,33 +257,41 @@ export default {
     },
     deleteItem() {
       let selectedId = this.selectedItem.id
-      delAction("/figure/delete", {figure_id: selectedId}).then((res) => {
-        if (res.data.status === "success") {
-          this.$message.success("删除成功");
+      this.$confirm('此操作将删除该素材, 是否继续?', '提示', {
+        type: 'warning'
+      }).then(() => {
+        delAction("/figure/delete", {figure_id: selectedId}).then((res) => {
+          if (res.data.status === "success") {
+            this.$message.success("删除成功");
 
-          const material_list = JSON.parse(sessionStorage.getItem('material_list')) || [];
-          const new_material_list = material_list.filter(item => item !== selectedId);
-          sessionStorage.setItem('material_list', JSON.stringify(new_material_list));
+            const material_list = JSON.parse(sessionStorage.getItem('material_list')) || [];
+            const new_material_list = material_list.filter(item => item !== selectedId);
+            sessionStorage.setItem('material_list', JSON.stringify(new_material_list));
 
-          const mention_list = JSON.parse(sessionStorage.getItem('mention_list')) || [];
-          const new_mention_list = mention_list.filter(item => item.id !== selectedId);
-          sessionStorage.setItem('mention_list', JSON.stringify(new_mention_list));
+            const mention_list = JSON.parse(sessionStorage.getItem('mention_list')) || [];
+            const new_mention_list = mention_list.filter(item => item.id !== selectedId);
+            sessionStorage.setItem('mention_list', JSON.stringify(new_mention_list));
 
-          let figure = JSON.parse(sessionStorage.getItem('figure')) || {}
-          if (figure.id === this.selectedItem.id) {
-            sessionStorage.removeItem('figure');
+            let figure = JSON.parse(sessionStorage.getItem('figure')) || {}
+            if (figure.id === this.selectedItem.id) {
+              sessionStorage.removeItem('figure');
+            }
+
+            this.$store.dispatch("task/pollFigureTasks");
+          } else {
+            this.$message.error(res.data.message);
           }
-
-          this.$store.dispatch("task/pollFigureTasks");
-        } else {
-          this.$message.error(res.data.message);
-        }
-      }).catch((err) => {
-        this.$message.error("删除失败，请稍后重试！");
+        }).catch((err) => {
+          this.$message.error("删除失败，请稍后重试！");
+        });
+      }).catch(() => {
+        this.$message({
+          type: 'info',
+          message: '已取消删除'
+        });
       });
     },
     detail() {
-      console.log(this.selectedItem)
       this.detailDialogVisible = true;
       this.detail_content = this.selectedItem.material_summary;
     },
