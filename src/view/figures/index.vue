@@ -6,8 +6,12 @@
         <div class="figures-list">
           <div v-for="item in processMaterials" :key="item.id">
             <div class="figure-image-wrapper shining">
-              <el-image class="figures-img" style="filter: blur(15px);opacity: 0.8"
-                  :src="require('/public/images/4.jpg')" fit="cover" lazy></el-image>
+              <el-image
+                  class="figures-img"
+                  style="filter: blur(15px);opacity: 0.8"
+                  :src="require('/public/images/4.jpg')"
+                  fit="cover">
+              </el-image>
               <div class="shine-layer"></div>
               <div class="figure-progress">
                 <div>素材上传中</div>
@@ -21,7 +25,7 @@
                :key="index"
                @contextmenu.stop="handleContextMenu(item, $event)"
                @click="selectItem(item)">
-            <el-image class="figures-img" :src="item.picture" fit="cover" lazy></el-image>
+            <el-image class="figures-img" :src="item.picture" fit="cover"></el-image>
             <div class="figure-name" :title="item.name">{{ item.name }}</div>
           </div>
         </div>
@@ -93,26 +97,41 @@
     </el-dialog>
     <el-dialog class="upload-dialog" :visible.sync="uploadDialogVisible" width="32rem"
                title="上传素材" :before-close="beforeUploadClose">
-      <el-upload
-          drag
-          ref="materialUpload"
-          class="material-uploader"
-          style="width: 100%"
-          action="http://127.0.0.1:6006/figure/clone_only"
-          accept=".mp4, .mov"
-          :on-success="uploadMaterialsSuccess"
-          :on-error="uploadMaterialsError"
-          :before-upload="beforeUpload"
-          :on-progress="handleFileChange"
-          :file-list.sync="materialList"
-          :data="{ lip_sync: true, tag: uploadTag }"
-          :auto-upload="false"
-          multiple>
-        <i class="el-icon-upload"></i>
-        <div class="el-upload__text">将文件拖到此处，或<em>点击上传</em></div>
-      </el-upload>
-      <div style="margin: 20px 0 10px 0;font-size: 15px;font-weight: bold">标签</div>
-      <el-input v-model="uploadTag" placeholder="多标签使用逗号(，)分隔，用于匹配搜索"></el-input>
+      <el-form ref="uploadForm" label-position="top" label-width="80px" :model="uploadData">
+        <el-form-item label="">
+          <el-upload
+              drag
+              ref="materialUpload"
+              class="material-uploader"
+              style="width: 100%"
+              action="http://127.0.0.1:6006/figure/clone_only"
+              accept=".mp4, .mov"
+              :on-success="uploadMaterialsSuccess"
+              :on-error="uploadMaterialsError"
+              :before-upload="beforeUpload"
+              :on-progress="handleFileChange"
+              :file-list.sync="materialList"
+              :data="uploadData"
+              :auto-upload="false"
+              multiple>
+            <i class="el-icon-upload"></i>
+            <div class="el-upload__text">将文件拖到此处，或<em>点击上传</em></div>
+          </el-upload>
+        </el-form-item>
+        <el-form-item label="关联店铺 (必选)" prop="shopId">
+          <el-select v-model="uploadData.shopId" placeholder="请选择要关联的店铺">
+            <el-option
+                v-for="shop in shops"
+                :key="shop.id"
+                :label="shop.name"
+                :value="shop.id">
+            </el-option>
+          </el-select>
+        </el-form-item>
+        <el-form-item label="自定义标签 (可选)" prop="tags">
+          <el-input v-model="uploadData.tags" placeholder="多标签请使用逗号(,)分隔"></el-input>
+        </el-form-item>
+      </el-form>
       <span slot="footer" class="dialog-footer">
         <el-button @click="uploadDialogVisible = false" size="small">取消</el-button>
         <el-button type="primary" @click="handleSubmit" size="small">确认上传</el-button>
@@ -162,7 +181,11 @@ export default {
   data() {
     return {
       uploadDialogVisible: false,
-      uploadTag: '',
+      uploadData: {
+        shopId: '',
+        tags: '',
+        lip_sync: true
+      },
       dialogVisible: false,
       drawer: false,
       src: "",
@@ -181,6 +204,7 @@ export default {
   },
   computed: {
     ...mapGetters("task", ["figureTasks"]), // 获取任务列表
+    ...mapGetters("shop", ["shops"]), // 获取店铺列表
     processMaterials() {
       return this.figureTasks.filter((item) => item.status === "pending");
     },
@@ -207,10 +231,20 @@ export default {
   methods: {
     beforeUploadClose() {
       this.materialList = []
-      this.uploadTag = ''
+      this.uploadData.shopId = ''
+      this.uploadData.tags = ''
       this.uploadDialogVisible = false
     },
     handleSubmit() {
+      let files = this.$refs.materialUpload.uploadFiles || []
+      if (files.length === 0) {
+        this.$message.warning('请选择要上传的素材！');
+        return;
+      }
+      if (!this.uploadData.shopId) {
+        this.$message.warning('请必须选择一个关联店铺！');
+        return;
+      }
       this.$refs.materialUpload.submit()
     },
     startDotAnimation() {
@@ -535,5 +569,15 @@ export default {
 .material-uploader >>> .el-upload-list {
   max-height: 80px;
   overflow: auto;
+}
+
+::v-deep .el-form-item__label {
+  font-weight: bold;
+  padding: 0 !important;
+  line-height: 22px !important;
+}
+
+::v-deep .el-dialog__body {
+  padding: 20px 25px 5px;
 }
 </style>

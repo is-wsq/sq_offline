@@ -20,6 +20,7 @@ import system from '../view/system/index.vue';
 import agreement from '../view/system/agreement.vue';
 import videoPlayer from "../view/system/videoPlayer.vue";
 import shiftSelectAll from "../view/system/shiftSelectAll.vue";
+import ShopManagement from '../view/shop/index.vue';
 
 const routes = [
     {
@@ -116,6 +117,11 @@ const routes = [
         path: '/register',
         name: 'Register',
         component: Register
+    },
+    {
+        path: '/shop',
+        name: 'shop',
+        component: ShopManagement
     },
 ];
 

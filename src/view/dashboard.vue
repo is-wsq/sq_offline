@@ -45,6 +45,7 @@ export default {
         {name: "克隆声音", path: "/voice", class: 'el-icon-voice'},
         {name: "生成视频", path: "/video", class: 'el-icon-video'},
         {name: "视频列表", path: "/videoList", class: 'el-icon-view-list'},
+        {name: "品牌店铺", path: "/shop", class: 'el-icon-s-shop'},
         {name: "设置", path: "/system", class: 'el-icon-setting'},
       ],
     };

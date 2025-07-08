@@ -27,11 +27,30 @@
           <el-collapse v-model="activeName" accordion>
             <el-collapse-item title="素材" name="1">
               <div class="filter-content" @mousedown.stop="">
+                <span class="filter-label" style="line-height: 30px;width: 65px">店铺筛选</span>
+                <el-select v-model="activeShopTag" placeholder="选择店铺名称筛选" clearable size="small" class="filter-input">
+                  <el-option label="全部店铺" :value="null"></el-option>
+                  <el-option
+                      v-for="shop in shops"
+                      :key="shop.id"
+                      :label="shop.name"
+                      :value="shop.id">
+                  </el-option>
+                </el-select>
+              </div>
+              <div class="filter-content" @mousedown.stop="">
+                <span class="filter-label" style="line-height: 30px">关键词搜索</span>
                 <el-input prefix-icon="el-icon-search" placeholder="输入素材名称、标签匹配搜索" clearable
                           class="filter-input" v-model="filter_text" @change="filterMaterials"></el-input>
               </div>
+<!--              <div class="tags">-->
+<!--                <el-tag v-for="(tag, index) in tags" :key="index" size="small" class="tag"-->
+<!--                        :class="{ 'tag-active': activeTags.includes(tag) }" @click="selectTag(tag)">-->
+<!--                  {{ tag }}-->
+<!--                </el-tag>-->
+<!--              </div>-->
               <div class="m-card" ref="videoGrid">
-                <div class="m-item" v-for="item in filter_materials" :key="item.id"
+                <div class="m-item" v-for="item in filteredMaterials" :key="item.id"
                      @mousedown="onVideoItemMouseDown"
                      @click="selectMaterial(item, $event)"
                      ref="videoItems">
@@ -105,7 +124,7 @@
           </div>
         </div>
         <div class="c-center-btn">
-          <el-button type="primary" class="next-btn" @click="nextStep">
+          <el-button type="primary" class="next-btn" @click="promptForShopSelection">
             {{ nextType.includes('montage')? '下一步：编辑文案' : '下一步：一键混剪' }}
           </el-button>
         </div>
@@ -363,6 +382,32 @@
         </div>
       </div>
     </div>
+
+    <!-- 店铺选择弹窗 -->
+    <el-dialog
+        title="请选择关联店铺"
+        :visible.sync="shopDialogVisible"
+        width="30%"
+        :before-close="handleCloseShopDialog">
+      <div v-if="shops && shops.length > 0">
+        <el-select v-model="selectedShopId" placeholder="请选择店铺" style="width: 100%;">
+          <el-option
+              v-for="shop in shops"
+              :key="shop.id"
+              :label="shop.name"
+              :value="shop.id">
+          </el-option>
+        </el-select>
+      </div>
+      <div v-else>
+        <p>您还没有创建任何店铺。请先前往"品牌店铺管理"页面创建店铺。</p>
+        <el-button type="text" @click="goToShopManagement">立即前往</el-button>
+      </div>
+      <span slot="footer" class="dialog-footer">
+        <el-button @click="handleCloseShopDialog">取 消</el-button>
+        <el-button type="primary" @click="confirmShopSelection" :disabled="!selectedShopId">确 定</el-button>
+      </span>
+    </el-dialog>
   </div>
 </template>
 
@@ -370,6 +415,8 @@
 import {getAction} from "@/api/api";
 import {EnhancedChoiceMixin} from "@/mixins/EnhancedChoiceMixin";
 import Video from "@/view/video/index.vue";
+import { LocalStorage } from '@/utils/storage'
+import { mapGetters } from 'vuex'
 
 export default {
   name: 'Material',
@@ -384,8 +431,12 @@ export default {
       figure: {},
 
       filter_text: '',
+
+      tags: ['全部','自然','高清','城市','夜景','人物','生活','科技','未来','美食','烹饪'],
+      activeTags: ['全部'],
+
       materials: [],
-      filter_materials: [],
+      // filter_materials: [],
       material_list: [],
       mute_materials: [],
       withTitle: true,
@@ -478,10 +529,35 @@ export default {
       topRatio: 0.25,
       bottomRatio: 0.75,
 
-      nextType: 'montage'
+      nextType: 'montage',
+      shopDialogVisible: false,
+      selectedShopId: null,
+      activeShopTag: null,
     }
   },
   computed: {
+    ...mapGetters('shop', ['shops']),
+    filteredMaterials() {
+      let filtered = this.materials;
+
+      if (this.activeShopTag) { // 店铺标签筛选
+        filtered = filtered.filter(item => item.shopId === this.activeShopTag);
+      }
+
+      if (this.filter_text) { // 关键字筛选
+        filtered = filtered.filter(item =>
+            item.name.includes(this.filter_text) ||
+            (item.tag && item.tag.split(/[,，]/).includes(this.filter_text))
+        );
+      }
+
+      if (this.material_list.length > 0) { // 素材尺寸筛选
+        let size = this.materials.find(item => item.id === this.material_list[0]).size
+        filtered = filtered.filter(item => item.size === size)
+      }
+
+      return filtered;
+    },
     mentionList() {
       return this.materials.filter(item => this.material_list.includes(item.id))
           .sort((a, b) => this.material_list.indexOf(a.id) - this.material_list.indexOf(b.id))
@@ -496,6 +572,21 @@ export default {
     this.initParams()
   },
   methods: {
+    selectTag(tag) {
+      if (tag === '全部') {
+        this.activeTags = ['全部']
+        return
+      }
+      if (this.activeTags.includes(tag)) {
+        this.activeTags.splice(this.activeTags.indexOf(tag), 1)
+        if (this.activeTags.length === 0) {
+          this.activeTags = ['全部']
+        }
+        return;
+      }
+      this.activeTags.push(tag)
+    },
+    filterMaterials() {},
     filterFigure() {
       let filteredItems = this.figures;
       if (this.figure_filter_text) {
@@ -506,23 +597,6 @@ export default {
     selectFigure(item) {
       this.figure = this.figure.id === item.id ? {} : item
       sessionStorage.setItem('figure', JSON.stringify(this.figure))
-    },
-    filterMaterials() {
-      let filteredItems = this.materials;
-
-      if (this.filter_text) {
-        filteredItems = filteredItems.filter(item =>
-            item.name.includes(this.filter_text) ||
-            (item.tag && item.tag.split(/[,，]/).includes(this.filter_text))
-        );
-      }
-
-      if (this.material_list.length > 0) {
-        let size = this.materials.find(item => item.id === this.material_list[0]).size
-        filteredItems = filteredItems.filter(item => item.size === size)
-      }
-
-      this.filter_materials = filteredItems;
     },
     formatTooltip(val) {
       return val * 100 + '%';
@@ -611,12 +685,12 @@ export default {
                 .filter(id => validMaterialsId.includes(id)); //剔除已经删除掉的素材
             sessionStorage.setItem('material_list', JSON.stringify(this.material_list))
 
-            if (this.material_list.length > 0) {
-              let size = this.materials.find(item => item.id === this.material_list[0]).size
-              this.filter_materials = this.materials.filter(item => item.size === size)
-            }else {
-              this.filter_materials = this.materials
-            }
+            // if (this.material_list.length > 0) {
+              // let size = this.materials.find(item => item.id === this.material_list[0]).size
+              // this.filter_materials = this.materials.filter(item => item.size === size)
+            // }else {
+              // this.filter_materials = this.materials
+            // }
           }
         }
       }).catch((error) => {
@@ -691,10 +765,10 @@ export default {
         return
       }
       const isShiftKey = event.shiftKey
-      if (this.material_list.length === 0) {
-        this.filter_materials = this.filter_materials.filter(material => material.size === item.size)
-      }
-      let index = this.filter_materials.indexOf(item)
+      // if (this.material_list.length === 0) {
+      //   this.filter_materials = this.filter_materials.filter(material => material.size === item.size)
+      // }
+      let index = this.filteredMaterials.indexOf(item)
 
       if (!isShiftKey) {
         this.selectResource(item)
@@ -710,11 +784,11 @@ export default {
 
         // 选中范围内的所有项
         for (let i = start; i <= end; i++) {
-          this.selectResource(this.filter_materials[i], true)
+          this.selectResource(this.filteredMaterials[i], true)
         }
       } else {
         // 第一次点击并且按住了Shift键，处理方式同普通点击
-        this.selectResource(this.filter_materials[index])
+        this.selectResource(this.filteredMaterials[index])
       }
 
       this.lastClickedIndex = index
@@ -730,14 +804,14 @@ export default {
         if (this.material_list.length === 0) {
           this.lastClickedIndex = null
 
-          let filteredItems = this.materials;
-          if (this.filter_text) {
-            filteredItems = filteredItems.filter(item =>
-                item.name.includes(this.filter_text) ||
-                (item.tag && item.tag.split(/[,，]/).includes(this.filter_text))
-            );
-          }
-          this.filter_materials = filteredItems
+          // let filteredItems = this.materials;
+          // if (this.filter_text) {
+          //   filteredItems = filteredItems.filter(item =>
+          //       item.name.includes(this.filter_text) ||
+          //       (item.tag && item.tag.split(/[,，]/).includes(this.filter_text))
+          //   );
+          // }
+          // this.filter_materials = filteredItems
         }
       }
       this.contentHeight = 640
@@ -920,6 +994,30 @@ export default {
       sessionStorage.setItem('preset_id', '0')
       this.$forceUpdate()
     },
+    promptForShopSelection() {
+      if (!this.material_list || this.material_list.length === 0) {
+        this.$message.warning('请至少选择一个素材！')
+        return
+      }
+      this.shopDialogVisible = true
+    },
+    confirmShopSelection() {
+      if (!this.selectedShopId) {
+        this.$message.warning('请选择一个店铺！')
+        return
+      }
+      LocalStorage.set('selectedShopId', this.selectedShopId);
+      this.shopDialogVisible = false
+      this.nextStep()
+    },
+    goToShopManagement() {
+      this.shopDialogVisible = false
+      this.$router.push('/shop')
+    },
+    handleCloseShopDialog() {
+      this.selectedShopId = null
+      this.shopDialogVisible = false
+    },
     nextStep() {
       if (this.material_list.length === 0) {
         this.$alert('请先选择需要混剪的素材', '提示')
@@ -1023,7 +1121,8 @@ export default {
 
 .filter-content {
   text-align: center;
-  padding: 10px 20px;
+  padding: 5px 0;
+  display: flex;
 }
 
 .filter-content >>> .el-input__icon {
@@ -1039,12 +1138,12 @@ export default {
 }
 
 .filter-input {
-  width: 100%;
-  max-width: 400px;
+  flex: 1;
+  margin-left: 15px;
 }
 
 .m-card {
-  max-height: calc(100vh - 300px);
+  max-height: calc(100vh - 340px);
   display: grid;
   gap: 15px;
   grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
@@ -1052,6 +1151,7 @@ export default {
   position: relative;
   cursor: pointer;
   margin-bottom: 15px;
+  margin-top: 5px;
   overflow-y: auto;
   overflow-x: hidden;
 }
@@ -1365,5 +1465,31 @@ export default {
 
 .input-number >>> .el-input__icon {
   line-height: 30px;
+}
+
+.tags {
+  display: flex;
+  justify-content: center;
+  gap: 16px;
+  margin-bottom: 10px;
+  margin-top: 5px;
+  border: 1px solid red;
+}
+
+.tag {
+  background-color: #F5F5F5;
+  color: #525252;
+  border-radius: 14px;
+  border: 1px solid #F5F5F5;
+  cursor: pointer;
+  height: 28px;
+  line-height: 28px;
+  padding-left: 12px;
+  padding-right: 12px;
+}
+
+.tag-active {
+  background-color: #3b82f6 !important;
+  color: #FFFFFF !important;
 }
 </style>
