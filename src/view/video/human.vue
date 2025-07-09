@@ -62,13 +62,29 @@
         <div class="style-card">
           <div class="style-card-item margin-b-16">
             <div class="margin-b-12 font-weight">音频</div>
-            <div class="right-label">主播声音</div>
+            <div style="display: flex">
+              <div class="right-label" style="margin-top: 5px">主播声音</div>
+              <el-popover placement="bottom-start" trigger="click">
+                <div class="mode-popover-item" @click="saveMode('common')">
+                  普通模式
+                  <i class="el-icon-check mode-select" v-if="mode === 'common'"></i>
+                </div>
+                <div class="mode-popover-item" @click="saveMode('advanced')">
+                  高级模式
+                  <i class="el-icon-check mode-select" v-if="mode === 'advanced'"></i>
+                </div>
+                <div slot="reference" class="mode-switch">
+                  {{ mode === 'common' ? '普通模式' : '高级模式' }}
+                  <i class="el-icon-arrow-down"></i>
+                </div>
+              </el-popover>
+            </div>
             <div class="s-voice-content margin-b-16">
               <div class="s-voice-btn">
                 <i class="el-icon-play" @click="previewAudio(sound, -1)" v-if="audioIndex !== -1"></i>
                 <i class="el-icon-pause" @click="stopAudio" v-else></i>
               </div>
-              <el-popover placement="bottom" trigger="click">
+              <el-popover placement="bottom" trigger="click" style="flex: 1">
                 <div class="popover-content">
                   <el-row>
                     <el-col :span="12" v-for="(voice, index) in voices" :key="voice.id">
@@ -84,8 +100,12 @@
                     </el-col>
                   </el-row>
                 </div>
-                <div class="s-voice-name" style="min-width: 350px" slot="reference" :title="sound.name">{{ sound.name }}</div>
+                <div class="s-voice-name" slot="reference" :title="sound.name">{{ sound.name }}</div>
               </el-popover>
+              <div class="mode-info" v-if="mode === 'advanced'">
+                <i class="el-icon-info" style="font-size: 16px;margin-right: 5px"></i>
+                高级模式将调用Minimax接口并计费
+              </div>
             </div>
             <div class="right-label">背景声音</div>
             <div class="s-voice-content">
@@ -93,7 +113,7 @@
                 <i class="el-icon-play" @click="previewAudio(bgm, -2)" v-if="audioIndex !== -2"></i>
                 <i class="el-icon-pause" @click="stopAudio" v-else></i>
               </div>
-              <el-popover placement="bottom" trigger="click" @hide="stopAudio">
+              <el-popover placement="bottom" trigger="click" @hide="stopAudio" style="flex: 1">
                 <div class="popover-content">
                   <el-row>
                     <el-col :span="12">
@@ -129,7 +149,7 @@
                     </el-col>
                   </el-row>
                 </div>
-                <div class="s-voice-name" slot="reference" style="min-width: 200px" :title="bgm.name">{{ bgm.name }}</div>
+                <div class="s-voice-name" slot="reference" :title="bgm.name">{{ bgm.name }}</div>
               </el-popover>
               <div class="right-label volume">音量</div>
               <div class="s-btn-volume">
@@ -402,6 +422,7 @@ export default {
       fontFamily: [],
       voices: [],
       sound: {},
+      mode: 'common',  // 普通模式 common, 高级模式 advanced
       bgmList: [],
       bgm: {},
       bg_volume: 0.3,
@@ -466,6 +487,7 @@ export default {
     },
     initParams() {
       // this.figure = JSON.parse(sessionStorage.getItem('figure')) || {}
+      this.mode = sessionStorage.getItem('figure_setting_mode') || 'common'
 
       this.contentHeight = Number(sessionStorage.getItem('figure_content_height')) || 640
       this.topRatio = Number(sessionStorage.getItem('figure_top_offset_ratio')) || 0.25
@@ -567,6 +589,10 @@ export default {
       }).catch((error) => {
         console.error("获取字体样式列表失败:", error);
       });
+    },
+    saveMode(mode) {
+      this.mode = mode
+      sessionStorage.setItem("figure_setting_mode", mode)
     },
     selectVoice(voice) {
       this.sound = voice
@@ -940,6 +966,46 @@ export default {
   color: #374151;
 }
 
+.mode-switch {
+  background-color: #f3f4f6;
+  padding: 4px 8px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 12px;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  margin-left: 16px;
+}
+
+.mode-popover-item {
+  padding: 8px 12px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  height: 20px;
+  line-height: 20px;
+}
+
+.mode-popover-item:hover {
+  background-color: #f5f7fa;
+}
+
+.mode-select {
+  color: #409EFF;
+  font-weight: bold;
+  font-size: 14px;
+  margin-left: auto;
+}
+
+.mode-info {
+  margin-left: 10px;
+  font-size: 12px;
+  display: flex;
+  align-items: center;
+  color:#909399;
+}
+
 .opacity >>> .el-slider__button {
   height: 18px;
   width: 4px;
@@ -1040,7 +1106,6 @@ export default {
 }
 
 .s-voice-name {
-  flex: 1;
   background-color: #f3f4f6;
   padding: 4px 4px 4px 8px;
   font-size: 12px;
