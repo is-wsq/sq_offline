@@ -31,9 +31,11 @@
           <div class="shop-info-item">
             <strong class="info-label">产品套餐:</strong>
             <template v-if="shop.productPackages && shop.productPackages.length > 0">
-              <strong class="info-content" style="color: #3b82f6;cursor: pointer;" v-for="(item, index) in shop.productPackages"
+              <strong class="info-content" style="color: #3b82f6;cursor: pointer;padding-right: 10px;position: relative"
+                      v-for="(item, index) in shop.productPackages"
                       :key='index' @click="handleEditPackage(shop, index)">
                 {{ item.name }}
+                <i class="el-icon-close close-btn" @click.stop="handleDeletePackage(shop, index)"></i>
               </strong>
             </template>
             <strong class="info-content" v-else>暂未添加</strong>
@@ -197,14 +199,37 @@ export default {
     handleEditPackage(shop, index) {
       this.selectedShop = shop
       this.packageIndex = index
-      this.currentPackage = this.selectedShop.productPackages[index]
+      this.currentPackage = {...this.selectedShop.productPackages[index]}
       this.packageDialogVisible = true
+    },
+    handleDeletePackage(shop, index) {
+      this.selectedShop = shop
+      this.$confirm('此操作将永久删除该套餐, 是否继续?', '提示', {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'warning'
+      }).then(() => {
+        console.log(111)
+        let packages = this.selectedShop.productPackages || []
+        packages.splice(index, 1)
+        let shopData = {...this.selectedShop, productPackages: packages }
+        this.updateShop(shopData)
+        this.$message({
+          type: 'success',
+          message: '删除成功!'
+        })
+      }).catch(() => {
+        console.log(222)
+        this.$message({
+          type: 'info',
+          message: '已取消删除'
+        })
+      })
     },
     beforeClose() {
       this.$refs.packageForm.clearValidate()
     },
     submitPackageForm() {
-      console.log(this.currentPackage)
       this.$refs.packageForm.validate(valid => {
         if (valid) {
           let packages = this.selectedShop.productPackages || []
@@ -316,6 +341,21 @@ export default {
   white-space: pre-wrap; /* Allows wrapping and respects newlines */
   word-wrap: break-word;
   font-family: "Helvetica Neue", Arial, sans-serif;
+}
+
+.close-btn {
+  position: absolute;
+  top: -4px;
+  right: 0;
+  opacity: 0;
+}
+
+.close-btn:hover {
+  color: red;
+}
+
+.info-content:hover .close-btn {
+  opacity: 1;
 }
 
 .empty-state {
