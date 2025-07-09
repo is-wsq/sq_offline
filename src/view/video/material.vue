@@ -55,7 +55,7 @@
                      @click="selectMaterial(item, $event)"
                      ref="videoItems">
                   <el-image class="m-item-img" :class="{'m-img-selected': material_list.includes(item.id) }"
-                            :src="item.picture.replace('127.0.0.1','192.168.1.25')" fit="cover" lazy></el-image>
+                            :src="item.picture" fit="cover" lazy></el-image>
                   <div style="display: flex">
                     <div class="m-item-title" :class="{'m-title-selected': material_list.includes(item.id) }"
                          :title="item.name">{{ item.name }}</div>
@@ -83,7 +83,7 @@
               <div class="m-card">
                 <div class="m-item" v-for="item in filter_figures" :key="item.id" @click="selectFigure(item)">
                   <el-image class="m-item-img" :class="{'m-img-selected': item.id === figure.id }"
-                            :src="item.picture.replace('127.0.0.1','192.168.1.25')" fit="cover"></el-image>
+                            :src="item.picture" fit="cover"></el-image>
                   <div style="display: flex">
                     <div class="m-item-title" :class="{'m-title-selected': item.id === figure.id }"
                          :title="item.name">{{ item.name }}</div>
@@ -103,7 +103,7 @@
                  @mousedown.stop=""
                  @mouseup="onMouseUp"
                  @mouseleave="onMouseUp">
-              <el-image style="width: 100%;border-radius: 8px" :src="mentionList[0].picture.replace('127.0.0.1','192.168.1.25')"
+              <el-image style="width: 100%;border-radius: 8px" :src="mentionList[0].picture"
                         fit="contain" v-if="mentionList[0]"></el-image>
               <div style="width: 360px;height: 640px" v-else></div>
               <div class="c-preview-title"
@@ -266,7 +266,7 @@
                       :label="item.name"
                       :value="item.font_id">
                     <div style="display: flex; align-items: center">
-                      <img :src="item.img_path.replace('127.0.0.1','192.168.1.25')" style="width: 150px; height: 50px; margin-right: 8px;"/>
+                      <img :src="item.img_path" style="width: 150px; height: 50px; margin-right: 8px;"/>
                       <span>{{ item.name }}</span>
                     </div>
                   </el-option>
@@ -348,7 +348,7 @@
                       :label="item.name"
                       :value="item.font_id">
                     <div style="display: flex; align-items: center">
-                      <img :src="item.img_path.replace('127.0.0.1','192.168.1.25')" style="width: 150px; height: 50px; margin-right: 8px;"/>
+                      <img :src="item.img_path" style="width: 150px; height: 50px; margin-right: 8px;"/>
                       <span>{{ item.name }}</span>
                     </div>
                   </el-option>
