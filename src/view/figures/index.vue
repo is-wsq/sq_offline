@@ -119,7 +119,7 @@
           </el-upload>
         </el-form-item>
         <el-form-item label="关联店铺 (必选)" prop="shopId">
-          <el-select v-model="uploadData.shopId" placeholder="请选择要关联的店铺">
+          <el-select v-model="uploadData.shopId" placeholder="请选择要关联的店铺" style="width: 100%">
             <el-option
                 v-for="shop in shops"
                 :key="shop.id"
