@@ -7,7 +7,10 @@
         <div class="flex-center margin-b-8">
           <div style="flex: 1">
             <div class="token-label">剩余Tokens</div>
-            <div class="token-value">{{ info.remaining_tokens || 0 }}</div>
+            <div style="display: flex">
+              <div class="token-value">{{ info.remaining_tokens || 0 }}</div>
+              <div class="token-history" @click="billVisible = true">账单详情</div>
+            </div>
           </div>
           <div class="top_up_btn">
             <el-button @click="topUp">充值</el-button>
@@ -61,6 +64,13 @@
         <div style="margin-top: 20px;font-size: 14px;color: #000000;">使用手机微信扫一扫，添加客服微信</div>
       </div>
     </el-dialog>
+    <el-dialog class="bill-dialog" title="账单详情" :visible.sync="billVisible" width="50%">
+      <el-table :data="gridData" stripe height="400">
+        <el-table-column property="model" label="model"></el-table-column>
+        <el-table-column property="expend" label="消耗Token" width="200" align="right"></el-table-column>
+        <el-table-column property="residue" label="剩余Token" width="200" align="right"></el-table-column>
+      </el-table>
+    </el-dialog>
   </div>
 </template>
 
@@ -75,7 +85,26 @@ export default {
       dialogVisible: false,
       downloadPath: '',
       info: {},
-      percentage: 0
+      percentage: 0,
+      bill: [],
+      billVisible: false,
+      gridData: [{
+        model: '生成数字人口播视频',
+        expend: '154',
+        residue: '1846'
+      }, {
+        model: '克隆形象',
+        expend: '56',
+        residue: '1790'
+      }, {
+        model: 'AI生成文案',
+        expend: '80',
+        residue: '1710'
+      }, {
+        model: '克隆音色',
+        expend: '42',
+        residue: '1668'
+      }],
     }
   },
   mounted() {
@@ -84,7 +113,7 @@ export default {
   },
   methods: {
     getInfo() {
-      axios.get("http://127.0.0.1:9669/get_remaining_tokens").then((res) => {
+      axios.get("http://192.168.1.25:9669/get_remaining_tokens").then((res) => {
         if (res.data.status === 'success') {
           this.info = res.data.data
           this.percentage = (this.info.remaining_tokens / this.info.total_tokens) * 100
@@ -160,6 +189,18 @@ export default {
   font-weight: 600;
   font-size: 24px;
   line-height: 32px;
+}
+
+.token-history {
+  font-size: 14px;
+  color: #b3b5b4;
+  line-height: 32px;
+  margin-left: 16px;
+  cursor: pointer;
+}
+
+.token-history:hover {
+  text-decoration: underline;
 }
 
 .path-label {
@@ -260,5 +301,17 @@ export default {
   display: flex;
   flex-direction: column;
   align-items: center;
+}
+
+.bill-dialog >>> .el-dialog {
+  border-radius: 8px;
+}
+
+.bill-dialog >>> .el-dialog__header {
+  font-weight: 600;
+}
+
+.bill-dialog >>> .el-dialog__body {
+  padding-top: 0 !important;
 }
 </style>
