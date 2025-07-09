@@ -43,19 +43,19 @@
                 <el-input prefix-icon="el-icon-search" placeholder="输入素材名称、标签匹配搜索" clearable
                           class="filter-input" v-model="filter_text" @change="filterMaterials"></el-input>
               </div>
-<!--              <div class="tags">-->
-<!--                <el-tag v-for="(tag, index) in tags" :key="index" size="small" class="tag"-->
-<!--                        :class="{ 'tag-active': activeTags.includes(tag) }" @click="selectTag(tag)">-->
-<!--                  {{ tag }}-->
-<!--                </el-tag>-->
-<!--              </div>-->
+              <div class="tags">
+                <el-tag v-for="(tag, index) in tags" :key="index" size="small" class="tag"
+                        :class="{ 'tag-active': activeTags.includes(tag) }" @click="selectTag(tag)">
+                  {{ tag }}
+                </el-tag>
+              </div>
               <div class="m-card" ref="videoGrid">
                 <div class="m-item" v-for="item in filteredMaterials" :key="item.id"
                      @mousedown="onVideoItemMouseDown"
                      @click="selectMaterial(item, $event)"
                      ref="videoItems">
                   <el-image class="m-item-img" :class="{'m-img-selected': material_list.includes(item.id) }"
-                            :src="item.picture" fit="cover" lazy></el-image>
+                            :src="item.picture.replace('127.0.0.1','192.168.1.25')" fit="cover" lazy></el-image>
                   <div style="display: flex">
                     <div class="m-item-title" :class="{'m-title-selected': material_list.includes(item.id) }"
                          :title="item.name">{{ item.name }}</div>
@@ -83,7 +83,7 @@
               <div class="m-card">
                 <div class="m-item" v-for="item in filter_figures" :key="item.id" @click="selectFigure(item)">
                   <el-image class="m-item-img" :class="{'m-img-selected': item.id === figure.id }"
-                            :src="item.picture" fit="cover"></el-image>
+                            :src="item.picture.replace('127.0.0.1','192.168.1.25')" fit="cover"></el-image>
                   <div style="display: flex">
                     <div class="m-item-title" :class="{'m-title-selected': item.id === figure.id }"
                          :title="item.name">{{ item.name }}</div>
@@ -103,7 +103,7 @@
                  @mousedown.stop=""
                  @mouseup="onMouseUp"
                  @mouseleave="onMouseUp">
-              <el-image style="width: 100%;border-radius: 8px" :src="mentionList[0].picture"
+              <el-image style="width: 100%;border-radius: 8px" :src="mentionList[0].picture.replace('127.0.0.1','192.168.1.25')"
                         fit="contain" v-if="mentionList[0]"></el-image>
               <div style="width: 360px;height: 640px" v-else></div>
               <div class="c-preview-title"
@@ -266,7 +266,7 @@
                       :label="item.name"
                       :value="item.font_id">
                     <div style="display: flex; align-items: center">
-                      <img :src="item.img_path" style="width: 150px; height: 50px; margin-right: 8px;"/>
+                      <img :src="item.img_path.replace('127.0.0.1','192.168.1.25')" style="width: 150px; height: 50px; margin-right: 8px;"/>
                       <span>{{ item.name }}</span>
                     </div>
                   </el-option>
@@ -348,7 +348,7 @@
                       :label="item.name"
                       :value="item.font_id">
                     <div style="display: flex; align-items: center">
-                      <img :src="item.img_path" style="width: 150px; height: 50px; margin-right: 8px;"/>
+                      <img :src="item.img_path.replace('127.0.0.1','192.168.1.25')" style="width: 150px; height: 50px; margin-right: 8px;"/>
                       <span>{{ item.name }}</span>
                     </div>
                   </el-option>
@@ -577,6 +577,10 @@ export default {
         filtered = filtered.filter(item => item.size === size)
       }
 
+      if (this.activeTags[0] !== '全部') {
+        filtered = filtered.filter(item => this.activeTags.includes(item.category))
+      }
+
       return filtered;
     },
     mentionList() {
@@ -597,6 +601,11 @@ export default {
       if (tag === '全部') {
         this.activeTags = ['全部']
         return
+      }
+      if (this.activeTags.length === 1 && this.activeTags[0] === '全部') {
+        this.activeTags = []
+        this.activeTags.push(tag)
+        return;
       }
       if (this.activeTags.includes(tag)) {
         this.activeTags.splice(this.activeTags.indexOf(tag), 1)
@@ -1127,6 +1136,7 @@ export default {
 }
 
 .library {
+  height: calc(100% - 40px);
   padding: 0 15px;
   box-sizing: border-box;
 }
@@ -1170,7 +1180,7 @@ export default {
 }
 
 .m-card {
-  max-height: calc(100vh - 340px);
+  max-height: calc(100vh - 440px);
   display: grid;
   gap: 15px;
   grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
@@ -1536,11 +1546,10 @@ export default {
 
 .tags {
   display: flex;
-  justify-content: center;
-  gap: 16px;
+  flex-wrap: wrap;
+  gap: 10px;
   margin-bottom: 10px;
   margin-top: 5px;
-  border: 1px solid red;
 }
 
 .tag {
