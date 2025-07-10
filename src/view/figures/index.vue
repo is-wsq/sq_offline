@@ -335,7 +335,7 @@ export default {
       this.$confirm(msg, '删除素材', {
         type: 'warning'
       }).then(() => {
-        delAction("/figure/delete", {ids: JSON.stringify(ids)}).then((res) => {
+        delAction("/figure/delete", {ids: ids.join(',')}).then((res) => {
           if (res.data.status === "success") {
             this.$message.success("删除成功");
 
