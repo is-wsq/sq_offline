@@ -113,8 +113,6 @@
 <script>
 import axios from "axios";
 import {getAction, postAction} from "@/api/api";
-import { LocalStorage } from '@/utils/storage';
-import { mapGetters } from 'vuex';
 
 export default {
   data(){
@@ -131,7 +129,6 @@ export default {
       new_title: '',
       new_content: '',
       script_type: '',
-      selectedShopId: null,
 
       figure: {},
       sound: {},
@@ -149,12 +146,8 @@ export default {
       show_model: ''
     }
   },
-  computed: {
-    ...mapGetters('shop', ['shops'])
-  },
   mounted() {
     this.initData()
-    this.selectedShopId = LocalStorage.get('selectedShopId');
   },
   methods: {
     saveSetting() {
@@ -211,28 +204,10 @@ export default {
           url = 'http://127.0.0.1:9669/api/generate_script'
           break
       }
-
-      let finalRequirements = this.copy_require;
-      if (this.selectedShopId && this.shops) {
-        const selectedShop = this.shops.find(shop => shop.id === this.selectedShopId);
-        if (selectedShop) {
-          const shopContext = `
-            【品牌背景资料】
-            店铺名称: ${selectedShop.name}
-            主推产品: ${selectedShop.mainProducts || '未填写'}
-            优势卖点: ${selectedShop.sellingPoints || '未填写'}
-            目标用户: ${selectedShop.targetAudience || '未填写'}
-            ---
-            【用户创作要求】
-          `.trim();
-          finalRequirements = `${shopContext}\n${this.copy_require}`;
-        }
-      }
-
       const cleanTexts = this.exampleTexts.map(text => text.trim()).filter(text => text !== '');
       let params = {
         examples: cleanTexts,
-        requirements: finalRequirements,
+        requirements: this.copy_require,
         num_of_words: parseInt(this.copy_num),
         script_count: parseInt(this.script_num)
       }

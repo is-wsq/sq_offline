@@ -27,19 +27,6 @@
           <el-collapse v-model="activeName" accordion>
             <el-collapse-item title="素材" name="1">
               <div class="filter-content" @mousedown.stop="">
-                <span class="filter-label" style="line-height: 30px;width: 65px">店铺筛选</span>
-                <el-select v-model="activeShopTag" placeholder="选择店铺名称筛选" clearable size="small" class="filter-input">
-                  <el-option label="全部店铺" :value="null"></el-option>
-                  <el-option
-                      v-for="shop in shops"
-                      :key="shop.id"
-                      :label="shop.name"
-                      :value="shop.id">
-                  </el-option>
-                </el-select>
-              </div>
-              <div class="filter-content" @mousedown.stop="">
-                <span class="filter-label" style="line-height: 30px">关键词搜索</span>
                 <el-input prefix-icon="el-icon-search" placeholder="输入素材名称、标签匹配搜索" clearable
                           class="filter-input" v-model="filter_text" @change="filterMaterials"></el-input>
               </div>
@@ -124,7 +111,7 @@
           </div>
         </div>
         <div class="c-center-btn">
-          <el-button type="primary" class="next-btn" @click="promptForShopSelection">
+          <el-button type="primary" class="next-btn" @click="nextStep">
             {{ nextType.includes('montage')? '下一步：编辑文案' : '下一步：一键混剪' }}
           </el-button>
         </div>
@@ -402,32 +389,6 @@
         </div>
       </div>
     </div>
-
-    <!-- 店铺选择弹窗 -->
-    <el-dialog
-        title="请选择关联店铺"
-        :visible.sync="shopDialogVisible"
-        width="30%"
-        :before-close="handleCloseShopDialog">
-      <div v-if="shops && shops.length > 0">
-        <el-select v-model="selectedShopId" placeholder="请选择店铺" style="width: 100%;">
-          <el-option
-              v-for="shop in shops"
-              :key="shop.id"
-              :label="shop.name"
-              :value="shop.id">
-          </el-option>
-        </el-select>
-      </div>
-      <div v-else>
-        <p>您还没有创建任何店铺。请先前往"品牌店铺管理"页面创建店铺。</p>
-        <el-button type="text" @click="goToShopManagement">立即前往</el-button>
-      </div>
-      <span slot="footer" class="dialog-footer">
-        <el-button @click="handleCloseShopDialog">取 消</el-button>
-        <el-button type="primary" @click="confirmShopSelection" :disabled="!selectedShopId">确 定</el-button>
-      </span>
-    </el-dialog>
   </div>
 </template>
 
@@ -1030,30 +991,6 @@ export default {
       sessionStorage.setItem('preset_id', '0')
       this.$forceUpdate()
     },
-    promptForShopSelection() {
-      if (!this.material_list || this.material_list.length === 0) {
-        this.$message.warning('请至少选择一个素材！')
-        return
-      }
-      this.shopDialogVisible = true
-    },
-    confirmShopSelection() {
-      if (!this.selectedShopId) {
-        this.$message.warning('请选择一个店铺！')
-        return
-      }
-      LocalStorage.set('selectedShopId', this.selectedShopId);
-      this.shopDialogVisible = false
-      this.nextStep()
-    },
-    goToShopManagement() {
-      this.shopDialogVisible = false
-      this.$router.push('/shop')
-    },
-    handleCloseShopDialog() {
-      this.selectedShopId = null
-      this.shopDialogVisible = false
-    },
     nextStep() {
       if (this.material_list.length === 0) {
         this.$alert('请先选择需要混剪的素材', '提示')
@@ -1176,11 +1113,10 @@ export default {
 
 .filter-input {
   flex: 1;
-  margin-left: 15px;
 }
 
 .m-card {
-  max-height: calc(100vh - 440px);
+  max-height: calc(100vh - 400px);
   display: grid;
   gap: 15px;
   grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
@@ -1221,7 +1157,7 @@ export default {
 }
 
 .c-center {
-  flex: 1;
+  width: 360px;
 }
 
 .c-center-preview {
