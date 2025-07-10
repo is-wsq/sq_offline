@@ -69,7 +69,7 @@
             </div>
             <div style="display: flex;gap: 12px" class="margin-b-12">
               <div style="flex: 1">
-                <div class="panel-label">视频时长 (秒)</div>
+                <div class="panel-label">时长 (秒)</div>
                 <el-input type="number" v-model="video_time" :step="15" @change="saveSetting"></el-input>
               </div>
               <div style="flex: 1">
@@ -118,10 +118,55 @@
                       <div class="copy-item-desc">{{ item.content }}</div>
                     </div>
                   </template>
-                  <div class="copy-item-materials">
-                    <div class="copy-item-material" v-for="(material, index) in item.materials" :key="index">
-                      <el-image class="copy-item-material-img" :src="material.picture" lazy></el-image>
-                      <div class="copy-item-material-name">{{ material.name }}</div>
+                  <div class="segment-groups">
+                    <div class="segment-group-item" v-for="(group,group_index) in item.segment_group" :key="group_index">
+                      <div class="group-title">{{ group.contentSummary }}</div>
+                      <div class="material-list">
+                        <div class="material-item" v-for="(material,material_index) in group.materials" :key="material_index">
+                          <el-popover placement="bottom" :ref="'popoverRef_' + material_index" trigger="click"
+                                      popper-class="custom-popover-material" @show="popoverShow">
+                            <div class="shot-list">
+                              <div class="shot-name" v-for="(shot, shot_index) in mention_list" :key="shot_index"
+                                   @click="addShot(index,group_index,material_index,shot)"
+                                   @mouseenter="liEnter(shot)" @mouseleave="liLeave(shot)">
+                                {{ shot.name }}
+                              </div>
+                              <div class="li-video" style="position: absolute; top: 0; right: -132px" v-if="hover_li">
+                                <video :src="hover_li.filepath" style="width: 100%; height: 100%;border-radius: 4px;"
+                                       loop muted autoplay></video>
+                              </div>
+                            </div>
+                            <div slot="reference" class="insert-shot-btn">
+                              <div class="fa-plus">
+                                <i class="el-icon-plus" style="font-weight: bold"></i>
+                              </div>
+                            </div>
+                          </el-popover>
+                          <div class="delete-shot-btn">
+                            <i class="el-icon-close" style="font-weight: bold" @click="removeShot(index,group_index,material_index)"></i>
+                          </div>
+                          <el-image class="material-item-img" :src="material.picture"></el-image>
+                          <div class="material-item-title" :title="material.name">{{ material.name }}</div>
+                        </div>
+                        <div class="material-item">
+                          <el-popover :ref="'pushRef_' + index" placement="bottom" width="200" trigger="click"
+                                      popper-class="custom-popover-material1" @show="popoverShow(true)">
+                            <div class="shot-list">
+                              <div class="shot-name" v-for="val in mention_list" :key="val.id"
+                                   @click="pushShot(index,group_index,val)"  @mouseleave="liLeave(val)" @mouseenter="liEnter(val)">
+                                {{ val.name }}
+                              </div>
+                              <div class="li-video" style="position: absolute; top: 0; right: -145px" v-if="hover_li">
+                                <video :src="hover_li.filepath" style="width: 100%; height: 100%;border-radius: 4px;"
+                                       loop muted autoplay></video>
+                              </div>
+                            </div>
+                            <div slot="reference" class="add-shot-btn">
+                              <i class="el-icon-plus" style="font-weight: bold"></i>
+                            </div>
+                          </el-popover>
+                        </div>
+                      </div>
                     </div>
                   </div>
                 </el-collapse-item>
@@ -142,9 +187,16 @@
       <div class="storyboard-panel" v-if="!show_left_panel && activeIndex !== -1">
         <div class="panel-title margin-b-16">分镜文案详情</div>
         <div class="storyboard-content">
-          <div class="storyboard-item" v-for="(item, index) in selectedCopy.materials" :key="index">
-            <el-image class="storyboard-item-img" :src="item.picture" lazy></el-image>
-            <div class="storyboard-item-detail">{{ selectedCopy.script[index].copy }}</div>
+          <div class="storyboard-item" v-for="(group, index) in selectedCopy.segment_group" :key="index">
+            <div class="shot-group-title">{{ group.contentSummary }}</div>
+            <div class="group-content-wrapper">
+              <div class="details-shot-list">
+                <div class="" v-for="(shot, shot_index) in group.materials" :key="shot_index">
+                  <el-image class="storyboard-item-img" :src="shot.picture"></el-image>
+                </div>
+              </div>
+              <div class="detail-script-text">{{ selectedCopy.script[index].copy }}</div>
+            </div>
           </div>
         </div>
       </div>
@@ -260,10 +312,78 @@ export default {
   },
   computed: {
     preview_video() {
-      return this.copy_list.length > 0 ? this.copy_list[this.activeIndex].materials : []
+      if (this.copy_list.length > 0) {
+        let segment_group = this.copy_list[this.activeIndex].segment_group
+        return segment_group.reduce((acc, item) => {
+          return acc.concat(item.materials);
+        }, [])
+      }
+      return []
     },
   },
   methods: {
+    popoverShow(params) {
+      this.$nextTick(() => {
+        let popover = document.querySelector('.custom-popover-material');
+        if (params) {
+          popover = document.querySelector('.custom-popover-material1');
+        }
+        if (popover) {
+          popover.style.borderRadius = '10px';
+          popover.style.padding = '0 0 0 2px';
+        }
+      });
+    },
+    addShot(index, group_index, material_index, item) {
+      this.$nextTick(() => {
+        const popoverRefs = this.$refs[`popoverRef_${material_index}`];
+        if (popoverRefs && popoverRefs.length > 0) {
+          const popover = popoverRefs[0];
+          popover.showPopper = false;
+        } else {
+          console.warn('未找到对应的输入框 ref', item.id);
+        }
+      });
+      this.copy_list[index].segment_group[group_index].materials.splice(material_index, 0, item);
+      this.currentIndex = 0
+      this.$nextTick(() => {
+        this.loadVideo(this.currentIndex);
+        this.loadAudio()
+      })
+    },
+    pushShot(index, group_index, val) {
+      this.$nextTick(() => {
+        const popoverRefs = this.$refs[`pushRef_${index}`];
+        if (popoverRefs && popoverRefs.length > 0) {
+          const popover = popoverRefs[0];
+          popover.showPopper = false;
+        } else {
+          console.warn('未找到对应的输入框 ref', val.id);
+        }
+      });
+      this.copy_list[index].segment_group[group_index].materials.push(val)
+      this.currentIndex = 0
+      this.$nextTick(() => {
+        this.loadVideo(this.currentIndex);
+        this.loadAudio()
+      })
+    },
+    removeShot(index, group_index, shot_index) {
+      this.$confirm('确认删除该分镜吗？', '提示', {
+        type: 'warning'
+      }).then(() => {
+        this.copy_list[index].segment_group[group_index].materials.splice(shot_index, 1)
+        if (this.copy_list[index].segment_group[group_index].materials.length !== 0) {
+          this.currentIndex = 0
+          this.$nextTick(() => {
+            this.loadVideo(this.currentIndex);
+            this.loadAudio()
+          })
+        }
+      }).catch((err) => {
+        this.$message({type: 'info', message: '已取消删除'});
+      });
+    },
     saveSetting() {
       this.validateNum()
       let sync_setting = {
@@ -967,28 +1087,150 @@ export default {
   overflow-y: auto;
 }
 
-.copy-item-materials {
+.segment-groups {
   margin-top: 12px;
-  border-top: 1px solid #e5e7eb;
-  padding: 12px 12px 0 12px;
   display: flex;
-  gap: 12px;
-  flex-wrap: nowrap;
+  flex-direction: row;
+  gap: 8px;
   overflow-x: auto;
+  padding: 0 12px 12px 12px;
 }
 
-.copy-item-material-img {
-  background-color: #e5e7eb;
-  width: 54px;
-  height: 96px;
-  border-radius: 6px;
+.segment-group-item {
+  flex-shrink: 0;
+  background-color: #f8fafc;
+  padding: 12px 20px;
+  border-radius: 8px;
+  border: 1px solid #e2e8f0;
+  overflow: hidden;
 }
 
-.copy-item-material-name {
-  margin-top: 4px;
-  font-size: 12px;
-  width: 54px;
+.group-title {
+  font-size: 13px;
+  font-weight: 500;
+  color: #4338ca;
+  margin-bottom: 8px;
+  width: 100px; /* 确保 group-title 的宽度与 group-container 一致 */
+  white-space: nowrap; /* 防止内容换行 */
+  overflow: hidden; /* 隐藏超出宽度的内容 */
+  text-overflow: ellipsis; /* 显示省略号 */
+}
+
+.material-list {
+  display: flex;
+  gap: 20px;
+}
+
+.material-item {
+  position: relative;
+  width: 80px;
+  display: flex;
+  aspect-ratio: 9 / 16;
+  border-radius: 5px;
+  flex-shrink: 0;
+}
+
+.add-shot-btn {
+  flex-shrink: 0;
+  width: 80px;
+  aspect-ratio: 9 / 16;
+  border-radius: 5px;
+  background-color: #f9fafb;
+  border: 2px dashed #d1d5db;
+  box-sizing: border-box;
+  color: #9ca3af;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+
+.material-item:hover .insert-shot-btn,
+.material-item:hover .delete-shot-btn {
+  opacity: 1;
+}
+
+.insert-shot-btn {
+  position: absolute;
+  left: -10px;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: 20px;
+  height: 178px;
+  background: transparent;
+  border: none;
+  color: white;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: opacity 0.2s ease;
+  z-index: 10;
+  opacity: 0;
+}
+
+.insert-shot-btn::before {
+  content: '';
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 2px;
+  height: 100%;
+  background-color: #6366f1;
+  border-radius: 1px;
+}
+
+.delete-shot-btn {
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  width: 20px;
+  height: 20px;
+  background-color: #ef4444;
+  color: white;
+  border: 2px solid white;
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transform: scale(0.8);
+  transition: all 0.2s ease;
+  z-index: 20;
+}
+
+.fa-plus {
+  position: relative;
+  background-color: #6366f1;
+  border-radius: 50%;
+  width: 20px;
+  height: 20px;
+  line-height: 20px;
   text-align: center;
+  font-size: 12px;
+  box-shadow: 0 0 0 1px #f9fafb;
+  transition: transform 0.2s ease;
+}
+
+.material-item-img {
+  width: 100%;
+  height: 100%;
+  border-radius: 5px;
+}
+
+.material-item-title {
+  position: absolute;
+  bottom: 0;
+  width: 100%;
+  background: linear-gradient(to bottom, rgba(0, 0, 0, 0), rgba(0, 0, 0, 1));
+  padding: 10px 2px;
+  box-sizing: border-box;
+  color: #FFFFFF;
+  font-size: 12px;
+  border-bottom-left-radius: 8px;
+  border-bottom-right-radius: 8px;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -1043,23 +1285,58 @@ export default {
 
 .storyboard-item {
   display: flex;
+  flex-direction: column;
   gap: 12px;
+  background-color: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 16px;
+}
+
+.shot-group-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: #334155;
+  padding-bottom: 8px;
+  border-bottom: 1px solid #e2e8f0;
+  margin-bottom: 4px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.group-content-wrapper {
+  display: flex;
+  flex-direction: row;
+  gap: 16px;
+  align-items: stretch;
+}
+
+.details-shot-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  flex-shrink: 0;
+}
+
+.detail-script-text {
+  font-size: 14px;
+  color: #4b5563;
+  line-height: 1.7;
+  flex-grow: 1;
+  background-color: #ffffff;
+  padding: 12px;
+  border-radius: 6px;
+  border: 1px solid #e2e8f0;
+  display: flex;
+  align-items: center;
 }
 
 .storyboard-item-img {
   background-color: #e5e7eb;
   width: 54px;
   height: 96px;
-  border-radius: 6px;
-}
-
-.storyboard-item-detail {
-  flex: 1;
-  font-size: 13px;
-  color: #4b5563;
-  line-height: 1.6;
-  height: 96px;
-  overflow-y: auto;
+  border-radius: 4px;
 }
 
 .right-panel {
@@ -1201,35 +1478,43 @@ export default {
   box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.1);
 }
 
-.volume-control {
-  margin-top: 20px;
-  display: flex;
-  align-items: center;
-  width: 100%;
-}
-
 .volume-control >>> .el-button {
   padding: 7px 10px;
 }
 
-.volume-label {
-  font-size: 13px;
-  color: #4b5563;
-  font-weight: 500;
-  margin-left: 15px;
+::v-deep >>> .el-popover {
+  border-radius: 10px !important;
+  padding: 0 !important;
 }
 
-.volume-slider {
-  flex: 1;
-  margin: 0 20px;
+.shot-list {
+  width: 210px;
+  height: 200px;
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  padding: 4px;
+  background-color: #ffffff;
 }
 
-.volume-slider >>> .el-slider__button {
-  height: 10px;
-  width: 10px;
+.shot-list::-webkit-scrollbar {
+  width: 5px !important;
 }
 
-.volume-slider >>> .el-slider__runway {
-  height: 4px;
+.shot-name {
+  border-radius: 6px;
+  padding: 10px;
+  line-height: 20px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  flex-shrink: 0;
+  cursor: pointer;
+  position: relative;
+}
+
+.shot-name:hover {
+  background-color: #6366f1;
+  color: #ffffff;
 }
 </style>

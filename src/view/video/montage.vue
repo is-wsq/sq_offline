@@ -149,51 +149,56 @@
                   <i class="el-icon-arrow-down" style="color: #9ca3af;font-size: 15px;font-weight: bold;"
                      v-else></i>
                 </div>
-                <div class="script-item-content" :title="item.content"
-                     @click="itemClick(index)">{{item.content}}</div>
-                <div class="material-list" v-if="openIndex === index">
-                  <div class="material-item" v-for="(material,maI) in item.materials" :key="maI">
-                    <el-popover placement="bottom" :ref="'popoverRef_' + maI" trigger="click"
-                    popper-class="custom-popover-style" @show="popoverShow">
-                      <div class="shot-list">
-                        <div class="shot-name" v-for="(shot, shotI) in mention_list" :key="shotI"
-                          @click="addShot(index,maI,shot)" @mouseleave="liLeave(shot)" @mouseenter="liEnter(shot)">
-                          {{ shot.name }}
+                <div class="script-item-content" :title="item.content" @click="itemClick(index)">{{item.content}}</div>
+                <div class="groups" v-if="openIndex === index">
+                  <div class="group" v-for="(group,group_index) in item.segment_group" :key="group_index">
+                    <div class="group-title">{{ group.contentSummary }}</div>
+                    <div class="material-list">
+                      <div class="material-item" v-for="(material,material_index) in group.materials" :key="material_index">
+                        <el-popover placement="bottom" :ref="'popoverRef_' + material_index" trigger="click"
+                                    popper-class="custom-popover-style" @show="popoverShow">
+                          <div class="shot-list">
+                            <div class="shot-name" v-for="(shot, shot_index) in mention_list" :key="shot_index"
+                                 @click="addShot(index,group_index,material_index,shot)"
+                                 @mouseenter="liEnter(shot)" @mouseleave="liLeave(shot)">
+                              {{ shot.name }}
+                            </div>
+                            <div class="li-video" style="position: absolute; top: 0; right: -132px" v-if="hover_li">
+                              <video :src="hover_li.filepath" style="width: 100%; height: 100%;border-radius: 4px;"
+                                     loop muted autoplay></video>
+                            </div>
+                          </div>
+                          <div slot="reference" class="insert-shot-btn">
+                            <div class="fa-plus">
+                              <i class="el-icon-plus" style="font-weight: bold"></i>
+                            </div>
+                          </div>
+                        </el-popover>
+                        <div class="delete-shot-btn">
+                          <i class="el-icon-close" style="font-weight: bold" @click="removeShot(index,group_index,material_index)"></i>
                         </div>
-                        <div class="li-video" style="position: absolute; top: 0; right: -132px" v-if="hover_li">
-                          <video :src="hover_li.filepath" style="width: 100%; height: 100%;border-radius: 4px;"
-                                 loop muted autoplay></video>
-                        </div>
+                        <el-image class="material-item-img" :src="material.picture"></el-image>
+                        <div class="material-item-title" :title="material.name">{{ material.name }}</div>
                       </div>
-                      <div slot="reference" class="insert-shot-btn">
-                        <div class="fa-plus">
-                          <i class="el-icon-plus" style="font-weight: bold"></i>
-                        </div>
+                      <div class="material-item">
+                        <el-popover :ref="'pushRef_' + index" placement="bottom" width="200" trigger="click"
+                                    popper-class="custom-popover-style1" @show="popoverShow(true)">
+                          <div class="shot-list">
+                            <div class="shot-name" v-for="val in mention_list" :key="val.id"
+                                 @click="pushShot(index,group_index,val)"  @mouseleave="liLeave(val)" @mouseenter="liEnter(val)">
+                              {{ val.name }}
+                            </div>
+                            <div class="li-video" style="position: absolute; top: 0; right: -145px" v-if="hover_li">
+                              <video :src="hover_li.filepath" style="width: 100%; height: 100%;border-radius: 4px;"
+                                     loop muted autoplay></video>
+                            </div>
+                          </div>
+                          <div slot="reference" class="add-shot-btn">
+                            <i class="el-icon-plus" style="font-weight: bold"></i>
+                          </div>
+                        </el-popover>
                       </div>
-                    </el-popover>
-                    <div class="delete-shot-btn">
-                      <i class="el-icon-close" style="font-weight: bold" @click="removeShot(index,maI)"></i>
                     </div>
-                    <el-image class="material-item-img" :src="material.picture" lazy></el-image>
-                    <div class="material-item-title" :title="material.name">{{ material.name }}</div>
-                  </div>
-                  <div class="material-item">
-                    <el-popover :ref="'pushRef_' + index" placement="bottom" width="200" trigger="click"
-                                popper-class="custom-popover-style1" @show="popoverShow(true)">
-                      <div class="shot-list">
-                        <div class="shot-name" v-for="val in mention_list" :key="val.id"
-                             @click="pushShot(index,val)"  @mouseleave="liLeave(val)" @mouseenter="liEnter(val)">
-                          {{ val.name }}
-                        </div>
-                        <div class="li-video" style="position: absolute; top: 0; right: -145px" v-if="hover_li">
-                          <video :src="hover_li.filepath" style="width: 100%; height: 100%;border-radius: 4px;"
-                                 loop muted autoplay></video>
-                        </div>
-                      </div>
-                      <div slot="reference" class="add-shot-btn">
-                        <i class="el-icon-plus" style="font-weight: bold"></i>
-                      </div>
-                    </el-popover>
                   </div>
                 </div>
               </div>
@@ -330,7 +335,13 @@ export default {
   },
   computed: {
     preview_video() {
-      return this.montage_data.length > 0 ? this.montage_data[this.activeIndex].materials : []
+      if (this.montage_data.length > 0) {
+        let segment_group = this.montage_data[this.activeIndex].segment_group
+        return segment_group.reduce((acc, item) => {
+          return acc.concat(item.materials);
+        }, [])
+      }
+      return []
     },
   },
   beforeDestroy() {
@@ -441,9 +452,9 @@ export default {
         }
       });
     },
-    addShot(updateI, addI, item) {
+    addShot(index, group_index, material_index, item) {
       this.$nextTick(() => {
-        const popoverRefs = this.$refs[`popoverRef_${addI}`];
+        const popoverRefs = this.$refs[`popoverRef_${material_index}`];
         if (popoverRefs && popoverRefs.length > 0) {
           const popover = popoverRefs[0];
           popover.showPopper = false;
@@ -451,16 +462,16 @@ export default {
           console.warn('未找到对应的输入框 ref', item.id);
         }
       });
-      this.montage_data[updateI].materials.splice(addI, 0, item);
+      this.montage_data[index].segment_group[group_index].materials.splice(material_index, 0, item);
       this.currentIndex = 0
       this.$nextTick(() => {
         this.loadVideo(this.currentIndex);
         this.loadAudio()
       })
     },
-    pushShot(updateI, val) {
+    pushShot(index, group_index, val) {
       this.$nextTick(() => {
-        const popoverRefs = this.$refs[`pushRef_${updateI}`];
+        const popoverRefs = this.$refs[`pushRef_${index}`];
         if (popoverRefs && popoverRefs.length > 0) {
           const popover = popoverRefs[0];
           popover.showPopper = false;
@@ -468,19 +479,19 @@ export default {
           console.warn('未找到对应的输入框 ref', val.id);
         }
       });
-      this.montage_data[updateI].materials.push(val)
+      this.montage_data[index].segment_group[group_index].materials.push(val)
       this.currentIndex = 0
       this.$nextTick(() => {
         this.loadVideo(this.currentIndex);
         this.loadAudio()
       })
     },
-    removeShot(updateI, removeI) {
+    removeShot(index, group_index, shot_index) {
       this.$confirm('确认删除该分镜吗？', '提示', {
         type: 'warning'
       }).then(() => {
-        this.montage_data[updateI].materials.splice(removeI, 1)
-        if (this.montage_data[updateI].materials.length !== 0) {
+        this.montage_data[index].segment_group[group_index].materials.splice(shot_index, 1)
+        if (this.montage_data[index].segment_group[group_index].materials.length !== 0) {
           this.currentIndex = 0
           this.$nextTick(() => {
             this.loadVideo(this.currentIndex);
@@ -691,17 +702,13 @@ export default {
       let bool_list = this.material_list.map(item => this.mute_materials.includes(item))
       let name = this.setName()
       let params = {
-        audio_file_id_list: this.montage_data.map(item => item.audio_file_id),
-        text_list: this.montage_data.map(item => item.content),
-        timestamp_path_list: this.montage_data.map(item => item.timestamp_path),
-        material_list: this.montage_data.map(item => item.materials.map(material => material.id)),
-        bool_list: bool_list,
-
+        data: this.montage_data,
+        filename_list: name,
         bgm_id: this.bgm.id,
         bg_volume: this.bg_volume,
         with_subtitle: this.withSubtitle,
         with_title: this.withTitle,
-        filename_list: name,
+        bool_list: bool_list,
         subtitle_params: {
           y_offset: this.bottom_offset_ratio,
           font: this.subtitleParams.font,
@@ -714,7 +721,6 @@ export default {
         },
         title_params: {
           y_offset: this.top_offset_ratio,
-          title_text_list: this.montage_data.map(item => item.title),
           show_model: this.show_model,
           font: this.subtitleNameParams.name_font,
           fontsize: this.subtitleNameParams.name_fontsize,
@@ -725,7 +731,7 @@ export default {
           background_opacity: this.subtitleNameParams.name_background_opacity
         }
       }
-      postAction('/figure/export_video',params).then(res => {
+      postAction('/figure/export_video_sync',params).then(res => {
         if (res.data.status === "success") {
           this.$alert('已创建视频生成任务，视频生成成功后会自动下载到本地', "任务创建提醒");
           if (with_out_route) {
@@ -1221,31 +1227,57 @@ export default {
   line-height: 1.5;
 }
 
-.material-list {
-  border-top: 1px solid #e5e7eb;
+.groups {
   margin-top: 12px;
-  padding: 12px 0 12px 20px;
+  display: flex;
+  flex-direction: row;
+  gap: 8px;
+  overflow-x: auto;
+  padding-bottom: 12px;
+}
+
+.group {
+  flex-shrink: 0;
+  background-color: #f8fafc;
+  padding: 12px 20px;
+  border-radius: 8px;
+  border: 1px solid #e2e8f0;
+  overflow: hidden;
+}
+
+.group-title {
+  font-size: 13px;
+  font-weight: 500;
+  color: #4338ca;
+  margin-bottom: 8px;
+  width: 100px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.material-list {
   display: flex;
   gap: 20px;
-  overflow-x: auto;
 }
 
 .material-item {
   position: relative;
-  width: 100px;
+  width: 80px;
   display: flex;
   aspect-ratio: 9 / 16;
-  border-radius: 8px;
+  border-radius: 5px;
   flex-shrink: 0;
 }
 
 .add-shot-btn {
   flex-shrink: 0;
-  width: 100px;
-  height: 178px;
-  border-radius: 8px;
+  width: 80px;
+  aspect-ratio: 9 / 16;
+  border-radius: 5px;
   background-color: #f9fafb;
   border: 2px dashed #d1d5db;
+  box-sizing: border-box;
   color: #9ca3af;
   cursor: pointer;
   display: flex;
@@ -1325,7 +1357,7 @@ export default {
 .material-item-img {
   width: 100%;
   height: 100%;
-  border-radius: 8px;
+  border-radius: 5px;
 }
 
 .material-item-title {
