@@ -39,7 +39,7 @@
                @click="selectMaterial(item)"
                ref="materialItems">
             <el-image class="figures-img" :class="{'figure-img-active': selected_materials.includes(item.id)}"
-                      :src="item.picture" fit="cover"></el-image>
+                      :src="item.picture" fit="cover" lazy></el-image>
             <div class="figure-name"  :class="{'figure-name-active': selected_materials.includes(item.id)}"
                  :title="item.name">{{ item.name }}</div>
           </div>
@@ -51,7 +51,7 @@
           <div v-for="item in processTasks" :key="item.id">
             <div class="image-wrapper shining">
               <el-image style="width: 120px; height: 158px; border-radius: 8px;filter: blur(15px);opacity: 0.8"
-                        :src="require('/public/images/4.jpg')" fit="cover" lazy>
+                        :src="require('/public/images/4.jpg')" fit="cover">
               </el-image>
               <div class="shine-layer"></div>
               <div class="figure-progress">
@@ -65,7 +65,7 @@
                :key="index"
                @contextmenu.stop="handleContextMenu(item, $event)"
                @click="selectItem(item)">
-            <el-image class="figures-img" :src="item.picture" fit="cover" lazy></el-image>
+            <el-image class="figures-img" :src="item.picture" fit="cover"></el-image>
             <div class="figure-name" :title="item.name">{{ item.name }}</div>
           </div>
         </div>
@@ -335,7 +335,7 @@ export default {
       this.$confirm(msg, '删除素材', {
         type: 'warning'
       }).then(() => {
-        delAction("/figure/delete", {ids: ids}).then((res) => {
+        delAction("/figure/delete", {ids: JSON.stringify(ids)}).then((res) => {
           if (res.data.status === "success") {
             this.$message.success("删除成功");
 

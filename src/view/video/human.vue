@@ -19,7 +19,7 @@
                :key="item.id"
                @click="selectFigure(item)">
             <el-image class="figure-img" :class="{'figure-img-selected': item.id === figure.id }"
-                      :src="item.picture" fit="cover" lazy></el-image>
+                      :src="item.picture" fit="cover"></el-image>
             <div class="figure-name" :class="{'figure-title-selected': item.id === figure.id }"
                  :title="item.name">{{ item.name }}</div>
           </div>
