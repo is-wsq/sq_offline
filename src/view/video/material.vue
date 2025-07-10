@@ -43,21 +43,19 @@
                      ref="videoItems">
                   <el-image class="m-item-img" :class="{'m-img-selected': material_list.includes(item.id) }"
                             :src="item.picture" fit="cover" lazy></el-image>
-                  <div style="display: flex">
+                  <div class="flex-center">
                     <div class="m-item-title" :class="{'m-title-selected': material_list.includes(item.id) }"
                          :title="item.name">{{ item.name }}</div>
-                    <div style="line-height: 1.5;margin-right: 5px">
-                      <i class="el-icon-shengyin_fill"
-                         style="font-size: 16px; color: #6286ed;"
-                         @click.stop="addMute(item.id)"
-                         v-if="!mute_materials.includes(item.id)">
-                      </i>
-                      <i class="el-icon-jingyin_fill"
-                         style="font-size: 16px; color: #6286ed;"
-                         @click.stop="removeMute(item.id)"
-                         v-else>
-                      </i>
-                    </div>
+                    <i class="el-icon-shengyin_fill"
+                       style="font-size: 16px; color: #6286ed;"
+                       @click.stop="addMute(item.id)"
+                       v-if="!mute_materials.includes(item.id)">
+                    </i>
+                    <i class="el-icon-jingyin_fill"
+                       style="font-size: 16px; color: #6286ed;"
+                       @click.stop="removeMute(item.id)"
+                       v-else>
+                    </i>
                   </div>
                 </div>
               </div>
@@ -396,8 +394,6 @@
 import {getAction} from "@/api/api";
 import {EnhancedChoiceMixin} from "@/mixins/EnhancedChoiceMixin";
 import Video from "@/view/video/index.vue";
-import { LocalStorage } from '@/utils/storage'
-import { mapGetters } from 'vuex'
 
 export default {
   name: 'Material',
@@ -511,20 +507,12 @@ export default {
       topRatio: 0.25,
       bottomRatio: 0.75,
 
-      nextType: 'montage',
-      shopDialogVisible: false,
-      selectedShopId: null,
-      activeShopTag: null,
+      nextType: 'montage'
     }
   },
   computed: {
-    ...mapGetters('shop', ['shops']),
     filteredMaterials() {
       let filtered = this.materials;
-
-      if (this.activeShopTag) { // 店铺标签筛选
-        filtered = filtered.filter(item => item.shopId === this.activeShopTag);
-      }
 
       if (this.filter_text) { // 关键字筛选
         filtered = filtered.filter(item =>
