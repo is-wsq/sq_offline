@@ -70,7 +70,7 @@
             <div style="display: flex;gap: 12px" class="margin-b-12">
               <div style="flex: 1">
                 <div class="panel-label">视频时长 (秒)</div>
-                <el-input type="number" v-model="video_time" @change="saveSetting"></el-input>
+                <el-input type="number" v-model="video_time" :step="15" @change="saveSetting"></el-input>
               </div>
               <div style="flex: 1">
                 <div class="panel-label">文案数量</div>
@@ -218,7 +218,7 @@ export default {
       already_generated: false,
       copy_require: '',
       exampleTexts: [''],
-      video_time: 10,
+      video_time: 15,
       script_num: 1,
       ai_model: 'deepseek_v3',
       copy_list: [],
@@ -449,7 +449,7 @@ export default {
       this.requirement = sync_setting.copy_require || ''
       this.copy_require = sync_setting.copy_require || ''
       this.exampleTexts = sync_setting.exampleTexts || ['']
-      this.video_time = parseInt(sync_setting.video_time) || 100
+      this.video_time = parseInt(sync_setting.video_time) || 15
       this.script_num = parseInt(sync_setting.script_num) || 1
       this.ai_model = sync_setting.ai_model || 'deepseek_v3'
 
@@ -506,7 +506,7 @@ export default {
         example: cleanTexts,
         count: parseInt(this.script_num),
         material_list: this.material_list,
-        user_request: this.requirement,
+        user_request: actualRequest,
         bgm_id: this.bgm.id,
         bg_volume: this.bg_volume,
         timbre_id: this.sound.voice_id,
