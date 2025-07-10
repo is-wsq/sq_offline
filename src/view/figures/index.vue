@@ -1,16 +1,28 @@
 <template>
-  <div class="figures">
+  <div class="figures"
+       @mousedown="startSelection"
+       @mousemove="updateSelection"
+       @mouseup="endSelection"
+       @mouseleave="endSelection">
+    <div v-if="isSelecting" class="selection-box"
+         :style="{
+            left: `${selectionLeft}px`,
+            top: `${selectionTop}px`,
+            width: `${selectionWidth}px`,
+            height: `${selectionHeight}px`
+         }">
+    </div>
     <div class="figures-content">
       <div class="figure-item">
-        <div style="margin-bottom: 10px">素材</div>
+        <div style="margin-bottom: 10px;font-weight: bold">素材(快捷键: Ctrl + A 全选)</div>
         <div class="figures-list">
           <div v-for="item in processMaterials" :key="item.id">
             <div class="figure-image-wrapper shining">
               <el-image
-                  class="figures-img"
-                  style="filter: blur(15px);opacity: 0.8"
-                  :src="require('/public/images/4.jpg')"
-                  fit="cover">
+                class="figures-img"
+                style="filter: blur(15px);opacity: 0.8"
+                :src="require('/public/images/4.jpg')"
+                fit="cover">
               </el-image>
               <div class="shine-layer"></div>
               <div class="figure-progress">
@@ -24,14 +36,17 @@
           <div v-for="(item, index) in materials"
                :key="index"
                @contextmenu.stop="handleContextMenu(item, $event)"
-               @click="selectItem(item)">
-            <el-image class="figures-img" :src="item.picture" fit="cover"></el-image>
-            <div class="figure-name" :title="item.name">{{ item.name }}</div>
+               @click="selectMaterial(item)"
+               ref="materialItems">
+            <el-image class="figures-img" :class="{'figure-img-active': selected_materials.includes(item.id)}"
+                      :src="item.picture" fit="cover"></el-image>
+            <div class="figure-name"  :class="{'figure-name-active': selected_materials.includes(item.id)}"
+                 :title="item.name">{{ item.name }}</div>
           </div>
         </div>
       </div>
       <div class="figure-item">
-        <div style="margin-bottom: 10px">形象</div>
+        <div style="margin-bottom: 10px;font-weight: bold">形象</div>
         <div class="figures-list">
           <div v-for="item in processTasks" :key="item.id">
             <div class="image-wrapper shining">
@@ -55,22 +70,22 @@
           </div>
         </div>
       </div>
-      <div :style="menuStyle" v-if="rightMenuVisible">
-        <div class="right-item" @click="preview">
+      <div :style="menuStyle" v-if="rightMenuVisible" style="padding: 8px 12px">
+        <div class="material-function" @click="preview">
           <i class="el-icon-view menu-icon"></i>
-          <span style="margin-top: 2px">预览</span>
+          预览
         </div>
-        <div class="right-item" @click="rename">
+        <div class="material-function" @click="rename">
           <i class="el-icon-edit-outline menu-icon"></i>
-          <span style="margin-top: 2px">重命名</span>
+          重命名
         </div>
-        <div class="right-item" @click="deleteItem">
+        <div class="material-function" @click="deleteItem">
           <i class="el-icon-delete-solid menu-icon"></i>
-          <span style="margin-top: 2px">删除</span>
+          删除
         </div>
-        <div class="right-item" @click="detail" v-if="selectedItem.video_type === 'material'">
+        <div class="material-function" @click="detail" v-if="selectedItem.video_type === 'material'">
           <i class="el-icon-document menu-icon"></i>
-          <span style="margin-top: 2px">详情</span>
+          详情
         </div>
       </div>
     </div>
@@ -180,6 +195,7 @@ export default {
   mixins: [RightMenuMixin],
   data() {
     return {
+      selected_materials: [],
       uploadDialogVisible: false,
       uploadData: {
         shopId: '',
@@ -200,6 +216,19 @@ export default {
       response_list: [],
       detailDialogVisible: false,
       detail_content: '',
+
+      // 框选相关状态
+      isSelecting: false,
+      initialX: 0,     // 初始X坐标
+      initialY: 0,     // 初始Y坐标
+      selectionLeft: 0,  // 选框左边界
+      selectionTop: 0,   // 选框上边界
+      selectionWidth: 0, // 选框宽度
+      selectionHeight: 0, // 选框高度
+      initial_material_list: [], // 初始选中的素材列表
+      selectingThreshold: 10, // 新增：框选最小移动阈值（像素）
+      isVideoItemClick: false, // 新增：标记是否为视频项点击
+      shouldShowPopover: false,
     };
   },
   computed: {
@@ -224,11 +253,25 @@ export default {
   mounted() {
     this.startDotAnimation();
     this.$store.dispatch("task/pollFigureTasks");
+    window.addEventListener('keydown', this.handleKeyDown);
   },
   beforeDestroy() {
+    window.removeEventListener('keydown', this.handleKeyDown);
     clearInterval(this.dotTimer);
   },
   methods: {
+    handleKeyDown(event) {
+      if (event.ctrlKey && event.key.toLowerCase() === 'a') {
+        event.preventDefault();
+        this.selectAllMaterials();
+      }
+    },
+    selectAllMaterials() {
+      this.selected_materials = this.materials.map(item => item.id)
+    },
+    selectMaterial(item) {
+      this.selected_materials = [item.id]
+    },
     beforeUploadClose() {
       this.materialList = []
       this.uploadData.shopId = ''
@@ -284,11 +327,15 @@ export default {
       });
     },
     deleteItem() {
-      let selectedId = this.selectedItem.id
-      this.$confirm('此操作将删除该文件, 是否继续?', '提示', {
+      let ids = this.selected_materials;
+      let msg = '此操作将删除该素材, 是否继续?'
+      if (ids.length > 1) {
+        msg = `确定要删除这${ids.length}个素材吗？ 删除后将无法恢复`
+      }
+      this.$confirm(msg, '删除素材', {
         type: 'warning'
       }).then(() => {
-        delAction("/figure/delete", {figure_id: selectedId}).then((res) => {
+        delAction("/figure/delete", {ids: ids}).then((res) => {
           if (res.data.status === "success") {
             this.$message.success("删除成功");
 
@@ -431,6 +478,107 @@ export default {
         this.$alert(content, "任务创建提醒");
       }
     },
+
+    startSelection(event) {
+      if (event.button !== 0) {
+        return
+      }
+      event.preventDefault()
+      event.stopPropagation()
+
+      const rect = this.$el.getBoundingClientRect()
+      this.initialX = event.clientX - rect.left
+      this.initialY = event.clientY - rect.top
+
+      this.selectionLeft = this.initialX
+      this.selectionTop = this.initialY
+      this.selectionWidth = 0
+      this.selectionHeight = 0
+
+      this.isSelecting = true
+
+      this.initial_material_list = [...this.selected_materials]
+    },
+
+    // 更新框选
+    updateSelection(event) {
+      if (!this.isSelecting) return
+
+      const rect = this.$el.getBoundingClientRect()
+      const currentX = event.clientX - rect.left
+      const currentY = event.clientY - rect.top
+
+      // 计算位移距离
+      const distance = Math.sqrt(
+          Math.pow(currentX - this.initialX, 2) +
+          Math.pow(currentY - this.initialY, 2)
+      );
+
+      // 只有当移动超过阈值时，才认为是真正的框选
+      if (distance >= this.selectingThreshold) {
+        event.preventDefault();
+        event.stopPropagation();
+        this.isVideoItemClick = false
+        // 计算选框位置和大小（考虑任意方向）
+        this.selectionLeft = Math.min(this.initialX, currentX)
+        this.selectionTop = Math.min(this.initialY, currentY)
+        this.selectionWidth = Math.abs(currentX - this.initialX)
+        this.selectionHeight = Math.abs(currentY - this.initialY)
+
+        this.updateSelectedItems()
+      }
+    },
+
+    // 结束框选
+    endSelection() {
+      if (!this.isSelecting) return
+
+      this.isSelecting = false
+      // 重置选框尺寸
+      this.selectionWidth = 0
+      this.selectionHeight = 0
+    },
+
+    // 更新选中项
+    updateSelectedItems() {
+      // 获取选框区域
+      const selectionRect = {
+        left: this.selectionLeft,
+        top: this.selectionTop,
+        right: this.selectionLeft + this.selectionWidth,
+        bottom: this.selectionTop + this.selectionHeight
+      }
+
+      // 检查每个视频项是否在选框内
+      this.$refs.materialItems.forEach((el, index) => {
+        const rect = el.getBoundingClientRect()
+        const containerRect = this.$el.getBoundingClientRect()
+
+        // 计算相对于容器的位置
+        const itemRect = {
+          left: rect.left - containerRect.left,
+          top: rect.top - containerRect.top,
+          right: rect.right - containerRect.left,
+          bottom: rect.bottom - containerRect.top
+        }
+
+        // 判断矩形是否重叠
+        const isOverlapping =
+            itemRect.left < selectionRect.right &&
+            itemRect.right > selectionRect.left &&
+            itemRect.top < selectionRect.bottom &&
+            itemRect.bottom > selectionRect.top
+
+        // 更新选中状态
+        let id = this.materials[index].id
+        if (isOverlapping && !this.selected_materials.includes(id)) {
+          this.selected_materials.push(id)
+        }
+        if (!isOverlapping && !this.initial_material_list.includes(id)) {
+          this.selected_materials = this.selected_materials.filter(item => item !== id)
+        }
+      })
+    }
   },
 };
 </script>
@@ -444,6 +592,16 @@ export default {
   flex-direction: column;
   justify-content: center;
   align-items: center;
+  position: relative;
+}
+
+.selection-box {
+  position: absolute;
+  border: 1px dashed #409eff;
+  background-color: rgba(64, 158, 255, 0.1);
+  pointer-events: none;
+  z-index: 20;
+  transition: all 0.1s ease;
 }
 
 .figure-name {
@@ -453,6 +611,9 @@ export default {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  font-size: 15px;
+  color: #101010;
+  font-family: "Helvetica Neue", Arial, sans-serif;
 }
 
 .preview-dialog >>> .el-dialog {
@@ -467,7 +628,7 @@ export default {
 
 .figures-content {
   width: 100%;
-  height: calc(100% - 160px);
+  height: calc(100% - 140px);
   padding: 20px;
   box-sizing: border-box;
   display: flex;
@@ -510,6 +671,15 @@ export default {
   border-radius: 8px;
 }
 
+.figure-img-active {
+  border: 2px solid #4c8df1;
+  box-sizing: border-box;
+}
+
+.figure-name-active {
+  color: #4c8df1 !important;
+}
+
 .control-icon {
   font-size: 30px;
   color: #fff;
@@ -519,9 +689,11 @@ export default {
 
 .figures-footer {
   width: 80%;
-  height: 80px;
+  height: 60px;
   margin-top: 20px;
   color: #6d7177;
+  font-size: 15px;
+  font-family: "Helvetica Neue", Arial, sans-serif;
 }
 
 .markdown-content {

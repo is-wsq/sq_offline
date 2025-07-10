@@ -61,16 +61,16 @@
           </div>
         </el-col>
       </el-row>
-      <div :style="menuStyle" v-if="rightMenuVisible">
-        <div class="right-item" @click="listen">
+      <div :style="menuStyle" v-if="rightMenuVisible" style="padding: 8px 12px">
+        <div class="material-function" @click="listen">
           <i class="el-icon-yangshengqi menu-icon"></i>
           <span style="margin-top: 2px">试听</span>
         </div>
-        <div class="right-item" @click="rename" v-if="selectedItem.type === 'clone'">
+        <div class="material-function" @click="rename" v-if="selectedItem.type === 'clone'">
           <i class="el-icon-edit-outline menu-icon"></i>
           <span style="margin-top: 2px">重命名</span>
         </div>
-        <div class="right-item" @click="deleteItem" v-if="selectedItem.type === 'clone'">
+        <div class="material-function" @click="deleteItem" v-if="selectedItem.type === 'clone'">
           <i class="el-icon-delete-solid menu-icon"></i>
           <span style="margin-top: 2px">删除</span>
         </div>

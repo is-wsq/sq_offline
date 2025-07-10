@@ -17,6 +17,9 @@ export const RightMenuMixin = {
     methods: {
         handleContextMenu(item, e) {
             e.preventDefault();
+            if (this.selected_materials && !this.selected_materials.includes(item.id)) {
+                this.selected_materials = [item.id]
+            }
             this.rightMenuVisible = true;
             this.selectedItem = item
             this.selectedId = item.id
