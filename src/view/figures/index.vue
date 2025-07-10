@@ -340,11 +340,11 @@ export default {
             this.$message.success("删除成功");
 
             const material_list = JSON.parse(sessionStorage.getItem('material_list')) || [];
-            const new_material_list = material_list.filter(item => item !== selectedId);
+            const new_material_list = material_list.filter(item => !ids.includes(item));
             sessionStorage.setItem('material_list', JSON.stringify(new_material_list));
 
             const mention_list = JSON.parse(sessionStorage.getItem('mention_list')) || [];
-            const new_mention_list = mention_list.filter(item => item.id !== selectedId);
+            const new_mention_list = mention_list.filter(item => !ids.includes(item.id));
             sessionStorage.setItem('mention_list', JSON.stringify(new_mention_list));
 
             let figure = JSON.parse(sessionStorage.getItem('figure')) || {}
@@ -352,11 +352,13 @@ export default {
               sessionStorage.removeItem('figure');
             }
 
+            console.log(111)
             this.$store.dispatch("task/pollFigureTasks");
           } else {
             this.$message.error(res.data.message);
           }
         }).catch((err) => {
+          console.log(err)
           this.$message.error("删除失败，请稍后重试！");
         });
       }).catch(() => {
