@@ -25,7 +25,7 @@
         <div style="line-height: 40px;font-weight: bold;margin-left: 15px">素材库</div>
         <div class="library">
           <el-collapse v-model="activeName" accordion>
-            <el-collapse-item title="素材" name="1">
+            <el-collapse-item title="素材(快捷键: Ctrl + A 全选, Ctrl + Z 反选)" name="1">
               <div class="filter-content" @mousedown.stop="">
                 <el-input prefix-icon="el-icon-search" placeholder="输入素材名称、标签匹配搜索" clearable
                           class="filter-input" v-model="filter_text" @change="filterMaterials"></el-input>
@@ -521,10 +521,10 @@ export default {
         );
       }
 
-      if (this.material_list.length > 0) { // 素材尺寸筛选
-        let size = this.materials.find(item => item.id === this.material_list[0]).size
-        filtered = filtered.filter(item => item.size === size)
-      }
+      // if (this.material_list.length > 0) { // 素材尺寸筛选
+      //   let size = this.materials.find(item => item.id === this.material_list[0]).size
+      //   filtered = filtered.filter(item => item.size === size)
+      // }
 
       if (this.activeTags[0] !== '全部') {
         filtered = filtered.filter(item => this.activeTags.includes(item.category))
@@ -544,8 +544,30 @@ export default {
     this.queryBgm();
     this.queryFontFamily();
     this.initParams()
+    window.addEventListener('keydown', this.handleKeyDown);
+  },
+  beforeDestroy() {
+    window.removeEventListener('keydown', this.handleKeyDown);
   },
   methods: {
+    handleKeyDown(event) {
+      if (event.ctrlKey && event.key.toLowerCase() === 'a') {
+        event.preventDefault();
+        this.selectAllMaterials();
+      }
+      if (event.ctrlKey && event.key.toLowerCase() === 'z') {
+        event.preventDefault();
+        this.clearAllSelectMaterials()
+      }
+    },
+    clearAllSelectMaterials() {
+      this.material_list = []
+      sessionStorage.setItem('material_list', JSON.stringify(this.material_list))
+    },
+    selectAllMaterials() {
+      this.material_list = this.filteredMaterials.map(item => item.id)
+      sessionStorage.setItem('material_list', JSON.stringify(this.material_list))
+    },
     selectTag(tag) {
       if (tag === '全部') {
         this.activeTags = ['全部']
@@ -665,13 +687,6 @@ export default {
             this.material_list = (JSON.parse(sessionStorage.getItem('material_list')) || [])
                 .filter(id => validMaterialsId.includes(id)); //剔除已经删除掉的素材
             sessionStorage.setItem('material_list', JSON.stringify(this.material_list))
-
-            // if (this.material_list.length > 0) {
-              // let size = this.materials.find(item => item.id === this.material_list[0]).size
-              // this.filter_materials = this.materials.filter(item => item.size === size)
-            // }else {
-              // this.filter_materials = this.materials
-            // }
           }
         }
       }).catch((error) => {
@@ -746,9 +761,6 @@ export default {
         return
       }
       const isShiftKey = event.shiftKey
-      // if (this.material_list.length === 0) {
-      //   this.filter_materials = this.filter_materials.filter(material => material.size === item.size)
-      // }
       let index = this.filteredMaterials.indexOf(item)
 
       if (!isShiftKey) {
@@ -784,15 +796,6 @@ export default {
         this.material_list.splice(this.material_list.indexOf(item.id), 1)
         if (this.material_list.length === 0) {
           this.lastClickedIndex = null
-
-          // let filteredItems = this.materials;
-          // if (this.filter_text) {
-          //   filteredItems = filteredItems.filter(item =>
-          //       item.name.includes(this.filter_text) ||
-          //       (item.tag && item.tag.split(/[,，]/).includes(this.filter_text))
-          //   );
-          // }
-          // this.filter_materials = filteredItems
         }
       }
       this.contentHeight = 640
@@ -1115,6 +1118,10 @@ export default {
   margin-top: 5px;
   overflow-y: auto;
   overflow-x: hidden;
+}
+
+.m-item {
+  max-width: 140px;
 }
 
 .m-item-img {
