@@ -94,27 +94,27 @@ body {
   color: #1F2937 !important;
 }
 
-.right-item {
-  width: 170px !important;
-  height: 46px !important;
-  line-height: 46px !important;
-  border-radius: 6px !important;
-  padding-left: 20px !important;
+.material-function {
+  width: 130px;
+  padding: 8px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  height: 20px;
+  line-height: 20px;
+  font-size: 14px;
+  color: #606266;
+  font-family: Arial, sans-serif;
 }
 
-.right-item:hover {
-  .menu-icon {
-    color: #fff !important;
-  }
-
-  background-color: #1890ff !important;
-  color: #fff !important;
+.material-function:hover {
+  background-color: #f5f7fa;
 }
 
 .menu-icon {
   color: #6D7177 !important;
   font-size: 14px !important;
-  margin-right: 10px !important;
+  margin-right: 15px !important;
 }
 
 .el-button--primary {
