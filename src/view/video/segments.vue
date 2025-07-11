@@ -240,6 +240,7 @@ export default {
       mention_list: [],
       hover_li: null,
       sound: {},
+      voice_mode: '',
       bgm: {},
       bg_volume: 0.5,
       top_offset_ratio: 0.25,
@@ -569,6 +570,7 @@ export default {
       this.mention_list = mention_list.map(item => ({...item, isHover: false}))
       // 视频音色、背景音乐、背景音乐音量
       this.sound = JSON.parse(sessionStorage.getItem("setting_voice")) || {}
+      this.voice_mode = sessionStorage.getItem("setting_mode") || 'common'
       this.bgm = JSON.parse(sessionStorage.getItem('setting_bgm')) || {}
       this.bg_volume = Number(sessionStorage.getItem("bg_volume")) || 0.5
       // 字幕标题、内容位置
@@ -619,6 +621,7 @@ export default {
         bgm_id: this.bgm.id,
         bg_volume: this.bg_volume,
         timbre_id: this.sound.voice_id,
+        voice_mode: this.voice_mode,
         with_subtitle: this.withSubtitle,
         reference_segments: this.segments_description,
       }

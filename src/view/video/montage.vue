@@ -292,6 +292,7 @@ export default {
       mentionRanges: [],
 
       sound: {},
+      voice_mode: '',
       bgm: {},
       bg_volume: 0.5,
 
@@ -603,6 +604,7 @@ export default {
       this.mention_list = mention_list.map(item => ({...item, isHover: false}))
 
       this.sound = JSON.parse(sessionStorage.getItem("setting_voice"))
+      this.voice_mode = sessionStorage.getItem("setting_mode") || 'common'
       this.bgm = JSON.parse(sessionStorage.getItem('setting_bgm')) || {}
       this.bg_volume = Number(sessionStorage.getItem("bg_volume")) || 0.5
 
@@ -672,6 +674,7 @@ export default {
         bgm_id_list: this.copy_list.map(item => item.bgm.id),
         bg_volume: this.bg_volume,
         timbre_id: this.sound.voice_id,
+        voice_mode: this.voice_mode,
         with_subtitle: this.withSubtitle,
         reference_segments: reference_segments
       }
@@ -780,6 +783,7 @@ export default {
         bgm_id_list: this.copy_list.map(item => item.bgm.id),
         bg_volume: this.bg_volume,
         timbre_id: this.sound.voice_id,
+        voice_mode: this.voice_mode,
         with_subtitle: this.withSubtitle,
         reference_segments: reference_segments
       }
