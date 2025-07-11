@@ -650,6 +650,10 @@ export default {
       return result;
     },
     generate() {
+      if (this.copy_list.some(item => item.content.trim() === '' && item.bgm.id === '')) {
+        this.$alert('没有文案的任务必须添加背景音乐才能进行混剪', '提示')
+        return
+      }
       this.loading = this.$loading({
         lock: true,
         text: '一键混剪，请耐心等待...',
@@ -669,9 +673,7 @@ export default {
       let params = {
         user_request: actualRequest,
         material_list: this.material_list,
-        text_list: this.copy_list.map(item => item.content),
-        text_title_list: this.copy_list.map(item => item.title),
-        bgm_id_list: this.copy_list.map(item => item.bgm.id),
+        copy_list: this.copy_list,
         bg_volume: this.bg_volume,
         timbre_id: this.sound.voice_id,
         voice_mode: this.voice_mode,
@@ -778,9 +780,7 @@ export default {
       let params = {
         user_request: actualRequest,
         material_list: this.material_list,
-        text_list: this.copy_list.map(item => item.content),
-        text_title_list: this.copy_list.map(item => item.title),
-        bgm_id_list: this.copy_list.map(item => item.bgm.id),
+        copy_list: this.copy_list,
         bg_volume: this.bg_volume,
         timbre_id: this.sound.voice_id,
         voice_mode: this.voice_mode,
@@ -1050,6 +1050,7 @@ export default {
 
 .generate-btn >>> .el-button {
   width: 100%;
+  height: 40px;
   background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
   border: none;
   padding: 12px 24px;;

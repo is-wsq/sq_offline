@@ -15,7 +15,7 @@
             <el-collapse v-model="activeName" accordion>
               <el-collapse-item title="AI批量生成" name="1">
                 <div class="smart-generate-c-l-ai">
-                  <div style="max-height: max(calc(100vh - 360px), 380px); overflow-y: auto" ref="scriptForm">
+                  <div style="max-height: max(calc(100vh - 410px), 330px); overflow-y: auto" ref="scriptForm">
                     <div class="smart-generate-c-l-ai-title">文案要求</div>
                     <el-input type="textarea" :autosize="{ minRows: 3, maxRows: 6 }" placeholder="例如：写一个关于猫咪的搞笑段子"
                               class="margin-b-12" v-model="copy_require" resize="none" @change="saveSetting"></el-input>
@@ -66,6 +66,21 @@
                   <el-button type="primary" style="width: 100%" @click="addCopy">添加文案</el-button>
                 </div>
               </el-collapse-item>
+              <el-collapse-item title="无文案内容" name="3">
+                <div class="no-copy-content">
+                  <div style="display: flex;gap: 12px" class="margin-b-12">
+                    <div style="flex: 1">
+                      <div class="panel-label">时长 (秒)</div>
+                      <el-input type="number" v-model="no_copy_duration" :step="15"></el-input>
+                    </div>
+                    <div style="flex: 1">
+                      <div class="panel-label">数量</div>
+                      <el-input type="number" v-model="no_copy_nums" min="1" max="10" @blur="validateNum"></el-input>
+                    </div>
+                  </div>
+                  <el-button type="primary" style="width: 100%" @click="generateNoCopy">生成</el-button>
+                </div>
+              </el-collapse-item>
             </el-collapse>
           </div>
         </el-col>
@@ -77,15 +92,16 @@
                 <div v-for="(item, index) in copy_list" :key="index" class="copy-item">
                   <i class="el-icon-tuodong" style="color: #9ca3af;font-size: 18px"></i>
                   <div class="copy-item-content" style="cursor: pointer"
-                       v-if="!item.isEdit" @click="showEdit(item)">
+                       v-if="!item.isEdit" @click="showEdit(index)">
                     <div class="copy-item-title" :title="item.title">{{ item.title }}</div>
-                    <div class="copy-item-desc">{{ item.content }}</div>
+                    <div class="copy-item-desc">{{ item.content || '无文案' }}</div>
                   </div>
                   <div class="copy-item-content" v-else>
                     <el-input type="textarea" :autosize="{ minRows: 1, maxRows: 3 }" placeholder="文案标题..."
                               class="margin-b-12" v-model="new_title" resize="none"></el-input>
                     <el-input type="textarea" :autosize="{ minRows: 3, maxRows: 6 }" placeholder="文案内容..."
-                              class="margin-b-12" v-model="new_content" resize="none"></el-input>
+                              class="margin-b-12" v-model="new_content" resize="none" v-if="!item.duration"></el-input>
+                    <div class="copy-item-desc margin-b-12" v-if="item.duration">{{ item.content || '无文案' }}</div>
                     <el-button class="copy-item-save" type="primary" @click="saveCopy(index)">保存修改</el-button>
                   </div>
                   <i class="el-icon-close copy-item-close" @click="removeCopy(index)"></i>
@@ -132,6 +148,7 @@ export default {
 
       figure: {},
       sound: {},
+      voice_mode: '',
       bgm: {},
       material_bgm: {},
       top_offset_ratio: 0,
@@ -143,13 +160,29 @@ export default {
       subtitleNameParams: {},
       use_background: false,
       name_use_background: false,
-      show_model: ''
+      show_model: '',
+
+      no_copy_duration: 15,
+      no_copy_nums: 1,
     }
   },
   mounted() {
     this.initData()
   },
   methods: {
+    generateNoCopy() {
+      this.copy_list = [
+        ...this.copy_list,
+        ...Array.from({ length: this.no_copy_nums }, (_, i) => ({
+          title: `默认标题${i + 1}`,
+          content: '',
+          isEdit: false,
+          bgm: this.material_bgm,
+          duration: this.no_copy_duration
+        }))
+      ];
+      sessionStorage.setItem("copy_list", JSON.stringify(this.copy_list));
+    },
     saveSetting() {
       this.validateNum()
       let smart_generate_setting = {
@@ -254,10 +287,12 @@ export default {
       this.copy_content = '';
       sessionStorage.setItem("copy_list", JSON.stringify(this.copy_list))
     },
-    showEdit(item) {
-      item.isEdit = true;
-      this.new_title = item.title
-      this.new_content = item.content
+    showEdit(index) {
+      this.copy_list.forEach((copy, i) => {
+        copy.isEdit = i === index;
+      })
+      this.new_title = this.copy_list[index].title
+      this.new_content = this.copy_list[index].content
     },
     saveCopy(index) {
       this.copy_list[index].isEdit = false;
@@ -297,6 +332,7 @@ export default {
     initParams() {
       this.figure = JSON.parse(sessionStorage.getItem('figure')) || {}
       this.sound = JSON.parse(sessionStorage.getItem('figure_setting_voice')) || {}
+      this.voice_mode = JSON.parse(sessionStorage.getItem('figure_setting_mode')) || 'common'
       this.bgm = JSON.parse(sessionStorage.getItem('figure_setting_bgm')) || {}
 
       this.material_bgm = JSON.parse(sessionStorage.getItem('setting_bgm')) || {}
@@ -339,6 +375,7 @@ export default {
       let params = {
         video_id: this.figure.video_id,
         voice_id: this.sound.voice_id,
+        voice_mode: this.voice_mode,
         bgm_id: this.bgm.id,
         bg_volume: this.bg_volume,
         filename_list: name,
@@ -510,6 +547,7 @@ export default {
 }
 
 .smart-generate-c-l-ai >>> .el-input__inner,
+.no-copy-content >>> .el-input__inner,
 .smart-generate-c-l-manual >>> .el-input__inner,
 .copy-item-content >>> .el-input__inner {
   background-color: #f9f9f9;
