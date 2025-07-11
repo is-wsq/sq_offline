@@ -190,7 +190,7 @@
                   <el-image class="storyboard-item-img" :src="shot.picture"></el-image>
                 </div>
               </div>
-              <div class="detail-script-text">{{ selectedCopy.script[index].copy }}</div>
+              <div class="detail-script-text">{{ group.copy }}</div>
             </div>
           </div>
         </div>
