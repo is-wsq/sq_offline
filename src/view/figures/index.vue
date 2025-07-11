@@ -112,41 +112,43 @@
     </el-dialog>
     <el-dialog class="upload-dialog" :visible.sync="uploadDialogVisible" width="32rem"
                title="上传素材" :before-close="beforeUploadClose">
-      <el-form ref="uploadForm" label-position="top" label-width="80px" :model="uploadData">
-        <el-form-item label="">
-          <el-upload
-              drag
-              ref="materialUpload"
-              class="material-uploader"
-              style="width: 100%"
-              action="http://127.0.0.1:6006/figure/clone_only"
-              accept=".mp4, .mov"
-              :on-success="uploadMaterialsSuccess"
-              :on-error="uploadMaterialsError"
-              :before-upload="beforeUpload"
-              :on-progress="handleFileChange"
-              :file-list.sync="materialList"
-              :data="uploadData"
-              :auto-upload="false"
-              multiple>
-            <i class="el-icon-upload"></i>
-            <div class="el-upload__text">将文件拖到此处，或<em>点击上传</em></div>
-          </el-upload>
-        </el-form-item>
-        <el-form-item label="关联店铺 (必选)" prop="store_id">
-          <el-select v-model="uploadData.store_id" placeholder="请选择要关联的店铺" style="width: 100%">
-            <el-option
-                v-for="shop in shops"
-                :key="shop.id"
-                :label="shop.name"
-                :value="shop.id">
-            </el-option>
-          </el-select>
-        </el-form-item>
-        <el-form-item label="自定义标签 (可选)" prop="tags">
-          <el-input v-model="uploadData.tags" placeholder="多标签请使用逗号(,)分隔"></el-input>
-        </el-form-item>
-      </el-form>
+      <div @mousedown.stop="">
+        <el-form ref="uploadForm" label-position="top" label-width="80px" :model="uploadData">
+          <el-form-item label="">
+            <el-upload
+                drag
+                ref="materialUpload"
+                class="material-uploader"
+                style="width: 100%"
+                action="http://127.0.0.1:6006/figure/clone_only"
+                accept=".mp4, .mov"
+                :on-success="uploadMaterialsSuccess"
+                :on-error="uploadMaterialsError"
+                :before-upload="beforeUpload"
+                :on-progress="handleFileChange"
+                :file-list.sync="materialList"
+                :data="uploadData"
+                :auto-upload="false"
+                multiple>
+              <i class="el-icon-upload"></i>
+              <div class="el-upload__text">将文件拖到此处，或<em>点击上传</em></div>
+            </el-upload>
+          </el-form-item>
+          <el-form-item label="关联店铺 (必选)" prop="store_id">
+            <el-select v-model="uploadData.store_id" placeholder="请选择要关联的店铺" style="width: 100%">
+              <el-option
+                  v-for="shop in shops"
+                  :key="shop.id"
+                  :label="shop.name"
+                  :value="shop.id">
+              </el-option>
+            </el-select>
+          </el-form-item>
+          <el-form-item label="自定义标签 (可选)" prop="tag">
+            <el-input v-model="uploadData.tag" placeholder="多标签请使用逗号(,)分隔"></el-input>
+          </el-form-item>
+        </el-form>
+      </div>
       <span slot="footer" class="dialog-footer">
         <el-button @click="uploadDialogVisible = false" size="small">取消</el-button>
         <el-button type="primary" @click="handleSubmit" size="small">确认上传</el-button>
@@ -199,7 +201,7 @@ export default {
       uploadDialogVisible: false,
       uploadData: {
         store_id: '',
-        tags: '',
+        tag: '',
         lip_sync: true
       },
       dialogVisible: false,
@@ -287,7 +289,7 @@ export default {
     beforeUploadClose() {
       this.materialList = []
       this.uploadData.store_id = ''
-      this.uploadData.tags = ''
+      this.uploadData.tag = ''
       this.uploadDialogVisible = false
     },
     handleSubmit() {
