@@ -30,11 +30,17 @@
                 <el-input prefix-icon="el-icon-search" placeholder="输入素材名称、标签匹配搜索" clearable
                           class="filter-input" v-model="filter_text" @change="filterMaterials"></el-input>
               </div>
-              <div class="tags">
-                <el-tag v-for="(tag, index) in tags" :key="index" size="small" class="tag"
-                        :class="{ 'tag-active': activeTags.includes(tag) }" @click="selectTag(tag)">
-                  {{ tag }}
-                </el-tag>
+              <div class="filter-content">
+                <div style="line-height: 30px;margin-right: 15px">标签</div>
+                <el-select style="flex: 1" v-model="select_tags" collapse-tags multiple placeholder="选择标签筛选素材"
+                @change="filterMaterials">
+                  <el-option
+                      v-for="item in tags"
+                      :key="item"
+                      :label="item"
+                      :value="item">
+                  </el-option>
+                </el-select>
               </div>
               <div class="m-card" ref="videoGrid">
                 <div class="m-item" v-for="item in filteredMaterials" :key="item.id"
@@ -244,12 +250,13 @@
               <div class="s-voice-title" style="flex: 1;display: flex;align-items: center">
                 <div style="margin-right: 10px">字体</div>
                 <el-select v-model="subtitleNameParams.name_font" placeholder="请选择" style="width: 180px"
-                           @change="saveSubtitleNameParams('name_font')">
+                           @change="saveSubtitleNameParams('name_font')" class="font-select">
                   <el-option
                       v-for="item in fontFamily"
                       :key="item.id"
                       :label="item.name"
-                      :value="item.font_id">
+                      :value="item.font_id"
+                      style="line-height: 52px;height: 52px">
                     <div style="display: flex; align-items: center">
                       <img :src="item.img_path" style="width: 150px; height: 50px; margin-right: 8px;"/>
                       <span>{{ item.name }}</span>
@@ -326,12 +333,14 @@
               <div class="s-voice-title" style="flex: 1;display: flex;align-items: center">
                 <div style="margin-right: 10px">字体</div>
                 <el-select v-model="subtitleParams.font" placeholder="请选择" style="width: 180px"
-                           @change="saveSubtitleParams('font')">
+                           @change="saveSubtitleParams('font')" popper-class="font-select">
                   <el-option
                       v-for="item in fontFamily"
                       :key="item.font_id"
                       :label="item.name"
-                      :value="item.font_id">
+                      :value="item.font_id"
+                      style="line-height: 52px;height: 52px"
+                  class="nihao">
                     <div style="display: flex; align-items: center">
                       <img :src="item.img_path" style="width: 150px; height: 50px; margin-right: 8px;"/>
                       <span>{{ item.name }}</span>
@@ -410,8 +419,9 @@ export default {
 
       filter_text: '',
 
-      tags: ['全部','自然','高清','城市','夜景','人物','生活','科技','未来','美食','烹饪'],
+      tags: [],
       activeTags: ['全部'],
+      select_tags: [],
 
       materials: [],
       // filter_materials: [],
@@ -526,8 +536,12 @@ export default {
       //   filtered = filtered.filter(item => item.size === size)
       // }
 
-      if (this.activeTags[0] !== '全部') {
-        filtered = filtered.filter(item => this.activeTags.includes(item.category))
+      if (this.select_tags.length > 0) {
+        filtered = filtered.filter(item => {
+          if (!item.tag) return false;
+          const itemTags = item.tag.split(/[,，]/).map(tag => tag.trim());
+          return itemTags.some(tag => this.select_tags.includes(tag));
+        });
       }
 
       return filtered;
@@ -587,7 +601,9 @@ export default {
       }
       this.activeTags.push(tag)
     },
-    filterMaterials() {},
+    filterMaterials() {
+      console.log(this.select_tags)
+    },
     filterFigure() {
       let filteredItems = this.figures;
       if (this.figure_filter_text) {
@@ -672,12 +688,14 @@ export default {
       }
     },
     queryMaterials() {
-      let params = {
-        video_type: 'material'
-      }
-      getAction("/figure/query_success",params).then((res) => {
+      getAction("/figure/query_success", {video_type: 'material'}).then((res) => {
         if (res.data.status === "success") {
           let data = res.data.data.filter(item => item.status === "success");
+
+          this.tags = data.reduce((acc, cur) => {
+            return acc.concat(cur.tag ? cur.tag.split(/[,，]/) : [])
+          },[])
+
           if (data.length > 0) {
             this.materials = data.map(item => ({
               ...item, previewing: false, size: item.height + '*' + item.width
@@ -1102,12 +1120,16 @@ export default {
   font-size: 12px;
 }
 
+.filter-content >>> .el-select__tags {
+  padding-left: 5px;
+}
+
 .filter-input {
   flex: 1;
 }
 
 .m-card {
-  max-height: calc(100vh - 400px);
+  max-height: calc(100vh - 340px);
   display: grid;
   gap: 15px;
   grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
@@ -1440,11 +1462,6 @@ export default {
 
 .el-select >>> .el-input__icon {
   line-height: 30px;
-}
-
-.el-select-dropdown__item {
-  height: 52px;
-  line-height: 52px;
 }
 
 .input-number >>> .el-input__inner {
