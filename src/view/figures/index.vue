@@ -133,8 +133,8 @@
             <div class="el-upload__text">将文件拖到此处，或<em>点击上传</em></div>
           </el-upload>
         </el-form-item>
-        <el-form-item label="关联店铺 (必选)" prop="shopId">
-          <el-select v-model="uploadData.shopId" placeholder="请选择要关联的店铺" style="width: 100%">
+        <el-form-item label="关联店铺 (必选)" prop="store_id">
+          <el-select v-model="uploadData.store_id" placeholder="请选择要关联的店铺" style="width: 100%">
             <el-option
                 v-for="shop in shops"
                 :key="shop.id"
@@ -198,7 +198,7 @@ export default {
       selected_materials: [],
       uploadDialogVisible: false,
       uploadData: {
-        shopId: '',
+        store_id: '',
         tags: '',
         lip_sync: true
       },
@@ -229,11 +229,11 @@ export default {
       selectingThreshold: 10, // 新增：框选最小移动阈值（像素）
       isVideoItemClick: false, // 新增：标记是否为视频项点击
       shouldShowPopover: false,
+      shops: []
     };
   },
   computed: {
     ...mapGetters("task", ["figureTasks"]), // 获取任务列表
-    ...mapGetters("shop", ["shops"]), // 获取店铺列表
     processMaterials() {
       return this.figureTasks.filter((item) => item.status === "pending");
     },
@@ -251,6 +251,7 @@ export default {
     }
   },
   mounted() {
+    this.queryShops()
     this.startDotAnimation();
     this.$store.dispatch("task/pollFigureTasks");
     window.addEventListener('keydown', this.handleKeyDown);
@@ -260,6 +261,17 @@ export default {
     clearInterval(this.dotTimer);
   },
   methods: {
+    queryShops() {
+      getAction('/store/all').then(res => {
+        if (res.data.status === 'success') {
+          this.shops = res.data.data
+        }else {
+          this.$message.error('获取店铺列表失败')
+        }
+      }).catch(err => {
+        this.$message.error('获取店铺列表失败')
+      })
+    },
     handleKeyDown(event) {
       if (event.ctrlKey && event.key.toLowerCase() === 'a') {
         event.preventDefault();
@@ -274,7 +286,7 @@ export default {
     },
     beforeUploadClose() {
       this.materialList = []
-      this.uploadData.shopId = ''
+      this.uploadData.store_id = ''
       this.uploadData.tags = ''
       this.uploadDialogVisible = false
     },
@@ -284,7 +296,7 @@ export default {
         this.$message.warning('请选择要上传的素材！');
         return;
       }
-      if (!this.uploadData.shopId) {
+      if (!this.uploadData.store_id) {
         this.$message.warning('请必须选择一个关联店铺！');
         return;
       }

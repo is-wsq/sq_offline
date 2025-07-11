@@ -10,9 +10,11 @@
         <div class="card-header">
           <h3 class="shop-name">{{ shop.name }}</h3>
           <div class="card-actions">
-            <el-button size="mini" circle icon="el-icon-edit" @click="handleEditShop(shop)" title="编辑店铺信息"></el-button>
-            <el-button size="mini" circle icon="el-icon-delete" type="danger" @click="handleDeleteShop(shop.id)" title="删除店铺"></el-button>
-            <el-button size="mini" circle icon="el-icon-folder-add" type="info" @click="handleAddPackage(shop)" title="添加产品套餐"></el-button>
+            <el-button size="mini" circle icon="el-icon-edit" @click="handleEditShop(shop)"
+                       title="编辑店铺信息"></el-button>
+            <el-button size="mini" circle icon="el-icon-delete" type="danger" @click="handleDeleteShop(shop.id)"
+                       title="删除店铺"></el-button>
+            <!--            <el-button size="mini" circle icon="el-icon-folder-add" type="info" @click="handleAddPackage(shop)" title="添加产品套餐"></el-button>-->
           </div>
         </div>
         <div class="card-body">
@@ -28,18 +30,18 @@
             <strong class="info-label">目标用户:</strong>
             <strong class="info-content">{{ shop.targetAudience || '暂未填写' }}</strong>
           </div>
-          <div class="shop-info-item">
-            <strong class="info-label">产品套餐:</strong>
-            <template v-if="shop.productPackages && shop.productPackages.length > 0">
-              <strong class="info-content" style="color: #3b82f6;cursor: pointer;padding-right: 10px;position: relative"
-                      v-for="(item, index) in shop.productPackages"
-                      :key='index' @click="handleEditPackage(shop, index)">
-                {{ item.name }}
-                <i class="el-icon-close close-btn" @click.stop="handleDeletePackage(shop, index)"></i>
-              </strong>
-            </template>
-            <strong class="info-content" v-else>暂未添加</strong>
-          </div>
+          <!--          <div class="shop-info-item">-->
+          <!--            <strong class="info-label">产品套餐:</strong>-->
+          <!--            <template v-if="shop.productPackages && shop.productPackages.length > 0">-->
+          <!--              <strong class="info-content" style="color: #3b82f6;cursor: pointer;padding-right: 10px;position: relative"-->
+          <!--                      v-for="(item, index) in shop.productPackages"-->
+          <!--                      :key='index' @click="handleEditPackage(shop, index)">-->
+          <!--                {{ item.name }}-->
+          <!--                <i class="el-icon-close close-btn" @click.stop="handleDeletePackage(shop, index)"></i>-->
+          <!--              </strong>-->
+          <!--            </template>-->
+          <!--            <strong class="info-content" v-else>暂未添加</strong>-->
+          <!--          </div>-->
           <div class="shop-info-item">
             <strong class="info-label">店铺地址:</strong>
             <strong class="info-content">{{ shop.shopAddress || '暂未填写' }}</strong>
@@ -98,21 +100,27 @@
 </template>
 
 <script>
-import { mapGetters, mapActions } from 'vuex'
-import { v4 as uuidv4 } from 'uuid'
+import {delAction, getAction, postAction} from "@/api/api";
 
 export default {
   name: 'ShopManagement',
   data() {
     return {
-      loading: false,
+      shops: [],
       dialogVisible: false,
       packageDialogVisible: false,
       isEdit: false,
-      currentShop: {},
+      currentShop: {
+        name: '',
+        mainProducts: '',
+        sellingPoints: '',
+        targetAudience: '',
+        shopAddress: '',
+        productPackages: []
+      },
       rules: {
         name: [
-          { required: true, message: '请输入店铺名称', trigger: 'blur' }
+          {required: true, message: '请输入店铺名称', trigger: 'blur'}
         ]
       },
       currentPackage: {
@@ -123,16 +131,15 @@ export default {
       packageIndex: null,
       packageRules: {
         name: [
-          { required: true, message: '请输入套餐名称', trigger: 'blur' }
+          {required: true, message: '请输入套餐名称', trigger: 'blur'}
         ],
         desc: [
-          { required: true, message: '请输入套餐详情', trigger: 'blur' }
+          {required: true, message: '请输入套餐详情', trigger: 'blur'}
         ],
       },
     }
   },
   computed: {
-    ...mapGetters('shop', ['shops']),
     dialogTitle() {
       return this.isEdit ? '编辑店铺' : '添加新店铺'
     },
@@ -140,8 +147,34 @@ export default {
       return this.packageIndex ? '编辑套餐' : '添加新套餐'
     }
   },
+  mounted() {
+    this.queryShops()
+  },
   methods: {
-    ...mapActions('shop', ['addShop', 'updateShop', 'deleteShop']),
+    queryShops() {
+      getAction('/store/all').then(res => {
+        if (res.data.status === 'success') {
+          let store_data = res.data.data
+          store_data.forEach(item => {
+            let list = item.store_message.split('\n')
+            let obj = {}
+            for (let i = 0; i < list.length; i++) {
+              let arr = list[i].split(':')
+              obj[arr[0]] = arr[1]
+            }
+            item.mainProducts = obj['主推产品'] || ''
+            item.sellingPoints = obj['优势卖点'] || ''
+            item.targetAudience = obj['目标用户'] || ''
+            item.shopAddress = obj['店铺地址'] || ''
+          })
+          this.shops = store_data
+        } else {
+          this.$message.error('获取店铺列表失败')
+        }
+      }).catch(err => {
+        this.$message.error('获取店铺列表失败')
+      })
+    },
     handleAddShop() {
       this.isEdit = false
       this.currentShop = {}
@@ -149,7 +182,7 @@ export default {
     },
     handleEditShop(shop) {
       this.isEdit = true
-      this.currentShop = { ...shop }
+      this.currentShop = {...shop}
       this.dialogVisible = true
     },
     handleDeleteShop(shopId) {
@@ -158,16 +191,18 @@ export default {
         cancelButtonText: '取消',
         type: 'warning'
       }).then(() => {
-        this.deleteShop(shopId)
-        this.$message({
-          type: 'success',
-          message: '删除成功!'
+        delAction('/store/delete', {store_id: shopId}).then(res => {
+          if (res.data.status === 'success') {
+            this.queryShops()
+            this.$message.success('删除成功!')
+          } else {
+            this.$message.error('删除失败!')
+          }
+        }).catch(err => {
+          this.$message.error('删除失败!')
         })
       }).catch(() => {
-        this.$message({
-          type: 'info',
-          message: '已取消删除'
-        })
+        this.$message.info('已取消删除')
       })
     },
     submitForm() {
@@ -179,21 +214,49 @@ export default {
         }
       })
     },
-    handleFormSubmit(shopData) {
-      if (this.isEdit) {
-        this.updateShop(shopData)
-        this.$message.success('店铺更新成功！')
-      } else {
-        const newShop = { id: uuidv4(), ...shopData }
-        this.addShop(newShop)
-        this.$message.success('店铺添加成功！')
-      }
+    handleFormSubmit(shop) {
+      this.isEdit ? this.editShop(shop) : this.addShop(shop)
       this.dialogVisible = false
+    },
+    addShop(shop) {
+      let store_message = `主推产品:${shop.mainProducts || ''}\n优势卖点:${shop.sellingPoints || ''}\n目标用户:${shop.targetAudience || ''}\n店铺地址:${shop.shopAddress || ''}`
+      let params = {
+        name: shop.name,
+        store_message: store_message
+      }
+      postAction('/store/create', params).then(res => {
+        if (res.data.status === 'success') {
+          this.queryShops()
+          this.$message.success('新店铺创建成功！')
+        } else {
+          this.$message.error('新店铺创建失败！')
+        }
+      }).catch(err => {
+        this.$message.error('新店铺创建失败！')
+      })
+    },
+    editShop(shop, msg = '修改店铺信息') {
+      let store_message = `主推产品:${shop.mainProducts || ''}\n优势卖点:${shop.sellingPoints || ''}\n目标用户:${shop.targetAudience || ''}\n店铺地址:${shop.shopAddress || ''}`
+      let params = {
+        store_id: shop.id,
+        name: shop.name,
+        store_message: store_message
+      }
+      postAction('/store/update', params).then(res => {
+        if (res.data.status === 'success') {
+          this.queryShops()
+          this.$message.success(msg + '成功！')
+        } else {
+          this.$message.error(msg + '失败！')
+        }
+      }).catch(err => {
+        this.$message.error(msg + '失败！')
+      })
     },
     handleAddPackage(shop) {
       this.selectedShop = shop
       this.packageIndex = null
-      this.currentPackage = { name: '', desc: '' }
+      this.currentPackage = {name: '', desc: ''}
       this.packageDialogVisible = true
     },
     handleEditPackage(shop, index) {
@@ -209,21 +272,12 @@ export default {
         cancelButtonText: '取消',
         type: 'warning'
       }).then(() => {
-        console.log(111)
         let packages = this.selectedShop.productPackages || []
         packages.splice(index, 1)
-        let shopData = {...this.selectedShop, productPackages: packages }
-        this.updateShop(shopData)
-        this.$message({
-          type: 'success',
-          message: '删除成功!'
-        })
+        let shopData = {...this.selectedShop, productPackages: packages}
+        this.editShop(shopData, '删除店铺套餐')
       }).catch(() => {
-        console.log(222)
-        this.$message({
-          type: 'info',
-          message: '已取消删除'
-        })
+        this.$message.info('已取消删除')
       })
     },
     beforeClose() {
@@ -235,12 +289,13 @@ export default {
           let packages = this.selectedShop.productPackages || []
           if (this.packageIndex === null) {
             packages.push(this.currentPackage)
-          }else {
+          } else {
             packages[this.packageIndex] = this.currentPackage
           }
-          let shop = {...this.selectedShop, productPackages: packages }
-          this.updateShop(shop)
-          this.$message.success(`套餐${!this.packageIndex ? '添加' : '编辑'}成功！`)
+          let shop = {...this.selectedShop, productPackages: packages}
+              `套餐${!this.packageIndex ? '添加' : '编辑'}成功！`
+          let msg = `套餐${!this.packageIndex ? '添加' : '编辑'}`
+          this.editShop(shop, msg)
           this.packageDialogVisible = false
         } else {
           return false
@@ -286,14 +341,14 @@ export default {
 .shop-card {
   background-color: #ffffff;
   border-radius: 12px;
-  box-shadow: 0 4px 6px rgba(0,0,0,0.05), 0 1px 3px rgba(0,0,0,0.1);
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05), 0 1px 3px rgba(0, 0, 0, 0.1);
   transition: all 0.2s ease-in-out;
   overflow: hidden;
   border: 1px solid #e5e7eb;
 }
 
 .shop-card:hover {
-  box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1), 0 4px 6px -2px rgba(0,0,0,0.05);
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
 }
 
 .card-header {
@@ -370,6 +425,7 @@ export default {
 ::v-deep .el-dialog {
   border-radius: 8px;
 }
+
 ::v-deep .el-dialog__header {
   font-weight: 600;
 }
