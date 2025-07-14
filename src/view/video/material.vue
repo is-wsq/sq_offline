@@ -821,10 +821,10 @@ export default {
         let material = this.mentionList[0]
         this.contentHeight = material.height / (material.width / 360)
       }
-      this.topRatio = 0.25
-      this.bottomRatio = 0.75
-      this.updateTextStyle()
-      this.updateTitleTextStyle()
+      // this.topRatio = 0.25
+      // this.bottomRatio = 0.75
+      // this.updateTextStyle()
+      // this.updateTitleTextStyle()
       sessionStorage.setItem('material_list', JSON.stringify(this.material_list))
       sessionStorage.setItem('content_height', this.contentHeight)
     },
@@ -1416,6 +1416,7 @@ export default {
   background-color: #f3f4f6;
   padding: 4px 4px 4px 8px;
   font-size: 12px;
+  height: 14px;
   border-radius: 6px;
   white-space: nowrap;
   overflow: hidden;
