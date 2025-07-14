@@ -30,18 +30,41 @@
                 <el-input prefix-icon="el-icon-search" placeholder="输入素材名称、标签匹配搜索" clearable
                           class="filter-input" v-model="filter_text" @change="filterMaterials"></el-input>
               </div>
-              <div class="filter-content">
-                <div style="line-height: 30px;margin-right: 15px">标签</div>
-                <el-select style="flex: 1" v-model="select_tags" collapse-tags multiple placeholder="选择标签筛选素材"
-                @change="filterMaterials">
-                  <el-option
-                      v-for="item in tags"
-                      :key="item"
-                      :label="item"
-                      :value="item">
-                  </el-option>
-                </el-select>
+              <div style="display: flex">
+                <div class="tags">
+                  <el-tag v-for="(tag, index) in tags" :key="index" size="small" class="tag"
+                          :class="{ 'tag-active': activeTags.includes(tag) }" @click="selectTag(tag)">
+                    {{ tag }}
+                  </el-tag>
+                </div>
+                <el-popover
+                    placement="bottom"
+                    v-model="showFullTags"
+                    popper-class="full-popover"
+                    @show="popoverShow"
+                    trigger="click">
+                  <div class="full-tags">
+                    <el-tag v-for="(tag, index) in tags" :key="index" size="small" class="tag"
+                            :class="{ 'tag-active': activeTags.includes(tag) }" @click="selectTag(tag)">
+                      {{ tag }}
+                    </el-tag>
+                  </div>
+                  <i class="el-icon-arrow-right full-tags-icon" slot="reference" v-if="!showFullTags"></i>
+                  <i class="el-icon-arrow-down full-tags-icon" slot="reference" v-else></i>
+                </el-popover>
               </div>
+<!--              <div class="filter-content">-->
+<!--                <div style="line-height: 30px;margin-right: 15px">标签</div>-->
+<!--                <el-select style="flex: 1" v-model="select_tags" collapse-tags multiple placeholder="选择标签筛选素材"-->
+<!--                @change="filterMaterials">-->
+<!--                  <el-option-->
+<!--                      v-for="item in tags"-->
+<!--                      :key="item"-->
+<!--                      :label="item"-->
+<!--                      :value="item">-->
+<!--                  </el-option>-->
+<!--                </el-select>-->
+<!--              </div>-->
               <div class="m-card" ref="videoGrid">
                 <div class="m-item" v-for="item in filteredMaterials" :key="item.id"
                      @mousedown="onVideoItemMouseDown"
@@ -422,6 +445,7 @@ export default {
       tags: [],
       activeTags: ['全部'],
       select_tags: [],
+      showFullTags: false,
 
       materials: [],
       // filter_materials: [],
@@ -537,13 +561,21 @@ export default {
         filtered = filtered.filter(item => item.size === size && item.store_id === store_id)
       }
 
-      if (this.select_tags.length > 0) {
+      if (this.activeTags[0] !== '全部') {
         filtered = filtered.filter(item => {
           if (!item.tag) return false;
           const itemTags = item.tag.split(/[,，]/).map(tag => tag.trim());
-          return itemTags.some(tag => this.select_tags.includes(tag));
-        });
+          return itemTags.some(tag => this.activeTags.includes(tag));
+        })
       }
+
+      // if (this.select_tags.length > 0) {
+      //   filtered = filtered.filter(item => {
+      //     if (!item.tag) return false;
+      //     const itemTags = item.tag.split(/[,，]/).map(tag => tag.trim());
+      //     return itemTags.some(tag => this.select_tags.includes(tag));
+      //   });
+      // }
 
       return filtered;
     },
@@ -580,8 +612,20 @@ export default {
       sessionStorage.setItem('material_list', JSON.stringify(this.material_list))
     },
     selectAllMaterials() {
+      if (this.material_list.length === 0) {
+        this.$alert('全选操作只针对于同尺寸、同店铺的素材，请先选择至少一个素材后使用','Ctrl + A 全选提示')
+        return;
+      }
       this.material_list = this.filteredMaterials.map(item => item.id)
       sessionStorage.setItem('material_list', JSON.stringify(this.material_list))
+    },
+    popoverShow() {
+      this.$nextTick(() => {
+        let popover = document.querySelector('.full-popover');
+        if (popover) {
+          popover.style.marginTop = '0';
+        }
+      });
     },
     selectTag(tag) {
       if (tag === '全部') {
@@ -695,7 +739,7 @@ export default {
 
           this.tags = data.reduce((acc, cur) => {
             return acc.concat(cur.tag ? cur.tag.split(/[,，]/) : [])
-          },[])
+          },['全部'])
 
           if (data.length > 0) {
             this.materials = data.map(item => ({
@@ -1133,6 +1177,7 @@ export default {
   max-height: calc(100vh - 340px);
   display: grid;
   gap: 15px;
+  background-color: #FFFFFF;
   grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
   grid-auto-rows: min-content;
   position: relative;
@@ -1495,11 +1540,13 @@ export default {
 }
 
 .tags {
+  flex: 1;
   display: flex;
   flex-wrap: wrap;
-  gap: 10px;
-  margin-bottom: 10px;
+  gap: 7px;
+  margin-bottom: 5px;
   margin-top: 5px;
+  height: 20px;
 }
 
 .tag {
@@ -1517,5 +1564,20 @@ export default {
 .tag-active {
   background-color: #3b82f6 !important;
   color: #FFFFFF !important;
+}
+
+.full-tags-icon {
+  line-height: 35px;
+  font-size: 14px;
+  margin-left: 10px;
+  cursor: pointer;
+}
+
+.full-tags {
+  min-width: 400px;
+  max-width: 540px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
 }
 </style>
