@@ -141,6 +141,10 @@
                   <i class="el-icon-arrow-down"></i>
                 </div>
               </el-popover>
+              <div class="mode-info" v-if="mode === 'advanced'">
+                <i class="el-icon-info" style="font-size: 16px;margin-right: 5px"></i>
+                高级模式将调用Minimax接口并计费
+              </div>
             </div>
             <div class="s-voice-content margin-b-16">
               <div class="s-voice-btn">
@@ -165,10 +169,6 @@
                 </div>
                 <div class="s-voice-name" slot="reference" :title="sound.name">{{ sound.name }}</div>
               </el-popover>
-              <div class="mode-info" v-if="mode === 'advanced'">
-                <i class="el-icon-info" style="font-size: 16px;margin-right: 5px"></i>
-                高级模式将调用Minimax接口并计费
-              </div>
             </div>
             <div class="s-voice-title">背景声音</div>
             <div class="s-voice-content">
@@ -1042,7 +1042,7 @@ export default {
 
 <style scoped>
 .material {
-  min-width: 1200px;
+  min-width: 1250px;
   min-height: 700px;
   height: 100%;
   padding: 20px;
