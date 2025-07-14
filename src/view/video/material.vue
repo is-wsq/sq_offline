@@ -658,7 +658,7 @@ export default {
     },
     selectFigure(item) {
       this.figure = this.figure.id === item.id ? {} : item
-      sessionStorage.setItem('figure', JSON.stringify(this.figure))
+      sessionStorage.setItem('material_figure', JSON.stringify(this.figure))
     },
     formatTooltip(val) {
       return val * 100 + '%';
@@ -762,7 +762,7 @@ export default {
           let data = res.data.data.filter(item => item.status === "success")
           this.figures = data.map(item => ({ ...item, previewing: false }))
           this.filter_figures = this.figures
-          let figure = JSON.parse(sessionStorage.getItem('figure')) || {}
+          let figure = JSON.parse(sessionStorage.getItem('material_figure')) || {}
           let validFiguresId = this.figures.map(item => item.id);
           this.figure = validFiguresId.includes(figure.id) ? figure : {}
         }
