@@ -145,7 +145,16 @@
             </el-select>
           </el-form-item>
           <el-form-item label="自定义标签 (可选)" prop="tag">
-            <el-input v-model="uploadData.tag" placeholder="多标签请使用逗号(,)分隔"></el-input>
+<!--            <el-input v-model="uploadData.tag" placeholder="多标签请使用逗号(,)分隔"></el-input>-->
+            <div class="tags">
+              <el-button v-if="!inputVisible" class="button-new-tag" size="small" @click="showInput">添加新标签</el-button>
+              <el-tag v-for="(tag, index) in show_tags" :key="index" size="small" class="tag"
+                      :class="{ 'tag-active': activeTags.includes(tag) }" @click="selectTag(tag)">
+                {{ tag }}
+              </el-tag>
+            </div>
+            <el-input v-model="new_tag" placeholder="多标签请使用逗号(,)分隔" v-if="inputVisible" ref="saveTagInput"
+                      @keyup.enter.native="handleInputConfirm" @blur="handleInputConfirm"></el-input>
           </el-form-item>
         </el-form>
       </div>
@@ -231,8 +240,20 @@ export default {
       selectingThreshold: 10, // 新增：框选最小移动阈值（像素）
       isVideoItemClick: false, // 新增：标记是否为视频项点击
       shouldShowPopover: false,
-      shops: []
+      shops: [],
+      show_tags: [],
+      activeTags: [],
+      new_tag: '',
+      inputVisible: false,
     };
+  },
+  watch: {
+    tags() {
+      this.show_tags = this.tags
+    },
+    activeTags() {
+      this.uploadData.tag = this.activeTags.join(',')
+    }
   },
   computed: {
     ...mapGetters("task", ["figureTasks"]), // 获取任务列表
@@ -247,6 +268,12 @@ export default {
     },
     materials() {
       return this.figureTasks.filter((item) => item.status === "success" && item.video_type === 'material');
+    },
+    tags() {
+      let data = this.figureTasks.filter((item) => item.status === "success" && item.video_type === 'material');
+      return data.reduce((acc, cur) => {
+        return acc.concat(cur.tag ? cur.tag.split(/[,，]/) : [])
+      },[])
     },
     htmlContent() {
       return marked(this.detail_content);
@@ -263,6 +290,31 @@ export default {
     clearInterval(this.dotTimer);
   },
   methods: {
+    showInput() {
+      this.inputVisible = true;
+      this.$nextTick(_ => {
+        this.$refs.saveTagInput.$refs.input.focus();
+      });
+    },
+
+    handleInputConfirm() {
+      let inputValue = this.new_tag;
+      if (inputValue) {
+        inputValue.split(/[,，]/).forEach(tag => {
+          this.show_tags.push(tag)
+          this.activeTags.push(tag)
+        })
+      }
+      this.inputVisible = false;
+      this.new_tag = '';
+    },
+    selectTag(tag) {
+      if (this.activeTags.includes(tag)) {
+        this.activeTags.splice(this.activeTags.indexOf(tag), 1)
+        return;
+      }
+      this.activeTags.push(tag)
+    },
     queryShops() {
       getAction('/store/all').then(res => {
         if (res.data.status === 'success') {
@@ -366,7 +418,6 @@ export default {
               sessionStorage.removeItem('figure');
             }
 
-            console.log(111)
             this.$store.dispatch("task/pollFigureTasks");
           } else {
             this.$message.error(res.data.message);
@@ -767,5 +818,35 @@ export default {
 
 ::v-deep .el-dialog__body {
   padding: 20px 25px 5px;
+}
+
+.tags {
+  flex: 1;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+  margin-bottom: 5px;
+  margin-top: 5px;
+}
+
+.tag {
+  background-color: #F5F5F5;
+  color: #525252;
+  border-radius: 14px;
+  border: 1px solid #F5F5F5;
+  cursor: pointer;
+  height: 28px;
+  line-height: 28px;
+  padding-left: 12px;
+  padding-right: 12px;
+}
+
+.tag-active {
+  background-color: #3b82f6 !important;
+  color: #FFFFFF !important;
+}
+
+.button-new-tag {
+  padding: 5px;
 }
 </style>

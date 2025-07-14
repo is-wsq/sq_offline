@@ -70,6 +70,10 @@ body {
   margin-top: 8px;
 }
 
+.margin-t-12 {
+  margin-top: 12px;
+}
+
 .font-weight {
   font-weight: bold;
 }
