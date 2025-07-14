@@ -132,7 +132,7 @@
                     </div>
                   </div>
                 </div>
-                <div class="script-item-content" :title="item.content">{{item.content}}</div>
+                <div class="script-item-content" :title="item.content">{{item.content || `(无文案)、视频时长${item.duration}s`}}</div>
               </div>
             </template>
             <template v-else style="width: 100%">
@@ -149,7 +149,8 @@
                   <i class="el-icon-arrow-down" style="color: #9ca3af;font-size: 15px;font-weight: bold;"
                      v-else></i>
                 </div>
-                <div class="script-item-content" :title="item.content" @click="itemClick(index)">{{item.content}}</div>
+                <div class="script-item-content" :title="item.content" @click="itemClick(index)">
+                  {{item.content || `(无文案)、视频时长${item.duration}s`}}</div>
                 <div class="groups" v-if="openIndex === index">
                   <div class="group" v-for="(group,group_index) in item.segment_group" :key="group_index">
                     <div class="group-title">{{ group.contentSummary }}</div>
@@ -650,7 +651,7 @@ export default {
       return result;
     },
     generate() {
-      if (this.copy_list.some(item => item.content.trim() === '' && item.bgm.id === '')) {
+      if (this.copy_list.some(item => item.duration && !item.bgm.id)) {
         this.$alert('没有文案的任务必须添加背景音乐才能进行混剪', '提示')
         return
       }

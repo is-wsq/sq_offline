@@ -62,11 +62,11 @@
                   <el-input type="textarea" :autosize="{ minRows: 1, maxRows: 3 }" placeholder="文案标题..."
                             class="margin-b-12" v-model="copy_title" resize="none"></el-input>
                   <el-input type="textarea" :autosize="{ minRows: 3, maxRows: 6 }" placeholder="文案内容..."
-                            class="margin-b-12"v-model="copy_content" resize="none"></el-input>
+                            class="margin-b-12" v-model="copy_content" resize="none"></el-input>
                   <el-button type="primary" style="width: 100%" @click="addCopy">添加文案</el-button>
                 </div>
               </el-collapse-item>
-              <el-collapse-item title="无文案内容" name="3">
+              <el-collapse-item title="无文案内容" name="3" v-if="script_type === 'material'">
                 <div class="no-copy-content">
                   <div style="display: flex;gap: 12px" class="margin-b-12">
                     <div style="flex: 1">
@@ -94,14 +94,14 @@
                   <div class="copy-item-content" style="cursor: pointer"
                        v-if="!item.isEdit" @click="showEdit(index)">
                     <div class="copy-item-title" :title="item.title">{{ item.title }}</div>
-                    <div class="copy-item-desc">{{ item.content || '无文案' }}</div>
+                    <div class="copy-item-desc">{{ item.content || `(无文案)、视频时长${item.duration}s` }}</div>
                   </div>
                   <div class="copy-item-content" v-else>
                     <el-input type="textarea" :autosize="{ minRows: 1, maxRows: 3 }" placeholder="文案标题..."
                               class="margin-b-12" v-model="new_title" resize="none"></el-input>
                     <el-input type="textarea" :autosize="{ minRows: 3, maxRows: 6 }" placeholder="文案内容..."
                               class="margin-b-12" v-model="new_content" resize="none" v-if="!item.duration"></el-input>
-                    <div class="copy-item-desc margin-b-12" v-if="item.duration">{{ item.content || '无文案' }}</div>
+                    <div class="copy-item-desc margin-b-12" v-if="item.duration">{{ item.content || `(无文案)、视频时长${item.duration}s` }}</div>
                     <el-button class="copy-item-save" type="primary" @click="saveCopy(index)">保存修改</el-button>
                   </div>
                   <i class="el-icon-close copy-item-close" @click="removeCopy(index)"></i>
@@ -171,10 +171,18 @@ export default {
   },
   methods: {
     generateNoCopy() {
+      const maxTitleNumber = this.copy_list.reduce((max, item) => {
+        const match = item.title.match(/默认标题(\d+)/);
+        if (match) {
+          const currentNumber = parseInt(match[1], 10);
+          return Math.max(max, currentNumber);
+        }
+        return max;
+      }, 0);
       this.copy_list = [
         ...this.copy_list,
         ...Array.from({ length: this.no_copy_nums }, (_, i) => ({
-          title: `默认标题${i + 1}`,
+          title: `默认标题${maxTitleNumber + i + 1}`,
           content: '',
           isEdit: false,
           bgm: this.material_bgm,
