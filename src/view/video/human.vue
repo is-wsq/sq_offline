@@ -78,6 +78,10 @@
                   <i class="el-icon-arrow-down"></i>
                 </div>
               </el-popover>
+              <div class="mode-info" v-if="mode === 'advanced'">
+                <i class="el-icon-info" style="font-size: 16px;margin-right: 5px"></i>
+                高级模式将调用Minimax接口并计费
+              </div>
             </div>
             <div class="s-voice-content margin-b-16">
               <div class="s-voice-btn">
@@ -102,10 +106,6 @@
                 </div>
                 <div class="s-voice-name" slot="reference" :title="sound.name">{{ sound.name }}</div>
               </el-popover>
-              <div class="mode-info" v-if="mode === 'advanced'">
-                <i class="el-icon-info" style="font-size: 16px;margin-right: 5px"></i>
-                高级模式将调用Minimax接口并计费
-              </div>
             </div>
             <div class="right-label">背景声音</div>
             <div class="s-voice-content">
@@ -477,8 +477,8 @@ export default {
       sessionStorage.setItem('figure', JSON.stringify(this.figure))
       sessionStorage.setItem('figure_content_height', this.contentHeight)
 
-      this.topRatio = 0.25
-      this.bottomRatio = 0.75
+      // this.topRatio = 0.25
+      // this.bottomRatio = 0.75
 
       this.$nextTick(() => {
         this.updateTextStyle()

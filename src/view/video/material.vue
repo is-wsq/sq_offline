@@ -824,8 +824,8 @@ export default {
       }
       // this.topRatio = 0.25
       // this.bottomRatio = 0.75
-      // this.updateTextStyle()
-      // this.updateTitleTextStyle()
+      this.updateTextStyle()
+      this.updateTitleTextStyle()
       sessionStorage.setItem('material_list', JSON.stringify(this.material_list))
       sessionStorage.setItem('content_height', this.contentHeight)
     },
