@@ -531,10 +531,11 @@ export default {
         );
       }
 
-      // if (this.material_list.length > 0) { // 素材尺寸筛选
-      //   let size = this.materials.find(item => item.id === this.material_list[0]).size
-      //   filtered = filtered.filter(item => item.size === size)
-      // }
+      if (this.material_list.length > 0) { // 素材尺寸、店铺筛选
+        let size = this.materials.find(item => item.id === this.material_list[0]).size
+        let store_id = this.materials.find(item => item.id === this.material_list[0]).store_id
+        filtered = filtered.filter(item => item.size === size && item.store_id === store_id)
+      }
 
       if (this.select_tags.length > 0) {
         filtered = filtered.filter(item => {
