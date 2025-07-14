@@ -113,6 +113,10 @@
                 <div class="none-copy-desc">请使用左侧工具生成您的第一条文案</div>
               </div>
             </div>
+            <div class="font-weight margin-t-12" style="display: flex;gap: 25px">
+              视频循环方式
+              <el-switch v-model="reverse" active-text="倒序" inactive-text="正序" @change="saveReverse"></el-switch>
+            </div>
           </div>
         </el-col>
       </el-row>
@@ -120,20 +124,7 @@
     <div class="flex-center">
       <el-button type="primary" style="width: 176px" @click="nextStep"
                  v-if="script_type === 'material'">下一步：智能成片</el-button>
-      <el-popconfirm
-        v-else
-        confirm-button-text='正序'
-        cancel-button-text='倒叙'
-        cancel-button-type="plain"
-        icon="el-icon-info"
-        width="200"
-        icon-color="red"
-        title="选择视频循环方式"
-        @confirm="verify(false)"
-        @cancel="verify(true)"
-      >
-        <el-button slot="reference" type="primary" style="width: 176px">生成视频</el-button>
-      </el-popconfirm>
+      <el-button type="primary" style="width: 176px" @click="verify" v-else>生成视频</el-button>
     </div>
   </div>
 </template>
@@ -176,6 +167,8 @@ export default {
 
       no_copy_duration: 15,
       no_copy_nums: 1,
+
+      reverse: false
     }
   },
   mounted() {
@@ -338,10 +331,10 @@ export default {
       sessionStorage.setItem('video_path', '/montage')
       this.$router.push({path: '/montage'})
     },
-    verify(reverse) {
+    verify() {
       getAction('/verify/activation').then(res => {
         if (res.data.status === 'success') {
-          this.generateVideo(reverse)
+          this.generateVideo()
         } else {
           this.$alert(res.data.message, "验证失败");
         }
@@ -355,7 +348,9 @@ export default {
       this.voice_mode = sessionStorage.getItem('figure_setting_mode') || 'common'
       this.bgm = JSON.parse(sessionStorage.getItem('figure_setting_bgm')) || {}
 
-      this.material_bgm = JSON.parse(sessionStorage.getItem('setting_bgm')) || {}
+      this.reverse = sessionStorage.getItem("figure_reverse") === 'true'
+
+      this.material_bgm = JSON.parse(sessionStorage.getItem('figure_setting_bgm')) || {}
 
       this.top_offset_ratio = Number(sessionStorage.getItem('figure_top_offset_ratio'))
       this.bottom_offset_ratio = Number(sessionStorage.getItem('figure_bottom_offset_ratio'))
@@ -364,8 +359,8 @@ export default {
       this.withTitle = sessionStorage.getItem("figure_with_title") === 'true'
       this.bg_volume = Number(sessionStorage.getItem("figure_bg_volume")) || 0.5
 
-      this.use_background = sessionStorage.getItem("use_background") === 'true'
-      this.name_use_background = sessionStorage.getItem("name_use_background") === 'true'
+      this.use_background = sessionStorage.getItem("figure_use_background") === 'true'
+      this.name_use_background = sessionStorage.getItem("figure_name_use_background") === 'true'
       this.subtitleParams.fontsize = parseInt(sessionStorage.getItem("figure_fontsize")) || 5
       this.subtitleParams.color = sessionStorage.getItem("figure_color") || '#ffffff'
       this.subtitleParams.font = sessionStorage.getItem("figure_font") || 'SJxingkai-C-Regular'
@@ -381,7 +376,10 @@ export default {
       this.subtitleNameParams.name_background_opacity = Number(sessionStorage.getItem("figure_name_background_opacity")) || 0.6
       this.subtitleNameParams.name_stroke_color = sessionStorage.getItem("figure_name_stroke_color") || '#000000'
     },
-    generateVideo(reverse) {
+    saveReverse() {
+      sessionStorage.setItem('figure_reverse', this.reverse)
+    },
+    generateVideo() {
       if (this.copy_list.length === 0) {
         this.$alert('请先添加口播文案', "提示")
         return;
@@ -399,7 +397,7 @@ export default {
         bgm_id: this.bgm.id,
         bg_volume: this.bg_volume,
         filename_list: name,
-        reverse: reverse,
+        reverse: this.reverse,
         text_list: this.copy_list.map(item => item.content),
         with_subtitle: this.withSubtitle,
         with_title: this.withTitle,
@@ -505,6 +503,11 @@ export default {
   border-radius: 16px;
   padding: 16px;
   box-sizing: border-box;
+}
+
+.smart-generate-c-r {
+  display: flex;
+  flex-direction: column;
 }
 
 .smart-generate-c-l >>> .el-collapse {
@@ -614,7 +617,7 @@ export default {
 }
 
 .smart-generate-c-r-list {
-  height: calc(100% - 35px);
+  flex: 1;
   width: 100%;
   padding: 12px;
   box-sizing: border-box;
@@ -698,5 +701,9 @@ export default {
 .none-copy-desc {
   font-size: 12px;
   color: #9ca3af;
+}
+
+::v-deep .el-switch__label {
+  font-weight: bold;
 }
 </style>
