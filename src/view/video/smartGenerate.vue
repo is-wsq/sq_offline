@@ -120,8 +120,20 @@
     <div class="flex-center">
       <el-button type="primary" style="width: 176px" @click="nextStep"
                  v-if="script_type === 'material'">下一步：智能成片</el-button>
-      <el-button type="primary" style="width: 176px" @click="verify"
-                 v-else>生成视频</el-button>
+      <el-popconfirm
+        v-else
+        confirm-button-text='正序'
+        cancel-button-text='倒叙'
+        cancel-button-type="plain"
+        icon="el-icon-info"
+        width="200"
+        icon-color="red"
+        title="选择视频循环方式"
+        @confirm="verify(false)"
+        @cancel="verify(true)"
+      >
+        <el-button slot="reference" type="primary" style="width: 176px">生成视频</el-button>
+      </el-popconfirm>
     </div>
   </div>
 </template>
@@ -326,10 +338,10 @@ export default {
       sessionStorage.setItem('video_path', '/montage')
       this.$router.push({path: '/montage'})
     },
-    verify() {
+    verify(reverse) {
       getAction('/verify/activation').then(res => {
         if (res.data.status === 'success') {
-          this.generateVideo()
+          this.generateVideo(reverse)
         } else {
           this.$alert(res.data.message, "验证失败");
         }
@@ -340,7 +352,7 @@ export default {
     initParams() {
       this.figure = JSON.parse(sessionStorage.getItem('figure')) || {}
       this.sound = JSON.parse(sessionStorage.getItem('figure_setting_voice')) || {}
-      this.voice_mode = JSON.parse(sessionStorage.getItem('figure_setting_mode')) || 'common'
+      this.voice_mode = sessionStorage.getItem('figure_setting_mode') || 'common'
       this.bgm = JSON.parse(sessionStorage.getItem('figure_setting_bgm')) || {}
 
       this.material_bgm = JSON.parse(sessionStorage.getItem('setting_bgm')) || {}
@@ -369,7 +381,7 @@ export default {
       this.subtitleNameParams.name_background_opacity = Number(sessionStorage.getItem("figure_name_background_opacity")) || 0.6
       this.subtitleNameParams.name_stroke_color = sessionStorage.getItem("figure_name_stroke_color") || '#000000'
     },
-    generateVideo() {
+    generateVideo(reverse) {
       if (this.copy_list.length === 0) {
         this.$alert('请先添加口播文案', "提示")
         return;
@@ -387,6 +399,7 @@ export default {
         bgm_id: this.bgm.id,
         bg_volume: this.bg_volume,
         filename_list: name,
+        reverse: reverse,
         text_list: this.copy_list.map(item => item.content),
         with_subtitle: this.withSubtitle,
         with_title: this.withTitle,
