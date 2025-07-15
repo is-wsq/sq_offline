@@ -607,6 +607,10 @@ export default {
       this.subtitleNameParams.name_stroke_color = sessionStorage.getItem("name_stroke_color") || '#000000'
     },
     generate() {
+      if (this.copy_require.trim() === '') {
+        this.$alert('请先填写文案要求', '提示')
+        return
+      }
       this.loading = this.$loading({
         lock: true,
         text: '一键混剪，请耐心等待...',

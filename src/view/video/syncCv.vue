@@ -578,7 +578,7 @@ export default {
     },
     initData() {
       let sync_setting = JSON.parse(sessionStorage.getItem("sync_setting")) || {}
-      this.requirement = sync_setting.copy_require || ''
+      this.requirement = sync_setting.requirement || ''
       this.copy_require = sync_setting.copy_require || ''
       this.exampleTexts = sync_setting.exampleTexts || ['']
       this.video_time = parseInt(sync_setting.video_time) || 15
@@ -621,6 +621,10 @@ export default {
       this.subtitleNameParams.name_stroke_color = sessionStorage.getItem("name_stroke_color") || '#000000'
     },
     generate() {
+      if (this.copy_require.trim() === '') {
+        this.$alert('请先填写文案要求', '提示')
+        return
+      }
       this.loading = this.$loading({
         lock: true,
         text: '一键混剪，请耐心等待...',
