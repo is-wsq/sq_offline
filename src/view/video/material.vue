@@ -28,7 +28,7 @@
             <el-collapse-item title="素材(快捷键: Ctrl + A 全选, Ctrl + Z 反选)" name="1">
               <div class="filter-content" @mousedown.stop="">
                 <el-input prefix-icon="el-icon-search" placeholder="输入素材名称、标签匹配搜索" clearable
-                          class="filter-input" v-model="filter_text"></el-input>
+                          class="filter-input" v-model="filter_text" @change="filterMaterials"></el-input>
               </div>
               <div style="display: flex">
                 <div class="tags">
@@ -54,7 +54,7 @@
                 </el-popover>
               </div>
               <div class="m-card" ref="videoGrid">
-                <div class="m-item" v-for="item in filteredMaterials" :key="item.id"
+                <div class="m-item" v-for="item in filter_materials" :key="item.id"
                      @mousedown="onVideoItemMouseDown"
                      @click="selectMaterial(item, $event)"
                      ref="videoItems">
@@ -445,7 +445,7 @@ export default {
       showFullTags: false,
 
       materials: [],
-      // filter_materials: [],
+      filter_materials: [],
       material_list: [],
       mute_materials: [],
       withTitle: true,
@@ -542,40 +542,6 @@ export default {
     }
   },
   computed: {
-    filteredMaterials() {
-      let filtered = this.materials;
-
-      if (this.filter_text) { // 关键字筛选
-        filtered = filtered.filter(item =>
-            item.name.includes(this.filter_text) ||
-            (item.tag && item.tag.split(/[,，]/).includes(this.filter_text))
-        );
-      }
-
-      if (this.material_list.length > 0) { // 素材尺寸、店铺筛选
-        let size = this.materials.find(item => item.id === this.material_list[0]).size
-        let store_id = this.materials.find(item => item.id === this.material_list[0]).store_id
-        filtered = filtered.filter(item => item.size === size && item.store_id === store_id)
-      }
-
-      if (this.activeTags[0] !== '全部') {
-        filtered = filtered.filter(item => {
-          if (!item.tag) return false;
-          const itemTags = item.tag.split(/[,，]/).map(tag => tag.trim());
-          return itemTags.some(tag => this.activeTags.includes(tag));
-        })
-      }
-
-      // if (this.select_tags.length > 0) {
-      //   filtered = filtered.filter(item => {
-      //     if (!item.tag) return false;
-      //     const itemTags = item.tag.split(/[,，]/).map(tag => tag.trim());
-      //     return itemTags.some(tag => this.select_tags.includes(tag));
-      //   });
-      // }
-
-      return filtered;
-    },
     mentionList() {
       return this.materials.filter(item => this.material_list.includes(item.id))
           .sort((a, b) => this.material_list.indexOf(a.id) - this.material_list.indexOf(b.id))
@@ -610,10 +576,10 @@ export default {
     },
     selectAllMaterials() {
       if (this.material_list.length === 0) {
-        this.$alert('全选操作只针对于同尺寸、同店铺的素材，请先选择至少一个素材后使用', 'Ctrl + A 全选提示')
+        this.$alert('全选操作只针对于同尺寸、同店铺的素材，请先选择至少一个素材后使用', 'Ctrl + A 全选')
         return;
       }
-      this.material_list = this.filteredMaterials.map(item => item.id)
+      this.material_list = this.filter_materials.map(item => item.id)
       sessionStorage.setItem('material_list', JSON.stringify(this.material_list))
     },
     popoverShow() {
@@ -626,22 +592,19 @@ export default {
     },
     selectTag(tag) {
       if (tag === '全部') {
-        this.activeTags = ['全部']
-        return
-      }
-      if (this.activeTags.length === 1 && this.activeTags[0] === '全部') {
-        this.activeTags = []
-        this.activeTags.push(tag)
-        return;
-      }
-      if (this.activeTags.includes(tag)) {
-        this.activeTags.splice(this.activeTags.indexOf(tag), 1)
-        if (this.activeTags.length === 0) {
-          this.activeTags = ['全部']
+        this.activeTags = ['全部'];
+      } else {
+        if (this.activeTags.includes('全部')) {
+          this.activeTags = [tag];
+        } else if (this.activeTags.includes(tag)) {
+          this.activeTags = this.activeTags.filter(t => t !== tag);
+          if (this.activeTags.length === 0) this.activeTags = ['全部'];
+        } else {
+          this.activeTags.push(tag);
         }
-        return;
       }
-      this.activeTags.push(tag)
+      sessionStorage.setItem('active_tags', JSON.stringify(this.activeTags));
+      this.filterMaterials();
     },
     filterFigure() {
       let filteredItems = this.figures;
@@ -730,12 +693,13 @@ export default {
       getAction("/figure/query_success", {video_type: 'material'}).then((res) => {
         if (res.data.status === "success") {
           let data = res.data.data.filter(item => item.status === "success");
-
-          this.tags = data.reduce((acc, cur) => {
-            return acc.concat(cur.tag ? cur.tag.split(/[,，]/) : [])
-          }, ['全部'])
-
           if (data.length > 0) {
+            this.tags = ['全部', ...new Set(
+                data.flatMap(item => item.tag ? item.tag.split(/[,，]/).filter(Boolean) : [])
+            )];
+
+            this.activeTags = JSON.parse(sessionStorage.getItem('active_tags')) || ['全部']
+
             this.materials = data.map(item => ({
               ...item, previewing: false, size: item.height + '*' + item.width
             }))
@@ -744,6 +708,8 @@ export default {
             this.material_list = (JSON.parse(sessionStorage.getItem('material_list')) || [])
                 .filter(id => validMaterialsId.includes(id)); //剔除已经删除掉的素材
             sessionStorage.setItem('material_list', JSON.stringify(this.material_list))
+
+            this.filterMaterials()
           }
         }
       }).catch((error) => {
@@ -812,13 +778,39 @@ export default {
         console.error("获取字体样式列表失败:", error);
       });
     },
+    filterMaterials() {
+      let filtered = this.materials;
+
+      if (this.filter_text) { // 关键字筛选
+        filtered = filtered.filter(item =>
+            item.name.includes(this.filter_text) ||
+            (item.tag && item.tag.split(/[,，]/).includes(this.filter_text))
+        );
+      }
+
+      if (this.material_list.length > 0) { // 素材尺寸、店铺筛选
+        let size = this.materials.find(item => item.id === this.material_list[0]).size
+        let store_id = this.materials.find(item => item.id === this.material_list[0]).store_id
+        filtered = filtered.filter(item => item.size === size && item.store_id === store_id)
+      }
+
+      if (this.activeTags[0] !== '全部') {
+        filtered = filtered.filter(item => {
+          if (!item.tag) return false;
+          const itemTags = item.tag.split(/[,，]/).map(tag => tag.trim());
+          return itemTags.some(tag => this.activeTags.includes(tag));
+        })
+      }
+
+      this.filter_materials = filtered;
+    },
     selectMaterial(item, event) {
       if (this.isSelecting || !this.isVideoItemClick) {
         event.stopPropagation()
         return
       }
       const isShiftKey = event.shiftKey
-      let index = this.filteredMaterials.indexOf(item)
+      let index = this.filter_materials.indexOf(item)
 
       if (!isShiftKey) {
         this.selectResource(item)
@@ -834,11 +826,11 @@ export default {
 
         // 选中范围内的所有项
         for (let i = start; i <= end; i++) {
-          this.selectResource(this.filteredMaterials[i], true)
+          this.selectResource(this.filter_materials[i], true)
         }
       } else {
         // 第一次点击并且按住了Shift键，处理方式同普通点击
-        this.selectResource(this.filteredMaterials[index])
+        this.selectResource(this.filter_materials[index])
       }
 
       this.lastClickedIndex = index
@@ -862,6 +854,7 @@ export default {
       }
       // this.topRatio = 0.25
       // this.bottomRatio = 0.75
+      this.filterMaterials()
       this.updateTextStyle()
       this.updateTitleTextStyle()
       sessionStorage.setItem('material_list', JSON.stringify(this.material_list))
@@ -1172,7 +1165,7 @@ export default {
   display: grid;
   gap: 15px;
   background-color: #FFFFFF;
-  grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
   grid-auto-rows: min-content;
   position: relative;
   cursor: pointer;
