@@ -4,7 +4,7 @@
       <div v-for="item in processList" :key="item.id" style="text-align: center">
         <div class="image-wrapper shining">
           <el-image style="width: 100%;height: 100%;border-radius: 8px;filter: blur(15px);opacity: 0.8"
-              :src="require('/public/images/4.jpg')" fit="contain" lazy></el-image>
+                    :src="require('/public/images/4.jpg')" fit="contain" lazy></el-image>
           <div class="video-item-info">
             <div :title="item.filename" class="video-name">{{ item.filename }}</div>
           </div>
@@ -33,19 +33,20 @@
               popper-class="video-item-more-popover"
               v-model="popoverStates[item.id]"
               trigger="click">
-              <div class="more-btn-item" @click="deleteVideo(item)">
-                <i class="el-icon-delete-solid menu-icon"></i>
-                <span style="margin-top: 2px">删除</span>
-              </div>
-              <div class="more-btn-item" @click="downloadVideo(item)">
-                <i class="el-icon-download menu-icon"></i>
-                <span style="margin-top: 2px">另存为</span>
-              </div>
-              <div class="more-btn-item" @click="rename(item)">
-                <i class="el-icon-edit-outline menu-icon"></i>
-                <span style="margin-top: 2px">重命名</span>
-              </div>
-            <el-button slot="reference" type="text" class="more-btn" icon="el-icon-gengduo" @click.stop="clearOther(item)"></el-button>
+            <div class="more-btn-item" @click="deleteVideo(item)">
+              <i class="el-icon-delete-solid menu-icon"></i>
+              <span style="margin-top: 2px">删除</span>
+            </div>
+            <div class="more-btn-item" @click="downloadVideo(item)">
+              <i class="el-icon-download menu-icon"></i>
+              <span style="margin-top: 2px">另存为</span>
+            </div>
+            <div class="more-btn-item" @click="rename(item)">
+              <i class="el-icon-edit-outline menu-icon"></i>
+              <span style="margin-top: 2px">重命名</span>
+            </div>
+            <el-button slot="reference" type="text" class="more-btn" icon="el-icon-gengduo"
+                       @click.stop="clearOther(item)"></el-button>
           </el-popover>
         </div>
       </div>
@@ -103,7 +104,7 @@ export default {
     videos() {
       return this.videoTasks.reduce((acc, item) => {
         if (item.status === 'success') {
-          acc.push({ ...item, isEdit: false });
+          acc.push({...item, isEdit: false});
         }
         return acc;
       }, []);
@@ -341,7 +342,7 @@ export default {
   line-height: 30px;
   outline: 0;
   padding: 0 15px;
-  transition: border-color .2s cubic-bezier(.645,.045,.355,1);
+  transition: border-color .2s cubic-bezier(.645, .045, .355, 1);
   width: 100%;
 }
 
@@ -352,11 +353,11 @@ export default {
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
   padding: 0;
   font-size: 18px;
-  color: rgba(255,255,255,0.8);
+  color: rgba(255, 255, 255, 0.8);
 }
 
 .more-btn:hover {
-  background-color: rgba(0,0,0,1);
+  background-color: rgba(0, 0, 0, 1);
   color: #FFFFFF;
 }
 
@@ -375,7 +376,7 @@ export default {
 .menu-icon-more {
   margin-left: 10px;
   font-size: 20px;
-  color: rgba(255,255,255,0.8);
+  color: rgba(255, 255, 255, 0.8);
   cursor: pointer;
 }
 

@@ -55,10 +55,12 @@
         <div class="settings-button-section">
           <div class="generate-btn">
             <el-button @click="generate" :loading="!!loading"><i class="el-icon-bianjiqi btn-icon" v-if="!loading"></i>
-              {{ !!loading? '生成中...' : already_generated? '重新生成' : '一键混剪' }}</el-button>
+              {{ !!loading ? '生成中...' : already_generated ? '重新生成' : '一键混剪' }}
+            </el-button>
           </div>
           <div class="batch-download">
-            <el-button @click="centerDialogVisible = true"><i class="el-icon-arrow-down" style="font-size: 16px"></i></el-button>
+            <el-button @click="centerDialogVisible = true"><i class="el-icon-arrow-down" style="font-size: 16px"></i>
+            </el-button>
           </div>
         </div>
       </div>
@@ -77,7 +79,7 @@
               <div v-for="(item, index) in copy_list" :key="index" class="script-item"
                    :class="{ 'script-item-active': selected_index === index}" @click="selectItem(index)">
                 <div class="flex-center margin-b-8" style="width: 100%">
-                  <div class="script-item-title" :title="item.title">{{item.title}}</div>
+                  <div class="script-item-title" :title="item.title">{{ item.title }}</div>
                   <div class="script-item-btn">
                     <el-popover :ref="'popover_'+ index" placement="bottom" trigger="click" @hide="stopAudio"
                                 v-if="!item.bgm.id">
@@ -101,7 +103,8 @@
                         </el-row>
                       </div>
                       <el-button slot="reference"><i class="el-icon-plus" style="font-weight: bold"></i>
-                        添加音乐</el-button>
+                        添加音乐
+                      </el-button>
                     </el-popover>
                     <div class="music-topbar" v-else>
                       <i class="el-icon-music" style="line-height: 21px"></i>
@@ -132,7 +135,9 @@
                     </div>
                   </div>
                 </div>
-                <div class="script-item-content" :title="item.content">{{item.content || `(无文案)、视频时长${item.duration}s`}}</div>
+                <div class="script-item-content" :title="item.content">
+                  {{ item.content || `(无文案)、视频时长${item.duration}s` }}
+                </div>
               </div>
             </template>
             <template v-else style="width: 100%">
@@ -140,7 +145,7 @@
                    :class="{'script-item-active': activeIndex === index}"
                    @mouseleave="item.isHover = false" @mouseenter="item.isHover = true">
                 <div class="flex-center" @click="itemClick(index)">
-                  <div class="script-item-title" :title="item.title">{{item.title}}</div>
+                  <div class="script-item-title" :title="item.title">{{ item.title }}</div>
                   <div style="width: 16px">
                     <i class="el-icon-close close-icon" v-if="item.isHover" @click="removeCopy(index)"></i>
                   </div>
@@ -150,12 +155,14 @@
                      v-else></i>
                 </div>
                 <div class="script-item-content" :title="item.content" @click="itemClick(index)">
-                  {{item.content || `(无文案)、视频时长${item.duration}s`}}</div>
+                  {{ item.content || `(无文案)、视频时长${item.duration}s` }}
+                </div>
                 <div class="groups" v-if="openIndex === index">
                   <div class="group" v-for="(group,group_index) in item.segment_group" :key="group_index">
                     <div class="group-title">{{ group.contentSummary }}</div>
                     <div class="material-list">
-                      <div class="material-item" v-for="(material,material_index) in group.materials" :key="material_index">
+                      <div class="material-item" v-for="(material,material_index) in group.materials"
+                           :key="material_index">
                         <el-popover placement="bottom" :ref="'popoverRef_' + material_index" trigger="click"
                                     popper-class="custom-popover-style" @show="popoverShow">
                           <div class="shot-list">
@@ -176,7 +183,8 @@
                           </div>
                         </el-popover>
                         <div class="delete-shot-btn">
-                          <i class="el-icon-close" style="font-weight: bold" @click="removeShot(index,group_index,material_index)"></i>
+                          <i class="el-icon-close" style="font-weight: bold"
+                             @click="removeShot(index,group_index,material_index)"></i>
                         </div>
                         <el-image class="material-item-img" :src="material.picture"></el-image>
                         <div class="material-item-title" :title="material.name">{{ material.name }}</div>
@@ -186,7 +194,9 @@
                                     popper-class="custom-popover-style1" @show="popoverShow(true)">
                           <div class="shot-list">
                             <div class="shot-name" v-for="val in mention_list" :key="val.id"
-                                 @click="pushShot(index,group_index,val)"  @mouseleave="liLeave(val)" @mouseenter="liEnter(val)">
+                                 @click="pushShot(index,group_index,val)"
+                                 @mouseleave="liLeave(val)"
+                                 @mouseenter="liEnter(val)">
                               {{ val.name }}
                             </div>
                             <div class="li-video" style="position: absolute; top: 0; right: -145px" v-if="hover_li">
@@ -207,7 +217,8 @@
           </div>
           <div class="export-section" v-if="already_generated">
             <el-button @click="export_video"><i class="el-icon-fa-download" style="margin-right: 10px;"></i>
-              导出视频</el-button>
+              导出视频
+            </el-button>
           </div>
         </div>
       </div>
@@ -218,15 +229,15 @@
         </div>
         <div class="video-placeholder-preview" v-if="activeIndex !== -1">
           <video
-            ref="videoRef"
-            preload="metadata"
-            controls
-            controlsList="noplaybackrate nodownload"
-            @ended="playNextVideo"
-            @play="mediaPlay"
-            @pause="mediaPause"
-            @volumechange="mediaVolumeChange"
-            style="width: 280px; aspect-ratio: 9 / 16; border-radius: 12px"
+              ref="videoRef"
+              preload="metadata"
+              controls
+              controlsList="noplaybackrate nodownload"
+              @ended="playNextVideo"
+              @play="mediaPlay"
+              @pause="mediaPause"
+              @volumechange="mediaVolumeChange"
+              style="width: 280px; aspect-ratio: 9 / 16; border-radius: 12px"
           >
             您的浏览器不支持HTML5视频播放。
           </video>
@@ -681,7 +692,7 @@ export default {
         with_subtitle: this.withSubtitle,
         reference_segments: reference_segments
       }
-      postAction('/figure/video_mix_edit',params, 3600000).then(res => {
+      postAction('/figure/video_mix_edit', params, 3600000).then(res => {
         if (res.data.status === 'success') {
           this.montage_data = res.data.data
           this.already_generated = true
@@ -737,7 +748,7 @@ export default {
           background_opacity: this.subtitleNameParams.name_background_opacity
         }
       }
-      postAction('/figure/export_video_sync',params).then(res => {
+      postAction('/figure/export_video_sync', params).then(res => {
         if (res.data.status === "success") {
           this.$alert('已创建视频生成任务，视频生成成功后会自动下载到本地', "任务创建提醒");
           if (with_out_route) {
@@ -766,7 +777,7 @@ export default {
     },
     batchExport() {
       this.centerDialogVisible = false
-      this.$alert('批量导出后台视频混剪中，混剪成功后会创建视频生成任务','提示')
+      this.$alert('批量导出后台视频混剪中，混剪成功后会创建视频生成任务', '提示')
       //先混剪
       let actualRequest = this.requirement
       let names = this.mention_list.map(item => '@' + item.name);
@@ -788,7 +799,7 @@ export default {
         with_subtitle: this.withSubtitle,
         reference_segments: reference_segments
       }
-      postAction('/figure/video_mix_edit',params, 3600000).then(res => {
+      postAction('/figure/video_mix_edit', params, 3600000).then(res => {
         if (res.data.status === 'success') {
           this.montage_data = res.data.data
           this.export_video(true)
@@ -803,7 +814,7 @@ export default {
     selectItem(index) {
       this.selected_index = index
     },
-    selectBgm(item,index) {
+    selectBgm(item, index) {
       this.copy_list[index].bgm = item
       this.$nextTick(() => {
         const popoverRefs = this.$refs[`popover_${index}`];
@@ -823,8 +834,6 @@ export default {
       }
     },
     previewAudio(voice, index) {
-      console.log(voice)
-      console.log(index)
       if (voice.id === '') {
         this.$message.warning("无音频预览");
         return;

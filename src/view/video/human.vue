@@ -21,7 +21,8 @@
             <el-image class="figure-img" :class="{'figure-img-selected': item.id === figure.id }"
                       :src="item.picture" fit="cover"></el-image>
             <div class="figure-name" :class="{'figure-title-selected': item.id === figure.id }"
-                 :title="item.name">{{ item.name }}</div>
+                 :title="item.name">{{ item.name }}
+            </div>
           </div>
         </div>
       </div>
@@ -34,7 +35,7 @@
                  @mouseup="onMouseUp"
                  @mouseleave="onMouseUp">
               <el-image style="width: 100%;border-radius: 8px" :src="figure.picture"
-                          fit="contain" v-if="figure.picture"></el-image>
+                        fit="contain" v-if="figure.picture"></el-image>
               <div style="width: 360px;height: 640px" v-else></div>
               <div class="figure-preview-title"
                    ref="titleContainer"
@@ -54,7 +55,8 @@
           </div>
         </div>
         <div class="figure-center-btn">
-          <el-button type="primary" style="width: 176px;" @click="nextStep('/smartGenerate')">下一步：编辑文案</el-button>
+          <el-button type="primary" style="width: 176px;" @click="nextStep('/smartGenerate')">下一步：编辑文案
+          </el-button>
         </div>
       </div>
       <div class="figure-right-panel">
@@ -164,7 +166,7 @@
               <el-checkbox v-model="withTitle" @change="switchTitle"></el-checkbox>
             </div>
             <div class="flex-center margin-b-12">
-              <div class="s-voice-title" style="flex: 1">展示方式</div>
+              <div class="right-label" style="flex: 1">展示方式</div>
               <el-radio v-model="show_model" label="begin" @input="saveShowModel">仅开头展示</el-radio>
               <el-radio v-model="show_model" label="full" @input="saveShowModel">全程展示</el-radio>
             </div>
@@ -222,7 +224,8 @@
               <el-color-picker size="small" v-model="subtitleNameParams.name_stroke_color"
                                @change="saveSubtitleNameParams('name_stroke_color')"></el-color-picker>
             </div>
-            <div class="flex-center back-checkbox" :class="{'margin-b-16': name_background_setting}" style="cursor: pointer"
+            <div class="flex-center back-checkbox" :class="{'margin-b-16': name_background_setting}"
+                 style="cursor: pointer"
                  @click="name_background_setting = !name_background_setting">
               <el-checkbox v-model="name_use_background" @change="switchNameUseBackground"></el-checkbox>
               <div class="right-label" style="flex: 1">背景</div>
@@ -460,7 +463,7 @@ export default {
       getAction("/figure/query_success", params).then((res) => {
         if (res.data.status === "success") {
           let data = res.data.data.filter(item => item.status === "success")
-          this.figures = data.map(item => ({ ...item, previewing: false }))
+          this.figures = data.map(item => ({...item, previewing: false}))
           this.filter_figures = this.figures
           let figure = JSON.parse(sessionStorage.getItem('figure')) || {}
           let validFiguresId = this.figures.map(item => item.id);
@@ -477,16 +480,12 @@ export default {
       sessionStorage.setItem('figure', JSON.stringify(this.figure))
       sessionStorage.setItem('figure_content_height', this.contentHeight)
 
-      // this.topRatio = 0.25
-      // this.bottomRatio = 0.75
-
       this.$nextTick(() => {
         this.updateTextStyle()
         this.updateTitleTextStyle()
       })
     },
     initParams() {
-      // this.figure = JSON.parse(sessionStorage.getItem('figure')) || {}
       this.mode = sessionStorage.getItem('figure_setting_mode') || 'common'
 
       this.contentHeight = Number(sessionStorage.getItem('figure_content_height')) || 640
@@ -512,7 +511,7 @@ export default {
       let rgba_color = `rgba(${rgb_color.replace('rgb(', '')
           .replace(')', '')}, ${this.subtitleParams.background_opacity})`
       this.textStyle = {
-        backgroundColor: this.use_background? rgba_color : '',
+        backgroundColor: this.use_background ? rgba_color : '',
         color: this.subtitleParams.color,
         fontFamily: this.subtitleParams.font,
         lineHeight: 1,
@@ -533,7 +532,7 @@ export default {
       let name_rgba_color = `rgba(${name_rgb_color.replace('rgb(', '')
           .replace(')', '')}, ${this.subtitleNameParams.name_background_opacity})`
       this.titleTextStyle = {
-        backgroundColor: this.name_use_background? name_rgba_color : '',
+        backgroundColor: this.name_use_background ? name_rgba_color : '',
         color: this.subtitleNameParams.name_color,
         fontFamily: this.subtitleNameParams.name_font,
         lineHeight: 1,
@@ -684,7 +683,7 @@ export default {
       let rgba_color = `rgba(${rgb_color.replace('rgb(', '')
           .replace(')', '')}, ${this.subtitleNameParams.name_background_opacity})`
       this.titleTextStyle = {
-        backgroundColor: this.name_use_background? rgba_color : '',
+        backgroundColor: this.name_use_background ? rgba_color : '',
         color: this.subtitleNameParams.name_color,
         fontFamily: this.subtitleNameParams.name_font,
         lineHeight: 1,
@@ -739,7 +738,7 @@ export default {
       let rgba_color = `rgba(${rgb_color.replace('rgb(', '')
           .replace(')', '')}, ${this.subtitleParams.background_opacity})`
       this.textStyle = {
-        backgroundColor: this.use_background? rgba_color : '',
+        backgroundColor: this.use_background ? rgba_color : '',
         color: this.subtitleParams.color,
         fontFamily: this.subtitleParams.font,
         lineHeight: 1,
@@ -759,7 +758,7 @@ export default {
     },
     nextStep(path) {
       if (!this.figure.id) {
-        this.$alert('请先选择您的数字人分身','提示')
+        this.$alert('请先选择您的数字人分身', '提示')
         return
       }
       sessionStorage.setItem('script_type', 'figure')
@@ -1003,7 +1002,7 @@ export default {
   font-size: 12px;
   display: flex;
   align-items: center;
-  color:#909399;
+  color: #909399;
 }
 
 .opacity >>> .el-slider__button {

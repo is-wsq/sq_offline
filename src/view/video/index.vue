@@ -35,7 +35,10 @@
                  :style="{ 'background-color': material_list.includes(item.id) ? '#e0e7fb' : '#FFFFFF' }"
                  ref="videoItems">
               <div class="template-tag" v-if="item.tag">
-                <el-tag class="tag-item" size="mini" v-for="tag in item.tag.split(/[,，]/)" :key="tag" v-if="tag">{{ tag }}</el-tag>
+                <el-tag class="tag-item" size="mini" v-for="tag in item.tag.split(/[,，]/)" :key="tag" v-if="tag">{{
+                    tag
+                  }}
+                </el-tag>
               </div>
               <el-popover placement="right" trigger="hover" :content="''" @show="item.previewing = true"
                           @hide="item.previewing = false" :disabled="isSelecting || !shouldShowPopover"
@@ -401,7 +404,6 @@
               </el-table-column>
               <el-table-column label="" width="90" align="center" class-name="no-border-column">
                 <template slot-scope="scope">
-                  <!--                <el-button size="mini" @click="editRow(scope.$index)">编辑</el-button>-->
                   <el-button size="mini" type="danger" @click.stop="deleteRow(scope.$index)">删除</el-button>
                 </template>
               </el-table-column>
@@ -804,14 +806,14 @@ export default {
       this.startY = event.clientY;
 
       const containerHeight = this.$refs.container.clientHeight;
-      const titleHeight = this.$refs.titleContainer?this.$refs.titleContainer.clientHeight:0;
-      const contentHeight = this.$refs.contentContainer?this.$refs.contentContainer.clientHeight:0;
+      const titleHeight = this.$refs.titleContainer ? this.$refs.titleContainer.clientHeight : 0;
+      const contentHeight = this.$refs.contentContainer ? this.$refs.contentContainer.clientHeight : 0;
 
       if (this.draggingType === 'top') {
         let newTop = this.topOffset + deltaY;
         if (this.$refs.contentContainer) {
           newTop = Math.max(0, Math.min(this.bottomOffset - titleHeight, newTop));
-        }else {
+        } else {
           newTop = Math.max(0, newTop);
         }
         this.topOffset = newTop;
@@ -824,7 +826,7 @@ export default {
           newBottom = Math.max(this.topOffset + titleHeight,
               Math.min(containerHeight - contentHeight, newBottom));
         } else {
-          newBottom = Math.max(titleHeight,Math.min(containerHeight - contentHeight, newBottom));
+          newBottom = Math.max(titleHeight, Math.min(containerHeight - contentHeight, newBottom));
         }
         this.bottomOffset = newBottom;
         this.updateTextStyle()

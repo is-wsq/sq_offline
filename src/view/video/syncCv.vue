@@ -53,19 +53,21 @@
             <div class="panel-title margin-t-8">文案设置</div>
             <div style="max-height:calc(100% - 190px);overflow-y: auto" ref="scriptForm">
               <div class="panel-label">文案要求</div>
-              <el-input type="textarea" :autosize="{ minRows: 3, maxRows: 6 }" placeholder="例如：写一个关于猫咪的搞笑段子"
+              <el-input type="textarea" :autosize="{ minRows: 3, maxRows: 6 }"
+                        placeholder="例如：写一个关于猫咪的搞笑段子"
                         class="margin-b-12" v-model="copy_require" resize="none" @click="saveSetting"></el-input>
               <div class="panel-label">示例文案（选填）</div>
               <div class="flex-center margin-b-12 example_textarea" v-for="(text, index) in exampleTexts" :key="index">
-                <el-input type="textarea" :autosize="{ minRows: 3, maxRows: 6 }" placeholder="提供一个你喜欢的风格的例子"
+                <el-input type="textarea" :autosize="{ minRows: 3, maxRows: 6 }"
+                          placeholder="提供一个你喜欢的风格的例子"
                           v-model="exampleTexts[index]" resize="none" @change="saveSetting"></el-input>
-<!--                <el-button size="mini" type="danger" icon="el-icon-delete" @click="removeText(index)"></el-button>-->
                 <i class="el-icon-close example-close-icon" @click="removeText(index)" v-if="index !== 0"></i>
               </div>
             </div>
             <div class="margin-b-12 add_example_btn">
               <el-button @click="addExampleText"><i class="el-icon-plus add_example_icon"></i>
-                添加示例文案</el-button>
+                添加示例文案
+              </el-button>
             </div>
             <div style="display: flex;gap: 12px" class="margin-b-12">
               <div style="flex: 1">
@@ -74,7 +76,8 @@
               </div>
               <div style="flex: 1">
                 <div class="panel-label">文案数量</div>
-                <el-input type="number" v-model="script_num" min="1" max="10" @blur="validateNum" @change="saveSetting"></el-input>
+                <el-input type="number" v-model="script_num" min="1" max="10" @blur="validateNum"
+                          @change="saveSetting"></el-input>
               </div>
             </div>
             <div class="panel-label">模型选择</div>
@@ -86,7 +89,8 @@
         </div>
         <div class="settings-button-section">
           <el-button @click="generate"><i class="el-icon-bianjiqi btn-icon"></i>
-            {{ already_generated? '重新生成' : '一键混剪并同步' }}</el-button>
+            {{ already_generated ? '重新生成' : '一键混剪并同步' }}
+          </el-button>
         </div>
       </div>
 
@@ -98,7 +102,8 @@
         </el-tooltip>
       </div>
 
-      <div class="center-panel" :style="{ width: show_left_panel? 'calc(100% - 648px)' : activeIndex !== -1? 'calc(100% - 733px)' : 'calc(100% - 370px)' }">
+      <div class="center-panel"
+           :style="{ width: show_left_panel? 'calc(100% - 648px)' : activeIndex !== -1? 'calc(100% - 733px)' : 'calc(100% - 370px)' }">
         <div class="script-selection-area">
           <div class="panel-title">AI选用文案</div>
           <div class="copy-list" v-if="copy_list.length > 0">
@@ -119,10 +124,12 @@
                     </div>
                   </template>
                   <div class="segment-groups">
-                    <div class="segment-group-item" v-for="(group,group_index) in item.segment_group" :key="group_index">
+                    <div class="segment-group-item" v-for="(group,group_index) in item.segment_group"
+                         :key="group_index">
                       <div class="group-title">{{ group.contentSummary }}</div>
                       <div class="material-list">
-                        <div class="material-item" v-for="(material,material_index) in group.materials" :key="material_index">
+                        <div class="material-item" v-for="(material,material_index) in group.materials"
+                             :key="material_index">
                           <el-popover placement="bottom" :ref="'popoverRef_' + material_index" trigger="click"
                                       popper-class="custom-popover-material" @show="popoverShow">
                             <div class="shot-list">
@@ -143,7 +150,8 @@
                             </div>
                           </el-popover>
                           <div class="delete-shot-btn">
-                            <i class="el-icon-close" style="font-weight: bold" @click="removeShot(index,group_index,material_index)"></i>
+                            <i class="el-icon-close" style="font-weight: bold"
+                               @click="removeShot(index,group_index,material_index)"></i>
                           </div>
                           <el-image class="material-item-img" :src="material.picture"></el-image>
                           <div class="material-item-title" :title="material.name">{{ material.name }}</div>
@@ -153,7 +161,9 @@
                                       popper-class="custom-popover-material1" @show="popoverShow(true)">
                             <div class="shot-list">
                               <div class="shot-name" v-for="val in mention_list" :key="val.id"
-                                   @click="pushShot(index,group_index,val)"  @mouseleave="liLeave(val)" @mouseenter="liEnter(val)">
+                                   @click="pushShot(index,group_index,val)"
+                                   @mouseleave="liLeave(val)"
+                                   @mouseenter="liEnter(val)">
                                 {{ val.name }}
                               </div>
                               <div class="li-video" style="position: absolute; top: 0; right: -145px" v-if="hover_li">
@@ -179,7 +189,8 @@
             <div class="copy-list-none-desc">请使用左侧工具生成您的第一条文案</div>
           </div>
           <div class="export-section" v-if="already_generated">
-            <el-button @click="export_video"><i class="el-icon-fa-download" style="margin-right: 10px;"></i>导出视频</el-button>
+            <el-button @click="export_video"><i class="el-icon-fa-download" style="margin-right: 10px;"></i>导出视频
+            </el-button>
           </div>
         </div>
       </div>
@@ -740,7 +751,7 @@ export default {
           background_opacity: this.subtitleNameParams.name_background_opacity
         }
       }
-      postAction('/figure/export_video_sync',params).then(res => {
+      postAction('/figure/export_video_sync', params).then(res => {
         if (res.data.status === "success") {
           this.$alert('已创建视频生成任务，视频生成成功后会自动下载到本地', "任务创建提醒");
           sessionStorage.clear()
@@ -962,7 +973,7 @@ export default {
   padding: 0 5px 0 15px;
 }
 
-.without_at >>> .el-input__icon{
+.without_at >>> .el-input__icon {
   line-height: 30px;
 }
 

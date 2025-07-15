@@ -241,9 +241,7 @@ export default {
   transform: translateX(-50%) scaleX(0);
   transform-origin: center;
   opacity: 0;
-  transition:
-      transform 0.5s ease,
-      opacity 0.3s ease;
+  transition: transform 0.5s ease, opacity 0.3s ease;
 }
 
 .feature-card-sub:hover::before {
@@ -330,6 +328,7 @@ export default {
   background: linear-gradient(90deg, transparent, rgba(59, 130, 246, 0.1), transparent);
   transition: left 0.6s ease;
 }
+
 /* 悬浮时：背景滑入 + 平移 + 边框 */
 .sub-option-button:hover {
   background-color: #f8faff;

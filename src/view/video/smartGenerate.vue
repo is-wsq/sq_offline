@@ -17,18 +17,22 @@
                 <div class="smart-generate-c-l-ai">
                   <div style="max-height: max(calc(100vh - 410px), 330px); overflow-y: auto" ref="scriptForm">
                     <div class="smart-generate-c-l-ai-title">文案要求</div>
-                    <el-input type="textarea" :autosize="{ minRows: 3, maxRows: 6 }" placeholder="例如：写一个关于猫咪的搞笑段子"
+                    <el-input type="textarea" :autosize="{ minRows: 3, maxRows: 6 }"
+                              placeholder="例如：写一个关于猫咪的搞笑段子"
                               class="margin-b-12" v-model="copy_require" resize="none" @change="saveSetting"></el-input>
                     <div class="smart-generate-c-l-ai-title">示例文案（选填）</div>
-                    <div class="flex-center margin-b-16 example_textarea" v-for="(text, index) in exampleTexts" :key="index">
-                      <el-input type="textarea" :autosize="{ minRows: 3, maxRows: 6 }" placeholder="提供一个你喜欢的风格的例子"
+                    <div class="flex-center margin-b-16 example_textarea" v-for="(text, index) in exampleTexts"
+                         :key="index">
+                      <el-input type="textarea" :autosize="{ minRows: 3, maxRows: 6 }"
+                                placeholder="提供一个你喜欢的风格的例子"
                                 v-model="exampleTexts[index]" resize="none" @change="saveSetting"></el-input>
-  <!--                      <el-button size="mini" type="danger" icon="el-icon-delete" @click="removeText(index)"></el-button>-->
+                      <!--                      <el-button size="mini" type="danger" icon="el-icon-delete" @click="removeText(index)"></el-button>-->
                       <i class="el-icon-close example-close-icon" @click="removeText(index)" v-if="index !== 0"></i>
                     </div>
                     <div class="margin-b-16 add_example_btn">
                       <el-button @click="addExampleText"><i class="el-icon-plus add_example_icon"></i>
-                        添加示例文案</el-button>
+                        添加示例文案
+                      </el-button>
                     </div>
                     <div style="display: flex;gap: 12px" class="margin-b-12">
                       <div style="flex: 1">
@@ -43,7 +47,8 @@
                       </div>
                       <div style="flex: 1">
                         <div class="smart-generate-c-l-ai-title">文案数量</div>
-                        <el-input type="number" v-model="script_num" min="1" max="10" @change="saveSetting" @blur="validateNum"></el-input>
+                        <el-input type="number" v-model="script_num" min="1" max="10" @change="saveSetting"
+                                  @blur="validateNum"></el-input>
                       </div>
                     </div>
                     <div class="smart-generate-c-l-ai-title">模型选择</div>
@@ -101,7 +106,9 @@
                               class="margin-b-12" v-model="new_title" resize="none"></el-input>
                     <el-input type="textarea" :autosize="{ minRows: 3, maxRows: 6 }" placeholder="文案内容..."
                               class="margin-b-12" v-model="new_content" resize="none" v-if="!item.duration"></el-input>
-                    <div class="copy-item-desc margin-b-12" v-if="item.duration">{{ item.content || `(无文案)、视频时长${item.duration}s` }}</div>
+                    <div class="copy-item-desc margin-b-12" v-if="item.duration">
+                      {{ item.content || `(无文案)、视频时长${item.duration}s` }}
+                    </div>
                     <el-button class="copy-item-save" type="primary" @click="saveCopy(index)">保存修改</el-button>
                   </div>
                   <i class="el-icon-close copy-item-close" @click="removeCopy(index)"></i>
@@ -123,7 +130,8 @@
     </div>
     <div class="flex-center">
       <el-button type="primary" style="width: 176px" @click="nextStep"
-                 v-if="script_type === 'material'">下一步：智能成片</el-button>
+                 v-if="script_type === 'material'">下一步：智能成片
+      </el-button>
       <el-button type="primary" style="width: 176px" @click="verify" v-else>生成视频</el-button>
     </div>
   </div>
@@ -134,7 +142,7 @@ import axios from "axios";
 import {getAction, postAction} from "@/api/api";
 
 export default {
-  data(){
+  data() {
     return {
       activeName: '1',
       copy_require: '',
@@ -186,7 +194,7 @@ export default {
       }, 0);
       this.copy_list = [
         ...this.copy_list,
-        ...Array.from({ length: this.no_copy_nums }, (_, i) => ({
+        ...Array.from({length: this.no_copy_nums}, (_, i) => ({
           title: `默认标题${maxTitleNumber + i + 1}`,
           content: '',
           isEdit: false,
@@ -270,15 +278,21 @@ export default {
           sessionStorage.setItem("copy_list", JSON.stringify(this.copy_list))
         } else {
           this.$notify({
-            title: "文案生成失败", message: `${res.data.message}`,
-            type: "error", duration: 0});
+            title: "文案生成失败",
+            message: `${res.data.message}`,
+            type: "error",
+            duration: 0
+          });
         }
       }).catch(err => {
         this.loading.close();
         this.loading = null;
         this.$notify({
-          title: "文案生成失败", message: `${err}`,
-          type: "error", duration: 0});
+          title: "文案生成失败",
+          message: `${err}`,
+          type: "error",
+          duration: 0
+        });
       })
     },
     addCopy() {
@@ -584,7 +598,7 @@ export default {
 }
 
 .smart-generate-c-l-ai >>> .el-input__icon,
-.smart-generate-c-l-manual >>> .el-input__icon{
+.smart-generate-c-l-manual >>> .el-input__icon {
   line-height: 30px;
 }
 
@@ -671,7 +685,7 @@ export default {
   cursor: pointer;
 }
 
-.copy-item-content >>> .el-button{
+.copy-item-content >>> .el-button {
   cursor: pointer;
   border-radius: 6px;
   font-size: 12px;

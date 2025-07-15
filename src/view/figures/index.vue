@@ -19,10 +19,10 @@
           <div v-for="item in processMaterials" :key="item.id">
             <div class="figure-image-wrapper shining">
               <el-image
-                class="figures-img"
-                style="filter: blur(15px);opacity: 0.8"
-                :src="require('/public/images/4.jpg')"
-                fit="cover">
+                  class="figures-img"
+                  style="filter: blur(15px);opacity: 0.8"
+                  :src="require('/public/images/4.jpg')"
+                  fit="cover">
               </el-image>
               <div class="shine-layer"></div>
               <div class="figure-progress">
@@ -40,8 +40,9 @@
                ref="materialItems">
             <el-image class="figures-img" :class="{'figure-img-active': selected_materials.includes(item.id)}"
                       :src="item.picture" fit="cover" lazy></el-image>
-            <div class="figure-name"  :class="{'figure-name-active': selected_materials.includes(item.id)}"
-                 :title="item.name">{{ item.name }}</div>
+            <div class="figure-name" :class="{'figure-name-active': selected_materials.includes(item.id)}"
+                 :title="item.name">{{ item.name }}
+            </div>
           </div>
         </div>
       </div>
@@ -145,9 +146,9 @@
             </el-select>
           </el-form-item>
           <el-form-item label="自定义标签 (可选)" prop="tag">
-<!--            <el-input v-model="uploadData.tag" placeholder="多标签请使用逗号(,)分隔"></el-input>-->
             <div class="tags">
-              <el-button v-if="!inputVisible" class="button-new-tag" size="small" @click="showInput">添加新标签</el-button>
+              <el-button v-if="!inputVisible" class="button-new-tag" size="small" @click="showInput">添加新标签
+              </el-button>
               <el-tag v-for="(tag, index) in show_tags" :key="index" size="small" class="tag"
                       :class="{ 'tag-active': activeTags.includes(tag) }" @click="selectTag(tag)">
                 {{ tag }}
@@ -199,8 +200,8 @@
 import {RightMenuMixin} from "@/mixins/RightMenuMixin";
 import {delAction, getAction, postAction} from "@/api/api";
 import {mapGetters} from "vuex";
-import axios from "axios";
 import {marked} from "marked";
+
 export default {
   name: "figures",
   mixins: [RightMenuMixin],
@@ -249,7 +250,7 @@ export default {
   },
   watch: {
     tags: {
-      handler(newValue,oldValue) {
+      handler(newValue, oldValue) {
         if (newValue.join(',') === oldValue.join(','))
           return;
         this.show_tags = [...newValue]
@@ -278,7 +279,7 @@ export default {
       let data = this.figureTasks.filter((item) => item.status === "success" && item.video_type === 'material');
       return data.reduce((acc, cur) => {
         return acc.concat(cur.tag ? cur.tag.split(/[,，]/) : [])
-      },[])
+      }, [])
     },
     htmlContent() {
       return marked(this.detail_content);
@@ -333,7 +334,7 @@ export default {
       getAction('/store/all').then(res => {
         if (res.data.status === 'success') {
           this.shops = res.data.data
-        }else {
+        } else {
           this.$message.error('获取店铺列表失败')
         }
       }).catch(err => {

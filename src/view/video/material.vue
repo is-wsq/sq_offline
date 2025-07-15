@@ -28,7 +28,7 @@
             <el-collapse-item title="素材(快捷键: Ctrl + A 全选, Ctrl + Z 反选)" name="1">
               <div class="filter-content" @mousedown.stop="">
                 <el-input prefix-icon="el-icon-search" placeholder="输入素材名称、标签匹配搜索" clearable
-                          class="filter-input" v-model="filter_text" @change="filterMaterials"></el-input>
+                          class="filter-input" v-model="filter_text"></el-input>
               </div>
               <div style="display: flex">
                 <div class="tags">
@@ -53,18 +53,6 @@
                   <i class="el-icon-arrow-down full-tags-icon" slot="reference" v-else></i>
                 </el-popover>
               </div>
-<!--              <div class="filter-content">-->
-<!--                <div style="line-height: 30px;margin-right: 15px">标签</div>-->
-<!--                <el-select style="flex: 1" v-model="select_tags" collapse-tags multiple placeholder="选择标签筛选素材"-->
-<!--                @change="filterMaterials">-->
-<!--                  <el-option-->
-<!--                      v-for="item in tags"-->
-<!--                      :key="item"-->
-<!--                      :label="item"-->
-<!--                      :value="item">-->
-<!--                  </el-option>-->
-<!--                </el-select>-->
-<!--              </div>-->
               <div class="m-card" ref="videoGrid">
                 <div class="m-item" v-for="item in filteredMaterials" :key="item.id"
                      @mousedown="onVideoItemMouseDown"
@@ -74,7 +62,8 @@
                             :src="item.picture" fit="cover" lazy></el-image>
                   <div class="flex-center">
                     <div class="m-item-title" :class="{'m-title-selected': material_list.includes(item.id) }"
-                         :title="item.name">{{ item.name }}</div>
+                         :title="item.name">{{ item.name }}
+                    </div>
                     <i class="el-icon-shengyin_fill"
                        style="font-size: 16px; color: #6286ed;"
                        @click.stop="addMute(item.id)"
@@ -100,7 +89,8 @@
                             :src="item.picture" fit="cover"></el-image>
                   <div style="display: flex">
                     <div class="m-item-title" :class="{'m-title-selected': item.id === figure.id }"
-                         :title="item.name">{{ item.name }}</div>
+                         :title="item.name">{{ item.name }}
+                    </div>
                   </div>
                 </div>
               </div>
@@ -139,7 +129,7 @@
         </div>
         <div class="c-center-btn">
           <el-button type="primary" class="next-btn" @click="nextStep">
-            {{ nextType.includes('montage')? '下一步：编辑文案' : '下一步：一键混剪' }}
+            {{ nextType.includes('montage') ? '下一步：编辑文案' : '下一步：一键混剪' }}
           </el-button>
         </div>
       </div>
@@ -309,7 +299,9 @@
               <el-color-picker size="small" v-model="subtitleNameParams.name_stroke_color"
                                @change="saveSubtitleNameParams('name_stroke_color')"></el-color-picker>
             </div>
-            <div class="flex-center back-checkbox" :class="{'margin-b-16': name_background_setting}" style="cursor: pointer"
+            <div class="flex-center back-checkbox"
+                 :class="{'margin-b-16': name_background_setting}"
+                 style="cursor: pointer"
                  @click="name_background_setting = !name_background_setting">
               <el-checkbox v-model="name_use_background" @change="switchNameUseBackground"></el-checkbox>
               <div class="s-voice-title" style="flex: 1">背景</div>
@@ -319,14 +311,16 @@
             <div class="flex-center margin-b-12 bg-color" v-if="name_background_setting">
               <div class="s-voice-title" style="margin-right: 12px">颜色</div>
               <el-color-picker size="small" v-model="subtitleNameParams.name_background_color"
-                               @change="saveSubtitleNameParams('name_background_color')"></el-color-picker>
+                               @change="saveSubtitleNameParams('name_background_color')">
+              </el-color-picker>
               <div style="flex: 1"></div>
             </div>
             <div class="flex-center opacity" v-if="name_background_setting">
               <div class="s-voice-title" style="margin-right: 12px">不透明度</div>
               <el-slider v-model="subtitleNameParams.name_background_opacity"
                          :step="0.01" style="flex: 1" :min="0" :max="1"
-                         @input="saveSubtitleNameParams('name_background_opacity')"></el-slider>
+                         @input="saveSubtitleNameParams('name_background_opacity')">
+              </el-slider>
               <div class="s-voice-title" style="margin-left: 8px;width: 30px">
                 {{ (subtitleNameParams.name_background_opacity * 100).toFixed(0) + '%' }}
               </div>
@@ -362,8 +356,7 @@
                       :key="item.font_id"
                       :label="item.name"
                       :value="item.font_id"
-                      style="line-height: 52px;height: 52px"
-                  class="nihao">
+                      style="line-height: 52px;height: 52px">
                     <div style="display: flex; align-items: center">
                       <img :src="item.img_path" style="width: 150px; height: 50px; margin-right: 8px;"/>
                       <span>{{ item.name }}</span>
@@ -393,7 +386,9 @@
               <el-color-picker size="small" v-model="subtitleParams.stroke_color"
                                @change="saveSubtitleParams('stroke_color')"></el-color-picker>
             </div>
-            <div class="flex-center back-checkbox" :class="{'margin-b-16': background_setting}" style="cursor: pointer"
+            <div class="flex-center back-checkbox"
+                 :class="{'margin-b-16': background_setting}"
+                 style="cursor: pointer"
                  @click="background_setting = !background_setting">
               <el-checkbox v-model="use_background" @change="switchUseBackground"></el-checkbox>
               <div class="s-voice-title" style="flex: 1">背景</div>
@@ -403,14 +398,16 @@
             <div class="flex-center margin-b-12 bg-color" v-if="background_setting">
               <div class="s-voice-title" style="margin-right: 12px">颜色</div>
               <el-color-picker size="small" v-model="subtitleParams.background_color"
-                               @change="saveSubtitleParams('background_color')"></el-color-picker>
+                               @change="saveSubtitleParams('background_color')">
+              </el-color-picker>
               <div style="flex: 1"></div>
             </div>
             <div class="flex-center opacity" v-if="background_setting">
               <div class="s-voice-title" style="margin-right: 12px">不透明度</div>
               <el-slider v-model="subtitleParams.background_opacity"
                          :step="0.01" style="flex: 1" :min="0" :max="1"
-                         @input="saveSubtitleParams('background_opacity')"></el-slider>
+                         @input="saveSubtitleParams('background_opacity')">
+              </el-slider>
               <div class="s-voice-title" style="margin-left: 8px;width: 30px">
                 {{ (subtitleParams.background_opacity * 100).toFixed(0) + '%' }}
               </div>
@@ -613,7 +610,7 @@ export default {
     },
     selectAllMaterials() {
       if (this.material_list.length === 0) {
-        this.$alert('全选操作只针对于同尺寸、同店铺的素材，请先选择至少一个素材后使用','Ctrl + A 全选提示')
+        this.$alert('全选操作只针对于同尺寸、同店铺的素材，请先选择至少一个素材后使用', 'Ctrl + A 全选提示')
         return;
       }
       this.material_list = this.filteredMaterials.map(item => item.id)
@@ -645,9 +642,6 @@ export default {
         return;
       }
       this.activeTags.push(tag)
-    },
-    filterMaterials() {
-      console.log(this.select_tags)
     },
     filterFigure() {
       let filteredItems = this.figures;
@@ -702,7 +696,7 @@ export default {
       let rgba_color = `rgba(${rgb_color.replace('rgb(', '')
           .replace(')', '')}, ${this.subtitleParams.background_opacity})`
       this.textStyle = {
-        backgroundColor: this.use_background? rgba_color : '',
+        backgroundColor: this.use_background ? rgba_color : '',
         color: this.subtitleParams.color,
         fontFamily: this.subtitleParams.font,
         lineHeight: 1,
@@ -723,7 +717,7 @@ export default {
       let name_rgba_color = `rgba(${name_rgb_color.replace('rgb(', '')
           .replace(')', '')}, ${this.subtitleNameParams.name_background_opacity})`
       this.titleTextStyle = {
-        backgroundColor: this.name_use_background? name_rgba_color : '',
+        backgroundColor: this.name_use_background ? name_rgba_color : '',
         color: this.subtitleNameParams.name_color,
         fontFamily: this.subtitleNameParams.name_font,
         lineHeight: 1,
@@ -739,7 +733,7 @@ export default {
 
           this.tags = data.reduce((acc, cur) => {
             return acc.concat(cur.tag ? cur.tag.split(/[,，]/) : [])
-          },['全部'])
+          }, ['全部'])
 
           if (data.length > 0) {
             this.materials = data.map(item => ({
@@ -760,7 +754,7 @@ export default {
       getAction("/figure/query_success", {video_type: 'figure'}).then((res) => {
         if (res.data.status === "success") {
           let data = res.data.data.filter(item => item.status === "success")
-          this.figures = data.map(item => ({ ...item, previewing: false }))
+          this.figures = data.map(item => ({...item, previewing: false}))
           this.filter_figures = this.figures
           let figure = JSON.parse(sessionStorage.getItem('material_figure')) || {}
           let validFiguresId = this.figures.map(item => item.id);
@@ -966,7 +960,7 @@ export default {
       let rgba_color = `rgba(${rgb_color.replace('rgb(', '')
           .replace(')', '')}, ${this.subtitleNameParams.name_background_opacity})`
       this.titleTextStyle = {
-        backgroundColor: this.name_use_background? rgba_color : '',
+        backgroundColor: this.name_use_background ? rgba_color : '',
         color: this.subtitleNameParams.name_color,
         fontFamily: this.subtitleNameParams.name_font,
         lineHeight: 1,
@@ -1026,7 +1020,7 @@ export default {
       let rgba_color = `rgba(${rgb_color.replace('rgb(', '')
           .replace(')', '')}, ${this.subtitleParams.background_opacity})`
       this.textStyle = {
-        backgroundColor: this.use_background? rgba_color : '',
+        backgroundColor: this.use_background ? rgba_color : '',
         color: this.subtitleParams.color,
         fontFamily: this.subtitleParams.font,
         lineHeight: 1,
@@ -1356,7 +1350,7 @@ export default {
   font-size: 12px;
   display: flex;
   align-items: center;
-  color:#909399;
+  color: #909399;
 }
 
 .opacity >>> .el-slider__button {

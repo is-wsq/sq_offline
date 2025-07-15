@@ -117,7 +117,7 @@ export default {
         if (res.data.status === 'success') {
           this.info = res.data.data
           this.percentage = (this.info.remaining_tokens / this.info.total_tokens) * 100
-        }else {
+        } else {
           this.$message.error(res.data.message)
         }
       }).catch(err => {

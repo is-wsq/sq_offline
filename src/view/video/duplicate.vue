@@ -15,8 +15,11 @@
             <div class="smart-generate-c-l-ai">
               <div style="height: calc(100% - 50px); overflow-y: auto">
                 <div class="smart-generate-c-l-ai-title">文案要求</div>
-                <el-input type="textarea" :autosize="{ minRows: 3, maxRows: 6 }" placeholder="例如：写一个关于猫咪的搞笑段子"
-                          class="margin-b-12" v-model="copy_require" resize="none" @change="saveSetting"></el-input>
+                <el-input type="textarea" :autosize="{ minRows: 3, maxRows: 6 }"
+                          placeholder="例如：写一个关于猫咪的搞笑段子"
+                          class="margin-b-12" v-model="copy_require"
+                          resize="none" @change="saveSetting">
+                </el-input>
                 <div class="smart-generate-c-l-ai-title">示例文案</div>
                 <div class="flex-center margin-b-8" v-for="(text, index) in exampleTexts" :key="index">
                   <div class="copy-item-example">{{ exampleTexts[index] }}</div>
@@ -34,7 +37,8 @@
                   </div>
                   <div style="flex: 1">
                     <div class="smart-generate-c-l-ai-title">文案数量</div>
-                    <el-input type="number" v-model="script_num" min="1" max="10" @blur="validateNum" @change="saveSetting"></el-input>
+                    <el-input type="number" v-model="script_num" min="1" max="10" @blur="validateNum"
+                              @change="saveSetting"></el-input>
                   </div>
                 </div>
                 <div class="smart-generate-c-l-ai-title">模型选择</div>
@@ -91,7 +95,7 @@
 import axios from "axios";
 
 export default {
-  data(){
+  data() {
     return {
       activeName: '1',
       copy_require: '',
@@ -174,14 +178,16 @@ export default {
         } else {
           this.$notify({
             title: "文案生成失败", message: `${res.data.message}`,
-            type: "error", duration: 0});
+            type: "error", duration: 0
+          });
         }
       }).catch(err => {
         this.loading.close();
         this.loading = null;
         this.$notify({
           title: "文案生成失败", message: `${err}`,
-          type: "error", duration: 0});
+          type: "error", duration: 0
+        });
       })
     },
     showEdit(item) {
@@ -375,7 +381,7 @@ export default {
   cursor: pointer;
 }
 
-.copy-item-content >>> .el-button{
+.copy-item-content >>> .el-button {
   cursor: pointer;
   border-radius: 6px;
   font-size: 12px;

@@ -94,7 +94,8 @@
         <el-checkbox v-model="use_link"></el-checkbox>
         <div style="font-size: 15px;font-weight: bold;flex: 1">使用链接上传</div>
       </div>
-      <el-input prefix-icon="el-icon-link" v-model="dy_link" placeholder="粘贴抖音视频分享链接上传" :disabled="!use_link"></el-input>
+      <el-input prefix-icon="el-icon-link" v-model="dy_link" placeholder="粘贴抖音视频分享链接上传"
+                :disabled="!use_link"></el-input>
       <div style="margin: 10px 0 5px 0;font-size: 15px;font-weight: bold">分类</div>
       <div class="classifies">
         <el-tag v-for="(tag, index) in classifies" :key="index" size="small" class="tag"
@@ -130,16 +131,16 @@ export default {
       title: '',
       uploadTag: '',
       classifies: [
-        { name: '行业热点', color: '#f97316' },
-        { name: '产品展示', color: '#3b82f6' },
-        { name: '口播', color: '#22c55e' },
-        { name: '企业故事', color: '#a855f7' },
-        { name: '教程干货', color: '#f97316' },
-        { name: '生活Vlog', color: '#22c55e' },
-        { name: '搞笑段子', color: '#a855f7' },
-        { name: '特效转场', color: '#f97316' },
-        { name: 'AIGC', color: '#22c55e' },
-        { name: '活动宣传', color: '#a855f7' },
+        {name: '行业热点', color: '#f97316'},
+        {name: '产品展示', color: '#3b82f6'},
+        {name: '口播', color: '#22c55e'},
+        {name: '企业故事', color: '#a855f7'},
+        {name: '教程干货', color: '#f97316'},
+        {name: '生活Vlog', color: '#22c55e'},
+        {name: '搞笑段子', color: '#a855f7'},
+        {name: '特效转场', color: '#f97316'},
+        {name: 'AIGC', color: '#22c55e'},
+        {name: '活动宣传', color: '#a855f7'},
       ],
       classify: '行业热点',
       loading: false,
@@ -202,10 +203,10 @@ export default {
       let params = {
         video_type: 'hot_video',
       }
-      getAction("/figure/query_success",params).then((res) => {
+      getAction("/figure/query_success", params).then((res) => {
         if (res.data.status === "success") {
           let data = res.data.data.filter(item => item.status === "success");
-          this.hots = data.map(item => ({ ...item, isHover: false }))
+          this.hots = data.map(item => ({...item, isHover: false}))
           this.searchText = ''
           this.activeTag = '全部推荐'
           this.filter_hots = this.hots
@@ -238,7 +239,7 @@ export default {
         tag: this.uploadTag,
         category: this.classify,
       }
-      postAction('/figure/add_hot_video_by_link',params).then(res => {
+      postAction('/figure/add_hot_video_by_link', params).then(res => {
         if (res.data.status === 'success') {
           this.$notify({
             title: "上传提示",

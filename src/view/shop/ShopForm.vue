@@ -35,7 +35,7 @@ export default {
       },
       rules: {
         name: [
-          { required: true, message: '请输入店铺名称', trigger: 'blur' }
+          {required: true, message: '请输入店铺名称', trigger: 'blur'}
         ]
       }
     }
@@ -44,7 +44,7 @@ export default {
     shopData: {
       handler(newValue) {
         if (newValue) {
-          this.form = { ...newValue }
+          this.form = {...newValue}
         } else {
           this.reset()
         }
@@ -57,7 +57,7 @@ export default {
     submit() {
       this.$refs.form.validate(valid => {
         if (valid) {
-          console.log('11111',this.form)
+          console.log('11111', this.form)
           this.$emit('submit', this.form)
         } else {
           return false
