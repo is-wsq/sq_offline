@@ -118,7 +118,7 @@ export default {
           this.info = res.data.data
           this.percentage = (this.info.remaining_tokens / this.info.total_tokens) * 100
         } else {
-          this.$message.error(res.data.message)
+          this.$message.error(res.data.data)
         }
       }).catch(err => {
         console.log(err)

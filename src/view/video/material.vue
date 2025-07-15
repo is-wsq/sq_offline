@@ -1034,7 +1034,7 @@ export default {
     },
     nextStep() {
       if (this.material_list.length === 0) {
-        this.$alert('请先选择需要混剪的素材', '提示')
+        this.$alert('请至少选择一个素材才能进行下一步的混剪操作。', '提示')
         return
       }
       if (this.figure.id) {

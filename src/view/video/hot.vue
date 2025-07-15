@@ -223,12 +223,17 @@ export default {
     },
     handleSubmit() {
       if (!this.use_link) {
+        let files = this.$refs.hotUpload.uploadFiles || []
+        if (files.length === 0) {
+          this.$alert('请至少选择一个爆款视频文件上传。','上传提示')
+          return;
+        }
         this.$refs.hotUpload.submit()
         return;
       }
 
       if (!this.dy_link) {
-        this.$alert('请粘贴抖音视频分享链接')
+        this.$alert('请在输入框内粘贴抖音视频链接。','上传提示')
         return;
       }
       this.uploadDialogVisible = false

@@ -170,11 +170,11 @@ export default {
           this.$message.success("重命名成功。");
           this.$store.dispatch("task/pollVoiceTasks");
         } else {
-          this.$message.error(res.data.message);
+          this.$alert(res.data.data, "重命名失败")
         }
         this.drawer = false;
       }).catch((err) => {
-        this.$message.error("重命名失败，请稍后重试！");
+        this.$alert(err, "重命名错误")
       });
     },
     deleteItem() {
@@ -186,10 +186,10 @@ export default {
             this.$message.success("删除成功。");
             this.$store.dispatch("task/pollVoiceTasks");
           } else {
-            this.$message.error(res.data.message);
+            this.$alert(res.data.data, "删除失败")
           }
         }).catch((err) => {
-          this.$message.error("删除失败，请稍后重试！");
+          this.$alert(err, "删除错误")
         });
       }).catch((err) => {
         this.$message({type: 'info', message: '已取消删除'});
@@ -200,7 +200,7 @@ export default {
         if (res.data.status === 'success') {
           return true;
         } else {
-          this.$alert(res.data.message, "验证失败");
+          this.$alert(res.data.data, "验证失败");
           return Promise.reject('验证失败，停止上传');
         }
       })

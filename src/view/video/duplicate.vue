@@ -176,18 +176,12 @@ export default {
               item => ({title: item.title, content: item.script, isEdit: false, bgm: this.material_bgm})))
           sessionStorage.setItem("hot_copy_list", JSON.stringify(this.hot_copy_list))
         } else {
-          this.$notify({
-            title: "文案生成失败", message: `${res.data.message}`,
-            type: "error", duration: 0
-          });
+          this.$alert(res.data.data,'文案生成失败')
         }
       }).catch(err => {
         this.loading.close();
         this.loading = null;
-        this.$notify({
-          title: "文案生成失败", message: `${err}`,
-          type: "error", duration: 0
-        });
+        this.$alert(err,'文案生成错误')
       })
     },
     showEdit(item) {
@@ -213,7 +207,7 @@ export default {
     },
     nextStep() {
       if (this.hot_copy_list.length === 0) {
-        this.$alert('请先添加口播文案', "提示")
+        this.$alert('请添加文案，您至少需要一条文案才能开始制作。', "提示")
         return;
       }
       this.$router.push({path: '/montage'})

@@ -759,20 +759,10 @@ export default {
             this.$router.push({path: '/videoList'})
           }, 500)
         } else {
-          this.$notify({
-            title: "创建失败",
-            message: `创建视频生成任务失败，${res.data.message}`,
-            duration: 0,
-            type: "error",
-          });
+          this.$alert(res.data.data, "导出失败");
         }
       }).catch((error) => {
-        this.$notify({
-          title: "创建失败",
-          message: `创建视频生成任务失败，${error}`,
-          duration: 0,
-          type: "error",
-        });
+        this.$alert(error, "导出错误");
       });
     },
     batchExport() {

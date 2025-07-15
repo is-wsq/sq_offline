@@ -89,7 +89,7 @@ export default {
       postAction('start_webui', params).then(res => {
         console.log(res)
       }).catch(err => {
-        this.$message.error(`webui模型开启失败，${err}`);
+        this.$alert(err,'webui模型开启失败')
       })
     },
     startService() {
@@ -120,27 +120,27 @@ export default {
               this.$message.success("模型加载成功");
             } else {
               this.modelOpen = false;
-              this.$message.error(result.data.message);
+              this.$alert(result.data.message,'模型加载失败');
             }
             this.loading.close();
             this.loading = null;
-          }).catch(err => {
+          }).catch(error => {
             this.loading.close();
             this.loading = null;
             this.modelOpen = false;
-            this.$message.error("模型加载失败，请稍后重试。");
+            this.$alert(error,'模型加载错误');
           });
         } else {
           this.modelOpen = false;
           this.loading.close();
           this.loading = null;
-          this.$message.error("当前后台有任务在进行中，请稍后再试。");
+          this.$alert('当前后台有任务在进行中，请稍后再试','模型加载失败');
         }
       }).catch((err) => {
         this.modelOpen = false;
         this.loading.close();
         this.loading = null;
-        this.$message.error("当前后台有任务在进行中，请稍后再试。");
+        this.$alert(err,'模型加载错误');
       });
     },
     stopService() {
@@ -157,11 +157,11 @@ export default {
               this.$message.success("模型卸载成功");
             } else {
               this.modelOpen = true;
-              this.$message.error(res.data.message);
+              this.$alert(res.data.message,'模型卸载失败');
             }
           }).catch((err) => {
             this.modelOpen = true;
-            this.$message.error("模型卸载失败，请稍后重试。");
+            this.$alert(err,'模型卸载错误');
           });
         }
       })

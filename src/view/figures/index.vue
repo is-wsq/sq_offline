@@ -39,7 +39,7 @@
                @click="selectMaterial(item)"
                ref="materialItems">
             <el-image class="figures-img" :class="{'figure-img-active': selected_materials.includes(item.id)}"
-                      :src="item.picture" fit="cover" lazy></el-image>
+                      :src="item.picture.replace('127.0.0.1','192.168.1.25')" fit="cover" lazy></el-image>
             <div class="figure-name" :class="{'figure-name-active': selected_materials.includes(item.id)}"
                  :title="item.name">{{ item.name }}
             </div>
@@ -66,7 +66,7 @@
                :key="index"
                @contextmenu.stop="handleContextMenu(item, $event)"
                @click="selectItem(item)">
-            <el-image class="figures-img" :src="item.picture" fit="cover"></el-image>
+            <el-image class="figures-img" :src="item.picture.replace('127.0.0.1','192.168.1.25')" fit="cover"></el-image>
             <div class="figure-name" :title="item.name">{{ item.name }}</div>
           </div>
         </div>
@@ -362,11 +362,13 @@ export default {
     handleSubmit() {
       let files = this.$refs.materialUpload.uploadFiles || []
       if (files.length === 0) {
-        this.$message.warning('请选择要上传的素材！');
+        // this.$message.warning('请选择至少一个素材视频文件上传。');
+        this.$alert('请选择一个视频文件作为数字人素材。','上传素材')
         return;
       }
       if (!this.uploadData.store_id) {
-        this.$message.warning('请必须选择一个关联店铺！');
+        // this.$message.warning('请必须选择一个关联店铺！');
+        this.$alert('请必须选择一个关联店铺！','上传素材')
         return;
       }
       this.$refs.materialUpload.submit()
@@ -400,11 +402,11 @@ export default {
           this.$message.success("重命名成功");
           this.$store.dispatch("task/pollFigureTasks");
         } else {
-          this.$message.error(res.data.message);
+          this.$alert(res.data.data,'重命名失败')
         }
         this.drawer = false;
       }).catch((err) => {
-        this.$message.error("重命名失败，请稍后重试！");
+        this.$alert(err,'重命名错误')
       });
     },
     deleteItem() {
@@ -435,11 +437,10 @@ export default {
 
             this.$store.dispatch("task/pollFigureTasks");
           } else {
-            this.$message.error(res.data.message);
+            this.$alert(res.data.data, "删除失败")
           }
         }).catch((err) => {
-          console.log(err)
-          this.$message.error("删除失败，请稍后重试！");
+          this.$alert(err, "删除错误")
         });
       }).catch(() => {
         this.$message({type: 'info', message: '已取消删除'});
@@ -476,7 +477,7 @@ export default {
         if (res.data.status === 'success') {
           return true;
         } else {
-          this.$alert(res.data.message, "验证失败");
+          this.$alert(res.data.data, "验证失败");
           return Promise.reject('验证失败，停止上传');
         }
       })

@@ -277,22 +277,12 @@ export default {
               item => ({title: item.title, content: item.script, isEdit: false, bgm: this.material_bgm})))
           sessionStorage.setItem("copy_list", JSON.stringify(this.copy_list))
         } else {
-          this.$notify({
-            title: "文案生成失败",
-            message: `${res.data.message}`,
-            type: "error",
-            duration: 0
-          });
+          this.$alert(res.data.data,'文案生成失败')
         }
       }).catch(err => {
         this.loading.close();
         this.loading = null;
-        this.$notify({
-          title: "文案生成失败",
-          message: `${err}`,
-          type: "error",
-          duration: 0
-        });
+        this.$alert(err,'文案生成错误')
       })
     },
     addCopy() {
@@ -350,7 +340,7 @@ export default {
         if (res.data.status === 'success') {
           this.generateVideo()
         } else {
-          this.$alert(res.data.message, "验证失败");
+          this.$alert(res.data.data, "验证失败");
         }
       }).catch(err => {
         console.log(err)
@@ -446,20 +436,10 @@ export default {
             this.$router.push({path: '/videoList'})
           }, 500)
         } else {
-          this.$notify({
-            title: "创建失败",
-            message: `创建视频生成任务失败，${res.data.message}`,
-            duration: 0,
-            type: "error",
-          });
+          this.$alert(res.data.data, "生成视频任务创建失败")
         }
       }).catch((error) => {
-        this.$notify({
-          title: "创建失败",
-          message: `创建视频生成任务失败，${error}`,
-          duration: 0,
-          type: "error",
-        });
+        this.$alert(error, "生成视频任务创建错误")
       });
     },
     setName() {

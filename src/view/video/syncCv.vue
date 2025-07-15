@@ -622,7 +622,7 @@ export default {
     },
     generate() {
       if (this.copy_require.trim() === '') {
-        this.$alert('请先填写文案要求', '提示')
+        this.$alert('文案要求不能为空，请先填写文案要求', '提示')
         return
       }
       this.loading = this.$loading({
@@ -672,7 +672,7 @@ export default {
       }).catch(error => {
         this.loading.close();
         this.loading = null;
-        console.log(error)
+        this.$alert(error, "混剪错误");
       })
     },
     collapseChange(val) {
@@ -719,7 +719,7 @@ export default {
     },
     export_video() {
       if (this.copy_list.length === 0) {
-        this.$alert('文案列表为空，请先使用左侧工具生成', '提示')
+        this.$alert('请先使用左侧工具生成文案，您至少需要一条文案才能开始制作。', '提示')
         return
       }
       let bool_list = this.material_list.map(item => this.mute_materials.includes(item))
@@ -763,20 +763,10 @@ export default {
             this.$router.push({path: '/videoList'})
           }, 500)
         } else {
-          this.$notify({
-            title: "创建失败",
-            message: `创建视频生成任务失败，${res.data.message}`,
-            duration: 0,
-            type: "error",
-          });
+          this.$alert(res.data.data, '导出失败')
         }
       }).catch((error) => {
-        this.$notify({
-          title: "创建失败",
-          message: `创建视频生成任务失败，${error}`,
-          duration: 0,
-          type: "error",
-        });
+        this.$alert(error, '导出错误')
       });
     },
     loadAudio() {
