@@ -91,7 +91,7 @@
     </div>
     <div style="display: flex;margin-top: 30px;gap: 100px">
       <div style="text-align: end;flex: 1">
-        <el-button type="primary" @click="uploadDialogVisible = true">上传素材</el-button>
+        <el-button type="primary" @click="openUploadDialog">上传素材</el-button>
       </div>
       <div style="flex: 1">
         <el-upload
@@ -248,8 +248,13 @@ export default {
     };
   },
   watch: {
-    tags() {
-      this.show_tags = this.tags
+    tags: {
+      handler(newValue,oldValue) {
+        if (newValue.join(',') === oldValue.join(','))
+          return;
+        this.show_tags = [...newValue]
+      },
+      deep: true
     },
     activeTags() {
       this.uploadData.tag = this.activeTags.join(',')
@@ -290,6 +295,15 @@ export default {
     clearInterval(this.dotTimer);
   },
   methods: {
+    openUploadDialog() {
+      this.materialList = []
+      this.uploadData.store_id = ''
+      this.uploadData.tag = ''
+      this.activeTags = []
+      this.new_tag = ''
+      this.show_tags = [...this.tags]
+      this.uploadDialogVisible = true
+    },
     showInput() {
       this.inputVisible = true;
       this.$nextTick(_ => {
