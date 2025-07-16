@@ -709,7 +709,7 @@ export default {
         voice_mode: this.voice_mode,
         with_subtitle: this.withSubtitle,
         reverse: this.reverse,
-        figure_ratio: this.figure_ratio,
+        figure_ratio: this.figure_ratio + '%',
         reference_segments: reference_segments
       }
       postAction('/figure/video_mix_edit', params, 3600000).then(res => {
@@ -911,7 +911,8 @@ export default {
         this.currentIndex = index;
         this.$refs.videoRef.volume = this.media_volume;
         this.$refs.videoRef.src = this.preview_video[index].filepath
-        if (this.mute_materials.includes(this.preview_video[index].id)) {
+        if (this.mute_materials.includes(this.preview_video[index].id)
+            || this.preview_video[index].video_type === 'figure') {
           this.$refs.videoRef.muted = true
         }
         this.$refs.videoRef.load();

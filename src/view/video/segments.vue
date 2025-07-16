@@ -786,7 +786,8 @@ export default {
       if (index >= 0 && index < this.preview_video.length) {
         this.currentIndex = index;
         this.$refs.videoRef.src = this.preview_video[index].filepath
-        if (this.mute_materials.includes(this.preview_video[index].id)) {
+        if (this.mute_materials.includes(this.preview_video[index].id)
+            || this.preview_video[index].video_type === 'figure') {
           this.$refs.videoRef.muted = true
         }
         this.$refs.videoRef.load();
