@@ -120,7 +120,7 @@
                 <div class="none-copy-desc">请使用左侧工具生成您的第一条文案</div>
               </div>
             </div>
-            <div class="font-weight margin-t-12" style="display: flex;gap: 25px">
+            <div class="font-weight margin-t-12" style="display: flex;gap: 25px" v-if="script_type === 'figure'">
               视频循环方式
               <el-switch v-model="reverse" active-text="倒序" inactive-text="正序" @change="saveReverse"></el-switch>
             </div>

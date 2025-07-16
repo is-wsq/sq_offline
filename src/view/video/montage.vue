@@ -50,6 +50,12 @@
               </div>
             </div>
           </div>
+          <div class="setting-require margin-t-12">人物形象出镜比例</div>
+          <div class="figure-ratio-slider">
+            <el-slider v-model="figure_ratio" style="flex: 1" @change="saveFigureRatio"
+                       :format-tooltip="formatTooltip"></el-slider>
+            <div class="figure-ratio-label">{{ figure_ratio + '%' }}</div>
+          </div>
         </div>
 
         <div class="settings-button-section">
@@ -282,6 +288,7 @@ export default {
   data() {
     return {
       requirement: '',
+      figure_ratio: 30,
       copy_list: [],
       selected_index: {},
       already_generated: false,
@@ -612,6 +619,7 @@ export default {
       }
 
       this.requirement = sessionStorage.getItem('montage_setting_requirement') || ''
+      this.figure_ratio = parseInt(sessionStorage.getItem('montage_figure_ratio')) || 30
 
       this.material_list = JSON.parse(sessionStorage.getItem('material_list')) || []
       this.mute_materials = JSON.parse(sessionStorage.getItem('mute_materials')) || []
@@ -647,6 +655,12 @@ export default {
       this.subtitleNameParams.name_background_color = sessionStorage.getItem("name_background_color") || '#404040'
       this.subtitleNameParams.name_background_opacity = Number(sessionStorage.getItem("name_background_opacity")) || 0.6
       this.subtitleNameParams.name_stroke_color = sessionStorage.getItem("name_stroke_color") || '#000000'
+    },
+    saveFigureRatio() {
+      sessionStorage.setItem('montage_figure_ratio', this.figure_ratio)
+    },
+    formatTooltip(val) {
+      return val + '%';
     },
     setName() {
       let data = new Date();
@@ -695,6 +709,7 @@ export default {
         voice_mode: this.voice_mode,
         with_subtitle: this.withSubtitle,
         reverse: this.reverse,
+        figure_ratio: this.figure_ratio,
         reference_segments: reference_segments
       }
       postAction('/figure/video_mix_edit', params, 3600000).then(res => {
@@ -794,6 +809,7 @@ export default {
         voice_mode: this.voice_mode,
         with_subtitle: this.withSubtitle,
         reverse: this.reverse,
+        figure_ratio: this.figure_ratio + '%',
         reference_segments: reference_segments
       }
       postAction('/figure/video_mix_edit', params, 3600000).then(res => {
@@ -1697,5 +1713,47 @@ export default {
 .confirm-btn >>> .el-button:hover {
   transform: translateY(-1px);
   box-shadow: 0 4px 12px rgba(59, 130, 246, 0.25), 0 4px 12px rgba(139, 92, 246, 0.25);
+}
+
+.figure-ratio-slider {
+  padding-left: 2px;
+  display: flex;
+  gap: 25px;
+}
+
+.figure-ratio-slider >>> .el-slider__button {
+  width: 13px;
+  height: 13px;
+  margin-top: 9px;
+  border: 1px solid #409EFF;
+  background-color: #0075ff;
+}
+
+.figure-ratio-slider >>> .el-slider__button-wrapper {
+  height: 25px;
+}
+
+.figure-ratio-slider >>> .el-slider__runway {
+  height: 5px;
+  margin: 10px 0;
+  border: 1px solid #b5b5b5;
+  background-color: #efefef;
+}
+
+.figure-ratio-slider >>> .el-slider {
+  height: 25px;
+}
+
+.figure-ratio-slider >>> .el-slider__bar {
+  height: 5px;
+}
+
+.figure-ratio-label {
+  width: 36px;
+  font-size: 14px;
+  color: #1e293b;
+  font-weight: bold;
+  line-height: 25px;
+  text-align: end;
 }
 </style>

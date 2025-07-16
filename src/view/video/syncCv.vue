@@ -49,9 +49,15 @@
               </div>
             </div>
           </div>
-          <div class="without_at" style=";height: calc(100% - 150px)">
+          <div class="panel-label margin-t-12">人物形象出镜比例</div>
+          <div class="figure-ratio-slider">
+            <el-slider v-model="figure_ratio" style="flex: 1" @change="saveFigureRatio"
+                       :format-tooltip="formatTooltip"></el-slider>
+            <div class="figure-ratio-label">{{ figure_ratio + '%' }}</div>
+          </div>
+          <div class="without_at" style="height: calc(100% - 200px)">
             <div class="panel-title margin-t-8">文案设置</div>
-            <div style="max-height:calc(100% - 190px);overflow-y: auto" ref="scriptForm">
+            <div style="max-height: calc(100% - 35px);overflow-y: auto" ref="scriptForm">
               <div class="panel-label">文案要求</div>
               <el-input type="textarea" :autosize="{ minRows: 3, maxRows: 6 }"
                         placeholder="例如：写一个关于猫咪的搞笑段子"
@@ -63,28 +69,28 @@
                           v-model="exampleTexts[index]" resize="none" @change="saveSetting"></el-input>
                 <i class="el-icon-close example-close-icon" @click="removeText(index)" v-if="index !== 0"></i>
               </div>
-            </div>
-            <div class="margin-b-12 add_example_btn">
-              <el-button @click="addExampleText"><i class="el-icon-plus add_example_icon"></i>
-                添加示例文案
-              </el-button>
-            </div>
-            <div style="display: flex;gap: 12px" class="margin-b-12">
-              <div style="flex: 1">
-                <div class="panel-label">时长 (秒)</div>
-                <el-input type="number" v-model="video_time" :step="15" @change="saveSetting"></el-input>
+              <div class="margin-b-12 add_example_btn">
+                <el-button @click="addExampleText"><i class="el-icon-plus add_example_icon"></i>
+                  添加示例文案
+                </el-button>
               </div>
-              <div style="flex: 1">
-                <div class="panel-label">文案数量</div>
-                <el-input type="number" v-model="script_num" min="1" max="10" @blur="validateNum"
-                          @change="saveSetting"></el-input>
+              <div style="display: flex;gap: 12px" class="margin-b-12">
+                <div style="flex: 1">
+                  <div class="panel-label">时长 (秒)</div>
+                  <el-input type="number" v-model="video_time" :step="15" @change="saveSetting"></el-input>
+                </div>
+                <div style="flex: 1">
+                  <div class="panel-label">文案数量</div>
+                  <el-input type="number" v-model="script_num" min="1" max="10" @blur="validateNum"
+                            @change="saveSetting"></el-input>
+                </div>
               </div>
+              <div class="panel-label">模型选择</div>
+              <el-select v-model="ai_model" style="width: 100%" class="margin-b-12" @change="saveSetting">
+                <el-option label="本地大模型" value="local_model"></el-option>
+                <el-option label="deepseek v3" value="deepseek_v3"></el-option>
+              </el-select>
             </div>
-            <div class="panel-label">模型选择</div>
-            <el-select v-model="ai_model" style="width: 100%" class="margin-b-12" @change="saveSetting">
-              <el-option label="本地大模型" value="local_model"></el-option>
-              <el-option label="deepseek v3" value="deepseek_v3"></el-option>
-            </el-select>
           </div>
         </div>
         <div class="settings-button-section">
@@ -251,6 +257,7 @@ export default {
     return {
       show_left_panel: true,
       requirement: '',
+      figure_ratio: 30,
 
       /* initData 前面素材选择、样式设置所选参数 */
       material_list: [],
@@ -580,6 +587,8 @@ export default {
       this.saveSetting()
     },
     initData() {
+      this.figure_ratio = parseInt(sessionStorage.getItem('montage_figure_ratio')) || 30
+
       let sync_setting = JSON.parse(sessionStorage.getItem("sync_setting")) || {}
       this.requirement = sync_setting.requirement || ''
       this.copy_require = sync_setting.copy_require || ''
@@ -624,6 +633,12 @@ export default {
       this.subtitleNameParams.name_background_opacity = Number(sessionStorage.getItem("name_background_opacity")) || 0.6
       this.subtitleNameParams.name_stroke_color = sessionStorage.getItem("name_stroke_color") || '#000000'
     },
+    saveFigureRatio() {
+      sessionStorage.setItem('montage_figure_ratio', this.figure_ratio)
+    },
+    formatTooltip(val) {
+      return val + '%';
+    },
     generate() {
       if (this.copy_require.trim() === '') {
         this.$alert('文案要求不能为空，请先填写文案要求', '提示')
@@ -654,6 +669,7 @@ export default {
         voice_mode: this.voice_mode,
         with_subtitle: this.withSubtitle,
         reverse: this.reverse,
+        figure_ratio: this.figure_ratio + '%',
       }
       postAction('/figure/video_mix_edit_sync', params, 3600000).then(res => {
         if (res.data.status === 'success') {
@@ -1530,5 +1546,47 @@ export default {
 .shot-name:hover {
   background-color: #6366f1;
   color: #ffffff;
+}
+
+.figure-ratio-slider {
+  padding-left: 2px;
+  display: flex;
+  gap: 25px;
+}
+
+.figure-ratio-slider >>> .el-slider__button {
+  width: 13px;
+  height: 13px;
+  margin-top: 9px;
+  border: 1px solid #409EFF;
+  background-color: #0075ff;
+}
+
+.figure-ratio-slider >>> .el-slider__button-wrapper {
+  height: 25px;
+}
+
+.figure-ratio-slider >>> .el-slider__runway {
+  height: 5px;
+  margin: 10px 0;
+  border: 1px solid #b5b5b5;
+  background-color: #efefef;
+}
+
+.figure-ratio-slider >>> .el-slider {
+  height: 25px;
+}
+
+.figure-ratio-slider >>> .el-slider__bar {
+  height: 5px;
+}
+
+.figure-ratio-label {
+  width: 36px;
+  font-size: 14px;
+  color: #1e293b;
+  font-weight: bold;
+  line-height: 25px;
+  text-align: end;
 }
 </style>
