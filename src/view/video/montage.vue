@@ -40,7 +40,7 @@
             <div v-if="showDropdown" class="dropdown" :style="dropdownStyle">
               <ul>
                 <li v-for="(item, index) in mention_list" :key="index" @click="selectMention(item)"
-                    @mouseleave="liLeave(item)" @mouseenter="liEnter(item)">
+                    @mouseleave="liLeave(item)" @mouseenter="liEnter(item)" :title="item.name">
                   {{ item.name }}
                 </li>
               </ul>
@@ -108,7 +108,7 @@
                     </el-popover>
                     <div class="music-topbar" v-else>
                       <i class="el-icon-music" style="line-height: 21px"></i>
-                      <div class="music-name">{{ item.bgm.name }}</div>
+                      <div class="music-name" :title="item.bgm.name">{{ item.bgm.name }}</div>
                       <el-popover :ref="'popover_'+ index" placement="bottom" trigger="click" @hide="stopAudio">
                         <div class="bgm-popover-content">
                           <el-row>
@@ -159,14 +159,15 @@
                 </div>
                 <div class="groups" v-if="openIndex === index">
                   <div class="group" v-for="(group,group_index) in item.segment_group" :key="group_index">
-                    <div class="group-title">{{ group.contentSummary }}</div>
+                    <div class="group-title" :title="group.contentSummary">{{ group.contentSummary }}</div>
                     <div class="material-list">
                       <div class="material-item" v-for="(material,material_index) in group.materials"
                            :key="material_index">
                         <el-popover placement="bottom" :ref="'popoverRef_' + material_index" trigger="click"
                                     popper-class="custom-popover-style" @show="popoverShow">
                           <div class="shot-list">
-                            <div class="shot-name" v-for="(shot, shot_index) in mention_list" :key="shot_index"
+                            <div v-for="(shot, shot_index) in mention_list" :key="shot_index"
+                                 class="shot-name" :title="shot.name"
                                  @click="addShot(index,group_index,material_index,shot)"
                                  @mouseenter="liEnter(shot)" @mouseleave="liLeave(shot)">
                               {{ shot.name }}
@@ -193,7 +194,8 @@
                         <el-popover :ref="'pushRef_' + index" placement="bottom" width="200" trigger="click"
                                     popper-class="custom-popover-style1" @show="popoverShow(true)">
                           <div class="shot-list">
-                            <div class="shot-name" v-for="val in mention_list" :key="val.id"
+                            <div v-for="val in mention_list" :key="val.id"
+                                 class="shot-name" :title="val.name"
                                  @click="pushShot(index,group_index,val)"
                                  @mouseleave="liLeave(val)"
                                  @mouseenter="liEnter(val)">

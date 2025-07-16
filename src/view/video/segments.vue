@@ -39,7 +39,7 @@
             <div v-if="showDropdown" class="dropdown" :style="dropdownStyle">
               <ul>
                 <li v-for="(item, index) in mention_list" :key="index" @click="selectMention(item)"
-                    @mouseleave="liLeave(item)" @mouseenter="liEnter(item)">
+                    @mouseleave="liLeave(item)" @mouseenter="liEnter(item)" :title="item.name">
                   {{ item.name }}
                 </li>
               </ul>
@@ -107,7 +107,7 @@
                   <template slot="title">
                     <div style="padding-left: 12px">
                       <div class="flex-center">
-                        <div class="copy-item-title">{{ item.title }}</div>
+                        <div class="copy-item-title" :title="item.title">{{ item.title }}</div>
                         <div style="width: 16px">
                           <i class="el-icon-close close-icon" v-if="item.isHover" @click="removeCopy(index)"></i>
                         </div>
@@ -118,14 +118,15 @@
                   <div class="segment-groups">
                     <div class="segment-group-item" v-for="(group,group_index) in item.segment_group"
                          :key="group_index">
-                      <div class="group-title">{{ group.contentSummary }}</div>
+                      <div class="group-title" :title="group.contentSummary">{{ group.contentSummary }}</div>
                       <div class="material-list">
                         <div class="material-item" v-for="(material,material_index) in group.materials"
                              :key="material_index">
                           <el-popover placement="bottom" :ref="'popoverRef_' + material_index" trigger="click"
                                       popper-class="custom-popover-material" @show="popoverShow">
                             <div class="shot-list">
-                              <div class="shot-name" v-for="(shot, shot_index) in mention_list" :key="shot_index"
+                              <div v-for="(shot, shot_index) in mention_list" :key="shot_index"
+                                   class="shot-name" :title="shot.name"
                                    @click="addShot(index,group_index,material_index,shot)"
                                    @mouseenter="liEnter(shot)" @mouseleave="liLeave(shot)">
                                 {{ shot.name }}
@@ -152,7 +153,8 @@
                           <el-popover :ref="'pushRef_' + index" placement="bottom" width="200" trigger="click"
                                       popper-class="custom-popover-material1" @show="popoverShow(true)">
                             <div class="shot-list">
-                              <div class="shot-name" v-for="val in mention_list" :key="val.id"
+                              <div v-for="val in mention_list" :key="val.id"
+                                   class="shot-name" :title="val.name"
                                    @click="pushShot(index,group_index,val)"
                                    @mouseleave="liLeave(val)"
                                    @mouseenter="liEnter(val)">
@@ -191,7 +193,7 @@
         <div class="panel-title margin-b-16">分镜文案详情</div>
         <div class="storyboard-content">
           <div class="storyboard-item" v-for="(group, index) in selectedCopy.segment_group" :key="index">
-            <div class="shot-group-title">{{ group.contentSummary }}</div>
+            <div class="shot-group-title" :title="group.contentSummary">{{ group.contentSummary }}</div>
             <div class="group-content-wrapper">
               <div class="details-shot-list">
                 <div class="" v-for="(shot, shot_index) in group.materials" :key="shot_index">
@@ -1065,10 +1067,10 @@ export default {
   font-weight: 500;
   color: #4338ca;
   margin-bottom: 8px;
-  width: 100px; /* 确保 group-title 的宽度与 group-container 一致 */
-  white-space: nowrap; /* 防止内容换行 */
-  overflow: hidden; /* 隐藏超出宽度的内容 */
-  text-overflow: ellipsis; /* 显示省略号 */
+  width: 100px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .material-list {
