@@ -293,6 +293,7 @@ export default {
 
       material_list: [],
       mute_materials: [],
+      reverse: false,
       mention_list: [],
       hover_li: null,
       lastInput: '',
@@ -616,6 +617,7 @@ export default {
       this.mute_materials = JSON.parse(sessionStorage.getItem('mute_materials')) || []
       let mention_list = JSON.parse(sessionStorage.getItem('mention_list')) || []
       this.mention_list = mention_list.map(item => ({...item, isHover: false}))
+      this.reverse = sessionStorage.getItem("setting_reverse") === 'true'
 
       this.sound = JSON.parse(sessionStorage.getItem("setting_voice"))
       this.voice_mode = sessionStorage.getItem("setting_mode") || 'common'
@@ -692,6 +694,7 @@ export default {
         timbre_id: this.sound.voice_id,
         voice_mode: this.voice_mode,
         with_subtitle: this.withSubtitle,
+        reverse: this.reverse,
         reference_segments: reference_segments
       }
       postAction('/figure/video_mix_edit', params, 3600000).then(res => {
@@ -728,6 +731,7 @@ export default {
         with_subtitle: this.withSubtitle,
         with_title: this.withTitle,
         bool_list: bool_list,
+        reverse: this.reverse,
         subtitle_params: {
           y_offset: this.bottom_offset_ratio,
           font: this.subtitleParams.font,
@@ -789,6 +793,7 @@ export default {
         timbre_id: this.sound.voice_id,
         voice_mode: this.voice_mode,
         with_subtitle: this.withSubtitle,
+        reverse: this.reverse,
         reference_segments: reference_segments
       }
       postAction('/figure/video_mix_edit', params, 3600000).then(res => {

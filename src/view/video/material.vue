@@ -94,6 +94,10 @@
                   </div>
                 </div>
               </div>
+              <div class="font-weight margin-b-8" style="display: flex;gap: 25px;font-size: 14px">
+                数字人循环方式
+                <el-switch v-model="reverse" active-text="倒序" inactive-text="正序" @change="saveReverse"></el-switch>
+              </div>
             </el-collapse-item>
           </el-collapse>
         </div>
@@ -436,6 +440,7 @@ export default {
       figures: [],
       filter_figures: [],
       figure: {},
+      reverse: false,
 
       filter_text: '',
 
@@ -634,6 +639,8 @@ export default {
       // this.material_list = JSON.parse(sessionStorage.getItem('material_list')) || []
       this.mute_materials = JSON.parse(sessionStorage.getItem('mute_materials')) || []
 
+      this.reverse = sessionStorage.getItem("setting_reverse") === 'true'
+
       this.mode = sessionStorage.getItem('setting_mode') || 'common'
 
       this.contentHeight = Number(sessionStorage.getItem('content_height')) || 640
@@ -688,6 +695,9 @@ export default {
         fontSize: (360 * this.subtitleNameParams.name_fontsize / 100) + 'px',
         top: this.topRatio * this.contentHeight + 'px'
       }
+    },
+    saveReverse() {
+      sessionStorage.setItem('setting_reverse', this.reverse)
     },
     queryMaterials() {
       getAction("/figure/query_success", {video_type: 'material'}).then((res) => {
@@ -1566,5 +1576,20 @@ export default {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
+}
+
+::v-deep .el-switch__label {
+  font-weight: bold;
+  line-height: 24px;
+}
+
+::v-deep .el-switch__core {
+  height: 18px;
+  margin-top: 5px;
+}
+
+::v-deep .el-switch__core:after {
+  width: 14px;
+  height: 14px;
 }
 </style>

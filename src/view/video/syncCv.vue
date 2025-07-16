@@ -302,7 +302,8 @@ export default {
       composingText: '',
       compositionStart: 0,
       highlightedText: '',
-      show_model: ''
+      show_model: '',
+      reverse: false,
     }
   },
   beforeDestroy() {
@@ -592,6 +593,7 @@ export default {
       this.mute_materials = JSON.parse(sessionStorage.getItem('mute_materials')) || []
       let mention_list = JSON.parse(sessionStorage.getItem('mention_list')) || []
       this.mention_list = mention_list.map(item => ({...item, isHover: false}))
+      this.reverse = sessionStorage.getItem("setting_reverse") === 'true'
       // 视频音色、背景音乐、背景音乐音量
       this.sound = JSON.parse(sessionStorage.getItem("setting_voice")) || {}
       this.voice_mode = sessionStorage.getItem("setting_mode") || 'common'
@@ -650,7 +652,8 @@ export default {
         bg_volume: this.bg_volume,
         timbre_id: this.sound.voice_id,
         voice_mode: this.voice_mode,
-        with_subtitle: this.withSubtitle
+        with_subtitle: this.withSubtitle,
+        reverse: this.reverse,
       }
       postAction('/figure/video_mix_edit_sync', params, 3600000).then(res => {
         if (res.data.status === 'success') {
@@ -735,6 +738,7 @@ export default {
         with_subtitle: this.withSubtitle, // 是否要字幕
         with_title: this.withTitle,// 是否要字幕标题
         bool_list: bool_list,// 需要静音的素材id列表
+        reverse: this.reverse,
         subtitle_params: {
           y_offset: this.bottom_offset_ratio,
           font: this.subtitleParams.font,
