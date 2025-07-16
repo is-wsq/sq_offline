@@ -1,313 +1,344 @@
 <template>
-  <div class="video-selection-container">
-    <el-checkbox v-model="selectAll" @change="handleSelectAll">全选</el-checkbox>
-    <div
-      class="video-grid"
-      @mousedown="startSelection"
-      @mousemove="updateSelection"
-      @mouseup="endSelection"
-      @mouseleave="endSelection"
-      ref="videoGrid"
-    >
-      <div
-        v-for="(video, index) in videoList"
-        :key="video.id"
-        :class="{'selected': isSelected(index), 'active': lastClickedIndex === index}"
-        class="video-item"
-        @click="handleVideoClick(index, $event)"
-        ref="videoItems"
-      >
-        <div class="video-thumbnail">
-          <img :src="`https://picsum.photos/seed/video${video.id}/300/200`" alt="视频缩略图">
-          <div class="overlay" v-if="isSelected(index)"></div>
-          <el-checkbox v-model="selectedIndexes[index]" class="checkbox"></el-checkbox>
-        </div>
+  <div class="video-player-container">
+    <div class="video-wrapper">
+      <video
+          ref="video"
+          @timeupdate="updateProgress"
+          @ended="handleEnd"
+          controls
+      ></video>
+    </div>
+
+    <div class="controls">
+      <div class="progress-bar" @click="seek">
+        <div class="progress-filled" :style="{ width: progress + '%' }"></div>
+        <div class="progress-handle" :style="{ left: progress + '%' }"></div>
       </div>
 
-      <!-- 选框元素 -->
-      <div
-        v-if="isSelecting"
-        class="selection-box"
-        :style="{
-          left: `${selectionLeft}px`,
-          top: `${selectionTop}px`,
-          width: `${selectionWidth}px`,
-          height: `${selectionHeight}px`
-        }"
-      ></div>
+      <div class="control-buttons">
+        <button @click="togglePlay">{{ playing ? '暂停' : '播放' }}</button>
+        <span>{{ formatTime(currentTime) }} / {{ formatTime(totalDuration) }}</span>
+
+        <div class="speed-controls">
+          <select v-model="playbackRate" @change="setPlaybackRate">
+            <option value="0.5">0.5x</option>
+            <option value="1">1x</option>
+            <option value="1.5">1.5x</option>
+            <option value="2">2x</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <div class="playlist">
+      <h3>播放列表</h3>
+      <ul>
+        <li
+            v-for="(video, index) in videoList"
+            :key="index"
+            :class="{ active: currentVideoIndex === index }"
+            @click="seekToVideo(index)"
+        >
+          {{ video.name || `视频 ${index + 1}` }}
+        </li>
+      </ul>
     </div>
   </div>
 </template>
 
 <script>
 export default {
+  name: 'VideoPlayer',
   data() {
     return {
       videoList: [
-        {id: 1, title: '视频 1', duration: '03:45'},
-        {id: 2, title: '视频 2', duration: '05:12'},
-        {id: 3, title: '视频 3', duration: '01:30'},
-        {id: 4, title: '视频 4', duration: '02:22'},
-        {id: 5, title: '视频 5', duration: '04:15'},
-        {id: 6, title: '视频 6', duration: '02:58'},
-        {id: 7, title: '视频 7', duration: '03:10'},
-        {id: 8, title: '视频 8', duration: '01:45'},
-        {id: 9, title: '视频 9', duration: '05:30'},
-        {id: 10, title: '视频 10', duration: '02:15'}
+        { url: "https://samplelib.com/lib/preview/webm/sample-15s.webm", name: '示例视频1', duration: 0 },
+        { url: "https://filesamples.com/samples/video/webm/sample_640x360.webm", name: '示例视频2', duration: 0 }
       ],
-      selectedIndexes: Array(10).fill(false),
-      lastClickedIndex: null,
-      selectAll: false,
-
-      // 框选相关状态
-      isSelecting: false,
-      initialX: 0,     // 初始X坐标
-      initialY: 0,     // 初始Y坐标
-      selectionLeft: 0,  // 选框左边界
-      selectionTop: 0,   // 选框上边界
-      selectionWidth: 0, // 选框宽度
-      selectionHeight: 0, // 选框高度
-      initialSelectedState: []
+      mediaSource: null,
+      sourceBuffer: null,
+      isReady: false,
+      playing: false,
+      progress: 0,
+      currentTime: 0,
+      totalDuration: 0,
+      currentVideoIndex: 0,
+      playbackRate: 1,
+      videoDurations: [],
+      videoStartTimes: [],
+      isAppending: false
+    }
+  },
+  mounted() {
+    this.initMediaSource();
+  },
+  beforeDestroy() {
+    if (this.mediaSource) {
+      this.mediaSource.endOfStream();
+      this.mediaSource = null;
     }
   },
   methods: {
-    isSelected(index) {
-      return this.selectedIndexes[index]
-    },
+    initMediaSource() {
+      if ('MediaSource' in window) {
+        this.mediaSource = new MediaSource();
+        this.$refs.video.src = URL.createObjectURL(this.mediaSource);
 
-    handleVideoClick(index, event) {
-      // 如果是框选操作，不处理点击事件
-      if (this.isSelecting) {
-        event.stopPropagation()
-        return
-      }
-
-      const isShiftKey = event.shiftKey
-      // 普通点击：切换当前项的选中状态，不清空之前的选择
-      if (!isShiftKey) {
-        this.selectedIndexes[index] = !this.selectedIndexes[index]
-        // 更新最后一次主动点击的位置
-        this.lastClickedIndex = index
-        return
-      }
-
-      // Shift点击：处理范围选择
-      if (this.lastClickedIndex !== null) {
-        // 获取起始和结束索引
-        const start = Math.min(this.lastClickedIndex, index)
-        const end = Math.max(this.lastClickedIndex, index)
-
-        // 清除所有选择
-        if (!(window.event.ctrlKey || window.event.metaKey)) {
-          this.selectedIndexes = Array(this.videoList.length).fill(false)
-        }
-
-        // 选中范围内的所有项
-        for (let i = start; i <= end; i++) {
-          this.selectedIndexes[i] = true
-        }
+        this.mediaSource.addEventListener('sourceopen', this.onSourceOpen);
+        this.mediaSource.addEventListener('sourceended', this.onSourceEnded);
+        this.mediaSource.addEventListener('sourceclose', this.onSourceClosed);
       } else {
-        // 第一次点击并且按住了Shift键，处理方式同普通点击
-        this.selectedIndexes[index] = !this.selectedIndexes[index]
+        console.error('你的浏览器不支持 Media Source Extensions API');
+        alert('你的浏览器不支持无缝视频播放功能');
       }
-
-      this.lastClickedIndex = index
     },
 
-    handleSelectAll(value) {
-      this.selectedIndexes = Array(this.videoList.length).fill(value)
-    },
+    async onSourceOpen() {
+      try {
+        // 获取第一个视频的内容类型
+        const firstVideoUrl = this.videoList[0].url;
+        const response = await fetch(firstVideoUrl);
+        const contentType = response.headers.get('Content-Type');
 
-    // 开始框选
-    startSelection(event) {
-      // 如果是右键点击或点击了复选框，不开始框选
-      if (event.button !== 0 || event.target.closest('.el-checkbox')) {
-        return
+        // 创建 SourceBuffer
+        this.sourceBuffer = this.mediaSource.addSourceBuffer(contentType);
+        this.sourceBuffer.mode = 'sequence';
+
+        // 监听 SourceBuffer 更新事件
+        this.sourceBuffer.addEventListener('updatestart', () => {
+          this.isAppending = true;
+        });
+
+        this.sourceBuffer.addEventListener('updateend', () => {
+          this.isAppending = false;
+
+          // 如果还有视频需要添加，继续添加
+          if (this.currentVideoIndex < this.videoList.length - 1) {
+            this.appendNextVideo();
+          }
+        });
+
+        // 开始添加第一个视频
+        this.appendVideo(this.currentVideoIndex);
+
+      } catch (error) {
+        console.error('初始化 MediaSource 时出错:', error);
       }
-
-      // 阻止默认行为和事件冒泡
-      event.preventDefault()
-      event.stopPropagation()
-
-      // 记录初始位置
-      const container = this.$refs.videoGrid
-      const rect = this.$el.getBoundingClientRect()
-      this.initialX = event.clientX - rect.left
-      this.initialY = event.clientY - rect.top - 40 + + container.scrollTop
-
-      // 初始化选框位置和大小
-      this.selectionLeft = this.initialX
-      this.selectionTop = this.initialY
-      this.selectionWidth = 0
-      this.selectionHeight = 0
-
-      this.isSelecting = true
-
-      // 新增：记录框选开始时的所有选中状态
-      this.initialSelectedState = [...this.selectedIndexes]
     },
 
-    // 更新框选
-    updateSelection(event) {
-      if (!this.isSelecting) return
+    async appendVideo(index) {
+      if (index >= this.videoList.length || this.isAppending) return;
 
-      const container = this.$refs.videoGrid
-      const rect = this.$el.getBoundingClientRect()
-      const currentX = event.clientX - rect.left
-      const currentY = event.clientY - rect.top - 40 + container.scrollTop
+      try {
+        this.currentVideoIndex = index;
+        const videoUrl = this.videoList[index].url;
 
-      // 计算选框位置和大小（考虑任意方向）
-      this.selectionLeft = Math.min(this.initialX, currentX)
-      this.selectionTop = Math.min(this.initialY, currentY)
-      this.selectionWidth = Math.abs(currentX - this.initialX)
-      this.selectionHeight = Math.abs(currentY - this.initialY)
+        // 加载视频
+        const response = await fetch(videoUrl);
+        const arrayBuffer = await response.arrayBuffer();
 
-      // 更新选中项
-      this.updateSelectedItems()
-    },
+        // 存储视频时长
+        const video = document.createElement('video');
+        video.src = videoUrl;
 
-    // 结束框选
-    endSelection() {
-      if (!this.isSelecting) return
+        await new Promise(resolve => {
+          video.onloadedmetadata = () => {
+            this.videoDurations[index] = video.duration;
+            resolve();
+          };
+        });
 
-      this.isSelecting = false
-      // 重置选框尺寸
-      this.selectionWidth = 0
-      this.selectionHeight = 0
-    },
+        // 计算总时长
+        this.calculateTotalDuration();
 
-    // 更新选中项
-    updateSelectedItems() {
-      // 获取选框区域
-      const selectionRect = {
-        left: this.selectionLeft,
-        top: this.selectionTop,
-        right: this.selectionLeft + this.selectionWidth,
-        bottom: this.selectionTop + this.selectionHeight
-      }
-
-      // 检查每个视频项是否在选框内
-      this.$refs.videoItems.forEach((el, index) => {
-        const rect = el.getBoundingClientRect()
-        const containerRect = this.$el.getBoundingClientRect()
-        const container = this.$refs.videoGrid
-
-        // 计算相对于容器的位置
-        const itemRect = {
-          left: rect.left - containerRect.left,
-          top: rect.top - containerRect.top - 40 + container.scrollTop,
-          right: rect.right - containerRect.left,
-          bottom: rect.bottom - containerRect.top - 40 + container.scrollTop
+        // 添加到 SourceBuffer
+        if (!this.sourceBuffer.updating) {
+          this.sourceBuffer.appendBuffer(arrayBuffer);
         }
 
-        // 判断矩形是否重叠
-        const isOverlapping =
-            itemRect.left < selectionRect.right &&
-            itemRect.right > selectionRect.left &&
-            itemRect.top < selectionRect.bottom &&
-            itemRect.bottom > selectionRect.top
+      } catch (error) {
+        console.error('添加视频时出错:', error);
+      }
+    },
 
-        // 更新选中状态
-        this.selectedIndexes[index] = isOverlapping || this.initialSelectedState[index]
-      })
-    }
-  },
-  watch: {
-    selectedIndexes: {
-      handler(newValue) {
-        const allSelected = newValue.every(Boolean)
-        const noneSelected = newValue.every(v => !v)
-
-        if (allSelected) {
-          this.selectAll = true
-        } else if (noneSelected) {
-          this.selectAll = false
-        } else {
-          this.selectAll = null
+    async appendNextVideo() {
+      if (this.currentVideoIndex < this.videoList.length - 1) {
+        await this.appendVideo(this.currentVideoIndex + 1);
+      } else {
+        // 所有视频都已添加，结束流
+        if (this.mediaSource.readyState === 'open') {
+          this.mediaSource.endOfStream();
         }
-      },
-      deep: true
+      }
+    },
+
+    calculateTotalDuration() {
+      this.totalDuration = this.videoDurations.reduce((total, duration) => total + (duration || 0), 0);
+
+      // 计算每个视频的开始时间点
+      this.videoStartTimes = [0];
+      for (let i = 1; i < this.videoDurations.length; i++) {
+        this.videoStartTimes[i] = this.videoStartTimes[i - 1] + (this.videoDurations[i - 1] || 0);
+      }
+    },
+
+    togglePlay() {
+      if (this.$refs.video.paused) {
+        this.$refs.video.play();
+        this.playing = true;
+      } else {
+        this.$refs.video.pause();
+        this.playing = false;
+      }
+    },
+
+    updateProgress() {
+      this.currentTime = this.$refs.video.currentTime;
+      this.progress = (this.currentTime / this.totalDuration) * 100;
+    },
+
+    seek(e) {
+      const scrubTime = (e.offsetX / e.target.offsetWidth) * this.totalDuration;
+      this.$refs.video.currentTime = scrubTime;
+    },
+
+    seekToVideo(index) {
+      if (index < 0 || index >= this.videoList.length) return;
+
+      const seekTime = this.videoStartTimes[index];
+      this.$refs.video.currentTime = seekTime;
+
+      if (!this.playing) {
+        this.togglePlay();
+      }
+    },
+
+    setPlaybackRate() {
+      this.$refs.video.playbackRate = this.playbackRate;
+    },
+
+    handleEnd() {
+      this.playing = false;
+    },
+
+    onSourceEnded() {
+      console.log('MediaSource 流已结束');
+    },
+
+    onSourceClosed() {
+      console.log('MediaSource 已关闭');
+    },
+
+    formatTime(seconds) {
+      if (isNaN(seconds)) return '00:00';
+      const minutes = Math.floor(seconds / 60);
+      seconds = Math.floor(seconds % 60);
+      return `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
     }
   }
 }
 </script>
 
 <style scoped>
-.video-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-  gap: 20px;
-  margin-top: 20px;
-  padding: 20px;
+/* 样式保持不变，与之前版本相同 */
+.video-player-container {
+  max-width: 800px;
+  margin: 0 auto;
+  font-family: Arial, sans-serif;
+}
+
+.video-wrapper {
   position: relative;
-  border: 1px solid red;
-}
-
-.video-item {
-  border: 1px solid #e4e4e4;
-  border-radius: 8px;
-  overflow: hidden;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  position: relative;
-}
-
-.video-item:hover {
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-  transform: translateY(-2px);
-}
-
-.video-item.selected {
-  border-color: #409eff;
-  background-color: #f5f7fa;
-}
-
-.video-item.active {
-  box-shadow: 0 0 0 2px #409eff;
-}
-
-.video-thumbnail {
-  position: relative;
-  height: 160px;
-  overflow: hidden;
-}
-
-.video-thumbnail img {
   width: 100%;
-  height: 100%;
-  object-fit: cover;
-  transition: transform 0.3s ease;
+  height: 0;
+  padding-bottom: 56.25%; /* 16:9 比例 */
 }
 
-.video-thumbnail:hover img {
-  transform: scale(1.05);
-}
-
-.overlay {
+video {
   position: absolute;
   top: 0;
   left: 0;
   width: 100%;
   height: 100%;
-  background-color: rgba(64, 158, 255, 0.2);
+  background-color: #000;
+}
+
+.controls {
+  padding: 10px;
+  background-color: #f0f0f0;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  margin-top: 10px;
+}
+
+.progress-bar {
+  height: 5px;
+  background: #ddd;
+  cursor: pointer;
+  position: relative;
+}
+
+.progress-filled {
+  height: 100%;
+  background: #2196F3;
+  width: 0%;
+  transition: width 0.1s linear;
+}
+
+.progress-handle {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%) translateX(-50%);
+  width: 12px;
+  height: 12px;
+  background: #2196F3;
+  border-radius: 50%;
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+
+.progress-bar:hover .progress-handle {
+  opacity: 1;
+}
+
+.control-buttons {
   display: flex;
   align-items: center;
-  justify-content: center;
+  justify-content: space-between;
+  margin-top: 10px;
 }
 
-.checkbox {
-  position: absolute;
-  top: 10px;
-  right: 10px;
-  z-index: 10;
+.control-buttons button {
+  padding: 5px 10px;
+  margin-right: 10px;
+  cursor: pointer;
 }
 
-.selection-box {
-  position: absolute;
-  border: 1px dashed #409eff;
-  background-color: rgba(64, 158, 255, 0.1);
-  pointer-events: none;
-  z-index: 20;
-  transition: all 0.1s ease;
+.speed-controls select {
+  padding: 5px;
+}
+
+.playlist {
+  margin-top: 20px;
+}
+
+.playlist ul {
+  list-style: none;
+  padding: 0;
+}
+
+.playlist li {
+  padding: 8px;
+  cursor: pointer;
+  border-bottom: 1px solid #eee;
+}
+
+.playlist li:hover {
+  background-color: #f5f5f5;
+}
+
+.playlist li.active {
+  background-color: #e0f7fa;
+  font-weight: bold;
 }
 </style>
