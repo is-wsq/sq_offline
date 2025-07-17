@@ -170,7 +170,8 @@
                       <div class="material-item" v-for="(material,material_index) in group.materials"
                            :key="material_index">
                         <el-popover placement="bottom" :ref="'popoverRef_' + material_index" trigger="click"
-                                    popper-class="custom-popover-style" @show="popoverShow">
+                                    popper-class="custom-popover-style" @show="popoverShow"
+                                    v-if="group.groupType !== 'digital_human'">
                           <div class="shot-list">
                             <div v-for="(shot, shot_index) in mention_list" :key="shot_index"
                                  class="shot-name" :title="shot.name"
@@ -189,14 +190,14 @@
                             </div>
                           </div>
                         </el-popover>
-                        <div class="delete-shot-btn">
+                        <div class="delete-shot-btn" v-if="group.groupType !== 'digital_human'">
                           <i class="el-icon-close" style="font-weight: bold"
                              @click="removeShot(index,group_index,material_index)"></i>
                         </div>
                         <el-image class="material-item-img" :src="material.picture"></el-image>
                         <div class="material-item-title" :title="material.name">{{ material.name }}</div>
                       </div>
-                      <div class="material-item">
+                      <div class="material-item" v-if="group.groupType !== 'digital_human'">
                         <el-popover :ref="'pushRef_' + index" placement="bottom" width="200" trigger="click"
                                     popper-class="custom-popover-style1" @show="popoverShow(true)">
                           <div class="shot-list">
