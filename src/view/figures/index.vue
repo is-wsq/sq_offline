@@ -39,7 +39,7 @@
                @click="selectMaterial(item)"
                ref="materialItems">
             <el-image class="figures-img" :class="{'figure-img-active': selected_materials.includes(item.id)}"
-                      :src="item.picture.replace('127.0.0.1','192.168.1.25')" fit="cover" lazy></el-image>
+                      :src="item.picture" fit="cover" lazy></el-image>
             <div class="figure-name" :class="{'figure-name-active': selected_materials.includes(item.id)}"
                  :title="item.name">{{ item.name }}
             </div>
@@ -66,7 +66,7 @@
                :key="index"
                @contextmenu.stop="handleContextMenu(item, $event)"
                @click="selectItem(item)">
-            <el-image class="figures-img" :src="item.picture.replace('127.0.0.1','192.168.1.25')" fit="cover"></el-image>
+            <el-image class="figures-img" :src="item.picture" fit="cover"></el-image>
             <div class="figure-name" :title="item.name">{{ item.name }}</div>
           </div>
         </div>
