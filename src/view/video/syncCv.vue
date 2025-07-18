@@ -368,12 +368,6 @@ export default {
         }
       });
       this.copy_list[index].segment_group[group_index].materials.splice(material_index, 0, item);
-      this.loading = this.$loading({
-        lock: true,
-        text: '正在合成预览视频，耗时不会太长，请稍等...',
-        spinner: 'el-icon-loading',
-        background: 'rgba(0, 0, 0, 0.7)'
-      });
       this.$nextTick(() => {
         this.concatVideo()
       })
@@ -389,12 +383,6 @@ export default {
         }
       });
       this.copy_list[index].segment_group[group_index].materials.push(val)
-      this.loading = this.$loading({
-        lock: true,
-        text: '正在合成预览视频，耗时不会太长，请稍等...',
-        spinner: 'el-icon-loading',
-        background: 'rgba(0, 0, 0, 0.7)'
-      });
       this.$nextTick(() => {
         this.concatVideo()
       })
@@ -405,12 +393,6 @@ export default {
       }).then(() => {
         this.copy_list[index].segment_group[group_index].materials.splice(shot_index, 1)
         if (this.copy_list[index].segment_group[group_index].materials.length !== 0) {
-          this.loading = this.$loading({
-            lock: true,
-            text: '正在合成预览视频，耗时不会太长，请稍等...',
-            spinner: 'el-icon-loading',
-            background: 'rgba(0, 0, 0, 0.7)'
-          });
           this.$nextTick(() => {
             this.concatVideo()
           })
@@ -653,6 +635,12 @@ export default {
       return val + '%';
     },
     concatVideo() {
+      this.loading = this.$loading({
+        lock: true,
+        text: '正在合成预览视频，耗时不会太长，请稍等...',
+        spinner: 'el-icon-loading',
+        background: 'rgba(0, 0, 0, 0.7)'
+      });
       const list = this.preview_video.map(item => ({
         path: item.filepath, muted: this.mute_materials.includes(item.id) || item.video_type === 'figure'
       }))
@@ -660,8 +648,10 @@ export default {
         if (res.data.status === "success") {
           this.loading.close();
           this.loading = null;
-          this.loadVideo(res.data.data.result_path);
-          this.loadAudio()
+          this.$nextTick(() => {
+            this.loadVideo(res.data.data.result_path);
+            this.loadAudio()
+          })
         }else {
           this.loading.close();
           this.loading = null;
@@ -713,6 +703,8 @@ export default {
           this.openIndex = 0;
           this.activeIndex = 0;
           this.selectedCopy = this.copy_list[0]
+          this.loading.close();
+          this.loading = null;
           this.$nextTick(() => {
             this.concatVideo()
           })
@@ -736,12 +728,6 @@ export default {
           this.$refs.audioRef.pause()
           this.isPlaying = false
         }
-        this.loading = this.$loading({
-          lock: true,
-          text: '正在合成预览视频，耗时不会太长，请稍等...',
-          spinner: 'el-icon-loading',
-          background: 'rgba(0, 0, 0, 0.7)'
-        });
         this.$nextTick(() => {
           this.concatVideo()
         })
@@ -860,6 +846,9 @@ export default {
     mediaTimeUpdate() {
       let audioDuration = this.$refs.audioRef.duration
       let videoCurrentTime = this.$refs.videoRef.currentTime
+      if (isNaN(audioDuration)) {
+        return;
+      }
       if (videoCurrentTime < audioDuration) {
         this.$refs.audioRef.currentTime = videoCurrentTime
       }else {

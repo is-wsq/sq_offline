@@ -646,8 +646,10 @@ export default {
         if (res.data.status === "success") {
           this.loading.close();
           this.loading = null;
-          this.loadVideo(res.data.data.result_path);
-          this.loadAudio()
+          this.$nextTick(() => {
+            this.loadVideo(res.data.data.result_path);
+            this.loadAudio()
+          })
         }else {
           this.loading.close();
           this.loading = null;
@@ -847,6 +849,9 @@ export default {
     mediaTimeUpdate() {
       let audioDuration = this.$refs.audioRef.duration
       let videoCurrentTime = this.$refs.videoRef.currentTime
+      if (isNaN(audioDuration)) {
+        return;
+      }
       if (videoCurrentTime < audioDuration) {
         this.$refs.audioRef.currentTime = videoCurrentTime
       }else {
