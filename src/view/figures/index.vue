@@ -402,7 +402,7 @@ export default {
           this.$message.success("重命名成功");
           this.$store.dispatch("task/pollFigureTasks");
         } else {
-          this.$alert(res.data.data,'重命名失败')
+          this.$alert(res.data.message,'重命名失败')
         }
         this.drawer = false;
       }).catch((err) => {
@@ -437,7 +437,7 @@ export default {
 
             this.$store.dispatch("task/pollFigureTasks");
           } else {
-            this.$alert(res.data.data, "删除失败")
+            this.$alert(res.data.message, "删除失败")
           }
         }).catch((err) => {
           this.$alert(err, "删除错误")
@@ -477,7 +477,7 @@ export default {
         if (res.data.status === 'success') {
           return true;
         } else {
-          this.$alert(res.data.data, "验证失败");
+          this.$alert(res.data.message, "验证失败");
           return Promise.reject('验证失败，停止上传');
         }
       })
@@ -486,64 +486,69 @@ export default {
       this.materialList = fileList;
     },
     uploadMaterialsError(file) {
-      this.response_list.push({name: file.name, status: "failed", msg: "上传失败"})
+      this.response_list.push({
+        name: file.name,
+        status: "failed",
+        message: "上传失败"
+      })
       if (this.response_list.length === this.materialList.length) {
-        let success = this.response_list.filter(item => item.status === "success").map(res => res.name);
-        let failed = this.response_list.filter(item => item.status === "failed")
-        let content = ''
-        if (success.length > 0)
-          content += `创建${success.join('、')}素材上传任务成功\n`
-        if (failed.length > 0) {
-          failed.forEach(item => {
-            content += `创建${item.name}素材上传任务失败，${item.msg}\n`
-          })
-        }
+        const successFiles = this.response_list.filter(item => item.status === "success").map(res => res.name);
+        const failedFiles = this.response_list.filter(item => item.status === "failed");
+
+        let successContent = successFiles.length > 0 ? `${successFiles.join('、')}上传成功` : '';
+        let errorContent = failedFiles.length > 0
+            ? failedFiles.map(item => `${item.name}上传失败，${item.message}`).join('\n')
+            : '';
+
         this.response_list = [];
         this.materialList = [];
-        this.$alert(content, "任务创建提醒");
+
+        if (successContent) {
+          this.$alert(successContent, "素材上传成功任务").finally(() => {
+            if (errorContent) {
+              this.$alert(errorContent, "素材上传失败任务");
+            }
+            this.$store.dispatch("task/pollFigureTasks");
+          });
+        } else {
+          if (errorContent) {
+            this.$alert(errorContent, "素材上传失败任务");
+          }
+          this.$store.dispatch("task/pollFigureTasks");
+        }
       }
     },
     uploadMaterialsSuccess(res, file) {
-      if (res.status === "success") {
-        this.response_list.push({name: file.name, status: "success"})
-        if (this.response_list.length === this.materialList.length) {
-          let success = this.response_list.filter(item => item.status === "success").map(res => res.name);
-          let failed = this.response_list.filter(item => item.status === "failed")
-          let content = ''
-          if (success.length > 0)
-            content += `创建${success.join('、')}素材上传任务成功\n`
-          if (failed.length > 0) {
-            failed.forEach(item => {
-              content += `创建${item.name}素材上传任务失败，${item.msg}\n`
-            })
+      this.response_list.push({
+        name: file.name,
+        status: res.status === "success" ? "success" : "failed",
+        message: res.message
+      });
+
+      if (this.response_list.length === this.materialList.length) {
+        const successFiles = this.response_list.filter(item => item.status === "success").map(res => res.name);
+        const failedFiles = this.response_list.filter(item => item.status === "failed");
+
+        let successContent = successFiles.length > 0 ? `${successFiles.join('、')}上传成功` : '';
+        let errorContent = failedFiles.length > 0
+            ? failedFiles.map(item => `${item.name}上传失败，${item.message}`).join('\n')
+            : '';
+
+        this.response_list = [];
+        this.materialList = [];
+
+        if (successContent) {
+          this.$alert(successContent, "素材上传成功任务").finally(() => {
+            if (errorContent) {
+              this.$alert(errorContent, "素材上传失败任务");
+            }
+            this.$store.dispatch("task/pollFigureTasks");
+          });
+        } else {
+          if (errorContent) {
+            this.$alert(errorContent, "素材上传失败任务");
           }
-          this.response_list = [];
-          this.materialList = [];
-          this.$alert(content, "任务创建提醒");
-          this.uploadDialogVisible = false
-        }
-        this.$store.dispatch("task/pollFigureTasks");
-      } else {
-        this.response_list.push({name: file.name, status: "failed", msg: res.message})
-        if (this.response_list.length === this.materialList.length) {
-          let success = this.response_list.filter(item => item.status === "success").map(res => res.name);
-          let failed = this.response_list.filter(item => item.status === "failed")
-          let success_content = ''
-          let error_content = ''
-          if (success.length > 0)
-            success_content += `创建${success.join('、')}素材上传任务成功`
-          if (failed.length > 0) {
-            failed.forEach(item => {
-              error_content += `创建${item.name}素材上传任务失败，${item.msg}\n`
-            })
-          }
-          this.response_list = [];
-          this.materialList = [];
-          this.$alert(success_content, "素材上传成功任务").then(() => {
-            this.$alert(error_content, "素材上传失败任务")
-          }).catch(() => {
-            this.$alert(error_content, "素材上传失败任务")
-          })
+          this.$store.dispatch("task/pollFigureTasks");
         }
       }
     },
@@ -557,7 +562,7 @@ export default {
         this.$alert(content, "任务创建提醒");
         this.$store.dispatch("task/pollFigureTasks");
       } else {
-        let content = `创建${file.name}形象克隆任务失败，${res.data}`;
+        let content = `创建${file.name}形象克隆任务失败，${res.message}`;
         this.$alert(content, "任务创建提醒");
       }
     },
