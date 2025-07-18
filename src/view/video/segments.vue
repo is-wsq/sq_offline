@@ -296,6 +296,7 @@ export default {
       preview_video_url: '',
       isPlaying: false,
 
+      media_volume: 0.5,
       loading: null,
       segments_description: [],
 
@@ -817,6 +818,7 @@ export default {
     },
     loadAudio() {
       this.$refs.audioRef.src = this.copy_list[this.activeIndex].audio_file_path
+      this.$refs.audioRef.volume = this.media_volume;
       this.$refs.audioRef.play()
     },
     loadVideo(path) {
