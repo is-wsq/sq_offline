@@ -176,7 +176,7 @@ export default {
               item => ({title: item.title, content: item.script, isEdit: false, bgm: this.material_bgm})))
           sessionStorage.setItem("hot_copy_list", JSON.stringify(this.hot_copy_list))
         } else {
-          this.$alert(res.data.data,'文案生成失败')
+          this.$alert(res.data.message,'文案生成失败')
         }
       }).catch(err => {
         this.loading.close();

@@ -277,7 +277,7 @@ export default {
               item => ({title: item.title, content: item.script, isEdit: false, bgm: this.material_bgm})))
           sessionStorage.setItem("copy_list", JSON.stringify(this.copy_list))
         } else {
-          this.$alert(res.data.data,'文案生成失败')
+          this.$alert(res.data.message,'文案生成失败')
         }
       }).catch(err => {
         this.loading.close();
@@ -340,7 +340,7 @@ export default {
         if (res.data.status === 'success') {
           this.generateVideo()
         } else {
-          this.$alert(res.data.data, "验证失败");
+          this.$alert(res.data.message, "验证失败");
         }
       }).catch(err => {
         console.log(err)
@@ -436,7 +436,7 @@ export default {
             this.$router.push({path: '/videoList'})
           }, 500)
         } else {
-          this.$alert(res.data.data, "生成视频任务创建失败")
+          this.$alert(res.data.message, "生成视频任务创建失败")
         }
       }).catch((error) => {
         this.$alert(error, "生成视频任务创建错误")

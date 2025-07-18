@@ -84,7 +84,7 @@ const actions = {
                 commit("setFigureTasks", list);
                 commit("updateFigurePreviousStatusMap", newStatusMap);
             }else {
-                this.$message.error(res.data.message);
+                Vue.prototype.$message.error(res.data.message);
             }
         })
     },
@@ -118,7 +118,7 @@ const actions = {
                 commit("setVoiceTasks", list);
                 commit("updateVoicePreviousStatusMap", newStatusMap);
             }else {
-                this.$message.error(res.data.message);
+                Vue.prototype.$message.error(res.data.message);
             }
         })
     },

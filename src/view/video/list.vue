@@ -141,7 +141,7 @@ export default {
             this.$message.success('删除成功');
             this.$store.dispatch("task/pollVideoTasks")
           } else {
-            this.$alert(res.data.data,'删除提示');
+            this.$alert(res.data.message,'删除提示');
           }
         })
       }).catch(() => {
@@ -203,7 +203,7 @@ export default {
           this.$message.success("重命名成功");
           this.$store.dispatch("task/pollVideoTasks")
         } else {
-          this.$alert(res.data.data,'重命名提示');
+          this.$alert(res.data.message,'重命名提示');
         }
         item.isEdit = false;
       }).catch((err) => {

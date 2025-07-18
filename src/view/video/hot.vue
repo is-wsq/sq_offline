@@ -255,7 +255,7 @@ export default {
         } else {
           this.$notify({
             title: "上传提示",
-            message: `${name}爆款视频上传失败，${res.data.data}`,
+            message: `${name}爆款视频上传失败，${res.data.message}`,
             duration: 0,
             type: "error",
           });

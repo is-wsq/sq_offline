@@ -706,7 +706,7 @@ export default {
             this.concatVideo()
           })
         } else {
-          this.$alert(res.data.data, "混剪失败");
+          this.$alert(res.data.message, "混剪失败");
           this.loading.close();
           this.loading = null;
         }
@@ -809,7 +809,7 @@ export default {
             this.$router.push({path: '/videoList'})
           }, 500)
         } else {
-          this.$alert(res.data.data, '导出失败')
+          this.$alert(res.data.message, '导出失败')
         }
       }).catch((error) => {
         this.$alert(error, '导出错误')
