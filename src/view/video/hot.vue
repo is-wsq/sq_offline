@@ -24,7 +24,7 @@
             <span style="font-size: 12px;margin-top: 8px">上传爆款视频</span>
           </div>
         </div>
-        <div v-for="(name, index) in processFile" :key="index" class="video-card">
+        <div v-for="item in processFile" :key="item.id" class="video-card">
           <div class="figure-image-wrapper shining" style="width: 100% !important; height: 100% !important">
             <el-image style="width: 100%; height: 100%;border-radius: 8px;filter: blur(15px);opacity: 0.8"
                       :src="require('/public/images/4.jpg')" fit="cover">
@@ -35,7 +35,7 @@
             <div>视频上传中</div>
             <div style="width: 10px;text-align: left;margin-left: 5px;font-size: 22px">{{ dot }}</div>
           </div>
-          <div class="video-title">{{ name }}</div>
+          <div class="video-title">{{ item.name }}</div>
         </div>
         <div v-for="(video, index) in filter_hots" :key="index" @click="selectVideo(video)"
              :class="{ 'video-active': select_hots.id === video.id }" class="video-card"
@@ -46,6 +46,10 @@
           </el-tag>
           <div class="selection-tick" v-if="select_hots.id === video.id">
             <i class="el-icon-check" style="padding: 2px"></i>
+          </div>
+          <div class="delete-hot-btn">
+            <i class="el-icon-close" style="font-weight: bold"
+               @click="removeHot(video.id)"></i>
           </div>
           <template v-if="!video.isHover">
             <el-image class="hot-img" :src="video.picture" fit="cover"></el-image>
@@ -114,7 +118,8 @@
 </template>
 
 <script>
-import {getAction, postAction} from "@/api/api";
+import {delAction, getAction, postAction} from "@/api/api";
+import {v4 as uuidv4} from 'uuid';
 
 export default {
   data() {
@@ -196,6 +201,23 @@ export default {
       this.select_hots = item
       sessionStorage.setItem('select_hots', JSON.stringify(this.select_hots))
     },
+    removeHot(id) {
+      this.$confirm('此操作将删除该爆款视频, 是否继续?', '删除爆款视频', {
+        type: 'warning'
+      }).then(() => {
+        delAction("/figure/delete", {ids: id}).then((res) => {
+          if (res.data.status === "success") {
+            this.$message.success("删除成功");
+          } else {
+            this.$alert(res.data.message, "删除失败")
+          }
+        }).catch((err) => {
+          this.$alert(err, "删除错误")
+        });
+      }).catch(() => {
+        this.$message({type: 'info', message: '已取消删除'});
+      });
+    },
     initData() {
       this.select_hots = JSON.parse(sessionStorage.getItem('select_hots')) || {}
     },
@@ -238,7 +260,7 @@ export default {
       }
       this.uploadDialogVisible = false
       let name = 'dy' + new Date().getTime()
-      this.processFile.unshift(name)
+      this.processFile.unshift({name: name, id: uuidv4()})
       let params = {
         url: this.dy_link,
         tag: this.uploadTag,
@@ -260,7 +282,8 @@ export default {
             type: "error",
           });
         }
-        this.processFile = this.processFile.filter(item => item !== name)
+        this.processFile = this.processFile.filter(item => item.name !== name)
+        this.queryHots()
       })
     },
     uploadSuccess(res, file) {
@@ -274,12 +297,12 @@ export default {
       } else {
         this.$notify({
           title: "上传提示",
-          message: `${file.name}爆款视频上传失败，${res.data}`,
+          message: `${file.name}爆款视频上传失败，${res.message}`,
           duration: 0,
           type: "error",
         });
       }
-      this.processFile = this.processFile.filter(item => item !== file.name)
+      this.processFile = this.processFile.filter(item => item.name !== file.name)
       this.queryHots()
     },
     uploadError() {
@@ -289,7 +312,7 @@ export default {
       }
     },
     beforeUpload(file) {
-      this.processFile.unshift(file.name)
+      this.processFile.unshift({name: file.name, id: uuidv4()})
       this.uploadDialogVisible = false
     },
     duplicate() {
@@ -364,7 +387,7 @@ export default {
 .hot-list {
   margin-top: 20px;
   max-height: calc(100% - 120px);
-  padding: 10px;
+  padding: 15px;
   overflow-y: auto;
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
@@ -394,11 +417,12 @@ export default {
 
 .video-card:hover {
   background-color: #f5f5f5;
-  transform: scale(1.05);
+  transform: scale(1.03);
 }
 
 .video-active {
   border: 2px solid #3b82f6;
+  box-sizing: border-box;
 }
 
 .hot-img {
@@ -444,6 +468,25 @@ export default {
   justify-content: center;
   align-items: center;
   color: white;
+  z-index: 5;
+}
+
+.delete-hot-btn {
+  position: absolute;
+  top: -12px;
+  right: -12px;
+  width: 20px;
+  height: 20px;
+  background-color: #ef4444;
+  color: white;
+  border: 2px solid white;
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transform: scale(0.8);
+  transition: all 0.2s ease;
   z-index: 5;
 }
 
