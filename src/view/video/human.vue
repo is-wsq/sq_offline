@@ -100,7 +100,7 @@
               <el-popover placement="bottom" trigger="click" style="flex: 1">
                 <div class="popover-content">
                   <el-row>
-                    <el-col :span="12" v-for="(voice, index) in voices" :key="voice.id">
+                    <el-col :span="12" v-for="(voice, index) in mode === 'common'? voices : minimax_voices" :key="voice.id">
                       <div class="voice-item" :class="{ active: voice.id === sound.id }" @click="selectVoice(voice)">
                         <div class="voice-icon" @click="previewAudio(voice, index)" v-if="audioIndex !== index">
                           <i class="el-icon-play" style="font-size: 13px; color: #6286ed"></i>
@@ -435,6 +435,7 @@ export default {
       activePresetId: '1',
       fontFamily: [],
       voices: [],
+      minimax_voices: [],
       sound: {},
       mode: 'common',  // 普通模式 common, 高级模式 advanced
       bgmList: [],
@@ -450,8 +451,10 @@ export default {
     }
   },
   mounted() {
+    this.mode = sessionStorage.getItem('figure_setting_mode') || 'common'
     this.queryFigures()
     this.querySounds();
+    this.queryMiniMaxVoices();
     this.queryBgm();
     this.queryFontFamily();
     this.initParams()
@@ -499,8 +502,6 @@ export default {
     initParams() {
       this.reverse = sessionStorage.getItem("figure_setting_reverse") === 'true'
       this.forward = !this.reverse
-
-      this.mode = sessionStorage.getItem('figure_setting_mode') || 'common'
 
       this.contentHeight = Number(sessionStorage.getItem('figure_content_height')) || 640
       this.topRatio = Number(sessionStorage.getItem('figure_top_offset_ratio')) || 0.25
@@ -556,10 +557,10 @@ export default {
       }
     },
     querySounds() {
-      getAction("/timbres/query_success").then((res) => {
+      getAction("/timbres/get_all_common_timbre").then((res) => {
         if (res.data.status === "success") {
-          this.voices = res.data.data.filter(item => item.status === "success");
-          if (this.voices.length > 0) {
+          this.voices = res.data.data;
+          if (this.voices.length > 0 && this.mode === 'common') {
             let sound = JSON.parse(sessionStorage.getItem("figure_setting_voice"))
             if (sound && this.voices.some(item => item.id === sound.id)) {
               this.sound = sound
@@ -573,6 +574,26 @@ export default {
         }
       }).catch((error) => {
         console.error("获取声音列表失败:", error);
+      });
+    },
+    queryMiniMaxVoices() {
+      getAction("/minimax/get_voice").then((res) => {
+        if (res.data.status === "success") {
+          this.minimax_voices = res.data.data
+          if (this.minimax_voices.length > 0 && this.mode === 'advanced') {
+            let sound = JSON.parse(sessionStorage.getItem("figure_setting_voice"))
+            if (sound && this.minimax_voices.some(item => item.id === sound.id)) {
+              this.sound = sound
+            } else {
+              this.sound = this.minimax_voices[0];
+              sessionStorage.setItem("figure_setting_voice", JSON.stringify(this.sound))
+            }
+          }
+        } else {
+          this.$message.error("获取高级声音列表失败。");
+        }
+      }).catch((error) => {
+        console.error("获取高级声音列表失败:", error);
       });
     },
     queryBgm() {
@@ -612,7 +633,16 @@ export default {
       sessionStorage.setItem('figure_setting_reverse', this.reverse)
     },
     saveMode(mode) {
+      if (this.mode === mode) {
+        return
+      }
       this.mode = mode
+      if (this.mode === 'common') {
+        this.sound = this.voices[0]
+      }else {
+        this.sound = this.minimax_voices[0]
+      }
+      sessionStorage.setItem("figure_setting_voice", JSON.stringify(this.sound))
       sessionStorage.setItem("figure_setting_mode", mode)
     },
     selectVoice(voice) {
