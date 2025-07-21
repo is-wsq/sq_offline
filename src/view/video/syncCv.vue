@@ -301,6 +301,7 @@ export default {
       activeIndex: -1,
       selectedCopy: null,
       preview_video_url: '',
+      preview_audio_url: '',
       isPlaying: false,
 
       loading: null,
@@ -649,8 +650,10 @@ export default {
         if (res.data.status === "success") {
           this.loading.close();
           this.loading = null;
+          this.copy_list[this.activeIndex].video_file_path = res.data.data.result_path
+          this.preview_video_url = res.data.data.result_path
           this.$nextTick(() => {
-            this.loadVideo(res.data.data.result_path);
+            this.loadVideo();
             this.loadAudio()
           })
         }else {
@@ -687,6 +690,7 @@ export default {
         example: cleanTexts,
         count: parseInt(this.script_num),
         material_list: this.material_list,
+        mute_materials: this.mute_materials,
         user_request: actualRequest,
         bgm_id: this.bgm.id,
         bg_volume: this.bg_volume,
@@ -729,8 +733,11 @@ export default {
           this.$refs.audioRef.pause()
           this.isPlaying = false
         }
+        this.preview_video_url = this.copy_list[this.activeIndex].video_file_path
+        this.preview_audio_url = this.copy_list[this.activeIndex].audio_file_path
         this.$nextTick(() => {
-          this.concatVideo()
+          this.loadVideo();
+          this.loadAudio()
         })
       }
     },
@@ -814,13 +821,13 @@ export default {
       });
     },
     loadAudio() {
-      this.$refs.audioRef.src = this.copy_list[this.activeIndex].audio_file_path
+      this.$refs.audioRef.src = this.preview_audio_url
       this.$refs.audioRef.volume = this.media_volume;
       this.$refs.audioRef.play()
     },
-    loadVideo(path) {
+    loadVideo() {
       this.$refs.videoRef.volume = this.media_volume;
-      this.$refs.videoRef.src = path
+      this.$refs.videoRef.src = this.preview_video_url
       this.$refs.videoRef.load();
       this.playVideo();
     },

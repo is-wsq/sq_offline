@@ -156,14 +156,14 @@
                     <i class="el-icon-close close-icon" v-if="item.isHover" @click="removeCopy(index)"></i>
                   </div>
                   <i class="el-icon-arrow-right" style="color: #9ca3af;font-size: 15px;font-weight: bold;"
-                     v-if="openIndex !== index"></i>
+                     v-if="activeIndex !== index"></i>
                   <i class="el-icon-arrow-down" style="color: #9ca3af;font-size: 15px;font-weight: bold;"
                      v-else></i>
                 </div>
                 <div class="script-item-content" :title="item.content" @click="itemClick(index)">
                   {{ item.content || `(无文案)、视频时长${item.duration}s` }}
                 </div>
-                <div class="groups" v-if="openIndex === index">
+                <div class="groups" v-if="activeIndex === index">
                   <div class="group" v-for="(group,group_index) in item.segment_group" :key="group_index">
                     <div class="group-title" :title="group.contentSummary">{{ group.contentSummary }}</div>
                     <div class="material-list">
@@ -295,7 +295,6 @@ export default {
       selected_index: {},
       already_generated: false,
       show_settings: true,
-      openIndex: null,
       activeIndex: -1,
       isPlaying: false,
 
@@ -340,6 +339,7 @@ export default {
       audio: null,
       audioIndex: null,
       preview_video_url: '',
+      preview_audio_url: '',
 
       centerDialogVisible: false,
 
@@ -689,8 +689,10 @@ export default {
         if (res.data.status === "success") {
           this.loading.close();
           this.loading = null;
+          this.montage_data[this.activeIndex].video_file_path = res.data.data.result_path
+          this.preview_video_url = res.data.data.result_path
           this.$nextTick(() => {
-            this.loadVideo(res.data.data.result_path);
+            this.loadVideo();
             this.loadAudio()
           })
         }else {
@@ -728,6 +730,7 @@ export default {
       let params = {
         user_request: actualRequest,
         material_list: this.material_list,
+        mute_materials: this.mute_materials,
         copy_list: this.copy_list,
         bg_volume: this.bg_volume,
         timbre_id: this.sound.voice_id,
@@ -826,6 +829,7 @@ export default {
       let params = {
         user_request: actualRequest,
         material_list: this.material_list,
+        mute_materials: this.mute_materials,
         copy_list: this.copy_list,
         bg_volume: this.bg_volume,
         timbre_id: this.sound.voice_id,
@@ -895,7 +899,6 @@ export default {
     },
 
     itemClick(index) {
-      this.openIndex = this.openIndex === index ? null : index
       if (this.activeIndex !== index) {
         this.activeIndex = index
         if (this.isPlaying) {
@@ -903,8 +906,11 @@ export default {
           this.$refs.audioRef.pause()
           this.isPlaying = false
         }
+        this.preview_video_url = this.montage_data[index].video_file_path
+        this.preview_audio_url = this.montage_data[index].audio_file_path
         this.$nextTick(() => {
-          this.concatVideo()
+          this.loadVideo();
+          this.loadAudio()
         })
       }
     },
@@ -923,13 +929,13 @@ export default {
       });
     },
     loadAudio() {
-      this.$refs.audioRef.src = this.montage_data[this.activeIndex].audio_file_path
+      this.$refs.audioRef.src = this.preview_audio_url
       this.$refs.audioRef.volume = this.media_volume;
       this.$refs.audioRef.play()
     },
-    loadVideo(path) {
+    loadVideo() {
       this.$refs.videoRef.volume = this.media_volume;
-      this.$refs.videoRef.src = path
+      this.$refs.videoRef.src = this.preview_video_url
       this.$refs.videoRef.load();
       this.playVideo();
     },
