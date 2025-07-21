@@ -71,6 +71,41 @@
         <el-table-column property="residue" label="剩余Token" width="200" align="right"></el-table-column>
       </el-table>
     </el-dialog>
+    <el-dialog class="top-up-dialog" title="账户充值" :visible.sync="topUpVisible" width="800px">
+      <el-form :model="rechargeForm" :rules="rules" ref="rechargeFormRef" label-width="100px">
+        <el-form-item label="充值金额" prop="amount">
+          <el-input v-model.number="rechargeForm.amount" placeholder="请输入充值金额" prefix-icon="el-icon-money"
+          @input="loadQrCode"></el-input>
+          <div class="quick-amounts">
+            <div v-for="amount in quickAmounts" :key="amount"
+                 class="amount-item" :class="{'amount-item-active' : amount === rechargeForm.amount}"
+                 @click="setAmount(amount)">{{ amount }}元
+            </div>
+          </div>
+        </el-form-item>
+
+        <el-form-item label="支付方式" prop="paymentMethod">
+          <el-radio-group v-model="rechargeForm.paymentMethod" @change="loadQrCode">
+            <el-radio :label="'alipay'">
+              <i class="el-icon-alipay"></i> 支付宝
+            </el-radio>
+            <el-radio :label="'wechat'">
+              <i class="el-icon-wechat"></i> 微信支付
+            </el-radio>
+            <el-radio :label="'unionpay'">
+              <i class="el-icon-credit-card"></i> 银联支付
+            </el-radio>
+          </el-radio-group>
+        </el-form-item>
+        <el-form-item>
+          <div style="width: calc(100% - 100px);text-align: center">
+            <div class="qrcode" v-loading="qr_loading" element-loading-spinner="el-icon-loading">
+              <el-image :src="require('/public/images/qrcode.png')" fit="cover"></el-image>
+            </div>
+          </div>
+        </el-form-item>
+      </el-form>
+    </el-dialog>
   </div>
 </template>
 
@@ -88,6 +123,35 @@ export default {
       percentage: 0,
       bill: [],
       billVisible: false,
+      topUpVisible: false,
+      qr_loading: true,
+      // 充值表单
+      rechargeForm: {
+        amount: 0,
+        paymentMethod: 'alipay',
+        couponId: 0
+      },
+
+      // 表单验证规则
+      rules: {
+        amount: [
+          { required: true, message: '请输入充值金额', trigger: 'blur' },
+          { type: 'number', message: '充值金额必须为数字', trigger: 'blur' },
+        ],
+        paymentMethod: [
+          { required: true, message: '请选择支付方式', trigger: 'change' }
+        ]
+      },
+
+      // 快捷金额选项
+      quickAmounts: [10, 50, 100, 200, 500, 1000],
+
+      // 可用优惠券
+      availableCoupons: [
+        { id: 1, name: '满50减5', discount: 5 },
+        { id: 2, name: '满100减15', discount: 15 },
+        { id: 3, name: '满200减30', discount: 30 }
+      ],
       gridData: [{
         model: '生成数字人口播视频',
         expend: '154',
@@ -124,8 +188,28 @@ export default {
         console.log(err)
       })
     },
+    setAmount(amount) {
+      this.rechargeForm.amount = amount;
+      this.loadQrCode()
+    },
+    loadQrCode() {
+      this.qr_loading = true
+      setTimeout(() => {
+        this.qr_loading = false
+      }, 1500)
+    },
+    resetForm() {
+      this.$refs.rechargeFormRef.resetFields();
+      this.rechargeForm.amount = 0;
+      this.rechargeForm.paymentMethod = 'alipay';
+      this.rechargeForm.couponId = 0;
+    },
     topUp() {
-      this.$alert('充值功能暂未开放，充值请通过下方联系客服充值。', '提示')
+      // this.$alert('充值功能暂未开放，充值请通过下方联系客服充值。', '提示')
+      this.topUpVisible = true
+      this.$nextTick(() => {
+        this.resetForm()
+      })
     },
     chooseFolder() {
       window.electronAPI.selectFolder().then((path) => {
@@ -313,5 +397,61 @@ export default {
 
 .bill-dialog >>> .el-dialog__body {
   padding-top: 0 !important;
+}
+
+::v-deep .el-alert {
+  align-items: start;
+}
+
+::v-deep .el-alert__icon {
+  font-size: 20px !important;
+  width: 16px !important;
+  line-height: 40px;
+}
+
+.quick-amounts {
+  margin-top: 10px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 18px;
+}
+
+.amount-item {
+  padding: 9px 15px;
+  font-size: 12px;
+  border-radius: 3px;
+  display: inline-block;
+  line-height: 1;
+  white-space: nowrap;
+  cursor: pointer;
+  background: #FFF;
+  border: 1px solid #DCDFE6;
+  color: #606266;
+  -webkit-appearance: none;
+  text-align: center;
+  box-sizing: border-box;
+  outline: 0;
+  margin: 0;
+  transition: .1s;
+  font-weight: 500;
+}
+
+.amount-item-active {
+  color: #409EFF;
+  border-color: #c6e2ff;
+  background-color: #ecf5ff;
+}
+
+.qrcode {
+  height: 200px;
+  width: 200px;
+  margin: 0 auto;
+  border: 1px solid #DCDFE6;
+  border-radius: 5px;
+}
+
+::v-deep .el-icon-loading {
+  font-size: 30px;
+  color: #8e8f93;
 }
 </style>
