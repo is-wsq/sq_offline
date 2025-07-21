@@ -25,6 +25,13 @@
             </div>
           </div>
         </div>
+        <div style="padding: 0 15px">
+          <div class="font-weight" style="font-size: 14px;line-height: 25px">
+            视频播放完后拼接规则
+          </div>
+          <el-checkbox v-model="reverse" @change="saveReverse('reverse')">从头循环播放</el-checkbox>
+          <el-checkbox v-model="forward" @change="saveReverse('forward')">倒放内容拼接</el-checkbox>
+        </div>
       </div>
       <div style="flex: 1">
         <div class="figure-preview">
@@ -349,6 +356,10 @@ export default {
       figures: [],
       filter_figures: [],
       figure: {},
+
+      reverse: false,
+      forward: false,
+
       withTitle: true,
       show_model: 'begin',
       subtitleNameParams: {
@@ -486,6 +497,9 @@ export default {
       })
     },
     initParams() {
+      this.reverse = sessionStorage.getItem("figure_setting_reverse") === 'true'
+      this.forward = !this.reverse
+
       this.mode = sessionStorage.getItem('figure_setting_mode') || 'common'
 
       this.contentHeight = Number(sessionStorage.getItem('figure_content_height')) || 640
@@ -588,6 +602,14 @@ export default {
       }).catch((error) => {
         console.error("获取字体样式列表失败:", error);
       });
+    },
+    saveReverse(type) {
+      if (type === 'forward') {
+        this.reverse = !this.reverse
+      } else {
+        this.forward = !this.forward
+      }
+      sessionStorage.setItem('figure_setting_reverse', this.reverse)
     },
     saveMode(mode) {
       this.mode = mode
@@ -831,7 +853,7 @@ export default {
 }
 
 .figure-list {
-  height: calc(100% - 130px);
+  max-height: calc(100% - 200px);
   display: grid;
   gap: 15px;
   grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
@@ -839,6 +861,7 @@ export default {
   position: relative;
   cursor: pointer;
   padding: 15px;
+  margin-bottom: 15px;
   overflow-y: auto;
 }
 

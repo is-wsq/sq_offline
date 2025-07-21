@@ -120,10 +120,6 @@
                 <div class="none-copy-desc">请使用左侧工具生成您的第一条文案</div>
               </div>
             </div>
-            <div class="font-weight margin-t-12" style="display: flex;gap: 25px" v-if="script_type === 'figure'">
-              视频循环方式
-              <el-switch v-model="reverse" active-text="倒序" inactive-text="正序" @change="saveReverse"></el-switch>
-            </div>
           </div>
         </el-col>
       </el-row>
@@ -352,7 +348,7 @@ export default {
       this.voice_mode = sessionStorage.getItem('figure_setting_mode') || 'common'
       this.bgm = JSON.parse(sessionStorage.getItem('figure_setting_bgm')) || {}
 
-      this.reverse = sessionStorage.getItem("figure_reverse") === 'true'
+      this.reverse = sessionStorage.getItem("figure_setting_reverse") === 'true'
 
       this.material_bgm = JSON.parse(sessionStorage.getItem('figure_setting_bgm')) || {}
 
@@ -379,9 +375,6 @@ export default {
       this.subtitleNameParams.name_background_color = sessionStorage.getItem("figure_name_background_color") || '#404040'
       this.subtitleNameParams.name_background_opacity = Number(sessionStorage.getItem("figure_name_background_opacity")) || 0.6
       this.subtitleNameParams.name_stroke_color = sessionStorage.getItem("figure_name_stroke_color") || '#000000'
-    },
-    saveReverse() {
-      sessionStorage.setItem('figure_reverse', this.reverse)
     },
     generateVideo() {
       if (this.copy_list.length === 0) {

@@ -94,10 +94,11 @@
                   </div>
                 </div>
               </div>
-              <div class="font-weight margin-b-8" style="display: flex;gap: 25px;font-size: 14px">
-                数字人循环方式
-                <el-switch v-model="reverse" active-text="倒序" inactive-text="正序" @change="saveReverse"></el-switch>
+              <div class="font-weight" style="font-size: 14px">
+                视频播放完后拼接规则
               </div>
+              <el-checkbox v-model="reverse" @change="saveReverse('reverse')">从头循环播放</el-checkbox>
+              <el-checkbox v-model="forward" @change="saveReverse('forward')">倒放内容拼接</el-checkbox>
             </el-collapse-item>
           </el-collapse>
         </div>
@@ -441,6 +442,7 @@ export default {
       filter_figures: [],
       figure: {},
       reverse: false,
+      forward: false,
 
       filter_text: '',
 
@@ -640,6 +642,7 @@ export default {
       this.mute_materials = JSON.parse(sessionStorage.getItem('mute_materials')) || []
 
       this.reverse = sessionStorage.getItem("setting_reverse") === 'true'
+      this.forward = !this.reverse
 
       this.mode = sessionStorage.getItem('setting_mode') || 'common'
 
@@ -696,7 +699,12 @@ export default {
         top: this.topRatio * this.contentHeight + 'px'
       }
     },
-    saveReverse() {
+    saveReverse(type) {
+      if (type === 'forward') {
+        this.reverse = !this.reverse
+      } else {
+        this.forward = !this.forward
+      }
       sessionStorage.setItem('setting_reverse', this.reverse)
     },
     queryMaterials() {
@@ -1591,5 +1599,9 @@ export default {
 ::v-deep .el-switch__core:after {
   width: 14px;
   height: 14px;
+}
+
+::v-deep .el-collapse-item__wrap {
+  border-bottom: none;
 }
 </style>
