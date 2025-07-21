@@ -695,8 +695,11 @@ export default {
           this.openIndex = 0;
           this.activeIndex = 0;
           this.selectedCopy = this.copy_list[0]
+          this.preview_video_url = this.copy_list[0].video_file_path
+          this.preview_audio_url = this.copy_list[0].audio_file_path
           this.$nextTick(() => {
-            this.concatVideo()
+            this.loadVideo();
+            this.loadAudio()
           })
         } else {
           this.$alert(res.data.message, "混剪失败");
