@@ -331,6 +331,12 @@ export default {
     }
   },
   computed: {
+    audio_file_duration() {
+      if (this.copy_list.length > 0) {
+        return this.copy_list[this.activeIndex].audio_file_duration
+      }
+      return 0
+    },
     preview_video() {
       if (this.copy_list.length > 0) {
         let segment_group = this.copy_list[this.activeIndex].segment_group
@@ -340,6 +346,11 @@ export default {
       }
       return []
     },
+    video_file_duration() {
+      return parseFloat(this.preview_video.reduce((acc, material) => {
+        return acc + (material.duration || 0);
+      }, 0)).toFixed(2);
+    }
   },
   methods: {
     popoverShow(params) {
@@ -795,6 +806,7 @@ export default {
         this.currentIndex = index;
         this.$refs.videoRef.volume = this.media_volume;
         this.$refs.videoRef.src = this.preview_video[index].filepath
+        this.$refs.videoRef.defaultPlaybackRate = parseFloat((this.video_file_duration / this.audio_file_duration).toFixed(2));
         if (this.mute_materials.includes(this.preview_video[index].id)
             || this.preview_video[index].video_type === 'figure') {
           this.$refs.videoRef.muted = true

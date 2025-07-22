@@ -360,6 +360,12 @@ export default {
     }
   },
   computed: {
+    audio_file_duration() {
+      if (this.montage_data.length > 0) {
+        return this.montage_data[this.activeIndex].audio_file_duration
+      }
+      return 0
+    },
     preview_video() {
       if (this.montage_data.length > 0) {
         let segment_group = this.montage_data[this.activeIndex].segment_group
@@ -369,6 +375,11 @@ export default {
       }
       return []
     },
+    video_file_duration() {
+      return parseFloat(this.preview_video.reduce((acc, material) => {
+        return acc + (material.duration || 0);
+      }, 0)).toFixed(2);
+    }
   },
   beforeDestroy() {
     document.removeEventListener('click', this.handleClickOutside);
@@ -917,6 +928,7 @@ export default {
         this.currentIndex = index;
         this.$refs.videoRef.volume = this.media_volume;
         this.$refs.videoRef.src = this.preview_video[index].filepath
+        this.$refs.videoRef.defaultPlaybackRate = parseFloat((this.video_file_duration / this.audio_file_duration).toFixed(2));
         if (this.mute_materials.includes(this.preview_video[index].id)
             || this.preview_video[index].video_type === 'figure') {
           this.$refs.videoRef.muted = true
@@ -968,7 +980,7 @@ export default {
       }
       if (videoCurrentTime < audioDuration) {
         this.$refs.audioRef.currentTime = videoCurrentTime
-      }else {
+      } else {
         this.$refs.audioRef.currentTime = 0
         this.$refs.audioRef.pause()
       }
