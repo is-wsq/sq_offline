@@ -233,11 +233,12 @@
               ref="videoRef"
               preload="metadata"
               controls
-              controlsList="noplaybackrate nodownload"
+              controlsList="nodownload"
               @play="mediaPlay"
               @pause="mediaPause"
-              @ended="playNextVideo"
               @volumechange="mediaVolumeChange"
+              @ratechange="mediaRateChange"
+              @timeupdate="mediaTimeUpdate"
               style="width: 280px; aspect-ratio: 9 / 16;border-radius: 12px"
           >
             您的浏览器不支持HTML5视频播放。
@@ -301,8 +302,8 @@ export default {
       openIndex: null,
       activeIndex: -1,
       selectedCopy: null,
-
-      currentIndex: 0,
+      preview_video_url: '',
+      preview_audio_url: '',
       isPlaying: false,
 
       loading: null,
@@ -372,10 +373,8 @@ export default {
         }
       });
       this.copy_list[index].segment_group[group_index].materials.splice(material_index, 0, item);
-      this.currentIndex = 0
       this.$nextTick(() => {
-        this.loadVideo(this.currentIndex);
-        this.loadAudio()
+        this.concatVideo()
       })
     },
     pushShot(index, group_index, val) {
@@ -389,10 +388,8 @@ export default {
         }
       });
       this.copy_list[index].segment_group[group_index].materials.push(val)
-      this.currentIndex = 0
       this.$nextTick(() => {
-        this.loadVideo(this.currentIndex);
-        this.loadAudio()
+        this.concatVideo()
       })
     },
     removeShot(index, group_index, shot_index) {
@@ -401,10 +398,8 @@ export default {
       }).then(() => {
         this.copy_list[index].segment_group[group_index].materials.splice(shot_index, 1)
         if (this.copy_list[index].segment_group[group_index].materials.length !== 0) {
-          this.currentIndex = 0
           this.$nextTick(() => {
-            this.loadVideo(this.currentIndex);
-            this.loadAudio()
+            this.concatVideo()
           })
         }
       }).catch((err) => {
@@ -645,6 +640,37 @@ export default {
     formatTooltip(val) {
       return val + '%';
     },
+    concatVideo() {
+      this.loading = this.$loading({
+        lock: true,
+        text: '正在合成预览视频，耗时不会太长，请稍等...',
+        spinner: 'el-icon-loading',
+        background: 'rgba(0, 0, 0, 0.7)'
+      });
+      const list = this.preview_video.map(item => ({
+        path: item.filepath, muted: this.mute_materials.includes(item.id) || item.video_type === 'figure'
+      }))
+      postAction('/figure/create_concatenated_video', {video_list: list}, 600000).then(res => {
+        if (res.data.status === "success") {
+          this.loading.close();
+          this.loading = null;
+          this.copy_list[this.activeIndex].video_file_path = res.data.data.result_path
+          this.preview_video_url = res.data.data.result_path
+          this.$nextTick(() => {
+            this.loadVideo();
+            this.loadAudio()
+          })
+        }else {
+          this.loading.close();
+          this.loading = null;
+          this.$message.error("视频拼接失败。");
+        }
+      }).catch((error) => {
+        this.loading.close();
+        this.loading = null;
+        console.error("视频拼接错误:", error);
+      })
+    },
     generate() {
       if (this.copy_require.trim() === '') {
         this.$alert('文案要求不能为空，请先填写文案要求', '提示')
@@ -688,8 +714,10 @@ export default {
           this.selectedCopy = this.copy_list[0]
           this.loading.close();
           this.loading = null;
+          this.preview_video_url = this.copy_list[0].video_file_path
+          this.preview_audio_url = this.copy_list[0].audio_file_path
           this.$nextTick(() => {
-            this.loadVideo(this.currentIndex);
+            this.loadVideo();
             this.loadAudio()
           })
         } else {
@@ -712,9 +740,10 @@ export default {
           this.$refs.audioRef.pause()
           this.isPlaying = false
         }
-        this.currentIndex = 0
+        this.preview_video_url = this.copy_list[this.activeIndex].video_file_path
+        this.preview_audio_url = this.copy_list[this.activeIndex].audio_file_path
         this.$nextTick(() => {
-          this.loadVideo(0);
+          this.loadVideo();
           this.loadAudio()
         })
       }
@@ -799,22 +828,15 @@ export default {
       });
     },
     loadAudio() {
-      this.$refs.audioRef.src = this.copy_list[this.activeIndex].audio_file_path
+      this.$refs.audioRef.src = this.preview_audio_url
       this.$refs.audioRef.volume = this.media_volume;
       this.$refs.audioRef.play()
     },
-    loadVideo(index) {
-      if (index >= 0 && index < this.preview_video.length) {
-        this.currentIndex = index;
-        this.$refs.videoRef.volume = this.media_volume;
-        this.$refs.videoRef.src = this.preview_video[index].filepath
-        if (this.mute_materials.includes(this.preview_video[index].id)
-            || this.preview_video[index].video_type === 'figure') {
-          this.$refs.videoRef.muted = true
-        }
-        this.$refs.videoRef.load();
-        this.playVideo();
-      }
+    loadVideo() {
+      this.$refs.videoRef.volume = this.media_volume;
+      this.$refs.videoRef.src = this.preview_video_url
+      this.$refs.videoRef.load();
+      this.playVideo();
     },
     playVideo() {
       this.$refs.videoRef.play().then(() => {
@@ -824,19 +846,6 @@ export default {
         // 这里可以添加错误处理逻辑，如显示错误消息
       });
     },
-    playNextVideo() {
-      if (this.currentIndex === this.preview_video.length - 1) {
-        this.currentIndex = 0;
-        this.$refs.videoRef.src = this.preview_video[0].filepath
-        this.$refs.videoRef.currentTime = 0
-        this.$refs.audioRef.pause()
-        this.$refs.audioRef.currentTime = 0
-        this.isPlaying = false;
-        return
-      }
-      const nextIndex = this.currentIndex + 1;
-      this.loadVideo(nextIndex);
-    },
     mediaPlay() {
       this.$refs.audioRef.play()
     },
@@ -844,7 +853,6 @@ export default {
       this.$refs.audioRef.pause()
     },
     mediaVolumeChange() {
-      this.media_volume = this.$refs.videoRef.volume
       this.$refs.audioRef.volume = this.$refs.videoRef.volume
       this.$refs.audioRef.muted = this.$refs.videoRef.muted
     },
@@ -1435,18 +1443,6 @@ export default {
   display: flex;
   align-items: center;
   justify-content: center;
-}
-
-.video-placeholder-preview video::-webkit-media-controls-timeline {
-  display: none !important;
-}
-
-.video-placeholder-preview video::-moz-controls-progressbar {
-  display: none !important;
-}
-
-.video-placeholder-preview video::-ms-media-controls-timeline {
-  display: none !important;
 }
 
 .li-video {

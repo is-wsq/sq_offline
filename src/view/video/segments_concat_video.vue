@@ -4,7 +4,7 @@
       <el-button type="text" class="back-btn" @click="back">
         <i class="el-icon-arrow-left" style="font-size: 20px;"></i>
       </el-button>
-      <div class="sync-title">一键混剪 · 音画同步</div>
+      <div class="sync-title">打磨复刻</div>
       <div style="width: 36px"></div>
     </div>
     <div class="sync-cv-container">
@@ -17,7 +17,7 @@
         <div class="left-content-area">
           <div class="panel-title">分镜设置</div>
           <div class="panel-label">自定义要求（选填）</div>
-          <div style="position: relative;">
+          <div style="position: relative">
             <div class="highlight-content"
                  v-html="highlightedText"
                  :style="{height: replaceDivHeight + 'px'}"
@@ -27,10 +27,10 @@
                       :rows="4"
                       placeholder="例如：镜头要切换快，多用特写镜头"
                       v-model="requirement"
-                      @input="onInput"
                       @compositionstart="onCompositionStart"
                       @compositionupdate="onCompositionUpdate"
                       @compositionend="onCompositionEnd"
+                      @input="onInput"
                       ref="inputRef"
                       class="input-layer"
                       @change="saveSetting"
@@ -59,22 +59,14 @@
           </template>
           <div class="without_at" :style="{height: selected_figure.id? 'calc(100% - 200px)': 'calc(100% - 150px)'}">
             <div class="panel-title margin-t-8">文案设置</div>
-            <div style="max-height: calc(100% - 35px);overflow-y: auto" ref="scriptForm">
+            <div style="max-height: calc(100% - 35px);overflow-y: auto">
               <div class="panel-label">文案要求</div>
               <el-input type="textarea" :autosize="{ minRows: 3, maxRows: 6 }"
                         placeholder="例如：写一个关于猫咪的搞笑段子"
-                        class="margin-b-12" v-model="copy_require" resize="none" @click="saveSetting"></el-input>
-              <div class="panel-label">示例文案（选填）</div>
-              <div class="flex-center margin-b-12 example_textarea" v-for="(text, index) in exampleTexts" :key="index">
-                <el-input type="textarea" :autosize="{ minRows: 3, maxRows: 6 }"
-                          placeholder="提供一个你喜欢的风格的例子"
-                          v-model="exampleTexts[index]" resize="none" @change="saveSetting"></el-input>
-                <i class="el-icon-close example-close-icon" @click="removeText(index)" v-if="index !== 0"></i>
-              </div>
-              <div class="margin-b-12 add_example_btn">
-                <el-button @click="addExampleText"><i class="el-icon-plus add_example_icon"></i>
-                  添加示例文案
-                </el-button>
+                        class="margin-b-12" v-model="copy_require" resize="none" @change="saveSetting"></el-input>
+              <div class="panel-label">示例文案</div>
+              <div class="flex-center margin-b-8" v-for="(text, index) in exampleTexts" :key="index">
+                <div class="copy-item-example">{{ exampleTexts[index] }}</div>
               </div>
               <div style="display: flex;gap: 12px" class="margin-b-12">
                 <div style="flex: 1">
@@ -111,7 +103,7 @@
       </div>
 
       <div class="center-panel"
-           :style="{ width: show_left_panel? 'calc(100% - 648px)' : activeIndex !== -1? 'calc(100% - 733px)' : 'calc(100% - 370px)' }">
+           :style="{width: show_left_panel? 'calc(100% - 648px)' :  activeIndex !== -1? 'calc(100% - 733px)' : 'calc(100% - 370px)'}">
         <div class="script-selection-area">
           <div class="panel-title">AI选用文案</div>
           <div class="copy-list" v-if="copy_list.length > 0">
@@ -233,11 +225,12 @@
               ref="videoRef"
               preload="metadata"
               controls
-              controlsList="noplaybackrate nodownload"
+              controlsList="nodownload"
               @play="mediaPlay"
               @pause="mediaPause"
-              @ended="playNextVideo"
               @volumechange="mediaVolumeChange"
+              @ratechange="mediaRateChange"
+              @timeupdate="mediaTimeUpdate"
               style="width: 280px; aspect-ratio: 9 / 16;border-radius: 12px"
           >
             您的浏览器不支持HTML5视频播放。
@@ -261,11 +254,13 @@ export default {
       show_left_panel: true,
       requirement: '',
       figure_ratio: 30,
+      selected_figure: {},
 
       /* initData 前面素材选择、样式设置所选参数 */
       material_list: [],
       mute_materials: [],
       mention_list: [],
+      reverse: false,
       hover_li: null,
       sound: {},
       voice_mode: '',
@@ -301,21 +296,20 @@ export default {
       openIndex: null,
       activeIndex: -1,
       selectedCopy: null,
-
-      currentIndex: 0,
+      preview_video_url: '',
+      preview_audio_url: '',
       isPlaying: false,
 
-      loading: null,
       media_volume: 0.5,
+      loading: null,
+      segments_description: [],
 
       displayText: '',
       isComposing: false,
       composingText: '',
       compositionStart: 0,
       highlightedText: '',
-      show_model: '',
-      reverse: false,
-      selected_figure: {}
+      show_model: ''
     }
   },
   beforeDestroy() {
@@ -372,10 +366,8 @@ export default {
         }
       });
       this.copy_list[index].segment_group[group_index].materials.splice(material_index, 0, item);
-      this.currentIndex = 0
       this.$nextTick(() => {
-        this.loadVideo(this.currentIndex);
-        this.loadAudio()
+        this.concatVideo()
       })
     },
     pushShot(index, group_index, val) {
@@ -389,10 +381,8 @@ export default {
         }
       });
       this.copy_list[index].segment_group[group_index].materials.push(val)
-      this.currentIndex = 0
       this.$nextTick(() => {
-        this.loadVideo(this.currentIndex);
-        this.loadAudio()
+        this.concatVideo()
       })
     },
     removeShot(index, group_index, shot_index) {
@@ -401,10 +391,8 @@ export default {
       }).then(() => {
         this.copy_list[index].segment_group[group_index].materials.splice(shot_index, 1)
         if (this.copy_list[index].segment_group[group_index].materials.length !== 0) {
-          this.currentIndex = 0
           this.$nextTick(() => {
-            this.loadVideo(this.currentIndex);
-            this.loadAudio()
+            this.concatVideo()
           })
         }
       }).catch((err) => {
@@ -413,15 +401,14 @@ export default {
     },
     saveSetting() {
       this.validateNum()
-      let sync_setting = {
+      let segments_setting = {
         requirement: this.requirement,
         copy_require: this.copy_require,
-        exampleTexts: this.exampleTexts,
         video_time: this.video_time,
         script_num: this.script_num,
         ai_model: this.ai_model,
       }
-      sessionStorage.setItem('sync_setting', JSON.stringify(sync_setting))
+      sessionStorage.setItem('segments_setting', JSON.stringify(segments_setting))
     },
     onCompositionStart(e) {
       this.isComposing = true;
@@ -579,29 +566,23 @@ export default {
         this.showDropdown = false;
       }
     },
-    addExampleText() {
-      this.exampleTexts.push('');
-      this.$nextTick(() => { //自动滚到到底部
-        const scriptForm = this.$refs.scriptForm;
-        scriptForm.scrollTop = scriptForm.scrollHeight;
-      });
-      this.saveSetting()
-    },
-    removeText(index) {
-      this.exampleTexts.splice(index, 1);
-      this.saveSetting()
-    },
     initData() {
       this.figure_ratio = parseInt(sessionStorage.getItem('montage_figure_ratio')) || 30
       this.selected_figure = JSON.parse(sessionStorage.getItem('material_figure')) || {}
 
-      let sync_setting = JSON.parse(sessionStorage.getItem("sync_setting")) || {}
-      this.requirement = sync_setting.requirement || ''
-      this.copy_require = sync_setting.copy_require || ''
-      this.exampleTexts = sync_setting.exampleTexts || ['']
-      this.video_time = parseInt(sync_setting.video_time) || 15
-      this.script_num = parseInt(sync_setting.script_num) || 1
-      this.ai_model = sync_setting.ai_model || 'deepseek_v3'
+      let segments_setting = JSON.parse(sessionStorage.getItem("segments_setting")) || {}
+      this.requirement = segments_setting.requirement || ''
+      this.copy_require = segments_setting.copy_require || ''
+      this.video_time = parseInt(segments_setting.video_time) || 15
+      this.script_num = parseInt(segments_setting.script_num) || 1
+      this.ai_model = segments_setting.ai_model || 'deepseek_v3'
+
+      sessionStorage.setItem('segments_setting', JSON.stringify(segments_setting))
+
+      let hots = JSON.parse(sessionStorage.getItem("select_hots"))
+      this.exampleTexts = []
+      this.exampleTexts[0] = hots.segments.map(segment => segment.asr_text).join('');
+      this.segments_description = hots.segments.map(item => item.description)
 
       // 选择的素材id列表、素材列表、静音素材列表
       this.material_list = JSON.parse(sessionStorage.getItem('material_list')) || []
@@ -645,6 +626,37 @@ export default {
     formatTooltip(val) {
       return val + '%';
     },
+    concatVideo() {
+      this.loading = this.$loading({
+        lock: true,
+        text: '正在合成预览视频，耗时不会太长，请稍等...',
+        spinner: 'el-icon-loading',
+        background: 'rgba(0, 0, 0, 0.7)'
+      });
+      const list = this.preview_video.map(item => ({
+        path: item.filepath, muted: this.mute_materials.includes(item.id) || item.video_type === 'figure'
+      }))
+      postAction('/figure/create_concatenated_video', {video_list: list}, 600000).then(res => {
+        if (res.data.status === "success") {
+          this.loading.close();
+          this.loading = null;
+          this.copy_list[this.activeIndex].video_file_path = res.data.data.result_path
+          this.preview_video_url = res.data.data.result_path
+          this.$nextTick(() => {
+            this.loadVideo();
+            this.loadAudio()
+          })
+        }else {
+          this.loading.close();
+          this.loading = null;
+          this.$message.error("视频拼接失败。");
+        }
+      }).catch((error) => {
+        this.loading.close();
+        this.loading = null;
+        console.error("视频拼接错误:", error);
+      })
+    },
     generate() {
       if (this.copy_require.trim() === '') {
         this.$alert('文案要求不能为空，请先填写文案要求', '提示')
@@ -677,6 +689,7 @@ export default {
         with_subtitle: this.withSubtitle,
         reverse: this.reverse,
         figure_ratio: this.figure_ratio + '%',
+        reference_segments: this.segments_description,
       }
       postAction('/figure/video_mix_edit_sync', params, 3600000).then(res => {
         if (res.data.status === 'success') {
@@ -686,10 +699,10 @@ export default {
           this.openIndex = 0;
           this.activeIndex = 0;
           this.selectedCopy = this.copy_list[0]
-          this.loading.close();
-          this.loading = null;
+          this.preview_video_url = this.copy_list[0].video_file_path
+          this.preview_audio_url = this.copy_list[0].audio_file_path
           this.$nextTick(() => {
-            this.loadVideo(this.currentIndex);
+            this.loadVideo();
             this.loadAudio()
           })
         } else {
@@ -712,9 +725,10 @@ export default {
           this.$refs.audioRef.pause()
           this.isPlaying = false
         }
-        this.currentIndex = 0
+        this.preview_video_url = this.copy_list[this.activeIndex].video_file_path
+        this.preview_audio_url = this.copy_list[this.activeIndex].audio_file_path
         this.$nextTick(() => {
-          this.loadVideo(0);
+          this.loadVideo();
           this.loadAudio()
         })
       }
@@ -799,22 +813,15 @@ export default {
       });
     },
     loadAudio() {
-      this.$refs.audioRef.src = this.copy_list[this.activeIndex].audio_file_path
+      this.$refs.audioRef.src = this.preview_audio_url
       this.$refs.audioRef.volume = this.media_volume;
       this.$refs.audioRef.play()
     },
-    loadVideo(index) {
-      if (index >= 0 && index < this.preview_video.length) {
-        this.currentIndex = index;
-        this.$refs.videoRef.volume = this.media_volume;
-        this.$refs.videoRef.src = this.preview_video[index].filepath
-        if (this.mute_materials.includes(this.preview_video[index].id)
-            || this.preview_video[index].video_type === 'figure') {
-          this.$refs.videoRef.muted = true
-        }
-        this.$refs.videoRef.load();
-        this.playVideo();
-      }
+    loadVideo() {
+      this.$refs.videoRef.volume = this.media_volume;
+      this.$refs.videoRef.src = this.preview_video_url
+      this.$refs.videoRef.load();
+      this.playVideo();
     },
     playVideo() {
       this.$refs.videoRef.play().then(() => {
@@ -824,19 +831,6 @@ export default {
         // 这里可以添加错误处理逻辑，如显示错误消息
       });
     },
-    playNextVideo() {
-      if (this.currentIndex === this.preview_video.length - 1) {
-        this.currentIndex = 0;
-        this.$refs.videoRef.src = this.preview_video[0].filepath
-        this.$refs.videoRef.currentTime = 0
-        this.$refs.audioRef.pause()
-        this.$refs.audioRef.currentTime = 0
-        this.isPlaying = false;
-        return
-      }
-      const nextIndex = this.currentIndex + 1;
-      this.loadVideo(nextIndex);
-    },
     mediaPlay() {
       this.$refs.audioRef.play()
     },
@@ -844,7 +838,6 @@ export default {
       this.$refs.audioRef.pause()
     },
     mediaVolumeChange() {
-      this.media_volume = this.$refs.videoRef.volume
       this.$refs.audioRef.volume = this.$refs.videoRef.volume
       this.$refs.audioRef.muted = this.$refs.videoRef.muted
     },
@@ -897,7 +890,7 @@ export default {
 
 .left-panel {
   width: 280px;
-  padding: 19px;
+  padding: 20px 10px;
   box-sizing: border-box;
   border-radius: 12px;
   background-color: #ffffff;
@@ -969,46 +962,6 @@ export default {
   background: white;
   border-color: #8b5cf6;
   box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.1);
-}
-
-.example_textarea {
-  position: relative;
-}
-
-.example-close-icon {
-  position: absolute;
-  right: 8px;
-  top: 8px;
-  color: #9ca3af;
-  font-size: 16px;
-  cursor: pointer;
-  font-weight: 600;
-}
-
-.example-close-icon:hover {
-  color: #ef4444;
-}
-
-.example_textarea >>> .el-textarea__inner {
-  padding-right: 30px !important;
-}
-
-.add_example_btn >>> .el-button {
-  width: 100%;
-  background-color: #eef2ff;
-  color: #4338ca;
-  font-weight: 600;
-  font-size: 14px;
-  line-height: 20px;
-  padding: 8px 16px;
-  border-radius: 6px;
-  border: 1px solid #c7d2fe;
-}
-
-.add_example_icon {
-  font-size: 10px;
-  font-weight: bold;
-  line-height: 16px;
 }
 
 .without_at >>> .el-input__inner {
@@ -1327,6 +1280,18 @@ export default {
   margin-bottom: 4px;
 }
 
+.copy-item-example {
+  padding: 8px;
+  font-size: 13px;
+  color: #4f5153;
+  background-color: #f9f9f9;
+  border: 1px solid #DCDFE6;
+  border-radius: 4px;
+  max-height: 120px;
+  overflow-y: auto;
+  box-sizing: border-box;
+}
+
 .storyboard-panel {
   width: 340px;
   padding: 20px;
@@ -1437,18 +1402,6 @@ export default {
   justify-content: center;
 }
 
-.video-placeholder-preview video::-webkit-media-controls-timeline {
-  display: none !important;
-}
-
-.video-placeholder-preview video::-moz-controls-progressbar {
-  display: none !important;
-}
-
-.video-placeholder-preview video::-ms-media-controls-timeline {
-  display: none !important;
-}
-
 .li-video {
   height: 200px;
   background-color: #ffffff;
@@ -1528,8 +1481,8 @@ export default {
   line-height: 1.5;
   border-radius: 4px;
   box-shadow: none;
-  resize: none;
   border: 1px solid #d1d5db;
+  resize: none;
   transition: border-color 0.2s ease-in-out;
 }
 
@@ -1537,10 +1490,6 @@ export default {
   outline: none;
   border-color: #8b5cf6;
   box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.1);
-}
-
-.volume-control >>> .el-button {
-  padding: 7px 10px;
 }
 
 ::v-deep >>> .el-popover {
