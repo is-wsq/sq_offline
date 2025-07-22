@@ -161,7 +161,7 @@
               </el-popover>
               <div class="mode-info" v-if="mode === 'advanced'">
                 <i class="el-icon-info" style="font-size: 16px;margin-right: 5px"></i>
-                高级模式将调用Minimax接口并计费
+                高级模式将调用云端接口并计费
               </div>
             </div>
             <div class="s-voice-content margin-b-16">
