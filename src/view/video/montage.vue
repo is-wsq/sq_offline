@@ -227,7 +227,7 @@
             </template>
           </div>
           <div class="export-section" v-if="already_generated">
-            <el-button @click="export_video"><i class="el-icon-fa-download" style="margin-right: 10px;"></i>
+            <el-button @click="export_video(false)"><i class="el-icon-fa-download" style="margin-right: 10px;"></i>
               导出视频
             </el-button>
           </div>
