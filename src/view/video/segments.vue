@@ -49,13 +49,15 @@
               </div>
             </div>
           </div>
-          <div class="panel-label margin-t-12">人物形象出镜比例</div>
-          <div class="figure-ratio-slider">
-            <el-slider v-model="figure_ratio" style="flex: 1" @change="saveFigureRatio"
-                       :format-tooltip="formatTooltip"></el-slider>
-            <div class="figure-ratio-label">{{ figure_ratio + '%' }}</div>
-          </div>
-          <div class="without_at" style="height: calc(100% - 200px);overflow-y: auto">
+          <template v-if="selected_figure.id">
+            <div class="panel-label margin-t-12">人物形象出镜比例</div>
+            <div class="figure-ratio-slider">
+              <el-slider v-model="figure_ratio" style="flex: 1" @change="saveFigureRatio"
+                         :format-tooltip="formatTooltip"></el-slider>
+              <div class="figure-ratio-label">{{ figure_ratio + '%' }}</div>
+            </div>
+          </template>
+          <div class="without_at" :style="{height: selected_figure.id? 'calc(100% - 200px)': 'calc(100% - 150px)'}">
             <div class="panel-title margin-t-8">文案设置</div>
             <div style="max-height: calc(100% - 35px);overflow-y: auto">
               <div class="panel-label">文案要求</div>
@@ -252,6 +254,7 @@ export default {
       show_left_panel: true,
       requirement: '',
       figure_ratio: 30,
+      selected_figure: {},
 
       /* initData 前面素材选择、样式设置所选参数 */
       material_list: [],
@@ -565,6 +568,7 @@ export default {
     },
     initData() {
       this.figure_ratio = parseInt(sessionStorage.getItem('montage_figure_ratio')) || 30
+      this.selected_figure = JSON.parse(sessionStorage.getItem('material_figure')) || {}
 
       let segments_setting = JSON.parse(sessionStorage.getItem("segments_setting")) || {}
       this.requirement = segments_setting.requirement || ''

@@ -50,12 +50,14 @@
               </div>
             </div>
           </div>
-          <div class="setting-require margin-t-12">人物形象出镜比例</div>
-          <div class="figure-ratio-slider">
-            <el-slider v-model="figure_ratio" style="flex: 1" @change="saveFigureRatio"
-                       :format-tooltip="formatTooltip"></el-slider>
-            <div class="figure-ratio-label">{{ figure_ratio + '%' }}</div>
-          </div>
+          <template v-if="selected_figure.id">
+            <div class="setting-require margin-t-12">人物形象出镜比例</div>
+            <div class="figure-ratio-slider">
+              <el-slider v-model="figure_ratio" style="flex: 1" @change="saveFigureRatio"
+                         :format-tooltip="formatTooltip"></el-slider>
+              <div class="figure-ratio-label">{{ figure_ratio + '%' }}</div>
+            </div>
+          </template>
         </div>
 
         <div class="settings-button-section">
@@ -348,7 +350,8 @@ export default {
       composingText: '',
       compositionStart: 0,
       highlightedText: '',
-      show_model: ''
+      show_model: '',
+      selected_figure: {}
     }
   },
   watch: {
@@ -613,6 +616,8 @@ export default {
           ...item, isHover: false,
         }))
       }
+
+      this.selected_figure = JSON.parse(sessionStorage.getItem('material_figure')) || {}
 
       this.requirement = sessionStorage.getItem('montage_setting_requirement') || ''
       this.figure_ratio = parseInt(sessionStorage.getItem('montage_figure_ratio')) || 30
