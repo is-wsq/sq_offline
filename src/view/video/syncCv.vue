@@ -133,8 +133,10 @@
                   <div class="segment-groups">
                     <div class="segment-group-item" v-for="(group,group_index) in item.segment_group"
                          :key="group_index">
-                      <div class="group-title" :title="group.contentSummary">{{ group.contentSummary }}</div>
-                      <div class="material-list">
+                      <div class="group-title" :style="{ width: titleWidth[group_index] + 'px' }" :title="group.contentSummary">
+                        {{ group.contentSummary }}
+                      </div>
+                      <div class="material-list" ref="materialListRef">
                         <div class="material-item" v-for="(material,material_index) in group.materials"
                              :key="material_index">
                           <el-popover placement="bottom" :ref="'popoverRef_' + material_index" trigger="click"
@@ -314,7 +316,8 @@ export default {
       highlightedText: '',
       show_model: '',
       reverse: false,
-      selected_figure: {}
+      selected_figure: {},
+      titleWidth: [],
     }
   },
   beforeDestroy() {
@@ -386,6 +389,7 @@ export default {
       this.$nextTick(() => {
         this.loadVideo(this.currentIndex);
         this.loadAudio()
+        this.titleWidth[group_index] = this.$refs.materialListRef[group_index].offsetWidth
       })
     },
     pushShot(index, group_index, val) {
@@ -403,6 +407,7 @@ export default {
       this.$nextTick(() => {
         this.loadVideo(this.currentIndex);
         this.loadAudio()
+        this.titleWidth[group_index] = this.$refs.materialListRef[group_index].offsetWidth
       })
     },
     removeShot(index, group_index, shot_index) {
@@ -415,6 +420,7 @@ export default {
           this.$nextTick(() => {
             this.loadVideo(this.currentIndex);
             this.loadAudio()
+            this.titleWidth[group_index] = this.$refs.materialListRef[group_index].offsetWidth
           })
         }
       }).catch((err) => {
@@ -701,6 +707,7 @@ export default {
           this.$nextTick(() => {
             this.loadVideo(this.currentIndex);
             this.loadAudio()
+            this.titleWidth = this.$refs.materialListRef.map(item => item.offsetWidth)
           })
         } else {
           this.$alert(res.data.message, "混剪失败");
@@ -726,6 +733,7 @@ export default {
         this.$nextTick(() => {
           this.loadVideo(0);
           this.loadAudio()
+          this.titleWidth = this.$refs.materialListRef.map(item => item.offsetWidth)
         })
       }
     },

@@ -157,12 +157,11 @@
             </template>
             <template v-else style="width: 100%">
               <div v-for="(item, index) in montage_data" :key="index" class="script-item"
-                   :class="{'script-item-active': activeIndex === index}"
-                   @mouseleave="item.isHover = false" @mouseenter="item.isHover = true">
+                   :class="{'script-item-active': activeIndex === index}">
                 <div class="flex-center" @click="itemClick(index)">
                   <div class="script-item-title" :title="item.title">{{ item.title }}</div>
                   <div style="width: 16px">
-                    <i class="el-icon-close close-icon" v-if="item.isHover" @click="removeCopy(index)"></i>
+                    <i class="el-icon-close close-icon" @click="removeCopy(index)"></i>
                   </div>
                   <i class="el-icon-arrow-right" style="color: #9ca3af;font-size: 15px;font-weight: bold;"
                      v-if="activeIndex !== index"></i>
@@ -181,8 +180,10 @@
                 </div>
                 <div class="groups" v-if="activeIndex === index">
                   <div class="group" v-for="(group,group_index) in item.segment_group" :key="group_index">
-                    <div class="group-title" :title="group.contentSummary">{{ group.contentSummary }}</div>
-                    <div class="material-list">
+                    <div class="group-title" :style="{ width: titleWidth[group_index] + 'px' }" :title="group.contentSummary">
+                      {{ group.contentSummary }}
+                    </div>
+                    <div class="material-list" ref="materialListRef">
                       <div class="material-item" v-for="(material,material_index) in group.materials"
                            :key="material_index">
                         <el-popover placement="bottom" :ref="'popoverRef_' + material_index" trigger="click"
@@ -313,6 +314,8 @@ export default {
       activeIndex: -1,
       currentIndex: 0,
       isPlaying: false,
+
+      titleWidth: [],
 
       material_list: [],
       mute_materials: [],
@@ -518,6 +521,7 @@ export default {
       this.$nextTick(() => {
         this.loadVideo(this.currentIndex);
         this.loadAudio()
+        this.titleWidth[group_index] = this.$refs.materialListRef[group_index].offsetWidth
       })
     },
     pushShot(index, group_index, val) {
@@ -535,6 +539,7 @@ export default {
       this.$nextTick(() => {
         this.loadVideo(this.currentIndex);
         this.loadAudio()
+        this.titleWidth[group_index] = this.$refs.materialListRef[group_index].offsetWidth
       })
     },
     removeShot(index, group_index, shot_index) {
@@ -547,6 +552,7 @@ export default {
           this.$nextTick(() => {
             this.loadVideo(this.currentIndex);
             this.loadAudio()
+            this.titleWidth[group_index] = this.$refs.materialListRef[group_index].offsetWidth
           })
         }
       }).catch((err) => {
@@ -754,6 +760,7 @@ export default {
           this.$nextTick(() => {
             this.loadVideo(this.currentIndex);
             this.loadAudio()
+            this.titleWidth = this.$refs.materialListRef.map(item => item.offsetWidth)
           })
         } else {
           this.$alert(res.data.message, "混剪失败");
@@ -915,6 +922,7 @@ export default {
         this.$nextTick(() => {
           this.loadVideo(0);
           this.loadAudio()
+          this.titleWidth = this.$refs.materialListRef.map(item => item.offsetWidth)
         })
       }
     },
@@ -1283,11 +1291,16 @@ export default {
   text-decoration: underline;
 }
 
+.script-item:hover .close-icon {
+  opacity: 1;
+}
+
 .close-icon {
   color: #b3b5b4;
   font-size: 12px;
   font-weight: bold;
   cursor: pointer;
+  opacity: 0;
 }
 
 .close-icon:hover {
@@ -1328,7 +1341,6 @@ export default {
   font-weight: 500;
   color: #4338ca;
   margin-bottom: 8px;
-  width: 100px;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
