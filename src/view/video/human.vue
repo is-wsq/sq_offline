@@ -25,12 +25,26 @@
             </div>
           </div>
         </div>
-        <div style="padding: 0 15px">
-          <div class="font-weight" style="font-size: 14px;line-height: 25px">
+        <div style="padding: 0 15px" class="loop-group">
+          <div class="font-weight" style="font-size: 14px;line-height: 25px;margin-bottom: 4px">
             视频播放完后拼接规则
           </div>
-          <el-checkbox v-model="reverse" @change="saveReverse('reverse')">从头循环播放</el-checkbox>
-          <el-checkbox v-model="forward" @change="saveReverse('forward')">倒放内容拼接</el-checkbox>
+          <el-radio-group v-model="reverse" @input="saveReverse">
+            <el-radio :label="false">
+              从头循环播放
+              <el-popover placement="right" trigger="hover">
+                <video style="width: 160px" :src="require('/public/video/forward.mp4')" loop muted autoplay></video>
+                <i slot="reference" class="el-icon-question" style="color: #909399"></i>
+              </el-popover>
+            </el-radio>
+            <el-radio :label="true">
+              倒放内容拼接
+              <el-popover placement="right" trigger="hover">
+                <video style="width: 160px" :src="require('/public/video/reverse.mp4')" loop muted autoplay></video>
+                <i slot="reference" class="el-icon-question" style="color: #909399"></i>
+              </el-popover>
+            </el-radio>
+          </el-radio-group>
         </div>
       </div>
       <div style="flex: 1">
@@ -358,7 +372,6 @@ export default {
       figure: {},
 
       reverse: false,
-      forward: false,
 
       withTitle: true,
       show_model: 'begin',
@@ -501,7 +514,6 @@ export default {
     },
     initParams() {
       this.reverse = sessionStorage.getItem("figure_setting_reverse") === 'true'
-      this.forward = !this.reverse
 
       this.contentHeight = Number(sessionStorage.getItem('figure_content_height')) || 640
       this.topRatio = Number(sessionStorage.getItem('figure_top_offset_ratio')) || 0.25
@@ -624,12 +636,7 @@ export default {
         console.error("获取字体样式列表失败:", error);
       });
     },
-    saveReverse(type) {
-      if (type === 'forward') {
-        this.reverse = !this.reverse
-      } else {
-        this.forward = !this.forward
-      }
+    saveReverse() {
       sessionStorage.setItem('figure_setting_reverse', this.reverse)
     },
     saveMode(mode) {
@@ -1240,5 +1247,13 @@ export default {
 
 .input-number >>> .el-input__icon {
   line-height: 30px;
+}
+
+.loop-group >>> .el-radio-group {
+  display: flex;
+}
+
+.loop-group >>> .el-radio {
+  display: flex;
 }
 </style>

@@ -94,11 +94,27 @@
                   </div>
                 </div>
               </div>
-              <div class="font-weight" style="font-size: 14px">
-                视频播放完后拼接规则
+              <div class="loop-group">
+                <div class="font-weight" style="font-size: 14px;line-height: 25px;margin-bottom: 4px">
+                  视频播放完后拼接规则
+                </div>
+                <el-radio-group v-model="reverse" @input="saveReverse">
+                  <el-radio :label="false">
+                    从头循环播放
+                    <el-popover placement="right" trigger="hover">
+                      <video style="width: 160px" :src="require('/public/video/forward.mp4')" loop muted autoplay></video>
+                      <i slot="reference" class="el-icon-question" style="color: #909399"></i>
+                    </el-popover>
+                  </el-radio>
+                  <el-radio :label="true">
+                    倒放内容拼接
+                    <el-popover placement="right" trigger="hover">
+                      <video style="width: 160px" :src="require('/public/video/reverse.mp4')" loop muted autoplay></video>
+                      <i slot="reference" class="el-icon-question" style="color: #909399"></i>
+                    </el-popover>
+                  </el-radio>
+                </el-radio-group>
               </div>
-              <el-checkbox v-model="reverse" @change="saveReverse('reverse')">从头循环播放</el-checkbox>
-              <el-checkbox v-model="forward" @change="saveReverse('forward')">倒放内容拼接</el-checkbox>
             </el-collapse-item>
           </el-collapse>
         </div>
@@ -442,7 +458,6 @@ export default {
       filter_figures: [],
       figure: {},
       reverse: false,
-      forward: false,
 
       filter_text: '',
 
@@ -645,7 +660,6 @@ export default {
       this.mute_materials = JSON.parse(sessionStorage.getItem('mute_materials')) || []
 
       this.reverse = sessionStorage.getItem("setting_reverse") === 'true'
-      this.forward = !this.reverse
 
       this.contentHeight = Number(sessionStorage.getItem('content_height')) || 640
       this.topRatio = Number(sessionStorage.getItem('top_offset_ratio')) || 0.25
@@ -700,12 +714,7 @@ export default {
         top: this.topRatio * this.contentHeight + 'px'
       }
     },
-    saveReverse(type) {
-      if (type === 'forward') {
-        this.reverse = !this.reverse
-      } else {
-        this.forward = !this.forward
-      }
+    saveReverse() {
       sessionStorage.setItem('setting_reverse', this.reverse)
     },
     queryMaterials() {
@@ -1633,5 +1642,13 @@ export default {
 
 ::v-deep .el-collapse-item__wrap {
   border-bottom: none;
+}
+
+.loop-group >>> .el-radio-group {
+  display: flex;
+}
+
+.loop-group >>> .el-radio {
+  display: flex;
 }
 </style>
