@@ -99,15 +99,28 @@
                   <div class="copy-item-content" style="cursor: pointer"
                        v-if="!item.isEdit" @click="showEdit(index)">
                     <div class="copy-item-title" :title="item.title">{{ item.title }}</div>
-                    <div class="copy-item-desc">{{ item.content || `(无文案)、视频时长${item.duration}s` }}</div>
+                    <div class="copy-item-desc" :title="item.content" v-if="item.content">
+                      {{ item.content }}
+                    </div>
+                    <div class="copy-item-desc" style="display: flex;gap: 2px" v-else>
+                      <i class="el-icon-wuneirong" style="line-height: 16px"></i>
+                      <div style="line-height: 16px">无文案</div>
+                      <div style="margin: 0 5px;line-height: 15px">|</div>
+                      <i class="el-icon-time" style="line-height: 16px"></i>
+                      <div style="line-height: 16px">{{ item.duration + 's' }}</div>
+                    </div>
                   </div>
                   <div class="copy-item-content" v-else>
                     <el-input type="textarea" :autosize="{ minRows: 1, maxRows: 3 }" placeholder="文案标题..."
                               class="margin-b-12" v-model="new_title" resize="none"></el-input>
                     <el-input type="textarea" :autosize="{ minRows: 3, maxRows: 6 }" placeholder="文案内容..."
                               class="margin-b-12" v-model="new_content" resize="none" v-if="!item.duration"></el-input>
-                    <div class="copy-item-desc margin-b-12" v-if="item.duration">
-                      {{ item.content || `(无文案)、视频时长${item.duration}s` }}
+                    <div class="copy-item-desc margin-b-12" style="display: flex;gap: 2px" v-if="item.duration">
+                      <i class="el-icon-wuneirong" style="line-height: 16px"></i>
+                      <div style="line-height: 16px">无文案</div>
+                      <div style="margin: 0 5px;line-height: 15px">|</div>
+                      <i class="el-icon-time" style="line-height: 16px"></i>
+                      <div style="line-height: 16px">{{ item.duration + 's' }}</div>
                     </div>
                     <el-button class="copy-item-save" type="primary" @click="saveCopy(index)">保存修改</el-button>
                   </div>
@@ -181,7 +194,7 @@ export default {
   methods: {
     generateNoCopy() {
       const maxTitleNumber = this.copy_list.reduce((max, item) => {
-        const match = item.title.match(/默认标题(\d+)/);
+        const match = item.title.match(/无文案剪辑视频(\d+)/);
         if (match) {
           const currentNumber = parseInt(match[1], 10);
           return Math.max(max, currentNumber);
@@ -191,7 +204,7 @@ export default {
       this.copy_list = [
         ...this.copy_list,
         ...Array.from({length: this.no_copy_nums}, (_, i) => ({
-          title: `默认标题${maxTitleNumber + i + 1}`,
+          title: `无文案剪辑视频${maxTitleNumber + i + 1}`,
           content: '',
           isEdit: false,
           bgm: this.material_bgm,

@@ -143,8 +143,15 @@
                     </div>
                   </div>
                 </div>
-                <div class="script-item-content" :title="item.content">
-                  {{ item.content || `(无文案)、视频时长${item.duration}s` }}
+                <div class="script-item-content" :title="item.content" v-if="item.content">
+                  {{ item.content }}
+                </div>
+                <div class="script-item-content" style="display: flex;gap: 2px;" v-else>
+                  <i class="el-icon-wuneirong" style="line-height: 21px"></i>
+                  <div style="line-height: 21px">无文案</div>
+                  <div style="margin: 0 5px;line-height: 18px">|</div>
+                  <i class="el-icon-time" style="line-height: 21px"></i>
+                  <div style="line-height: 21px">{{ item.duration + 's' }}</div>
                 </div>
               </div>
             </template>
@@ -162,8 +169,15 @@
                   <i class="el-icon-arrow-down" style="color: #9ca3af;font-size: 15px;font-weight: bold;"
                      v-else></i>
                 </div>
-                <div class="script-item-content" :title="item.content" @click="itemClick(index)">
-                  {{ item.content || `(无文案)、视频时长${item.duration}s` }}
+                <div class="script-item-content" :title="item.content" v-if="item.content" @click="itemClick(index)">
+                  {{ item.content }}
+                </div>
+                <div class="script-item-content" style="display: flex;gap: 2px" v-else @click="itemClick(index)">
+                  <i class="el-icon-wuneirong" style="line-height: 21px"></i>
+                  <div style="line-height: 21px">无文案</div>
+                  <div style="margin: 0 5px;line-height: 18px">|</div>
+                  <i class="el-icon-time" style="line-height: 21px"></i>
+                  <div style="line-height: 21px">{{ item.duration + 's' }}</div>
                 </div>
                 <div class="groups" v-if="activeIndex === index">
                   <div class="group" v-for="(group,group_index) in item.segment_group" :key="group_index">
