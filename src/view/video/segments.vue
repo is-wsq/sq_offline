@@ -108,8 +108,7 @@
           <div class="panel-title">AI选用文案</div>
           <div class="copy-list" v-if="copy_list.length > 0">
             <div class="copy-item" v-for="(item, index) in copy_list" :key="index"
-                 :class="{'active-item': index === activeIndex}"
-                 @mouseleave="item.isHover = false" @mouseenter="item.isHover = true">
+                 :class="{'active-item': index === activeIndex}">
               <el-collapse v-model="openIndex" accordion @change="collapseChange">
                 <el-collapse-item :name="index">
                   <template slot="title">
@@ -117,7 +116,7 @@
                       <div class="flex-center">
                         <div class="copy-item-title" :title="item.title">{{ item.title }}</div>
                         <div style="width: 16px">
-                          <i class="el-icon-close close-icon" v-if="item.isHover" @click="removeCopy(index)"></i>
+                          <i class="el-icon-close close-icon" @click="removeCopy(index)"></i>
                         </div>
                       </div>
                       <div class="copy-item-desc">{{ item.content }}</div>
@@ -702,7 +701,7 @@ export default {
       })
     },
     collapseChange(val) {
-      if (val !== '') {
+      if (val !== '' && this.activeIndex !== val) {
         this.activeIndex = val
         this.selectedCopy = this.copy_list[val]
         if (this.isPlaying) {
@@ -875,6 +874,7 @@ export default {
 .sync-cv {
   min-height: 700px;
   height: 100%;
+  min-width: 1280px;
   width: 100%;
   overflow-y: auto;
   overflow-x: hidden;
@@ -1091,8 +1091,8 @@ export default {
 }
 
 .copy-item-title {
-  font-weight: 500;
-  font-size: 13px;
+  font-weight: bold;
+  font-size: 15px;
   color: #1f2937;
   width: 100%;
   white-space: nowrap;
@@ -1101,7 +1101,7 @@ export default {
 }
 
 .copy-item-desc {
-  font-size: 15px;
+  font-size: 13px;
   color: #1f2937;
   max-height: 100px;
   overflow-y: auto;
@@ -1261,11 +1261,16 @@ export default {
   background-color: #eef2ff;
 }
 
+.copy-item:hover .close-icon {
+  opacity: 1;
+}
+
 .close-icon {
   color: #b3b5b4;
   font-size: 12px;
   font-weight: bold;
   cursor: pointer;
+  opacity: 0;
 }
 
 .close-icon:hover {
