@@ -384,6 +384,7 @@ export default {
         this.loadAudio()
         this.titleWidth[group_index] = this.$refs.materialListRef[group_index].offsetWidth
       })
+      sessionStorage.setItem("segments_copy_list", JSON.stringify(this.copy_list))
     },
     pushShot(index, group_index, val) {
       this.$nextTick(() => {
@@ -402,6 +403,7 @@ export default {
         this.loadAudio()
         this.titleWidth[group_index] = this.$refs.materialListRef[group_index].offsetWidth
       })
+      sessionStorage.setItem("segments_copy_list", JSON.stringify(this.copy_list))
     },
     removeShot(index, group_index, shot_index) {
       this.$confirm('确认删除该分镜吗？', '提示', {
@@ -416,6 +418,7 @@ export default {
             this.titleWidth[group_index] = this.$refs.materialListRef[group_index].offsetWidth
           })
         }
+        sessionStorage.setItem("segments_copy_list", JSON.stringify(this.copy_list))
       }).catch((err) => {
         this.$message({type: 'info', message: '已取消删除'});
       });
@@ -591,6 +594,20 @@ export default {
       this.figure_ratio = parseInt(sessionStorage.getItem('montage_figure_ratio')) || 30
       this.selected_figure = JSON.parse(sessionStorage.getItem('material_figure')) || {}
 
+      this.copy_list = JSON.parse(sessionStorage.getItem("segments_copy_list")) || []
+      if (this.copy_list.length > 0) {
+        this.show_left_panel = false;
+        this.already_generated = true;
+        this.openIndex = 0;
+        this.activeIndex = 0;
+        this.selectedCopy = this.copy_list[0]
+        this.$nextTick(() => {
+          this.loadVideo(this.currentIndex);
+          this.loadAudio()
+          this.titleWidth = this.$refs.materialListRef.map(item => item.offsetWidth)
+        })
+      }
+
       let segments_setting = JSON.parse(sessionStorage.getItem("segments_setting")) || {}
       this.requirement = segments_setting.requirement || ''
       this.copy_require = segments_setting.copy_require || ''
@@ -686,6 +703,7 @@ export default {
           this.show_left_panel = false;
           this.already_generated = true;
           this.copy_list = res.data.data
+          sessionStorage.setItem("segments_copy_list", JSON.stringify(this.copy_list))
           this.openIndex = 0;
           this.activeIndex = 0;
           this.selectedCopy = this.copy_list[0]
@@ -729,6 +747,7 @@ export default {
         type: 'warning'
       }).then(() => {
         this.copy_list.splice(index, 1)
+        sessionStorage.setItem("segments_copy_list", JSON.stringify(this.copy_list))
       }).catch((err) => {
         this.$message({type: 'info', message: '已取消删除'});
       });
