@@ -107,6 +107,7 @@ export default {
       new_title: '',
       new_content: '',
       material_bgm: {},
+      mention_list: [],
     }
   },
   mounted() {
@@ -140,6 +141,8 @@ export default {
       this.script_num = parseInt(duplicate_setting.script_num) || 1
       this.ai_model = duplicate_setting.ai_model || 'deepseek_v3'
 
+      this.mention_list = JSON.parse(sessionStorage.getItem('mention_list')) || []
+
       this.hot_copy_list = sessionStorage.getItem("hot_copy_list") ?
           JSON.parse(sessionStorage.getItem("hot_copy_list")) : []
       let hots = JSON.parse(sessionStorage.getItem("select_hots"))
@@ -162,7 +165,8 @@ export default {
         examples: cleanTexts,
         requirements: this.copy_require,
         num_of_words: parseInt(this.copy_num),
-        script_count: parseInt(this.script_num)
+        script_count: parseInt(this.script_num),
+        store_id: this.mention_list[0].store_id
       }
       this.loading = this.$loading({
         lock: true, text: '文案生成中，请耐心等待...',

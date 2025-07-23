@@ -185,7 +185,8 @@ export default {
       no_copy_duration: 15,
       no_copy_nums: 1,
 
-      reverse: false
+      reverse: false,
+      mention_list: [], //选择的素材列表
     }
   },
   mounted() {
@@ -248,6 +249,7 @@ export default {
     },
     initData() {
       this.copy_list = sessionStorage.getItem("copy_list") ? JSON.parse(sessionStorage.getItem("copy_list")) : []
+      this.mention_list = JSON.parse(sessionStorage.getItem('mention_list')) || []
       this.script_type = sessionStorage.getItem("script_type")
       let smart_generate_setting = JSON.parse(sessionStorage.getItem("smart_generate_setting")) || {}
       this.copy_require = smart_generate_setting.copy_require || ''
@@ -272,7 +274,8 @@ export default {
         examples: cleanTexts,
         requirements: this.copy_require,
         num_of_words: parseInt(this.copy_num),
-        script_count: parseInt(this.script_num)
+        script_count: parseInt(this.script_num),
+        store_id: this.mention_list[0].store_id
       }
       this.loading = this.$loading({
         lock: true, text: '文案生成中，请耐心等待...',
