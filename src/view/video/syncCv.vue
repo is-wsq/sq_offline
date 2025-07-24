@@ -63,7 +63,7 @@
               <div class="panel-label">文案要求</div>
               <el-input type="textarea" :autosize="{ minRows: 3, maxRows: 6 }"
                         placeholder="例如：写一个关于猫咪的搞笑段子"
-                        class="margin-b-12" v-model="copy_require" resize="none" @click="saveSetting"></el-input>
+                        class="margin-b-12" v-model="copy_require" resize="none" @change="saveSetting"></el-input>
               <div class="panel-label">示例文案（选填）</div>
               <div class="flex-center margin-b-12 example_textarea" v-for="(text, index) in exampleTexts" :key="index">
                 <el-input type="textarea" :autosize="{ minRows: 3, maxRows: 6 }"
@@ -161,7 +161,8 @@
                               </div>
                             </div>
                           </el-popover>
-                          <div class="delete-shot-btn" v-if="group.groupType !== 'digital_human' && group.materials.length > 1">
+                          <div class="delete-shot-btn"
+                               v-if="group.groupType !== 'digital_human' && group.materials.length > 1">
                             <i class="el-icon-close" style="font-weight: bold"
                                @click="removeShot(index,group_index,material_index)"></i>
                           </div>
@@ -340,12 +341,6 @@ export default {
     }
   },
   computed: {
-    audio_file_duration() {
-      if (this.copy_list.length > 0) {
-        return this.copy_list[this.activeIndex].audio_file_duration
-      }
-      return 0
-    },
     preview_video() {
       if (this.copy_list.length > 0) {
         let segment_group = this.copy_list[this.activeIndex].segment_group
@@ -362,6 +357,11 @@ export default {
       }
       return []
     },
+    base_playback_rate() {
+      let segment_group = this.copy_list[this.activeIndex].segment_group
+      const sum_segment_group = segment_group.reduce((sum, item) => sum + item.groupDuration, 0);
+      return parseFloat((sum_segment_group / this.copy_list[this.activeIndex].audio_file_duration).toFixed(2))
+    }
   },
   methods: {
     popoverShow(params) {
@@ -842,7 +842,9 @@ export default {
         let preview = this.preview_video[index]
         this.$refs.videoRef.volume = this.media_volume;
         this.$refs.videoRef.src = preview.filepath
-        this.$refs.videoRef.defaultPlaybackRate = parseFloat((preview.materials_duration / preview.group_duration).toFixed(2));
+        this.$refs.videoRef.defaultPlaybackRate =
+            parseFloat((preview.materials_duration / preview.group_duration * this.base_playback_rate)
+            .toFixed(2));
         if (this.mute_materials.includes(preview.id) || preview.video_type === 'figure') {
           this.$refs.videoRef.muted = true
         }
@@ -893,7 +895,7 @@ export default {
       }
       if (videoCurrentTime < audioDuration) {
         this.$refs.audioRef.currentTime = videoCurrentTime
-      }else {
+      } else {
         this.$refs.audioRef.currentTime = 0
         this.$refs.audioRef.pause()
       }
@@ -1416,6 +1418,7 @@ export default {
 .details-shot-list {
   display: flex;
   flex-direction: column;
+  justify-content: center;
   gap: 12px;
   flex-shrink: 0;
 }
