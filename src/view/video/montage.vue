@@ -180,7 +180,7 @@
                 </div>
                 <div class="groups" v-if="activeIndex === index">
                   <div class="group" v-for="(group,group_index) in item.segment_group" :key="group_index">
-                    <div class="group-title" :style="{ width: titleWidth[group_index] + 'px' }" :title="group.contentSummary">
+                    <div class="group-title" :style="{ width: (group.materials.length * 100 + 80) + 'px' }" :title="group.contentSummary">
                       {{ group.contentSummary }}
                     </div>
                     <div class="material-list" ref="materialListRef">
@@ -207,7 +207,7 @@
                             </div>
                           </div>
                         </el-popover>
-                        <div class="delete-shot-btn" v-if="group.groupType !== 'digital_human'">
+                        <div class="delete-shot-btn" v-if="group.groupType !== 'digital_human' && group.materials.length > 1">
                           <i class="el-icon-close" style="font-weight: bold"
                              @click="removeShot(index,group_index,material_index)"></i>
                         </div>
@@ -314,8 +314,6 @@ export default {
       activeIndex: -1,
       currentIndex: 0,
       isPlaying: false,
-
-      titleWidth: [],
 
       material_list: [],
       mute_materials: [],
@@ -521,7 +519,6 @@ export default {
       this.$nextTick(() => {
         this.loadVideo(this.currentIndex);
         this.loadAudio()
-        this.titleWidth[group_index] = this.$refs.materialListRef[group_index].offsetWidth
       })
       sessionStorage.setItem("montage_data", JSON.stringify(this.montage_data))
     },
@@ -540,7 +537,6 @@ export default {
       this.$nextTick(() => {
         this.loadVideo(this.currentIndex);
         this.loadAudio()
-        this.titleWidth[group_index] = this.$refs.materialListRef[group_index].offsetWidth
       })
       sessionStorage.setItem("montage_data", JSON.stringify(this.montage_data))
     },
@@ -554,7 +550,6 @@ export default {
           this.$nextTick(() => {
             this.loadVideo(this.currentIndex);
             this.loadAudio()
-            this.titleWidth[group_index] = this.$refs.materialListRef[group_index].offsetWidth
           })
         }
         sessionStorage.setItem("montage_data", JSON.stringify(this.montage_data))
@@ -664,7 +659,6 @@ export default {
         this.$nextTick(() => {
           this.loadVideo(this.currentIndex);
           this.loadAudio()
-          this.titleWidth = this.$refs.materialListRef.map(item => item.offsetWidth)
         })
       }
 
@@ -777,7 +771,6 @@ export default {
           this.$nextTick(() => {
             this.loadVideo(this.currentIndex);
             this.loadAudio()
-            this.titleWidth = this.$refs.materialListRef.map(item => item.offsetWidth)
           })
         } else {
           this.$alert(res.data.message, "混剪失败");
@@ -939,7 +932,6 @@ export default {
         this.$nextTick(() => {
           this.loadVideo(0);
           this.loadAudio()
-          this.titleWidth = this.$refs.materialListRef.map(item => item.offsetWidth)
         })
       }
     },

@@ -133,7 +133,8 @@
                   <div class="segment-groups">
                     <div class="segment-group-item" v-for="(group,group_index) in item.segment_group"
                          :key="group_index">
-                      <div class="group-title" :style="{ width: titleWidth[group_index] + 'px' }" :title="group.contentSummary">
+                      <div class="group-title" :style="{ width: (group.materials.length * 100 + 80) + 'px' }"
+                           :title="group.contentSummary">
                         {{ group.contentSummary }}
                       </div>
                       <div class="material-list" ref="materialListRef">
@@ -160,7 +161,7 @@
                               </div>
                             </div>
                           </el-popover>
-                          <div class="delete-shot-btn" v-if="group.groupType !== 'digital_human'">
+                          <div class="delete-shot-btn" v-if="group.groupType !== 'digital_human' && group.materials.length > 1">
                             <i class="el-icon-close" style="font-weight: bold"
                                @click="removeShot(index,group_index,material_index)"></i>
                           </div>
@@ -317,7 +318,6 @@ export default {
       show_model: '',
       reverse: false,
       selected_figure: {},
-      titleWidth: [],
     }
   },
   beforeDestroy() {
@@ -350,16 +350,18 @@ export default {
       if (this.copy_list.length > 0) {
         let segment_group = this.copy_list[this.activeIndex].segment_group
         return segment_group.reduce((acc, item) => {
-          return acc.concat(item.materials);
+          const materials_duration = item.materials.reduce((sum, material) => sum + material.duration, 0);
+          return acc.concat(item.materials.map(material => ({
+            id: material.id,
+            video_type: material.video_type,
+            filepath: material.filepath,
+            group_duration: item.groupDuration || 0,
+            materials_duration: materials_duration,
+          })));
         }, [])
       }
       return []
     },
-    video_file_duration() {
-      return parseFloat(this.preview_video.reduce((acc, material) => {
-        return acc + (material.duration || 0);
-      }, 0)).toFixed(2);
-    }
   },
   methods: {
     popoverShow(params) {
@@ -389,7 +391,6 @@ export default {
       this.$nextTick(() => {
         this.loadVideo(this.currentIndex);
         this.loadAudio()
-        this.titleWidth[group_index] = this.$refs.materialListRef[group_index].offsetWidth
       })
       sessionStorage.setItem("sync_cv_copy_list", JSON.stringify(this.copy_list))
     },
@@ -408,7 +409,6 @@ export default {
       this.$nextTick(() => {
         this.loadVideo(this.currentIndex);
         this.loadAudio()
-        this.titleWidth[group_index] = this.$refs.materialListRef[group_index].offsetWidth
       })
       sessionStorage.setItem("sync_cv_copy_list", JSON.stringify(this.copy_list))
     },
@@ -422,7 +422,6 @@ export default {
           this.$nextTick(() => {
             this.loadVideo(this.currentIndex);
             this.loadAudio()
-            this.titleWidth[group_index] = this.$refs.materialListRef[group_index].offsetWidth
           })
         }
         sessionStorage.setItem("sync_cv_copy_list", JSON.stringify(this.copy_list))
@@ -624,7 +623,6 @@ export default {
         this.$nextTick(() => {
           this.loadVideo(this.currentIndex);
           this.loadAudio()
-          this.titleWidth = this.$refs.materialListRef.map(item => item.offsetWidth)
         })
       }
 
@@ -725,7 +723,6 @@ export default {
           this.$nextTick(() => {
             this.loadVideo(this.currentIndex);
             this.loadAudio()
-            this.titleWidth = this.$refs.materialListRef.map(item => item.offsetWidth)
           })
         } else {
           this.$alert(res.data.message, "混剪失败");
@@ -751,7 +748,6 @@ export default {
         this.$nextTick(() => {
           this.loadVideo(0);
           this.loadAudio()
-          this.titleWidth = this.$refs.materialListRef.map(item => item.offsetWidth)
         })
       }
     },
@@ -843,11 +839,11 @@ export default {
     loadVideo(index) {
       if (index >= 0 && index < this.preview_video.length) {
         this.currentIndex = index;
+        let preview = this.preview_video[index]
         this.$refs.videoRef.volume = this.media_volume;
-        this.$refs.videoRef.src = this.preview_video[index].filepath
-        this.$refs.videoRef.defaultPlaybackRate = parseFloat((this.video_file_duration / this.audio_file_duration).toFixed(2));
-        if (this.mute_materials.includes(this.preview_video[index].id)
-            || this.preview_video[index].video_type === 'figure') {
+        this.$refs.videoRef.src = preview.filepath
+        this.$refs.videoRef.defaultPlaybackRate = parseFloat((preview.materials_duration / preview.group_duration).toFixed(2));
+        if (this.mute_materials.includes(preview.id) || preview.video_type === 'figure') {
           this.$refs.videoRef.muted = true
         }
         this.$refs.videoRef.load();
