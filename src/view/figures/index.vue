@@ -155,7 +155,7 @@
               </el-tag>
             </div>
             <el-input v-model="new_tag" placeholder="多标签请使用逗号(,)分隔" v-if="inputVisible" ref="saveTagInput"
-                      @keyup.enter.native="handleInputConfirm" @blur="handleInputConfirm"></el-input>
+                      @change="handleInputConfirm"></el-input>
           </el-form-item>
         </el-form>
       </div>
@@ -277,9 +277,10 @@ export default {
     },
     tags() {
       let data = this.figureTasks.filter((item) => item.status === "success" && item.video_type === 'material');
-      return data.reduce((acc, cur) => {
+      let tagsArray = data.reduce((acc, cur) => {
         return acc.concat(cur.tag ? cur.tag.split(/[,，]/) : [])
       }, [])
+      return [...new Set(tagsArray)];
     },
     htmlContent() {
       return marked(this.detail_content);
@@ -526,6 +527,8 @@ export default {
       });
 
       if (this.response_list.length === this.materialList.length) {
+        this.beforeUploadClose()
+
         const successFiles = this.response_list.filter(item => item.status === "success").map(res => res.name);
         const failedFiles = this.response_list.filter(item => item.status === "failed");
 
