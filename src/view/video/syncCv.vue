@@ -844,7 +844,7 @@ export default {
         this.$refs.videoRef.src = preview.filepath
         this.$refs.videoRef.defaultPlaybackRate =
             parseFloat((preview.materials_duration / preview.group_duration * this.base_playback_rate)
-            .toFixed(2));
+                .toFixed(2));
         if (this.mute_materials.includes(preview.id) || preview.video_type === 'figure') {
           this.$refs.videoRef.muted = true
         }

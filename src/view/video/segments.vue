@@ -355,6 +355,11 @@ export default {
       }
       return []
     },
+    base_playback_rate() {
+      let segment_group = this.copy_list[this.activeIndex].segment_group
+      const sum_segment_group = segment_group.reduce((sum, item) => sum + item.groupDuration, 0);
+      return parseFloat((sum_segment_group / this.copy_list[this.activeIndex].audio_file_duration).toFixed(2))
+    }
   },
   methods: {
     popoverShow(params) {
@@ -835,7 +840,9 @@ export default {
         let preview = this.preview_video[index]
         this.$refs.videoRef.volume = this.media_volume;
         this.$refs.videoRef.src = preview.filepath
-        this.$refs.videoRef.defaultPlaybackRate = parseFloat((preview.materials_duration / preview.group_duration).toFixed(2));
+        this.$refs.videoRef.defaultPlaybackRate =
+            parseFloat((preview.materials_duration / preview.group_duration * this.base_playback_rate)
+                .toFixed(2));
         if (this.mute_materials.includes(preview[index].id)
             || preview[index].video_type === 'figure') {
           this.$refs.videoRef.muted = true
