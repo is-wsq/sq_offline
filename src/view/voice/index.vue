@@ -76,18 +76,19 @@
         </div>
       </div>
     </div>
-    <el-drawer title="重命名音色名称" :visible.sync="drawer" direction="rtl">
-      <div style="width: 100%; text-align: center">
-        <el-form ref="form" style="width: 70%; margin: 0 auto">
-          <el-form-item label="新名称" prop="newName">
-            <el-input v-model="newName" placeholder="请输入新名称"></el-input>
-          </el-form-item>
-          <el-form-item>
-            <el-button type="primary" @click="onSave">保存</el-button>
-          </el-form-item>
-        </el-form>
+    <el-dialog class="rename-dialog" :visible.sync="renameDialogVisible" width="32rem">
+      <div slot="title" class="rename-dialog-title">重命名音色</div>
+      <div class="rename-dialog-body">
+        <div style="margin: 10px 0 5px 0;font-size: 15px;font-weight: bold">原名称</div>
+        <el-input v-model="form.original" readonly></el-input>
+        <div style="margin: 10px 0 5px 0;font-size: 15px;font-weight: bold">新名称</div>
+        <el-input v-model="form.name"  placeholder="请输入新的视频名称"></el-input>
       </div>
-    </el-drawer>
+      <div slot="footer" class="rename-dialog-footer">
+        <el-button @click="renameDialogVisible = false" size="small">取消</el-button>
+        <el-button type="primary" @click="sureRename" size="small">确认</el-button>
+      </div>
+    </el-dialog>
     <div class="voice-footer">
       请上传格式为mp3\wav的音频进行声音克隆，建议音频时长为3分钟。请在无遮挡场景进行录制，背景选取纯色无杂物最佳，面部表情丰富，适当添加无指向性手部动作。
     </div>
@@ -109,6 +110,11 @@ export default {
       drawer: false,
       soundId: null,
       task: {},
+      renameDialogVisible: false,
+      form: {
+        original: '',
+        name: ''
+      },
     }
   },
   computed: {
@@ -157,13 +163,14 @@ export default {
     },
     rename() {
       this.soundId = this.selectedItem.id;
-      this.newName = "";
-      this.drawer = true;
+      this.form.original = this.selectedItem.name;
+      this.form.name = '';
+      this.renameDialogVisible = true;
     },
-    onSave() {
+    sureRename() {
       let params = {
         timbre_id: this.soundId,
-        name: this.newName,
+        name: this.form.name,
       };
       postAction("/timbres/update_name", params).then((res) => {
         if (res.data.status === "success") {
@@ -172,7 +179,7 @@ export default {
         } else {
           this.$alert(res.data.message, "重命名失败")
         }
-        this.drawer = false;
+        this.renameDialogVisible = false;
       }).catch((err) => {
         this.$alert(err, "重命名错误")
       });
@@ -336,5 +343,42 @@ export default {
   height: 80px;
   margin-top: 20px;
   color: #6d7177;
+}
+
+.rename-dialog >>> .el-dialog {
+  border-radius: 10px;
+}
+
+.rename-dialog-title {
+  padding: 20px 20px 10px;
+  line-height: 24px;
+  font-size: 18px;
+  color: #303133;
+  font-weight: 700;
+}
+
+.rename-dialog-body {
+  padding: 10px 20px;
+}
+
+.rename-dialog-footer {
+  padding: 10px 20px 20px;
+}
+
+.rename-dialog >>> .el-dialog__header {
+  padding: 0;
+}
+
+.rename-dialog >>> .el-dialog__close {
+  color: #9ca3af;
+  font-size: 24px;
+}
+
+.rename-dialog >>> .el-dialog__body {
+  padding: 0;
+}
+
+.rename-dialog >>> .el-dialog__footer {
+  padding: 0;
 }
 </style>
