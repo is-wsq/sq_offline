@@ -111,9 +111,9 @@
     <el-dialog class="detail-dialog" title="素材分析结果" :visible.sync="detailDialogVisible" width="640px">
       <div v-html="htmlContent" class="markdown-content"></div>
     </el-dialog>
-    <el-dialog class="upload-dialog" :visible.sync="uploadDialogVisible" width="32rem"
-               title="上传素材" :before-close="beforeUploadClose">
-      <div @mousedown.stop="">
+    <el-dialog class="upload-dialog" :visible.sync="uploadDialogVisible" width="32rem" :before-close="beforeUploadClose">
+      <div slot="title" class="upload-dialog-title" @mousedown.stop="">上传素材</div>
+      <div class="upload-dialog-body" @mousedown.stop="">
         <el-form ref="uploadForm" label-position="top" label-width="80px" :model="uploadData">
           <el-form-item label="">
             <el-upload
@@ -154,15 +154,15 @@
                 {{ tag }}
               </el-tag>
             </div>
-            <el-input v-model="new_tag" placeholder="多标签请使用逗号(,)分隔" v-if="inputVisible" ref="saveTagInput"
+            <el-input v-model="new_tag" placeholder="多标签请使用逗号(,)分隔;输入完成后按回车创建" v-if="inputVisible" ref="saveTagInput"
                       @change="handleInputConfirm"></el-input>
           </el-form-item>
         </el-form>
       </div>
-      <span slot="footer" class="dialog-footer">
+      <div slot="footer" class="upload-dialog-footer" @mousedown.stop="">
         <el-button @click="uploadDialogVisible = false" size="small">取消</el-button>
         <el-button type="primary" @click="handleSubmit" size="small">确认上传</el-button>
-      </span>
+      </div>
     </el-dialog>
     <el-dialog class="preview-dialog" :visible.sync="dialogVisible" :before-close="beforeClose"
                :width="aspectRatio > 1? '640px' : '390px'">
@@ -317,8 +317,12 @@ export default {
       let inputValue = this.new_tag;
       if (inputValue) {
         inputValue.split(/[,，]/).forEach(tag => {
-          this.show_tags.push(tag)
-          this.activeTags.push(tag)
+          if (!this.tags.includes(tag) && !this.show_tags.includes(tag)) {
+            this.show_tags.push(tag)
+          }
+          if (!this.activeTags.includes(tag)) {
+            this.activeTags.push(tag)
+          }
         })
       }
       this.inputVisible = false;
@@ -363,12 +367,10 @@ export default {
     handleSubmit() {
       let files = this.$refs.materialUpload.uploadFiles || []
       if (files.length === 0) {
-        // this.$message.warning('请选择至少一个素材视频文件上传。');
         this.$alert('请选择一个视频文件作为数字人素材。','上传素材')
         return;
       }
       if (!this.uploadData.store_id) {
-        // this.$message.warning('请必须选择一个关联店铺！');
         this.$alert('请必须选择一个关联店铺！','上传素材')
         return;
       }
@@ -808,8 +810,24 @@ export default {
   border-radius: 10px;
 }
 
-.upload-dialog >>> .el-dialog__title {
+.upload-dialog-title {
+  padding: 20px 20px 10px;
+  line-height: 24px;
+  font-size: 18px;
+  color: #303133;
   font-weight: 700;
+}
+
+.upload-dialog-body {
+  padding: 10px 20px;
+}
+
+.upload-dialog-footer {
+  padding: 10px 20px 20px;
+}
+
+.upload-dialog >>> .el-dialog__header {
+  padding: 0;
 }
 
 .upload-dialog >>> .el-dialog__close {
@@ -818,7 +836,11 @@ export default {
 }
 
 .upload-dialog >>> .el-dialog__body {
-  padding: 10px 20px !important;
+  padding: 0;
+}
+
+.upload-dialog >>> .el-dialog__footer {
+  padding: 0;
 }
 
 .material-uploader >>> .el-upload {
