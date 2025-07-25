@@ -39,6 +39,7 @@
         </div>
         <div v-for="(video, index) in filter_hots" :key="index" @click="selectVideo(video)"
              :class="{ 'video-active': select_hots.id === video.id }" class="video-card"
+             @contextmenu.stop="handleRightClick(video, $event)"
              @mouseleave="video.isHover = false" @mouseenter="video.isHover = true">
           <el-tag size="mini" v-if="video.category" class="video-tag"
                   :style="{ backgroundColor: classifies.find(item => item.name === video.category).color }">
@@ -46,10 +47,6 @@
           </el-tag>
           <div class="selection-tick" v-if="select_hots.id === video.id">
             <i class="el-icon-check" style="padding: 2px"></i>
-          </div>
-          <div class="delete-hot-btn">
-            <i class="el-icon-close" style="font-weight: bold"
-               @click="removeHot(video.id)"></i>
           </div>
           <template v-if="!video.isHover">
             <el-image class="hot-img" :src="video.picture" fit="cover"></el-image>
@@ -67,6 +64,16 @@
               </div>
             </div>
           </template>
+        </div>
+        <div :style="menuStyle" v-if="rightMenuVisible" style="padding: 8px 12px">
+          <div class="material-function" @click="rename">
+            <i class="el-icon-edit-outline menu-icon"></i>
+            重命名
+          </div>
+          <div class="material-function" @click="removeHot">
+            <i class="el-icon-delete-solid menu-icon"></i>
+            删除
+          </div>
         </div>
       </div>
     </div>
@@ -114,6 +121,16 @@
         <el-button type="primary" @click="handleSubmit" size="small">确认上传</el-button>
       </span>
     </el-dialog>
+    <el-dialog class="upload-dialog" :visible.sync="renameDialogVisible" width="32rem" title="重命名视频名称">
+      <div style="margin: 10px 0 5px 0;font-size: 15px;font-weight: bold">原名称</div>
+      <el-input v-model="form.original" readonly></el-input>
+      <div style="margin: 10px 0 5px 0;font-size: 15px;font-weight: bold">新名称</div>
+      <el-input v-model="form.name"  placeholder="请输入新的视频名称"></el-input>
+      <span slot="footer" class="dialog-footer">
+        <el-button @click="renameDialogVisible = false" size="small">取消</el-button>
+        <el-button type="primary" @click="sureRename" size="small">确认</el-button>
+      </span>
+    </el-dialog>
   </div>
 </template>
 
@@ -153,6 +170,23 @@ export default {
       dotCount: 1,
       dotTimer: null,
       dot: '.',
+      menuStyle: {
+        position: 'fixed',
+        top: '0',
+        left: '0',
+        border: '1px solid #eee',
+        'border-radius': '6px',
+        'background-color': '#fff',
+        'z-index': 9999
+      },
+      rightMenuVisible: false,
+      rightItem: {},
+      renameDialogVisible: false,
+      form: {
+        original: '',
+        name: ''
+      },
+      renameId: ''
     }
   },
   mounted() {
@@ -201,13 +235,51 @@ export default {
       this.select_hots = item
       sessionStorage.setItem('select_hots', JSON.stringify(this.select_hots))
     },
-    removeHot(id) {
+    handleRightClick(item, event) {
+      event.preventDefault();
+      this.rightItem = item
+      this.rightMenuVisible = true;
+      this.menuStyle.left = event.clientX + 'px'
+      this.menuStyle.top = event.clientY + 'px'
+      document.body.addEventListener("click", this.bodyClick);
+    },
+    bodyClick() {
+      this.rightMenuVisible = false;
+      this.rightItem = {}
+      document.body.removeEventListener("click", this.bodyClick);
+    },
+    rename() {
+      this.form.original = this.rightItem.name
+      this.form.name = ''
+      this.renameId = this.rightItem.id
+      this.renameDialogVisible = true
+    },
+    sureRename() {
+      let params = {
+        figure_id: this.renameId,
+        name: this.form.name  ,
+      };
+      postAction("/figure/update_name", params).then((res) => {
+        if (res.data.status === "success") {
+          this.$message.success("重命名成功");
+          this.queryHots()
+        } else {
+          this.$alert(res.data.message,'重命名失败')
+        }
+        this.renameDialogVisible = false;
+      }).catch((err) => {
+        this.$alert(err,'重命名错误')
+      });
+    },
+    removeHot() {
+      this.deleteId = this.rightItem.id
       this.$confirm('此操作将删除该爆款视频, 是否继续?', '删除爆款视频', {
         type: 'warning'
       }).then(() => {
-        delAction("/figure/delete", {ids: id}).then((res) => {
+        delAction("/figure/delete", {ids: this.deleteId}).then((res) => {
           if (res.data.status === "success") {
             this.$message.success("删除成功");
+            this.queryHots()
           } else {
             this.$alert(res.data.message, "删除失败")
           }
