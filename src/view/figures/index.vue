@@ -50,9 +50,12 @@
         <div style="margin-bottom: 10px;font-weight: bold">形象</div>
         <div class="figures-list">
           <div v-for="item in processTasks" :key="item.id">
-            <div class="image-wrapper shining">
-              <el-image style="width: 120px; height: 158px; border-radius: 8px;filter: blur(15px);opacity: 0.8"
-                        :src="require('/public/images/4.jpg')" fit="cover">
+            <div class="figure-image-wrapper shining">
+              <el-image
+                  class="figures-img"
+                  style="filter: blur(15px);opacity: 0.8"
+                  :src="require('/public/images/4.jpg')"
+                  fit="cover">
               </el-image>
               <div class="shine-layer"></div>
               <div class="figure-progress">
@@ -178,18 +181,19 @@
         </div>
       </div>
     </el-dialog>
-    <el-drawer title="重命名形象名称" :visible.sync="drawer" direction="rtl">
-      <div style="width: 100%; text-align: center">
-        <el-form ref="form" style="width: 70%; margin: 0 auto">
-          <el-form-item label="新名称" prop="newName">
-            <el-input v-model="newName" placeholder="请输入新名称"></el-input>
-          </el-form-item>
-          <el-form-item>
-            <el-button type="primary" @click="onSave">保存</el-button>
-          </el-form-item>
-        </el-form>
+    <el-dialog class="upload-dialog" :visible.sync="renameDialogVisible" width="32rem">
+      <div slot="title" class="upload-dialog-title" @mousedown.stop="">重命名</div>
+      <div class="upload-dialog-body" @mousedown.stop="">
+        <div style="margin: 10px 0 5px 0;font-size: 15px;font-weight: bold">原名称</div>
+        <el-input v-model="form.original" readonly></el-input>
+        <div style="margin: 10px 0 5px 0;font-size: 15px;font-weight: bold">新名称</div>
+        <el-input v-model="form.name"  placeholder="请输入新的视频名称"></el-input>
       </div>
-    </el-drawer>
+      <div slot="footer" class="upload-dialog-footer" @mousedown.stop="">
+        <el-button @click="renameDialogVisible = false" size="small">取消</el-button>
+        <el-button type="primary" @click="sureRename" size="small">确认</el-button>
+      </div>
+    </el-dialog>
     <div class="figures-footer">
       上传的视频文件格式需为:mp4、mov、MP4、MOV格式；上传的视频文件的时长最少应不低于30秒，建议不超过90秒；上传的视频内容必须符合规范，包含单个人物形象，脸部无遮挡；容量小的原始视频（建议50-100M左右）有利于提高模型速度。
     </div>
@@ -246,6 +250,12 @@ export default {
       activeTags: [],
       new_tag: '',
       inputVisible: false,
+
+      renameDialogVisible: false,
+      form: {
+        original: '',
+        name: ''
+      },
     };
   },
   watch: {
@@ -392,13 +402,14 @@ export default {
     },
     rename() {
       this.figureId = this.selectedItem.id;
-      this.newName = "";
-      this.drawer = true;
+      this.form.original = this.selectedItem.name;
+      this.form.name = '';
+      this.renameDialogVisible = true;
     },
-    onSave() {
+    sureRename() {
       let params = {
         figure_id: this.figureId,
-        name: this.newName,
+        name: this.form.name,
       };
       postAction("/figure/update_name", params).then((res) => {
         if (res.data.status === "success") {
@@ -407,7 +418,7 @@ export default {
         } else {
           this.$alert(res.data.message,'重命名失败')
         }
-        this.drawer = false;
+        this.renameDialogVisible = false;
       }).catch((err) => {
         this.$alert(err,'重命名错误')
       });
