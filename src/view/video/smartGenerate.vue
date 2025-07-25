@@ -270,12 +270,13 @@ export default {
           break
       }
       const cleanTexts = this.exampleTexts.map(text => text.trim()).filter(text => text !== '');
+      const store_id = this.script_type === 'material' ? this.mention_list[0].store_id : ''
       let params = {
         examples: cleanTexts,
         requirements: this.copy_require,
         num_of_words: parseInt(this.copy_num),
         script_count: parseInt(this.script_num),
-        store_id: this.mention_list[0].store_id
+        store_id: store_id
       }
       this.loading = this.$loading({
         lock: true, text: '文案生成中，请耐心等待...',
