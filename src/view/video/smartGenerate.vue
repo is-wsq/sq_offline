@@ -340,6 +340,14 @@ export default {
       this.new_content = this.copy_list[index].content
     },
     saveCopy(index) {
+      if (this.new_title === '') {
+        this.$alert('请输入文案标题', '提示')
+        return
+      }
+      if (this.new_content === '' && !this.copy_list[index].duration) {
+        this.$alert('请输入文案内容', '提示')
+        return;
+      }
       this.copy_list[index].isEdit = false;
       this.copy_list[index].title = this.new_title;
       this.copy_list[index].content = this.new_content;
