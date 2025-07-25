@@ -179,6 +179,7 @@ export default {
           this.hot_copy_list = this.hot_copy_list.concat(res.data.data.map(
               item => ({title: item.title, content: item.script, isEdit: false, bgm: this.material_bgm})))
           sessionStorage.setItem("hot_copy_list", JSON.stringify(this.hot_copy_list))
+          sessionStorage.removeItem('hot_montage_data')
         } else {
           this.$alert(res.data.message,'文案生成失败')
         }
@@ -198,6 +199,7 @@ export default {
       this.hot_copy_list[index].title = this.new_title;
       this.hot_copy_list[index].content = this.new_content;
       sessionStorage.setItem("hot_copy_list", JSON.stringify(this.hot_copy_list));
+      sessionStorage.removeItem('hot_montage_data')
     },
     removeCopy(index) {
       this.$confirm('确认删除该文案吗？', '提示', {
@@ -205,6 +207,7 @@ export default {
       }).then(() => {
         this.hot_copy_list.splice(index, 1);
         sessionStorage.setItem("hot_copy_list", JSON.stringify(this.hot_copy_list))
+        sessionStorage.removeItem('hot_montage_data')
       }).catch((err) => {
         this.$message({type: 'info', message: '已取消删除'});
       });

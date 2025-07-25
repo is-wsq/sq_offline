@@ -520,7 +520,11 @@ export default {
         this.loadVideo(this.currentIndex);
         this.loadAudio()
       })
-      sessionStorage.setItem("montage_data", JSON.stringify(this.montage_data))
+      if (this.nextType === 'hot_montage') {
+        sessionStorage.setItem("hot_montage_data", JSON.stringify(this.montage_data))
+      } else {
+        sessionStorage.setItem("montage_data", JSON.stringify(this.montage_data))
+      }
     },
     pushShot(index, group_index, val) {
       this.$nextTick(() => {
@@ -538,7 +542,11 @@ export default {
         this.loadVideo(this.currentIndex);
         this.loadAudio()
       })
-      sessionStorage.setItem("montage_data", JSON.stringify(this.montage_data))
+      if (this.nextType === 'hot_montage') {
+        sessionStorage.setItem("hot_montage_data", JSON.stringify(this.montage_data))
+      } else {
+        sessionStorage.setItem("montage_data", JSON.stringify(this.montage_data))
+      }
     },
     removeShot(index, group_index, shot_index) {
       this.$confirm('确认删除该分镜吗？', '提示', {
@@ -552,7 +560,11 @@ export default {
             this.loadAudio()
           })
         }
-        sessionStorage.setItem("montage_data", JSON.stringify(this.montage_data))
+        if (this.nextType === 'hot_montage') {
+          sessionStorage.setItem("hot_montage_data", JSON.stringify(this.montage_data))
+        } else {
+          sessionStorage.setItem("montage_data", JSON.stringify(this.montage_data))
+        }
       }).catch((err) => {
         this.$message({type: 'info', message: '已取消删除'});
       });
@@ -644,13 +656,14 @@ export default {
         this.copy_list = JSON.parse(sessionStorage.getItem("hot_copy_list")).map(item => ({
           ...item, isHover: false,
         }))
+        this.montage_data = JSON.parse(sessionStorage.getItem("hot_montage_data")) || []
       } else {
         this.copy_list = JSON.parse(sessionStorage.getItem("copy_list")).map(item => ({
           ...item, isHover: false,
         }))
+        this.montage_data = JSON.parse(sessionStorage.getItem("montage_data")) || []
       }
 
-      this.montage_data = JSON.parse(sessionStorage.getItem('montage_data')) || []
       this.already_generated = this.montage_data.length > 0
       if (this.montage_data.length > 0) {
         this.already_generated = true
@@ -763,7 +776,11 @@ export default {
         if (res.data.status === 'success') {
           this.montage_data = res.data.data
           this.already_generated = true
-          sessionStorage.setItem("montage_data", JSON.stringify(this.montage_data))
+          if (this.nextType === 'hot_montage') {
+            sessionStorage.setItem("hot_montage_data", JSON.stringify(this.montage_data))
+          } else {
+            sessionStorage.setItem("montage_data", JSON.stringify(this.montage_data))
+          }
           this.activeIndex = 0
           this.currentIndex = 0
           this.loading.close();
@@ -941,7 +958,11 @@ export default {
       }).then(() => {
         if (this.already_generated) {
           this.montage_data.splice(index, 1)
-          sessionStorage.setItem("montage_data", JSON.stringify(this.montage_data))
+          if (this.nextType === 'hot_montage') {
+            sessionStorage.setItem("hot_montage_data", JSON.stringify(this.montage_data))
+          } else {
+            sessionStorage.setItem("montage_data", JSON.stringify(this.montage_data))
+          }
           return
         }
         this.copy_list.splice(index, 1)

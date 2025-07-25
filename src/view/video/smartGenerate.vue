@@ -213,6 +213,7 @@ export default {
         }))
       ];
       sessionStorage.setItem("copy_list", JSON.stringify(this.copy_list));
+      sessionStorage.removeItem('montage_data')
     },
     saveSetting() {
       this.validateNum()
@@ -248,9 +249,13 @@ export default {
       this.saveSetting()
     },
     initData() {
-      this.copy_list = sessionStorage.getItem("copy_list") ? JSON.parse(sessionStorage.getItem("copy_list")) : []
       this.mention_list = JSON.parse(sessionStorage.getItem('mention_list')) || []
       this.script_type = sessionStorage.getItem("script_type")
+      if (this.script_type === 'material') {
+        this.copy_list = sessionStorage.getItem("copy_list") ? JSON.parse(sessionStorage.getItem("copy_list")) : []
+      } else {
+        this.copy_list = sessionStorage.getItem("figure_copy_list") ? JSON.parse(sessionStorage.getItem("figure_copy_list")) : []
+      }
       let smart_generate_setting = JSON.parse(sessionStorage.getItem("smart_generate_setting")) || {}
       this.copy_require = smart_generate_setting.copy_require || ''
       this.exampleTexts = smart_generate_setting.exampleTexts || ['']
@@ -288,7 +293,12 @@ export default {
         if (res.data.status === "success") {
           this.copy_list = this.copy_list.concat(res.data.data.map(
               item => ({title: item.title, content: item.script, isEdit: false, bgm: this.material_bgm})))
-          sessionStorage.setItem("copy_list", JSON.stringify(this.copy_list))
+          if (this.script_type === 'material') {
+            sessionStorage.setItem("copy_list", JSON.stringify(this.copy_list))
+            sessionStorage.removeItem('montage_data')
+          }else {
+            sessionStorage.setItem("figure_copy_list", JSON.stringify(this.copy_list))
+          }
         } else {
           this.$alert(res.data.message,'文案生成失败')
         }
@@ -315,7 +325,12 @@ export default {
       });
       this.copy_title = '';
       this.copy_content = '';
-      sessionStorage.setItem("copy_list", JSON.stringify(this.copy_list))
+      if (this.script_type === 'material') {
+        sessionStorage.setItem("copy_list", JSON.stringify(this.copy_list))
+        sessionStorage.removeItem('montage_data')
+      }else {
+        sessionStorage.setItem("figure_copy_list", JSON.stringify(this.copy_list))
+      }
     },
     showEdit(index) {
       this.copy_list.forEach((copy, i) => {
@@ -328,14 +343,24 @@ export default {
       this.copy_list[index].isEdit = false;
       this.copy_list[index].title = this.new_title;
       this.copy_list[index].content = this.new_content;
-      sessionStorage.setItem("copy_list", JSON.stringify(this.copy_list));
+      if (this.script_type === 'material') {
+        sessionStorage.setItem("copy_list", JSON.stringify(this.copy_list))
+        sessionStorage.removeItem('montage_data')
+      }else {
+        sessionStorage.setItem("figure_copy_list", JSON.stringify(this.copy_list))
+      }
     },
     removeCopy(index) {
       this.$confirm('确认删除该文案吗？', '提示', {
         type: 'warning'
       }).then(() => {
         this.copy_list.splice(index, 1);
-        sessionStorage.setItem("copy_list", JSON.stringify(this.copy_list))
+        if (this.script_type === 'material') {
+          sessionStorage.setItem("copy_list", JSON.stringify(this.copy_list))
+          sessionStorage.removeItem('montage_data')
+        }else {
+          sessionStorage.setItem("figure_copy_list", JSON.stringify(this.copy_list))
+        }
       }).catch((err) => {
         this.$message({type: 'info', message: '已取消删除'});
       });
