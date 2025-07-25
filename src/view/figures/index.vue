@@ -425,11 +425,11 @@ export default {
     },
     deleteItem() {
       let ids = this.selected_materials;
-      let msg = '此操作将删除该素材, 是否继续?'
+      let msg = '此操作将删除该素材/形象, 是否继续?'
       if (ids.length > 1) {
         msg = `确定要删除这${ids.length}个素材吗？ 删除后将无法恢复`
       }
-      this.$confirm(msg, '删除素材', {
+      this.$confirm(msg, '删除素材/形象', {
         type: 'warning'
       }).then(() => {
         delAction("/figure/delete", {ids: ids.join(',')}).then((res) => {
