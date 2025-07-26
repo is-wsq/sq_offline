@@ -30,50 +30,41 @@
                 <el-input prefix-icon="el-icon-search" placeholder="输入素材名称、标签匹配搜索" clearable
                           class="filter-input" v-model="filter_text" @change="filterMaterials"></el-input>
               </div>
-              <div style="display: flex">
-                <div class="tags">
-                  <el-tag v-for="(tag, index) in tags" :key="index" size="small" class="tag"
-                          :class="{ 'tag-active': activeTags.includes(tag) }" @click="selectTag(tag)">
-                    {{ tag }}
-                  </el-tag>
-                </div>
-                <el-popover
-                    placement="bottom"
-                    v-model="showFullTags"
-                    popper-class="full-popover"
-                    @show="popoverShow"
-                    trigger="click">
-                  <div class="full-tags">
+              <div style="display: flex;flex-direction: column;height: calc(100vh - 280px)">
+                <div style="display: flex">
+                  <div class="tags" :class="{'show-tags': showFullTags }">
                     <el-tag v-for="(tag, index) in tags" :key="index" size="small" class="tag"
                             :class="{ 'tag-active': activeTags.includes(tag) }" @click="selectTag(tag)">
                       {{ tag }}
                     </el-tag>
                   </div>
-                  <i class="el-icon-arrow-right full-tags-icon" slot="reference" v-if="!showFullTags"></i>
-                  <i class="el-icon-arrow-down full-tags-icon" slot="reference" v-else></i>
-                </el-popover>
-              </div>
-              <div class="m-card" ref="videoGrid">
-                <div class="m-item" v-for="item in filter_materials" :key="item.id"
-                     @mousedown="onVideoItemMouseDown"
-                     @click="selectMaterial(item, $event)"
-                     ref="videoItems">
-                  <el-image class="m-item-img" :class="{'m-img-selected': material_list.includes(item.id) }"
-                            :src="item.picture" fit="cover" lazy></el-image>
-                  <div class="flex-center">
-                    <div class="m-item-title" :class="{'m-title-selected': material_list.includes(item.id) }"
-                         :title="item.name">{{ item.name }}
+                  <i class="el-icon-arrow-right full-tags-icon" slot="reference"
+                     v-if="!showFullTags" @click="showFullTags = true"></i>
+                  <i class="el-icon-arrow-down full-tags-icon" slot="reference"
+                     v-else @click="showFullTags = false"></i>
+                </div>
+                <div class="m-card" ref="videoGrid">
+                  <div class="m-item" v-for="item in filter_materials" :key="item.id"
+                       @mousedown="onVideoItemMouseDown"
+                       @click="selectMaterial(item, $event)"
+                       ref="videoItems">
+                    <el-image class="m-item-img" :class="{'m-img-selected': material_list.includes(item.id) }"
+                              :src="item.picture" fit="cover" lazy></el-image>
+                    <div class="flex-center">
+                      <div class="m-item-title" :class="{'m-title-selected': material_list.includes(item.id) }"
+                           :title="item.name">{{ item.name }}
+                      </div>
+                      <i class="el-icon-shengyin_fill"
+                         style="font-size: 16px; color: #6286ed;"
+                         @click.stop="addMute(item.id)"
+                         v-if="!mute_materials.includes(item.id)">
+                      </i>
+                      <i class="el-icon-jingyin_fill"
+                         style="font-size: 16px; color: #6286ed;"
+                         @click.stop="removeMute(item.id)"
+                         v-else>
+                      </i>
                     </div>
-                    <i class="el-icon-shengyin_fill"
-                       style="font-size: 16px; color: #6286ed;"
-                       @click.stop="addMute(item.id)"
-                       v-if="!mute_materials.includes(item.id)">
-                    </i>
-                    <i class="el-icon-jingyin_fill"
-                       style="font-size: 16px; color: #6286ed;"
-                       @click.stop="removeMute(item.id)"
-                       v-else>
-                    </i>
                   </div>
                 </div>
               </div>
@@ -83,13 +74,15 @@
                 <el-input prefix-icon="el-icon-search" placeholder="输入素材名称、标签匹配搜索" clearable
                           class="filter-input" v-model="figure_filter_text" @change="filterFigure"></el-input>
               </div>
-              <div class="m-card">
-                <div class="m-item" v-for="item in filter_figures" :key="item.id" @click="selectFigure(item)">
-                  <el-image class="m-item-img" :class="{'m-img-selected': item.id === figure.id }"
-                            :src="item.picture" fit="cover"></el-image>
-                  <div style="display: flex">
-                    <div class="m-item-title" :class="{'m-title-selected': item.id === figure.id }"
-                         :title="item.name">{{ item.name }}
+              <div style="max-height: calc(100vh - 320px);border: 1px solid red;display: flex">
+                <div class="m-card">
+                  <div class="m-item" v-for="item in filter_figures" :key="item.id" @click="selectFigure(item)">
+                    <el-image class="m-item-img" :class="{'m-img-selected': item.id === figure.id }"
+                              :src="item.picture" fit="cover"></el-image>
+                    <div style="display: flex">
+                      <div class="m-item-title" :class="{'m-title-selected': item.id === figure.id }"
+                           :title="item.name">{{ item.name }}
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -1218,7 +1211,7 @@ export default {
 }
 
 .m-card {
-  max-height: calc(100vh - 340px);
+  flex: 1;
   display: grid;
   gap: 15px;
   background-color: #FFFFFF;
@@ -1226,7 +1219,6 @@ export default {
   grid-auto-rows: min-content;
   position: relative;
   cursor: pointer;
-  margin-bottom: 15px;
   margin-top: 5px;
   overflow-y: auto;
   overflow-x: hidden;
@@ -1591,6 +1583,10 @@ export default {
   margin-bottom: 5px;
   margin-top: 5px;
   height: 20px;
+}
+
+.show-tags {
+  height: auto !important;
 }
 
 .tag {

@@ -893,7 +893,7 @@ export default {
   max-height: calc(100% - 200px);
   display: grid;
   gap: 15px;
-  grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
   grid-auto-rows: min-content;
   position: relative;
   cursor: pointer;
@@ -911,7 +911,7 @@ export default {
 }
 
 .figure-img:hover {
-  transform: scale(1.05);
+  transform: scale(1);
 }
 
 .figure-name {
