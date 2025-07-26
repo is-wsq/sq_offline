@@ -112,7 +112,7 @@
       </div>
     </div>
     <el-dialog class="detail-dialog" title="素材分析结果" :visible.sync="detailDialogVisible" width="640px">
-      <div v-html="htmlContent" class="markdown-content"></div>
+      <div v-html="htmlContent" class="markdown-content" @mousedown.stop=""></div>
     </el-dialog>
     <el-dialog class="upload-dialog" :visible.sync="uploadDialogVisible" width="32rem" :before-close="beforeUploadClose">
       <div slot="title" class="upload-dialog-title" @mousedown.stop="">上传素材</div>
@@ -435,6 +435,7 @@ export default {
         delAction("/figure/delete", {ids: ids.join(',')}).then((res) => {
           if (res.data.status === "success") {
             this.$message.success("删除成功");
+            this.selected_materials = []
 
             const material_list = JSON.parse(sessionStorage.getItem('material_list')) || [];
             const new_material_list = material_list.filter(item => !ids.includes(item));
@@ -805,12 +806,20 @@ export default {
   overflow: auto;
 }
 
-.detail-dialog {
-  border-radius: 8px !important;
+.detail-dialog >>> .el-dialog {
+  border-radius: 10px !important;
 }
 
 .detail-dialog >>> .el-dialog__title {
-  font-weight: bold;
+  line-height: 24px;
+  font-size: 18px;
+  color: #303133;
+  font-weight: 700;
+}
+
+.detail-dialog >>> .el-dialog__close {
+  color: #9ca3af;
+  font-size: 24px;
 }
 
 .detail-dialog >>> .el-dialog__body {
