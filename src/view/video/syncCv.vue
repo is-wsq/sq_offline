@@ -360,7 +360,7 @@ export default {
     base_playback_rate() {
       let segment_group = this.copy_list[this.activeIndex].segment_group
       const sum_segment_group = segment_group.reduce((sum, item) => sum + item.groupDuration, 0);
-      return parseFloat((sum_segment_group / this.copy_list[this.activeIndex].audio_file_duration).toFixed(2))
+      return sum_segment_group / this.copy_list[this.activeIndex].audio_file_duration
     }
   },
   methods: {
@@ -840,15 +840,13 @@ export default {
       if (index >= 0 && index < this.preview_video.length) {
         this.currentIndex = index;
         let preview = this.preview_video[index]
-        this.$refs.videoRef.volume = this.media_volume;
         this.$refs.videoRef.src = preview.filepath
-        this.$refs.videoRef.defaultPlaybackRate =
-            parseFloat((preview.materials_duration / preview.group_duration * this.base_playback_rate)
-                .toFixed(2));
+        this.$refs.videoRef.load();
+        this.$refs.videoRef.volume = this.media_volume;
+        this.$refs.videoRef.playbackRate = preview.materials_duration / preview.group_duration * this.base_playback_rate;
         if (this.mute_materials.includes(preview.id) || preview.video_type === 'figure') {
           this.$refs.videoRef.muted = true
         }
-        this.$refs.videoRef.load();
         this.playVideo();
       }
     },

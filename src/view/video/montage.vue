@@ -391,9 +391,9 @@ export default {
       return []
     },
     video_file_duration() {
-      return parseFloat(this.preview_video.reduce((acc, material) => {
+      return this.preview_video.reduce((acc, material) => {
         return acc + (material.duration || 0);
-      }, 0)).toFixed(2);
+      }, 0);
     }
   },
   beforeDestroy() {
@@ -979,14 +979,14 @@ export default {
     loadVideo(index) {
       if (index >= 0 && index < this.preview_video.length) {
         this.currentIndex = index;
-        this.$refs.videoRef.volume = this.media_volume;
         this.$refs.videoRef.src = this.preview_video[index].filepath
-        this.$refs.videoRef.defaultPlaybackRate = parseFloat((this.video_file_duration / this.audio_file_duration).toFixed(2));
+        this.$refs.videoRef.load();
+        this.$refs.videoRef.volume = this.media_volume;
+        this.$refs.videoRef.playbackRate = this.video_file_duration / this.audio_file_duration;
         if (this.mute_materials.includes(this.preview_video[index].id)
             || this.preview_video[index].video_type === 'figure') {
           this.$refs.videoRef.muted = true
         }
-        this.$refs.videoRef.load();
         this.playVideo();
       }
     },
