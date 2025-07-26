@@ -1335,7 +1335,8 @@ export default {
   background-color: #f9f9f9;
   border: 1px solid #DCDFE6;
   border-radius: 4px;
-  max-height: 120px;
+  max-height: 200px;
+  width: 100%;
   overflow-y: auto;
   box-sizing: border-box;
 }

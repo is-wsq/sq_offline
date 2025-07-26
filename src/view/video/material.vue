@@ -74,7 +74,7 @@
                 <el-input prefix-icon="el-icon-search" placeholder="输入素材名称、标签匹配搜索" clearable
                           class="filter-input" v-model="figure_filter_text" @change="filterFigure"></el-input>
               </div>
-              <div style="max-height: calc(100vh - 320px);border: 1px solid red;display: flex">
+              <div style="max-height: calc(100vh - 320px);display: flex">
                 <div class="m-card">
                   <div class="m-item" v-for="item in filter_figures" :key="item.id" @click="selectFigure(item)">
                     <el-image class="m-item-img" :class="{'m-img-selected': item.id === figure.id }"
