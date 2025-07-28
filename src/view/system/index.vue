@@ -64,12 +64,24 @@
         <div style="margin-top: 20px;font-size: 14px;color: #000000;">使用手机微信扫一扫，添加客服微信</div>
       </div>
     </el-dialog>
-    <el-dialog class="bill-dialog" title="账单详情" :visible.sync="billVisible" width="50%">
-      <el-table :data="gridData" stripe height="400">
-        <el-table-column property="model" label="model"></el-table-column>
+    <el-dialog class="bill-dialog" title="账单详情" :visible.sync="billVisible" width="800px">
+      <el-table :data="gridData" stripe height="300">
+        <el-table-column property="model" label="function_name"></el-table-column>
         <el-table-column property="expend" label="消耗Token" width="200" align="right"></el-table-column>
         <el-table-column property="residue" label="剩余Token" width="200" align="right"></el-table-column>
       </el-table>
+      <div style="text-align: right;">
+        <el-pagination
+            @size-change="handleSizeChange"
+            @current-change="handleCurrentChange"
+            :current-page="iPagination.currentPage"
+            :page-sizes="iPagination.pageSizes"
+            :page-size="iPagination.pageSize"
+            :total="iPagination.total"
+            :pager-count="iPagination.pagerCount"
+            layout="total, sizes, prev, pager, next, jumper">
+        </el-pagination>
+      </div>
     </el-dialog>
     <el-dialog class="top-up-dialog" title="账户充值" :visible.sync="topUpVisible" width="800px">
       <el-form :model="rechargeForm" :rules="rules" ref="rechargeFormRef" label-width="100px">
@@ -86,15 +98,15 @@
 
         <el-form-item label="支付方式" prop="paymentMethod">
           <el-radio-group v-model="rechargeForm.paymentMethod" @change="loadQrCode">
-            <el-radio :label="'alipay'">
-              <i class="el-icon-alipay"></i> 支付宝
-            </el-radio>
-            <el-radio :label="'wechat'">
+<!--            <el-radio label="alipay">-->
+<!--              <i class="el-icon-alipay"></i> 支付宝-->
+<!--            </el-radio>-->
+            <el-radio label="wechat">
               <i class="el-icon-wechat"></i> 微信支付
             </el-radio>
-            <el-radio :label="'unionpay'">
-              <i class="el-icon-credit-card"></i> 银联支付
-            </el-radio>
+<!--            <el-radio label="unionpay">-->
+<!--              <i class="el-icon-credit-card"></i> 银联支付-->
+<!--            </el-radio>-->
           </el-radio-group>
         </el-form-item>
         <el-form-item>
@@ -112,9 +124,11 @@
 <script>
 import {getAction} from "@/api/api";
 import axios from "axios";
+import {IPaginationMixin} from "@/mixins/IPaginationMixin";
 
 export default {
   name: 'system',
+  mixins: [IPaginationMixin],
   data() {
     return {
       dialogVisible: false,
@@ -125,14 +139,12 @@ export default {
       billVisible: false,
       topUpVisible: false,
       qr_loading: true,
-      // 充值表单
       rechargeForm: {
         amount: 0,
-        paymentMethod: 'alipay',
+        paymentMethod: 'wechat',
         couponId: 0
       },
 
-      // 表单验证规则
       rules: {
         amount: [
           { required: true, message: '请输入充值金额', trigger: 'blur' },
@@ -143,15 +155,7 @@ export default {
         ]
       },
 
-      // 快捷金额选项
       quickAmounts: [10, 50, 100, 200, 500, 1000],
-
-      // 可用优惠券
-      availableCoupons: [
-        { id: 1, name: '满50减5', discount: 5 },
-        { id: 2, name: '满100减15', discount: 15 },
-        { id: 3, name: '满200减30', discount: 30 }
-      ],
       gridData: [{
         model: '生成数字人口播视频',
         expend: '154',
@@ -181,12 +185,36 @@ export default {
         if (res.data.status === 'success') {
           this.info = res.data.data
           this.percentage = (this.info.remaining_tokens / this.info.total_tokens) * 100
+          this.getBill()
         } else {
           this.$message.error(res.data.message)
         }
       }).catch(err => {
         console.log(err)
       })
+    },
+    getBill() {
+      let params = {
+        pageSize: this.iPagination.pageSize,
+        currentPage: this.iPagination.currentPage
+      }
+      axios.get('http://127.0.0.1:9669/get_api_call_log',{ params: params }).then(res => {
+        if (res.data.status === 'success') {
+          this.gridData = res.data.data.bill || []
+          this.iPagination.total = res.data.data.total || 0
+        }else {
+          this.$message.error(res.data.message)
+        }
+      })
+    },
+    handleSizeChange(val) {
+      this.iPagination.currentPage = 1
+      this.iPagination.pageSize = val
+      this.getBill()
+    },
+    handleCurrentChange(val) {
+      this.iPagination.currentPage = val
+      this.getBill()
     },
     setAmount(amount) {
       this.rechargeForm.amount = amount;
@@ -201,11 +229,10 @@ export default {
     resetForm() {
       this.$refs.rechargeFormRef.resetFields();
       this.rechargeForm.amount = 0;
-      this.rechargeForm.paymentMethod = 'alipay';
+      this.rechargeForm.paymentMethod = 'wechat';
       this.rechargeForm.couponId = 0;
     },
     topUp() {
-      // this.$alert('充值功能暂未开放，充值请通过下方联系客服充值。', '提示')
       this.topUpVisible = true
       this.$nextTick(() => {
         this.resetForm()
