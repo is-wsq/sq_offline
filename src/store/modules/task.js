@@ -49,7 +49,7 @@ const actions = {
                             title: "形象克隆成功",
                             message: `《${figure.name}》形象克隆任务已完成`,
                             type: "success",
-                            duration: 20000
+                            duration: 5000
                         });
                     }
                     if (prev === "ready" && figure.status === "failed") {
@@ -65,7 +65,7 @@ const actions = {
                             title: "素材上传成功",
                             message: `《${figure.name}》素材上传任务已完成`,
                             type: "success",
-                            duration: 20000
+                            duration: 5000
                         });
                     }
                     if (prev === "pending" && figure.status === "failed") {
@@ -100,7 +100,7 @@ const actions = {
                             title: "语音合成成功",
                             message: `《${voice.name}》语音合成任务已完成`,
                             type: "success",
-                            duration: 20000
+                            duration: 5000
                         });
                     }else if (prev === "pending" && voice.status === "failed") {
                         Vue.prototype.$notify({
@@ -138,7 +138,7 @@ const actions = {
                             title: "视频生成成功",
                             message: `《${video.filename}》视频生成任务已完成`,
                             type: "success",
-                            duration: 20000
+                            duration: 5000
                         });
 
                         let downloadPath = localStorage.getItem('downloadPath') || 'C:\\offline'
