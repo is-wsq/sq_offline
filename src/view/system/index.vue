@@ -9,7 +9,7 @@
             <div class="token-label">剩余Tokens</div>
             <div style="display: flex">
               <div class="token-value">{{ info.remaining_tokens || 0 }}</div>
-              <div class="token-history" @click="billVisible = true">账单详情</div>
+              <div class="token-history" @click="billDetail">账单详情</div>
             </div>
           </div>
           <div class="top_up_btn">
@@ -65,10 +65,12 @@
       </div>
     </el-dialog>
     <el-dialog class="bill-dialog" title="账单详情" :visible.sync="billVisible" width="800px">
-      <el-table :data="gridData" stripe height="300">
-        <el-table-column property="model" label="function_name"></el-table-column>
-        <el-table-column property="expend" label="消耗Token" width="200" align="right"></el-table-column>
-        <el-table-column property="residue" label="剩余Token" width="200" align="right"></el-table-column>
+      <el-table :data="bills" stripe height="336">
+        <el-table-column property="function_name" label="function_name" align="center"></el-table-column>
+        <el-table-column property="input_tokens" label="input_tokens" align="right"></el-table-column>
+        <el-table-column property="output_tokens" label="output_tokens" align="right"></el-table-column>
+        <el-table-column property="cost" label="消耗token" align="right"></el-table-column>
+        <el-table-column property="balance" label="剩余token" align="right"></el-table-column>
       </el-table>
       <div style="text-align: right;">
         <el-pagination
@@ -83,7 +85,7 @@
         </el-pagination>
       </div>
     </el-dialog>
-    <el-dialog class="top-up-dialog" title="账户充值" :visible.sync="topUpVisible" width="800px">
+    <el-dialog class="top-up-dialog" title="账户充值" :visible.sync="topUpVisible" width="800px" :before-close="beforeClosePay">
       <el-form :model="rechargeForm" :rules="rules" ref="rechargeFormRef" label-width="100px">
         <el-form-item label="充值金额" prop="amount">
           <el-input v-model.number="rechargeForm.amount" placeholder="请输入充值金额" prefix-icon="el-icon-money"
@@ -98,12 +100,12 @@
 
         <el-form-item label="支付方式" prop="paymentMethod">
           <el-radio-group v-model="rechargeForm.paymentMethod" @change="loadQrCode">
-<!--            <el-radio label="alipay">-->
-<!--              <i class="el-icon-alipay"></i> 支付宝-->
-<!--            </el-radio>-->
-            <el-radio label="wechat">
+            <el-radio label="wechatPay">
               <i class="el-icon-wechat"></i> 微信支付
             </el-radio>
+<!--            <el-radio label="aliPay">-->
+<!--              <i class="el-icon-alipay"></i> 支付宝-->
+<!--            </el-radio>-->
 <!--            <el-radio label="unionpay">-->
 <!--              <i class="el-icon-credit-card"></i> 银联支付-->
 <!--            </el-radio>-->
@@ -112,7 +114,7 @@
         <el-form-item>
           <div style="width: calc(100% - 100px);text-align: center">
             <div class="qrcode" v-loading="qr_loading" element-loading-spinner="el-icon-loading">
-              <el-image :src="require('/public/images/qrcode.png')" fit="cover"></el-image>
+              <el-image :src="codeInfo.code_url" fit="cover" v-if="!qr_loading"></el-image>
             </div>
           </div>
         </el-form-item>
@@ -122,7 +124,6 @@
 </template>
 
 <script>
-import {getAction} from "@/api/api";
 import axios from "axios";
 import {IPaginationMixin} from "@/mixins/IPaginationMixin";
 
@@ -135,16 +136,19 @@ export default {
       downloadPath: '',
       info: {},
       percentage: 0,
-      bill: [],
+      bills: [],
       billVisible: false,
+      filterBillForm: {
+        function_name: '',
+      },
+      functionNames: [],
       topUpVisible: false,
       qr_loading: true,
       rechargeForm: {
         amount: 0,
-        paymentMethod: 'wechat',
-        couponId: 0
+        paymentMethod: 'wechatPay',
       },
-
+      codeInfo: {},
       rules: {
         amount: [
           { required: true, message: '请输入充值金额', trigger: 'blur' },
@@ -154,44 +158,46 @@ export default {
           { required: true, message: '请选择支付方式', trigger: 'change' }
         ]
       },
-
       quickAmounts: [10, 50, 100, 200, 500, 1000],
-      gridData: [{
-        model: '生成数字人口播视频',
-        expend: '154',
-        residue: '1846'
-      }, {
-        model: '克隆形象',
-        expend: '56',
-        residue: '1790'
-      }, {
-        model: 'AI生成文案',
-        expend: '80',
-        residue: '1710'
-      }, {
-        model: '克隆音色',
-        expend: '42',
-        residue: '1668'
-      }],
+      timer: null
     }
   },
   mounted() {
     this.downloadPath = localStorage.getItem('downloadPath') || 'C:\\offline'
     this.getInfo()
+    this.getAllFunctionNames()
   },
   methods: {
-    getInfo() {
-      axios.get("http://127.0.0.1:9669/get_remaining_tokens").then((res) => {
+    getInfo(payer_total) {
+      let params = {
+        add_total: payer_total? payer_total : 0
+      }
+      axios.get("http://127.0.0.1:9669/get_remaining_tokens", {params: params}).then((res) => {
         if (res.data.status === 'success') {
           this.info = res.data.data
           this.percentage = (this.info.remaining_tokens / this.info.total_tokens) * 100
-          this.getBill()
         } else {
           this.$message.error(res.data.message)
         }
       }).catch(err => {
         console.log(err)
       })
+    },
+    getAllFunctionNames() {
+      axios.get('http://127.0.0.1:9669/get_all_function_names').then(res => {
+        if (res.data.status === 'success') {
+          this.functionNames = res.data.data.map(item => ({
+            value: item.function_name_en,
+            label: item.function_name_zh
+          }))
+        }
+      })
+    },
+    billDetail() {
+      this.billVisible = true
+      this.iPagination.currentPage = 1
+      this.iPagination.pageSize = 10
+      this.getBill()
     },
     getBill() {
       let params = {
@@ -200,7 +206,7 @@ export default {
       }
       axios.get('http://127.0.0.1:9669/get_api_call_log',{ params: params }).then(res => {
         if (res.data.status === 'success') {
-          this.gridData = res.data.data.bill || []
+          this.bills = res.data.data.api_call_log_list || []
           this.iPagination.total = res.data.data.total || 0
         }else {
           this.$message.error(res.data.message)
@@ -222,15 +228,58 @@ export default {
     },
     loadQrCode() {
       this.qr_loading = true
-      setTimeout(() => {
-        this.qr_loading = false
-      }, 1500)
+      let params = {
+        // amount: this.rechargeForm.amount,
+        amount: 0.01,
+        type: this.rechargeForm.paymentMethod,
+      }
+      axios.post('http://127.0.0.1:9669/recharge_balance',params).then(res => {
+        if (res.data.status === 'success') {
+          this.codeInfo = res.data.data
+          this.qr_loading = false
+          this.timer = setInterval(() => {
+            this.queryQrCodeStatus()
+          },1000)
+        } else {
+          this.$message.error(res.data.message)
+        }
+      })
+    },
+    queryQrCodeStatus() {
+      let params = {
+        payment_id: this.codeInfo.payment_id
+      }
+      axios.get('https://live.tellai.tech/api/pay/wx/payment',{params: params}).then(res => {
+        if (res.data.status === 'success') {
+          let status = res.data.data.trade_state
+          switch (status) {
+            case 'SUCCESS':  //支付成功
+              this.getInfo(res.data.data.payer_total || 0)
+              this.beforeClosePay()
+              break
+            case 'REFUND':   //转入退款
+              this.beforeClosePay()
+              break
+            case 'CLOSED':   //关闭订单
+              this.beforeClosePay()
+              this.$alert('已关闭订单','充值提示')
+              break
+          }
+        }
+      })
+    },
+    beforeClosePay() {
+      if (this.timer) {
+        clearInterval(this.timer)
+        this.timer = null
+      }
+      this.topUpVisible = false
     },
     resetForm() {
       this.$refs.rechargeFormRef.resetFields();
       this.rechargeForm.amount = 0;
-      this.rechargeForm.paymentMethod = 'wechat';
-      this.rechargeForm.couponId = 0;
+      this.rechargeForm.paymentMethod = 'wechatPay';
+      this.qr_loading = true
     },
     topUp() {
       this.topUpVisible = true
