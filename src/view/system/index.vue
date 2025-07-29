@@ -67,10 +67,13 @@
     <el-dialog class="bill-dialog" title="账单详情" :visible.sync="billVisible" width="800px">
       <el-table :data="bills" stripe height="336">
         <el-table-column property="function_name" label="function_name" align="center"></el-table-column>
-        <el-table-column property="input_tokens" label="input_tokens" align="right"></el-table-column>
-        <el-table-column property="output_tokens" label="output_tokens" align="right"></el-table-column>
-        <el-table-column property="cost" label="消耗token" align="right"></el-table-column>
-        <el-table-column property="balance" label="剩余token" align="right"></el-table-column>
+        <el-table-column property="cost" label="token变动" align="right" width="150px">
+          <template slot-scope="scope">
+            {{ scope.row.function_name === '充值'? '+ ' : '- ' }}{{ scope.row.cost }}
+          </template>
+        </el-table-column>
+        <el-table-column property="balance" label="剩余token" align="right" width="150px"></el-table-column>
+        <el-table-column property="created_at" label="创建时间" align="center" width="250px"></el-table-column>
       </el-table>
       <div style="text-align: right;">
         <el-pagination
@@ -141,7 +144,6 @@ export default {
       filterBillForm: {
         function_name: '',
       },
-      functionNames: [],
       topUpVisible: false,
       qr_loading: true,
       rechargeForm: {
@@ -165,12 +167,11 @@ export default {
   mounted() {
     this.downloadPath = localStorage.getItem('downloadPath') || 'C:\\offline'
     this.getInfo()
-    this.getAllFunctionNames()
   },
   methods: {
     getInfo(payer_total) {
       let params = {
-        add_total: payer_total? payer_total : 0
+        add_total: payer_total? payer_total * 10 : 0
       }
       axios.get("http://127.0.0.1:9669/get_remaining_tokens", {params: params}).then((res) => {
         if (res.data.status === 'success') {
@@ -179,18 +180,8 @@ export default {
         } else {
           this.$message.error(res.data.message)
         }
-      }).catch(err => {
-        console.log(err)
-      })
-    },
-    getAllFunctionNames() {
-      axios.get('http://127.0.0.1:9669/get_all_function_names').then(res => {
-        if (res.data.status === 'success') {
-          this.functionNames = res.data.data.map(item => ({
-            value: item.function_name_en,
-            label: item.function_name_zh
-          }))
-        }
+      }).catch(() => {
+        this.$message.error('获取信息失败，请稍后再试')
       })
     },
     billDetail() {
@@ -211,6 +202,8 @@ export default {
         }else {
           this.$message.error(res.data.message)
         }
+      }).catch(() => {
+        this.$message.error('获取账单失败，请稍后再试')
       })
     },
     handleSizeChange(val) {
@@ -229,8 +222,7 @@ export default {
     loadQrCode() {
       this.qr_loading = true
       let params = {
-        // amount: this.rechargeForm.amount,
-        amount: 0.01,
+        amount: this.rechargeForm.amount,
         type: this.rechargeForm.paymentMethod,
       }
       axios.post('http://127.0.0.1:9669/recharge_balance',params).then(res => {
@@ -243,6 +235,8 @@ export default {
         } else {
           this.$message.error(res.data.message)
         }
+      }).catch(() => {
+        this.$message.error('支付二维码失败，请稍后再试')
       })
     },
     queryQrCodeStatus() {
@@ -265,7 +259,19 @@ export default {
               this.$alert('已关闭订单','充值提示')
               break
           }
+        } else {
+          if (this.timer) {
+            clearInterval(this.timer)
+            this.timer = null
+          }
+          this.$message.error(res.data.message)
         }
+      }).catch(() => {
+        if (this.timer) {
+          clearInterval(this.timer)
+          this.timer = null
+        }
+        this.$message.error('获取二维码状态失败，请稍后再试')
       })
     },
     beforeClosePay() {

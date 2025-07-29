@@ -5,7 +5,9 @@ const baseURL = 'http://127.0.0.1:6006';
 // const baseURL = 'http://192.168.1.25:6006';
 // const baseURL = 'http://120.86.188.249:6006';
 
-const createInstance = (timeout = 60000) => {
+const defaultTimeout = 60000 //设置默认超时时间
+
+const createInstance = (timeout = defaultTimeout) => {
     return axios.create({
         baseURL: baseURL, // 设置你的基础 URL
         timeout: timeout, // 设置请求超时
@@ -42,22 +44,22 @@ instance.interceptors.response.use(
     }
 );
 
-const getAction = (url, params = {}, timeout = 60000) => {
+const getAction = (url, params = {}, timeout = defaultTimeout) => {
     instance = createInstance(timeout);
     return instance.get(url, {params});
 };
 
-const postAction = (url, data = {}, timeout = 60000) => {
+const postAction = (url, data = {}, timeout = defaultTimeout) => {
     instance = createInstance(timeout);
     return instance.post(url, data);
 };
 
-const putAction = (url, data = {}, timeout = 60000) => {
+const putAction = (url, data = {}, timeout = defaultTimeout) => {
     instance = createInstance(timeout);
     return instance.put(url, data);
 };
 
-const delAction = (url, params = {}, timeout = 60000) => {
+const delAction = (url, params = {}, timeout = defaultTimeout) => {
     instance = createInstance(timeout);
     return instance.delete(url, {params});
 };
