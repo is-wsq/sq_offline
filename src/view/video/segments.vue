@@ -824,7 +824,7 @@ export default {
     },
     loadAudio() {
       this.$refs.audioRef.src = this.copy_list[this.activeIndex].audio_file_path
-      this.$refs.audioRef.volume = this.media_volume;
+      // this.$refs.audioRef.volume = this.media_volume;
       this.$refs.audioRef.play()
     },
     loadVideo(index) {
@@ -833,7 +833,7 @@ export default {
         let preview = this.preview_video[index]
         this.$refs.videoRef.src = preview.filepath
         this.$refs.videoRef.load();
-        this.$refs.videoRef.volume = this.media_volume;
+        // this.$refs.videoRef.volume = this.media_volume;
         this.$refs.videoRef.playbackRate = preview.materials_duration / preview.group_duration * this.base_playback_rate;
         if (this.mute_materials.includes(preview.id) || preview.video_type === 'figure') {
           this.$refs.videoRef.muted = true
@@ -869,9 +869,9 @@ export default {
       this.$refs.audioRef.pause()
     },
     mediaVolumeChange() {
-      this.media_volume = this.$refs.videoRef.volume
-      this.$refs.audioRef.volume = this.$refs.videoRef.volume
-      this.$refs.audioRef.muted = this.$refs.videoRef.muted
+      // this.media_volume = this.$refs.videoRef.volume
+      // this.$refs.audioRef.volume = this.$refs.videoRef.volume
+      // this.$refs.audioRef.muted = this.$refs.videoRef.muted
     },
     mediaRateChange() {
       this.$refs.audioRef.playbackRate = this.$refs.videoRef.playbackRate

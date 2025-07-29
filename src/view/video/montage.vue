@@ -740,7 +740,7 @@ export default {
     },
     generate() {
       if (this.copy_list.some(item => item.duration && !item.bgm.id)) {
-        this.$alert('没有文案的任务必须添加背景音乐才能进行混剪', '提示')
+        this.$alert('无文案的任务需添加背景音乐后方可进行混剪操作', '提示')
         return
       }
       this.loading = this.$loading({
@@ -973,7 +973,7 @@ export default {
     },
     loadAudio() {
       this.$refs.audioRef.src = this.montage_data[this.activeIndex].audio_file_path
-      this.$refs.audioRef.volume = this.media_volume;
+      // this.$refs.audioRef.volume = this.media_volume;
       this.$refs.audioRef.play()
     },
     loadVideo(index) {
@@ -981,7 +981,7 @@ export default {
         this.currentIndex = index;
         this.$refs.videoRef.src = this.preview_video[index].filepath
         this.$refs.videoRef.load();
-        this.$refs.videoRef.volume = this.media_volume;
+        // this.$refs.videoRef.volume = this.media_volume;
         this.$refs.videoRef.playbackRate = this.video_file_duration / this.audio_file_duration;
         if (this.mute_materials.includes(this.preview_video[index].id)
             || this.preview_video[index].video_type === 'figure') {
@@ -1018,9 +1018,9 @@ export default {
       this.$refs.audioRef.pause()
     },
     mediaVolumeChange() {
-      this.media_volume = this.$refs.videoRef.volume
-      this.$refs.audioRef.volume = this.$refs.videoRef.volume
-      this.$refs.audioRef.muted = this.$refs.videoRef.muted
+      // this.media_volume = this.$refs.videoRef.volume
+      // this.$refs.audioRef.volume = this.$refs.videoRef.volume
+      // this.$refs.audioRef.muted = this.$refs.videoRef.muted
     },
     mediaRateChange() {
       this.$refs.audioRef.playbackRate = this.$refs.videoRef.playbackRate
