@@ -619,6 +619,7 @@ export default {
         this.already_generated = true;
         this.openIndex = 0;
         this.activeIndex = 0;
+        this.currentIndex = 0
         this.selectedCopy = this.copy_list[0]
         this.$nextTick(() => {
           this.loadVideo(this.currentIndex);
@@ -756,6 +757,28 @@ export default {
         type: 'warning'
       }).then(() => {
         this.copy_list.splice(index, 1)
+        if (this.$refs.videoRef) {
+          this.$refs.videoRef.pause()
+          this.$refs.audioRef.pause()
+          this.isPlaying = false
+        }
+        if (this.copy_list.length > 0) {
+          this.already_generated = true;
+          this.openIndex = 0;
+          this.activeIndex = 0;
+          this.currentIndex = 0
+          this.selectedCopy = this.copy_list[0]
+          this.$nextTick(() => {
+            this.loadVideo(this.currentIndex);
+            this.loadAudio()
+          })
+        }else {
+          this.already_generated = false;
+          this.selectedCopy = null;
+          this.currentIndex = 0;
+          this.openIndex = null
+          this.activeIndex = -1
+        }
         sessionStorage.setItem("sync_cv_copy_list", JSON.stringify(this.copy_list))
       }).catch((err) => {
         this.$message({type: 'info', message: '已取消删除'});

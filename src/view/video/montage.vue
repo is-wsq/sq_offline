@@ -732,7 +732,7 @@ export default {
       let base = year + '-' + month + '-' + day + '_' + hours + '-' + minutes + '-' + seconds
 
       let result = [];
-      for (let i = 1; i <= this.copy_list.length; i++) {
+      for (let i = 1; i <= this.montage_data.length; i++) {
         result.push(base + '_' + i);
       }
 
@@ -740,7 +740,7 @@ export default {
     },
     generate() {
       if (this.copy_list.some(item => item.duration && !item.bgm.id)) {
-        this.$alert('无文案的任务需添加背景音乐后方可进行混剪操作', '提示')
+        this.$alert('混剪失败，请给无文案任务添加背景音乐后重试', '提示')
         return
       }
       this.loading = this.$loading({
@@ -962,6 +962,24 @@ export default {
             sessionStorage.setItem("hot_montage_data", JSON.stringify(this.montage_data))
           } else {
             sessionStorage.setItem("montage_data", JSON.stringify(this.montage_data))
+          }
+          if (this.$refs.videoRef) {
+            this.$refs.videoRef.pause()
+            this.$refs.audioRef.pause()
+            this.isPlaying = false
+          }
+          if (this.montage_data.length > 0) {
+            this.already_generated = true
+            this.activeIndex = 0
+            this.currentIndex = 0
+            this.$nextTick(() => {
+              this.loadVideo(this.currentIndex);
+              this.loadAudio()
+            })
+          }else {
+            this.already_generated = false
+            this.activeIndex = -1
+            this.currentIndex = 0
           }
           return
         }
