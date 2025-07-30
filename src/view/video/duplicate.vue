@@ -16,7 +16,7 @@
               <div style="height: calc(100% - 50px); overflow-y: auto">
                 <div class="smart-generate-c-l-ai-title">文案要求</div>
                 <el-input type="textarea" :autosize="{ minRows: 3, maxRows: 6 }"
-                          placeholder="例如：写一个关于猫咪的搞笑段子"
+                          placeholder="例如：写关于xxx的文案，主推xxx、xxx等"
                           class="margin-b-12" v-model="copy_require"
                           resize="none" @change="saveSetting">
                 </el-input>

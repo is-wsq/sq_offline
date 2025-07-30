@@ -18,7 +18,7 @@
                   <div style="max-height: max(calc(100vh - 410px), 330px); overflow-y: auto" ref="scriptForm">
                     <div class="smart-generate-c-l-ai-title">文案要求</div>
                     <el-input type="textarea" :autosize="{ minRows: 3, maxRows: 6 }"
-                              placeholder="例如：写一个关于猫咪的搞笑段子"
+                              placeholder="例如：写关于xxx的文案，主推xxx、xxx等"
                               class="margin-b-12" v-model="copy_require" resize="none" @change="saveSetting"></el-input>
                     <div class="smart-generate-c-l-ai-title">示例文案（选填）</div>
                     <div class="flex-center margin-b-16 example_textarea" v-for="(text, index) in exampleTexts"
