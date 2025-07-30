@@ -25,7 +25,7 @@
             </div>
             <el-input type="textarea"
                       :rows="4"
-                      placeholder="例如：镜头要切换快，多用特写镜头"
+                      placeholder="例如：素材拼接要紧凑，色调统一偏暖"
                       v-model="requirement"
                       @compositionstart="onCompositionStart"
                       @compositionupdate="onCompositionUpdate"
