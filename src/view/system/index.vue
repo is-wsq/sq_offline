@@ -8,7 +8,7 @@
           <div style="flex: 1">
             <div class="token-label">剩余Tokens</div>
             <div style="display: flex">
-              <div class="token-value">{{ info.remaining_tokens || 0 }}</div>
+              <div class="token-value">{{ Math.round(info.remaining_tokens) || 0 }}</div>
               <div class="token-history" @click="billDetail">账单详情</div>
             </div>
           </div>
@@ -69,10 +69,14 @@
         <el-table-column property="function_name" label="function_name" align="center"></el-table-column>
         <el-table-column property="cost" label="token变动" align="right" width="150px">
           <template slot-scope="scope">
-            {{ scope.row.function_name === '充值'? '+ ' : '- ' }}{{ scope.row.cost }}
+            {{ scope.row.function_name === '充值'? '+ ' : '- ' }}{{ Math.round(scope.row.cost) }}
           </template>
         </el-table-column>
-        <el-table-column property="balance" label="剩余token" align="right" width="150px"></el-table-column>
+        <el-table-column property="balance" label="剩余token" align="right" width="150px">
+          <template slot-scope="scope">
+            {{ Math.round(scope.row.balance) }}
+          </template>
+        </el-table-column>
         <el-table-column property="created_at" label="创建时间" align="center" width="250px"></el-table-column>
       </el-table>
       <div style="text-align: right;">
