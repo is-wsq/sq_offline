@@ -130,7 +130,7 @@
                            :title="group.contentSummary">
                         {{ group.contentSummary }}
                       </div>
-                      <div class="group-title" v-if="group.groupType !== 'digital_human'"
+                      <div class="group-title" v-if="group.groupType === 'digital_human'"
                            :style="{ width: ((group.materials.length - 1) * 100 + 80) + 'px' }"
                            :title="group.contentSummary">
                         {{ group.contentSummary }}
