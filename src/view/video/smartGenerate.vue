@@ -71,7 +71,7 @@
                   <el-button type="primary" style="width: 100%" @click="addCopy">添加文案</el-button>
                 </div>
               </el-collapse-item>
-              <el-collapse-item title="无文案内容" name="3" v-if="script_type === 'material'">
+              <el-collapse-item title="无文案内容" name="3" v-if="script_type === 'material' && !selected_figure.id">
                 <div class="no-copy-content">
                   <div style="display: flex;gap: 12px" class="margin-b-12">
                     <div style="flex: 1">
@@ -187,6 +187,7 @@ export default {
 
       reverse: false,
       mention_list: [], //选择的素材列表
+      selected_figure: {}
     }
   },
   mounted() {
@@ -250,6 +251,7 @@ export default {
     },
     initData() {
       this.mention_list = JSON.parse(sessionStorage.getItem('mention_list')) || []
+      this.selected_figure = JSON.parse(sessionStorage.getItem('material_figure')) || {}
       this.script_type = sessionStorage.getItem("script_type")
       if (this.script_type === 'material') {
         this.copy_list = sessionStorage.getItem("copy_list") ? JSON.parse(sessionStorage.getItem("copy_list")) : []
@@ -376,6 +378,10 @@ export default {
     nextStep() {
       if (this.copy_list.length === 0) {
         this.$alert('请先添加口播文案', "提示")
+        return;
+      }
+      if (this.selected_figure.id && this.copy_list.some(item => item.duration)) {
+        this.$alert('已选择数字人出境，请先删除无文案剪辑视频','提示')
         return;
       }
       sessionStorage.setItem('video_path', '/montage')
