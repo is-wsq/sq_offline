@@ -54,7 +54,7 @@
             <div class="setting-require margin-t-12">人物形象出镜比例</div>
             <div class="figure-ratio-slider">
               <el-slider v-model="figure_ratio" style="flex: 1" @change="saveFigureRatio"
-                         :format-tooltip="formatTooltip"></el-slider>
+                         :step="10" :format-tooltip="formatTooltip"></el-slider>
               <div class="figure-ratio-label">{{ figure_ratio + '%' }}</div>
             </div>
           </template>

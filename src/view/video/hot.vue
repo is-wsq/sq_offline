@@ -338,7 +338,7 @@ export default {
         tag: this.uploadTag,
         category: this.classify,
       }
-      postAction('/figure/add_hot_video_by_link', params).then(res => {
+      postAction('/figure/add_hot_video_by_link', params, 180000).then(res => {
         if (res.data.status === 'success') {
           this.$notify({
             title: "上传提示",
