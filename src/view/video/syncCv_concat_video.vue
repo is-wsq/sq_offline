@@ -62,7 +62,7 @@
             <div style="max-height: calc(100% - 35px);overflow-y: auto" ref="scriptForm">
               <div class="panel-label">文案要求</div>
               <el-input type="textarea" :autosize="{ minRows: 3, maxRows: 6 }"
-                        placeholder="例如：写关于xxx的文案，主推xxx、xxx等"
+                        placeholder="例如：关于 店铺品类(如火锅店、服装店等)相关文案，主推 产品/服务(如招牌菜、爆款服装等)"
                         class="margin-b-12" v-model="copy_require" resize="none" @click="saveSetting"></el-input>
               <div class="panel-label">示例文案（选填）</div>
               <div class="flex-center margin-b-12 example_textarea" v-for="(text, index) in exampleTexts" :key="index">
