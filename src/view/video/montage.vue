@@ -180,7 +180,14 @@
                 </div>
                 <div class="groups" v-if="activeIndex === index">
                   <div class="group" v-for="(group,group_index) in item.segment_group" :key="group_index">
-                    <div class="group-title" :style="{ width: (group.materials.length * 100 + 80) + 'px' }" :title="group.contentSummary">
+                    <div class="group-title" v-if="group.groupType !== 'digital_human'"
+                         :style="{ width: (group.materials.length * 100 + 80) + 'px' }"
+                         :title="group.contentSummary">
+                      {{ group.contentSummary }}
+                    </div>
+                    <div class="group-title" v-if="group.groupType === 'digital_human'"
+                         :style="{ width: ((group.materials.length - 1) * 100 + 80) + 'px' }"
+                         :title="group.contentSummary">
                       {{ group.contentSummary }}
                     </div>
                     <div class="material-list" ref="materialListRef">
