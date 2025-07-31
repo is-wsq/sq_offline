@@ -66,6 +66,10 @@
           </template>
         </div>
         <div :style="menuStyle" v-if="rightMenuVisible" style="padding: 8px 12px">
+          <div class="material-function" @click="preview">
+            <i class="el-icon-view menu-icon"></i>
+            预览
+          </div>
           <div class="material-function" @click="rename">
             <i class="el-icon-edit-outline menu-icon"></i>
             重命名
@@ -120,6 +124,17 @@
         <el-button @click="uploadDialogVisible = false" size="small">取消</el-button>
         <el-button type="primary" @click="handleSubmit" size="small">确认上传</el-button>
       </span>
+    </el-dialog>
+    <el-dialog class="preview-dialog" :visible.sync="previewDialogVisible" :before-close="beforePreviewClose"
+               width="390px">
+      <div style="width: 100%;text-align: center;position: relative">
+        <video style="border-radius: 10px;width: calc(100% - 40px);object-fit: cover"
+               ref="video" :src="preview_src" @ended="isPlaying = false">
+        </video>
+        <div style="position: absolute;top: 50%;left: 50%;transform: translate(-50%, -50%);">
+          <i class="el-icon-play control-icon" @click="controlVideo" v-if="!isPlaying"></i>
+        </div>
+      </div>
     </el-dialog>
     <el-dialog class="upload-dialog" :visible.sync="renameDialogVisible" width="32rem" title="重命名视频名称">
       <div style="margin: 10px 0 5px 0;font-size: 15px;font-weight: bold">原名称</div>
@@ -181,6 +196,9 @@ export default {
       },
       rightMenuVisible: false,
       rightItem: {},
+      previewDialogVisible: false,
+      preview_src: '',
+      isPlaying: false,
       renameDialogVisible: false,
       form: {
         original: '',
@@ -247,6 +265,23 @@ export default {
       this.rightMenuVisible = false;
       this.rightItem = {}
       document.body.removeEventListener("click", this.bodyClick);
+    },
+    preview() {
+      this.preview_src = this.rightItem.filepath
+      this.previewDialogVisible = true
+    },
+    controlVideo() {
+      const video = this.$refs.video;
+      this.isPlaying ? video.pause() : video.play();
+      this.isPlaying = !this.isPlaying;
+    },
+    beforePreviewClose() {
+      this.isPlaying = false;
+      if (this.$refs.video) {
+        this.$refs.video.pause()
+        this.preview_src = ''
+      }
+      this.previewDialogVisible = false;
     },
     rename() {
       this.form.original = this.rightItem.name
@@ -623,5 +658,28 @@ export default {
   display: flex;
   flex-wrap: wrap;
   gap: 10px;
+}
+
+.preview-dialog >>> .el-dialog {
+  background-color: #79777700 !important;
+  box-shadow: none !important;
+  margin: 0 auto;
+  aspect-ratio: 9 / 16;
+}
+
+.preview-dialog >>> .el-dialog__body {
+  padding: 10px 35px;
+}
+
+.preview-dialog >>> .el-dialog__headerbtn .el-dialog__close {
+  font-size: 24px;
+  color: #9a9a9a;
+}
+
+.control-icon {
+  font-size: 30px;
+  color: #fff;
+  cursor: pointer;
+  filter: drop-shadow(0px 0px 10px #292929);
 }
 </style>

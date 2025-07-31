@@ -485,8 +485,10 @@ export default {
     },
     beforeClose() {
       this.isPlaying = false;
-      const video = this.$refs.video;
-      video.pause();
+      if (this.$refs.video) {
+        this.$refs.video.pause()
+        this.src = ''
+      }
       this.dialogVisible = false;
     },
     async beforeUpload(file) {
@@ -729,6 +731,12 @@ export default {
 .preview-dialog >>> .el-dialog {
   background-color: #79777700 !important;
   box-shadow: none !important;
+  margin: 0 auto;
+  aspect-ratio: 9 / 16;
+}
+
+.preview-dialog >>> .el-dialog__body {
+  padding: 10px 35px;
 }
 
 .preview-dialog >>> .el-dialog__headerbtn .el-dialog__close {
