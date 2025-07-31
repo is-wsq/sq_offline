@@ -69,7 +69,10 @@
                 </div>
               </div>
             </el-collapse-item>
-            <el-collapse-item title="数字人" name="2">
+            <el-collapse-item name="2">
+              <template slot="title">
+                <el-checkbox style="margin-right: 5px" v-model="defaultSelectFigure" @change="handleFigureSelect"></el-checkbox>数字人
+              </template>
               <div class="filter-content" @mousedown.stop="">
                 <el-input prefix-icon="el-icon-search" placeholder="输入素材名称、标签匹配搜索" clearable
                           class="filter-input" v-model="figure_filter_text" @change="filterFigure"></el-input>
@@ -450,6 +453,7 @@ export default {
       figures: [],
       filter_figures: [],
       figure: {},
+      defaultSelectFigure: false,
       reverse: false,
 
       filter_text: '',
@@ -633,7 +637,16 @@ export default {
     },
     selectFigure(item) {
       this.figure = this.figure.id === item.id ? {} : item
+      this.defaultSelectFigure = !!this.figure.id;
       sessionStorage.setItem('material_figure', JSON.stringify(this.figure))
+    },
+    handleFigureSelect() {
+      this.activeName = '2'
+      if (this.defaultSelectFigure) {
+        this.figure = this.filter_figures.length > 0? this.filter_figures[0] : {}
+      } else {
+        this.figure = {}
+      }
     },
     formatTooltip(val) {
       return val * 100 + '%';
@@ -746,6 +759,7 @@ export default {
           let figure = JSON.parse(sessionStorage.getItem('material_figure')) || {}
           let validFiguresId = this.figures.map(item => item.id);
           this.figure = validFiguresId.includes(figure.id) ? figure : {}
+          this.defaultSelectFigure = !!this.figure.id
         }
       }).catch((error) => {
         console.error("获取角色列表失败:", error);
