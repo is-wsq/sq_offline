@@ -53,7 +53,7 @@
             <div class="video-title">{{ video.name }}</div>
           </template>
           <template v-else>
-            <video class="hot-img" :src="video.filepath" loop muted autoplay></video>
+            <video class="hot-img" style="object-fit: cover;" :src="video.filepath" loop muted autoplay></video>
             <div class="video-title-hover">
               <div style="margin-bottom: 8px">{{ video.name }}</div>
               <div style="display: flex;justify-content: center;align-items: center">
