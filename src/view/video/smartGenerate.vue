@@ -255,8 +255,10 @@ export default {
       this.script_type = sessionStorage.getItem("script_type")
       if (this.script_type === 'material') {
         this.copy_list = sessionStorage.getItem("copy_list") ? JSON.parse(sessionStorage.getItem("copy_list")) : []
+        this.material_bgm = JSON.parse(sessionStorage.getItem('setting_bgm')) || {}
       } else {
         this.copy_list = sessionStorage.getItem("figure_copy_list") ? JSON.parse(sessionStorage.getItem("figure_copy_list")) : []
+        this.material_bgm = JSON.parse(sessionStorage.getItem('figure_setting_bgm')) || {}
       }
       let smart_generate_setting = JSON.parse(sessionStorage.getItem("smart_generate_setting")) || {}
       this.copy_require = smart_generate_setting.copy_require || ''
@@ -405,8 +407,6 @@ export default {
       this.bgm = JSON.parse(sessionStorage.getItem('figure_setting_bgm')) || {}
 
       this.reverse = sessionStorage.getItem("figure_setting_reverse") === 'true'
-
-      this.material_bgm = JSON.parse(sessionStorage.getItem('figure_setting_bgm')) || {}
 
       this.top_offset_ratio = Number(sessionStorage.getItem('figure_top_offset_ratio'))
       this.bottom_offset_ratio = Number(sessionStorage.getItem('figure_bottom_offset_ratio'))
