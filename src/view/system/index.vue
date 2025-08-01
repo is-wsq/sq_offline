@@ -54,7 +54,7 @@
       </div>
     </div>
     <div class="page-footer">
-      <div class="footer-text">奇点 v0.2.0 - © 2025 奇点AI团队</div>
+      <div class="footer-text">奇点 v0.3.0 - © 2025 奇点AI团队</div>
     </div>
     <el-dialog class="contact-us-dialog" title="联系我们" :visible.sync="dialogVisible" width="500px">
       <div class="contact-us">
