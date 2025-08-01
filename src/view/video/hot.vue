@@ -341,7 +341,7 @@ export default {
           this.filter_hots = this.hots
         }
       }).catch((error) => {
-        console.error("获取角色列表失败:", error);
+        console.error("获取爆款视频列表失败:", error);
       });
     },
     beforeUploadClose() {
@@ -373,7 +373,7 @@ export default {
         tag: this.uploadTag,
         category: this.classify,
       }
-      postAction('/figure/add_hot_video_by_link', params, 180000).then(res => {
+      postAction('/figure/add_hot_video_by_link', params, 600000).then(res => {
         if (res.data.status === 'success') {
           this.$notify({
             title: "上传提示",
