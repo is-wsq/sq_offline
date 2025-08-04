@@ -68,7 +68,7 @@
         <div :style="menuStyle" v-if="rightMenuVisible" style="padding: 8px 12px">
           <div class="material-function" @click="preview">
             <i class="el-icon-view menu-icon"></i>
-            预览
+            播放
           </div>
           <div class="material-function" @click="rename">
             <i class="el-icon-edit-outline menu-icon"></i>
