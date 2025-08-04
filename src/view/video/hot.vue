@@ -93,7 +93,7 @@
           class="video-uploader"
           style="width: 100%"
           action="http://127.0.0.1:6006/figure/add_hot_video"
-          :data="{ title: title, category: classify, tag: uploadTag }"
+          :data="{ title: title, withAsr: withAsr, category: classify, tag: uploadTag }"
           :on-success="uploadSuccess"
           :on-error="uploadError"
           :before-upload="beforeUpload"
@@ -105,9 +105,15 @@
         <div class="el-upload__text">将文件拖到此处，或<em>点击上传</em></div>
       </el-upload>
 
-      <div class="flex-center" style="margin: 10px 0 5px 0">
+      <div class="flex-center" style="margin-top: 10px">
         <el-checkbox v-model="use_link"></el-checkbox>
         <div style="font-size: 15px;font-weight: bold;flex: 1">使用链接上传</div>
+      </div>
+      <div style="line-height: 50px">
+        <el-radio-group v-model="withAsr">
+          <el-radio :label="true">有文案复刻</el-radio>
+          <el-radio :label="false">无文案复刻</el-radio>
+        </el-radio-group>
       </div>
       <el-input prefix-icon="el-icon-link" v-model="dy_link" placeholder="粘贴抖音视频分享链接上传"
                 :disabled="!use_link"></el-input>
@@ -165,6 +171,7 @@ export default {
       uploadFile: null,
       use_link: false,
       dy_link: '',
+      withAsr: true,
       title: '',
       uploadTag: '',
       classifies: [
@@ -347,6 +354,7 @@ export default {
     beforeUploadClose() {
       this.uploadFile = null
       this.title = ''
+      this.withAsr = true
       this.tag = ''
       this.uploadDialogVisible = false
     },
@@ -371,6 +379,7 @@ export default {
       let params = {
         url: this.dy_link,
         tag: this.uploadTag,
+        withAsr: this.withAsr,
         category: this.classify,
       }
       postAction('/figure/add_hot_video_by_link', params, 600000).then(res => {
