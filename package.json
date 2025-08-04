@@ -26,7 +26,8 @@
         "nsis",
         "portable"
       ],
-      "icon": "public/app_icon.ico"
+      "icon": "public/app_icon.ico",
+      "artifactName": "offline-deployment.${ext}"
     }
   },
   "dependencies": {
