@@ -685,7 +685,7 @@ export default {
       let hours = String(data.getHours()).padStart(2, "0");
       let minutes = String(data.getMinutes()).padStart(2, "0");
       let seconds = String(data.getSeconds()).padStart(2, "0");
-      let base = year + '-' + month + '-' + day + '_' + hours + '-' + minutes + '-' + seconds
+      let base = month + '-' + day + '_' + hours + '-' + minutes + '-' + seconds
 
       let result = [];
       for (let i = 1; i <= this.copy_list.length; i++) {
