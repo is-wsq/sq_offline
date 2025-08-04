@@ -103,6 +103,9 @@
                  @click="setAmount(amount)">{{ amount }}元
             </div>
           </div>
+          <div style="line-height: 30px">注：</div>
+          <div style="margin-left: 20px;line-height: 30px">1. 1元 = 1000 token</div>
+          <div style="margin-left: 20px;line-height: 30px">2. 设置充值金额后，扫码支付，充值成功后系统将自动更新token数</div>
         </el-form-item>
 
         <el-form-item label="支付方式" prop="paymentMethod">
@@ -118,7 +121,7 @@
 <!--            </el-radio>-->
           </el-radio-group>
         </el-form-item>
-        <el-form-item>
+        <el-form-item v-if="rechargeForm.amount > 0">
           <div style="width: calc(100% - 100px);text-align: center">
             <div class="qrcode" v-loading="qr_loading" element-loading-spinner="el-icon-loading">
               <el-image :src="codeInfo.code_url" fit="cover" v-if="!qr_loading"></el-image>
@@ -224,6 +227,14 @@ export default {
       this.loadQrCode()
     },
     loadQrCode() {
+      console.log(this.rechargeForm.amount)
+      if (this.rechargeForm.amount <= 0 || !this.rechargeForm.amount) {
+        if (this.timer) {
+          clearInterval(this.timer)
+          this.timer = null
+        }
+        return
+      }
       this.qr_loading = true
       let params = {
         amount: this.rechargeForm.amount,
@@ -233,13 +244,18 @@ export default {
         if (res.data.status === 'success') {
           this.codeInfo = res.data.data
           this.qr_loading = false
+          if (this.timer) {
+            clearInterval(this.timer)
+            this.timer = null
+          }
           this.timer = setInterval(() => {
             this.queryQrCodeStatus()
           },1000)
         } else {
           this.$message.error(res.data.message)
         }
-      }).catch(() => {
+      }).catch((err) => {
+        console.log(err)
         this.$message.error('支付二维码失败，请稍后再试')
       })
     },
@@ -254,6 +270,7 @@ export default {
             case 'SUCCESS':  //支付成功
               this.getInfo(res.data.data.payer_total || 0)
               this.beforeClosePay()
+              this.$message.success('充值成功')
               break
             case 'REFUND':   //转入退款
               this.beforeClosePay()
@@ -279,6 +296,7 @@ export default {
       })
     },
     beforeClosePay() {
+      console.log(111)
       if (this.timer) {
         clearInterval(this.timer)
         this.timer = null
