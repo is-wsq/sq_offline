@@ -396,7 +396,7 @@ export default {
     this.queryBgm()
     document.addEventListener('click', this.handleClickOutside);
     const inputEl = this.$refs.inputRef.$el.querySelector('textarea')
-    this.replaceDivHeight = inputEl.clientHeight
+    this.replaceDivHeight = inputEl.clientHeight + 2
     inputEl.addEventListener('scroll', this.handleScroll);
   },
   methods: {
@@ -1551,6 +1551,7 @@ export default {
 
 .highlight-content {
   padding: 8px;
+  border: 1px solid #d1d5db;
   box-sizing: border-box;
   border-radius: 4px;
   background-color: #f9f9f9;
