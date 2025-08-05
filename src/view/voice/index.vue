@@ -7,13 +7,14 @@
         <div class="timbre-card-content">
           <el-row :gutter="16">
             <el-col :span="6" v-for="(item, index) in systemVoice" :key="index">
-              <div class="timbre-item">
+              <div class="timbre-item" :class="{'is-playing': previewTimbreId === item.id}">
                 <div class="timbre-item-icon" @click="textAudio(item)">
                   <i :class="previewTimbreId === item.id ? 'el-icon-pause' : 'el-icon-play'"
                      style="font-size: 13px; color: #6286ed"></i>
                 </div>
                 <div :title="item.name" class="timbre-item-name">{{ item.name }}</div>
-                <el-tag :type="item.tagType || 'info'" size="mini" effect="plain">普通</el-tag>
+                <el-tag type="success" v-if="item.from_source === 'step-audio'">普通</el-tag>
+                <el-tag type="warning" v-else>高级</el-tag>
               </div>
             </el-col>
           </el-row>
@@ -49,7 +50,7 @@
               </div>
             </el-col>
             <el-col :span="6" v-for="(item, index) in cloneVoice" :key="index">
-              <div class="timbre-item">
+              <div class="timbre-item" :class="{'is-playing': previewTimbreId === item.id}">
                 <div class="timbre-item-icon" @click="textAudio(item)">
                   <i :class="previewTimbreId === item.id ? 'el-icon-pause' : 'el-icon-play'"
                      style="font-size: 13px; color: #6286ed"></i>
@@ -103,6 +104,7 @@ export default {
   mixins: [RightMenuMixin],
   data() {
     return {
+      systemVoice:[],
       previewTimbreId: '',
       previewTimbrePath: '',
       audio: null,
@@ -122,17 +124,26 @@ export default {
     processVoice() {
       return this.voiceTasks.filter((item) => item.status === 'pending');
     },
-    systemVoice() {
-      return this.voiceTasks.filter((item) => item.type === "system");
-    },
     cloneVoice() {
       return this.voiceTasks.filter((item) => item.type === "clone" && item.status === "success");
     }
   },
   mounted() {
     this.$store.dispatch("task/pollVoiceTasks");
+    this.querySystemVoice()
   },
   methods: {
+    querySystemVoice() {
+      getAction('/timbres/get_all_system_timbres').then(res => {
+        if (res.data.status === 'success') {
+          this.systemVoice = res.data.data
+        }else {
+          this.$message.error('查询系统音色失败')
+        }
+      }).catch(() => {
+        this.$message.error('查询系统音色错误')
+      })
+    },
     textAudio(item) {
       if (this.previewTimbreId) {
         this.audio.pause();
@@ -319,6 +330,7 @@ export default {
   color: #a3a3a3;
   transform: rotate(90deg);
   display: inline-block;
+  cursor: pointer;
 }
 
 .timbre-item:hover .el-dropdown-link {

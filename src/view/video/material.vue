@@ -789,7 +789,7 @@ export default {
       });
     },
     queryMiniMaxVoices() {
-      getAction("/minimax/get_voice").then((res) => {
+      getAction("/timbres/get_all_system_timbres",{voice_mode: 'advanced'}).then((res) => {
         if (res.data.status === "success") {
           this.minimax_voices = res.data.data
           if (this.minimax_voices.length > 0 && this.mode === 'advanced') {
