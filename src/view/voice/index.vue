@@ -1,80 +1,81 @@
 <template>
-  <div class="voice">
-    <div class="voice-content">
-      <el-row :gutter="40" style="height: 100%; width: 100%; margin: 0 auto">
-        <el-col :span="12" style="height: 100%">
-          <div class="voice-type">系统音色</div>
-          <div class="voice-list">
-            <div class="voice-item"
-                 v-for="(item, index) in systemVoice"
-                 :key="index"
-                 @contextmenu.stop="handleContextMenu(item, $event)">
-              <div class="voice-icon" @click="textAudio(item)">
-                <i :class="item.isPlay ? 'el-icon-pause' : 'el-icon-play'" style="font-size: 13px; color: #6286ed"></i>
-              </div>
-              <div :title="item.name" class="voice-name">{{ item.name }}</div>
-            </div>
-          </div>
-        </el-col>
-        <el-col :span="12" style="height: 100%">
-          <div class="voice-type">克隆音色</div>
-          <div class="voice-list">
-            <div class="voice-item">
-              <el-upload
-                  action="http://127.0.0.1:6006/timbres/clone"
-                  :show-file-list="false"
-                  accept=".mp3, .wav"
-                  :on-success="uploadSuccess"
-                  :on-error="uploadError"
-                  :before-upload="beforeUpload">
-                <div style="display: flex;justify-content: center;align-items: center;height: 80px;">
-                  <div class="voice-icon" style="background-color: pink !important">
-                    <i class="el-icon-plus" style="font-size: 15px; color: red"></i>
-                  </div>
-                  <div style="width: 80px;margin-left: 10px;font-size: 14px;color: #101010;text-align: left">
-                    上传音频
-                  </div>
+  <div class="timbre">
+    <div class="timbre-header">音色库</div>
+    <div class="timbre-content">
+      <div class="timbre-card">
+        <div class="timbre-card-title">系统音色</div>
+        <div class="timbre-card-content">
+          <el-row :gutter="16">
+            <el-col :span="6" v-for="(item, index) in systemVoice" :key="index">
+              <div class="timbre-item">
+                <div class="timbre-item-icon" @click="textAudio(item)">
+                  <i :class="previewTimbreId === item.id ? 'el-icon-pause' : 'el-icon-play'"
+                     style="font-size: 13px; color: #6286ed"></i>
                 </div>
-              </el-upload>
-            </div>
-            <div class="voice-item" v-for="task in processVoice" :key="task.id">
-              <div class="voice-icon" style="background-color: rgba(187, 187, 187, 0.25) !important;">
-                <div class="dot-spinner">
-                  <div class="dot"
-                       v-for="n in 8"
-                       :key="n"
-                       :style="{transform: 'rotate(' + (n * 45) + 'deg) translate(0, -9px)', animationDelay: (n * 0.1) + 's'}">
-                  </div>
-                </div>
+                <div :title="item.name" class="timbre-item-name">{{ item.name }}</div>
+                <el-tag :type="item.tagType || 'info'" size="mini" effect="plain">普通</el-tag>
               </div>
-              <div :title="task.name" class="voice-name">{{ task.name }}</div>
-            </div>
-            <div class="voice-item"
-                 v-for="(item, index) in cloneVoice"
-                 :key="index"
-                 @contextmenu.stop="handleContextMenu(item,$event)">
-              <div class="voice-icon" @click="textAudio(item)">
-                <i :class="item.isPlay ? 'el-icon-pause' : 'el-icon-play'" style="font-size: 13px; color: #6286ed"></i>
-              </div>
-              <div :title="item.name" class="voice-name">{{ item.name }}</div>
-            </div>
-          </div>
-        </el-col>
-      </el-row>
-      <div :style="menuStyle" v-if="rightMenuVisible" style="padding: 8px 12px">
-        <div class="material-function" @click="listen">
-          <i class="el-icon-yangshengqi menu-icon"></i>
-          <span style="margin-top: 2px">试听</span>
-        </div>
-        <div class="material-function" @click="rename" v-if="selectedItem.type === 'clone'">
-          <i class="el-icon-edit-outline menu-icon"></i>
-          <span style="margin-top: 2px">重命名</span>
-        </div>
-        <div class="material-function" @click="deleteItem" v-if="selectedItem.type === 'clone'">
-          <i class="el-icon-delete-solid menu-icon"></i>
-          <span style="margin-top: 2px">删除</span>
+            </el-col>
+          </el-row>
         </div>
       </div>
+      <div class="timbre-card margin-t-12">
+        <div class="timbre-card-title">
+          <div style="flex: 1">克隆音色</div>
+          <el-upload
+            action="http://127.0.0.1:6006/timbres/clone"
+            :show-file-list="false"
+            accept=".mp3, .wav"
+            :on-success="uploadSuccess"
+            :on-error="uploadError"
+            :before-upload="beforeUpload">
+            <el-button type="primary" icon="el-icon-upload">上传音频克隆</el-button>
+          </el-upload>
+        </div>
+        <div class="timbre-card-content">
+          <el-row :gutter="16">
+            <el-col :span="6" v-for="task in processVoice" :key="task.id">
+              <div class="timbre-item">
+                <div class="timbre-item-icon">
+                  <div class="dot-spinner">
+                    <div class="dot"
+                         v-for="n in 8"
+                         :key="n"
+                         :style="{transform: 'rotate(' + (n * 45) + 'deg) translate(0, -9px)', animationDelay: (n * 0.1) + 's'}">
+                    </div>
+                  </div>
+                </div>
+                <div :title="task.name" class="timbre-item-name">{{ task.name }}</div>
+              </div>
+            </el-col>
+            <el-col :span="6" v-for="(item, index) in cloneVoice" :key="index">
+              <div class="timbre-item">
+                <div class="timbre-item-icon" @click="textAudio(item)">
+                  <i :class="previewTimbreId === item.id ? 'el-icon-pause' : 'el-icon-play'"
+                     style="font-size: 13px; color: #6286ed"></i>
+                </div>
+                <div :title="item.name" class="timbre-item-name">{{ item.name }}</div>
+                <el-dropdown trigger="click" @command="command => handleCommand(command, item)" class="action-dropdown">
+                  <span class="el-dropdown-link">
+                    <i class="el-icon-more"></i>
+                  </span>
+                  <el-dropdown-menu slot="dropdown">
+                    <el-dropdown-item command="rename" style="width: 150px">
+                      <i class="el-icon-edit" style="margin-right: 15px"></i>重命名
+                    </el-dropdown-item>
+                    <el-dropdown-item command="delete" style="width: 150px">
+                      <i class="el-icon-delete" style="margin-right: 15px"></i>删除
+                    </el-dropdown-item>
+                  </el-dropdown-menu>
+                </el-dropdown>
+              </div>
+            </el-col>
+          </el-row>
+        </div>
+      </div>
+    </div>
+    <div class="timbre-footer">
+      请上传格式为mp3\wav的音频进行声音克隆，建议音频时长为3分钟。避免采集环境噪音过大、声音失真或包含他人声音的样本，否则会影响克隆效果。
     </div>
     <el-dialog class="rename-dialog" :visible.sync="renameDialogVisible" width="32rem">
       <div slot="title" class="rename-dialog-title">重命名音色</div>
@@ -89,9 +90,6 @@
         <el-button type="primary" @click="sureRename" size="small">确认</el-button>
       </div>
     </el-dialog>
-    <div class="voice-footer">
-      请上传格式为mp3\wav的音频进行声音克隆，建议音频时长为3分钟。避免采集环境噪音过大、声音失真或包含他人声音的样本，否则会影响克隆效果。
-    </div>
   </div>
 </template>
 
@@ -105,6 +103,8 @@ export default {
   mixins: [RightMenuMixin],
   data() {
     return {
+      previewTimbreId: '',
+      previewTimbrePath: '',
       audio: null,
       newName: "",
       drawer: false,
@@ -134,36 +134,32 @@ export default {
   },
   methods: {
     textAudio(item) {
-      this.selectedItem = item;
-      this.listen();
-    },
-    listen() {
-      let voice = this.selectedItem;
-      if (voice.isPlay) {
+      if (this.previewTimbreId) {
         this.audio.pause();
-        this.updateStatus(voice, false);
-      } else {
-        this.audio = new Audio(voice.filepath);
-        this.audio.play();
-        this.updateStatus(voice, true);
-        this.audio.onended = () => {
-          this.updateStatus(voice, false);
-        };
+        this.audio = null
+      }
+      if (this.previewTimbreId === item.id) {
+        this.previewTimbreId = '';
+        return
+      }
+      this.previewTimbreId = item.id;
+      this.audio = new Audio(item.filepath);
+      this.audio.play();
+      this.audio.onended = () => {
+        this.previewTimbreId = '';
+        this.audio = null;
+      };
+    },
+    handleCommand(command, item) {
+      if (command === 'rename') {
+        this.rename(item)
+      } else if (command === 'delete') {
+        this.deleteItem(item)
       }
     },
-    updateStatus(voice, status) {
-      if (voice.type === "system") {
-        let index = this.systemVoice.findIndex((item) => item.id === voice.id);
-        this.systemVoice[index].isPlay = status;
-      } else {
-        let index = this.cloneVoice.findIndex((item) => item.id === voice.id);
-        this.cloneVoice[index].isPlay = status;
-      }
-      this.$forceUpdate();
-    },
-    rename() {
-      this.soundId = this.selectedItem.id;
-      this.form.original = this.selectedItem.name;
+    rename(item) {
+      this.soundId = item.id;
+      this.form.original = item.name;
       this.form.name = '';
       this.renameDialogVisible = true;
     },
@@ -184,12 +180,11 @@ export default {
         this.$alert(err, "重命名错误")
       });
     },
-    deleteItem() {
-      let id = this.selectedItem.id
+    deleteItem(item) {
       this.$confirm('确认删除该音色吗？', '提示', {
         type: 'warning'
       }).then(() => {
-        delAction(`/timbres/${id}`).then((res) => {
+        delAction(`/timbres/${item.id}`).then((res) => {
           if (res.data.status === "success") {
             this.$message.success("删除成功。");
             this.$store.dispatch("task/pollVoiceTasks");
@@ -232,73 +227,109 @@ export default {
 </script>
 
 <style scoped>
-.voice {
+.timbre {
+  padding: 20px;
   width: 100%;
+  min-width: 1000px;
   height: 100%;
-  min-height: 700px;
+  box-sizing: border-box;
   display: flex;
   flex-direction: column;
-  justify-content: center;
-  align-items: center;
+  gap: 25px;
 }
 
-.voice >>> .el-loading-spinner .circular {
-  width: 25px !important;
-  height: 25px !important;
+.timbre-header {
+  font-size: 24px;
+  font-weight: bold;
+  color: #1D2129;
 }
 
-.voice-content {
-  width: calc(90% + 80px);
-  height: calc(100% - 180px);
-  padding: 40px;
-  margin-top: 80px;
-  box-sizing: border-box;
-  background-color: #f5f5f5;
-  border-radius: 20px;
-}
-
-.voice-type {
-  height: 80px;
-  line-height: 80px;
-  text-align: center;
-  font-size: 18px;
-  color: #1e1f20;
-}
-
-.voice-list {
+.timbre-card {
+  height: calc(50vh - 110px);
   width: 100%;
-  height: calc(100% - 80px);
-  border: 2px dashed rgba(98, 134, 237, 0.2);
+  background-color: #ffffff;
   border-radius: 10px;
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-  grid-auto-rows: 80px;
-  gap: 10px;
-  justify-items: center;
-  overflow: auto;
-  padding: 20px;
+  padding: 10px 15px;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+}
+
+.timbre-card-title {
+  color: #1D2129;
+  font-weight: bold;
+  line-height: 40px;
+  display: flex;
+}
+
+.timbre-card-content {
+  margin-top: 10px;
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
   box-sizing: border-box;
 }
 
-.voice-item {
-  width: 150px;
-  height: 80px;
-  border-radius: 10px;
+.timbre-item {
   display: flex;
   align-items: center;
-  justify-content: center;
-  cursor: pointer;
+  height: 56px;
+  padding: 0 12px;
+  border: 1px solid #E4E7ED;
+  border-radius: 6px;
+  background-color: #F7F8FA;
+  transition: all 0.2s ease-in-out;
+  margin-bottom: 16px;
 }
 
-.voice-icon {
-  width: 42px;
-  height: 40px;
+.timbre-item:hover {
+  background-color: #EFF5FF;
+  border-color: #A0CFFF;
+}
+
+.timbre-item.is-playing {
+  background-color: #EBF5FF;
+  border-color: #409EFF;
+}
+
+.timbre-item-icon {
+  width: 32px;
+  height: 30px;
   display: flex;
   justify-content: center;
   align-items: center;
   cursor: pointer;
-  background-color: #c7d4f8;
-  border-radius: 10px;
+  background-color: #ffffff;
+  border: 1px solid #DCDFE6;
+  border-radius: 8px;
+}
+
+.timbre-item-name {
+  flex: 1;
+  margin: 0 10px;
+  font-size: 14px;
+  color: #101010;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.el-dropdown-link {
+  font-size: 18px;
+  color: #a3a3a3;
+  transform: rotate(90deg);
+  display: inline-block;
+}
+
+.timbre-item:hover .el-dropdown-link {
+  color: #409EFF;
+}
+
+.timbre-footer {
+  width: 80%;
+  margin: 0 auto;
+  height: 50px;
+  color: #6d7177;
 }
 
 .dot-spinner {
@@ -326,23 +357,6 @@ export default {
   50% {
     opacity: 1;
   }
-}
-
-.voice-name {
-  width: 80px;
-  margin-left: 10px;
-  font-size: 14px;
-  color: #101010;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.voice-footer {
-  width: 80%;
-  height: 80px;
-  margin-top: 20px;
-  color: #6d7177;
 }
 
 .rename-dialog >>> .el-dialog {
