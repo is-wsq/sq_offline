@@ -181,7 +181,7 @@
                 <i class="el-icon-play" @click="previewAudio(sound, -1)" v-if="audioIndex !== -1"></i>
                 <i class="el-icon-pause" @click="stopAudio" v-else></i>
               </div>
-              <el-popover placement="bottom" trigger="click" style="flex: 1">
+              <el-popover ref="voiceRef" placement="bottom" trigger="click" @hide="stopAudio" style="flex: 1">
                 <div class="popover-content">
                   <el-row>
                     <el-col :span="12" v-for="(voice, index) in mode === 'common'? voices : minimax_voices" :key="voice.id">
@@ -206,7 +206,7 @@
                 <i class="el-icon-play" @click="previewAudio(bgm, -2)" v-if="audioIndex !== -2"></i>
                 <i class="el-icon-pause" @click="stopAudio" v-else></i>
               </div>
-              <el-popover placement="bottom" trigger="click" @hide="stopAudio" style="flex: 1">
+              <el-popover ref="bgmRef" placement="bottom" trigger="click" @hide="stopAudio" style="flex: 1">
                 <div class="popover-content">
                   <el-row>
                     <el-col :span="12">
@@ -934,10 +934,16 @@ export default {
     selectVoice(voice) {
       this.sound = voice
       sessionStorage.setItem("setting_voice", JSON.stringify(voice))
+      this.$nextTick(() => {
+        this.$refs.voiceRef.showPopper = false
+      })
     },
     selectBgm(item) {
       this.bgm = item
       sessionStorage.setItem("setting_bgm", JSON.stringify(item))
+      this.$nextTick(() => {
+        this.$refs.bgmRef.showPopper = false
+      })
     },
     previewAudio(voice, index) {
       if (voice.id === '') {
@@ -1532,8 +1538,9 @@ export default {
 .s-voice-name {
   background-color: #f3f4f6;
   padding: 4px 4px 4px 8px;
+  box-sizing: border-box;
   font-size: 12px;
-  height: 14px;
+  height: 22px;
   border-radius: 6px;
   white-space: nowrap;
   overflow: hidden;

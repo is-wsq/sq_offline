@@ -901,6 +901,7 @@ export default {
       this.selected_index = index
     },
     selectBgm(item, index) {
+      this.stopAudio()
       this.copy_list[index].bgm = item
       this.$nextTick(() => {
         const popoverRefs = this.$refs[`popover_${index}`];
