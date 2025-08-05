@@ -174,11 +174,13 @@
                 </div>
                 <div class="s-voice-name" slot="reference" :title="bgm.name">{{ bgm.name }}</div>
               </el-popover>
-              <div class="right-label volume">音量</div>
-              <div class="s-btn-volume">
-                <el-slider v-model="bg_volume" :step="0.1" style="width: 80px" :min="0.1" :max="1"
-                           @change="saveBgmVolume('bg_volume')" :format-tooltip="formatTooltip"></el-slider>
-              </div>
+              <template v-if="bgm.id">
+                <div class="right-label volume">音量</div>
+                <div class="s-btn-volume">
+                  <el-slider v-model="bg_volume" :step="0.1" style="width: 80px" :min="0.1" :max="1"
+                             @change="saveBgmVolume('bg_volume')" :format-tooltip="formatTooltip"></el-slider>
+                </div>
+              </template>
             </div>
           </div>
           <div class="style-card-item margin-b-16">
@@ -454,6 +456,7 @@ export default {
       bgmList: [],
       bgm: {},
       bg_volume: 0.3,
+      previousVolume: 0.3,
       audio: null,
       audioIndex: null,
       titleTextStyle: {},
@@ -703,7 +706,25 @@ export default {
       }
     },
     saveBgmVolume() {
+      if (this.bg_volume !== this.previousVolume) {
+        this.playFeedbackSound();
+        this.previousVolume = this.bg_volume;
+      }
       sessionStorage.setItem("figure_bg_volume", this.bg_volume)
+    },
+    playFeedbackSound() {
+      this.stopAudio();
+
+      setTimeout(() => {
+        this.audio = new Audio(this.bgm.filepath);
+        this.audio.volume = this.bg_volume;
+        this.audio.play();
+        this.audioIndex = -2;
+        this.audio.onended = () => {
+          this.audio = null;
+          this.audioIndex = null;
+        };
+      }, 100);
     },
     switchTitle() {
       sessionStorage.setItem("figure_with_title", this.withTitle)

@@ -155,7 +155,7 @@
         <div class="s-card" ref="styleCard">
           <div class="s-card-item margin-b-16">
             <div class="margin-b-12 font-weight">音频</div>
-            <div style="display: flex">
+            <div style="display: flex" @mousedown.stop="">
               <div class="s-voice-title" style="margin-top: 5px">主播声音</div>
               <el-popover placement="bottom-start" trigger="click">
                 <div class="mode-popover-item" @click="saveMode('common')">
@@ -201,7 +201,7 @@
               </el-popover>
             </div>
             <div class="s-voice-title">背景声音</div>
-            <div class="s-voice-content">
+            <div class="s-voice-content" @mousedown.stop="">
               <div class="s-voice-btn">
                 <i class="el-icon-play" @click="previewAudio(bgm, -2)" v-if="audioIndex !== -2"></i>
                 <i class="el-icon-pause" @click="stopAudio" v-else></i>
@@ -244,11 +244,13 @@
                 </div>
                 <div class="s-voice-name" slot="reference" :title="bgm.name">{{ bgm.name }}</div>
               </el-popover>
-              <div class="s-voice-title volume">音量</div>
-              <div class="s-btn-volume">
-                <el-slider v-model="bg_volume" :step="0.1" style="width: 80px" :min="0.1" :max="1"
-                           @change="saveBgmVolume('bg_volume')" :format-tooltip="formatTooltip"></el-slider>
-              </div>
+              <template v-if="bgm.id">
+                <div class="s-voice-title volume">音量</div>
+                <div class="s-btn-volume">
+                  <el-slider v-model="bg_volume" :step="0.1" style="width: 80px" :min="0.1" :max="1"
+                             @change="saveBgmVolume('bg_volume')" :format-tooltip="formatTooltip"></el-slider>
+                </div>
+              </template>
             </div>
           </div>
           <div class="s-card-item margin-b-16">
@@ -547,6 +549,7 @@ export default {
       bgmList: [],
       bgm: {},
       bg_volume: 0.3,
+      previousVolume: 0.3,
       audio: null,
       audioIndex: null,
       titleTextStyle: {},
@@ -979,7 +982,25 @@ export default {
       }
     },
     saveBgmVolume() {
+      if (this.bg_volume !== this.previousVolume) {
+        this.playFeedbackSound();
+        this.previousVolume = this.bg_volume;
+      }
       sessionStorage.setItem("bg_volume", this.bg_volume)
+    },
+    playFeedbackSound() {
+      this.stopAudio();
+
+      setTimeout(() => {
+        this.audio = new Audio(this.bgm.filepath);
+        this.audio.volume = this.bg_volume;
+        this.audio.play();
+        this.audioIndex = -2;
+        this.audio.onended = () => {
+          this.audio = null;
+          this.audioIndex = null;
+        };
+      }, 100);
     },
     switchTitle() {
       sessionStorage.setItem("with_title", this.withTitle)
