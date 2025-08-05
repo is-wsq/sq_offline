@@ -227,7 +227,6 @@ export default {
       this.loadQrCode()
     },
     loadQrCode() {
-      console.log(this.rechargeForm.amount)
       if (this.rechargeForm.amount <= 0 || !this.rechargeForm.amount) {
         if (this.timer) {
           clearInterval(this.timer)
@@ -263,12 +262,12 @@ export default {
       let params = {
         payment_id: this.codeInfo.payment_id
       }
-      axios.get('https://live.tellai.tech/api/pay/wx/payment',{params: params}).then(res => {
+      axios.post('http://127.0.0.1:9669/query_recharge_status',params).then(res => {
         if (res.data.status === 'success') {
           let status = res.data.data.trade_state
           switch (status) {
             case 'SUCCESS':  //支付成功
-              this.getInfo(res.data.data.payer_total || 0)
+              this.getInfo()
               this.beforeClosePay()
               this.$message.success('充值成功')
               break
