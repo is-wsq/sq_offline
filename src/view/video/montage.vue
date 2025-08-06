@@ -322,6 +322,8 @@ export default {
       currentIndex: 0,
       isPlaying: false,
 
+      copy_request: '',
+
       material_list: [],
       mute_materials: [],
       reverse: false,
@@ -664,11 +666,17 @@ export default {
           ...item, isHover: false,
         }))
         this.montage_data = JSON.parse(sessionStorage.getItem("hot_montage_data")) || []
+
+        let duplicate_setting = JSON.parse(sessionStorage.getItem("duplicate_setting")) || {}
+        this.copy_request = duplicate_setting.copy_require || ''
       } else {
         this.copy_list = JSON.parse(sessionStorage.getItem("copy_list")).map(item => ({
           ...item, isHover: false,
         }))
         this.montage_data = JSON.parse(sessionStorage.getItem("montage_data")) || []
+
+        let smart_generate_setting = JSON.parse(sessionStorage.getItem("smart_generate_setting")) || {}
+        this.copy_request = smart_generate_setting.copy_require || ''
       }
 
       this.already_generated = this.montage_data.length > 0
@@ -768,6 +776,7 @@ export default {
       }
       let params = {
         user_request: actualRequest,
+        copy_request: this.copy_request,
         material_list: this.material_list,
         mute_materials: this.mute_materials,
         copy_list: this.copy_list,
@@ -859,9 +868,11 @@ export default {
       });
     },
     batchExport() {
+      if (this.copy_list.some(item => item.duration && !item.bgm.id)) {
+        this.$alert('请给无文案任务添加背景音乐后重试', '提示')
+        return
+      }
       this.centerDialogVisible = false
-      this.$alert('批量导出后台视频混剪中，混剪成功后会创建视频生成任务', '提示')
-      //先混剪
       let actualRequest = this.requirement
       let names = this.mention_list.map(item => '@' + item.name);
       names.forEach((item, index) => {
@@ -872,6 +883,8 @@ export default {
         let hots = JSON.parse(sessionStorage.getItem("select_hots"))
         reference_segments = hots.segments.map(item => item.description)
       }
+      let bool_list = this.material_list.map(item => this.mute_materials.includes(item))
+      let name = this.setName()
       let params = {
         user_request: actualRequest,
         material_list: this.material_list,
@@ -883,19 +896,45 @@ export default {
         with_subtitle: this.withSubtitle,
         reverse: this.reverse,
         figure_ratio: this.figure_ratio + '%',
-        reference_segments: reference_segments
-      }
-      postAction('/figure/video_mix_edit', params, 3600000).then(res => {
-        if (res.data.status === 'success') {
-          this.montage_data = res.data.data
-          this.export_video(true)
-        } else {
-          this.$alert(res.data.message, "混剪失败");
+        reference_segments: reference_segments,
+        with_title: this.withTitle,
+        bool_list: bool_list,
+        filename_list: name,
+        subtitle_params: {
+          y_offset: this.bottom_offset_ratio,
+          font: this.subtitleParams.font,
+          fontsize: this.subtitleParams['fontsize'],
+          color: this.subtitleParams.color,
+          stroke_color: this.subtitleParams.stroke_color,
+          use_background: this.use_background,
+          background_color: this.subtitleParams.background_color,
+          background_opacity: this.subtitleParams.background_opacity
+        },
+        title_params: {
+          y_offset: this.top_offset_ratio,
+          show_model: this.show_model,
+          font: this.subtitleNameParams.name_font,
+          fontsize: this.subtitleNameParams.name_fontsize,
+          color: this.subtitleNameParams.name_color,
+          stroke_color: this.subtitleNameParams.name_stroke_color,
+          use_background: this.name_use_background,
+          background_color: this.subtitleNameParams.name_background_color,
+          background_opacity: this.subtitleNameParams.name_background_opacity
         }
-      }).catch(error => {
-        this.$alert(error, "混剪错误");
-        console.log(error)
-      })
+      }
+      postAction('/figure/export_video_sync_all', params, 3600000).then(res => {
+        if (res.data.status === "success") {
+          this.$alert('已创建视频生成任务，视频生成成功后会自动下载到本地', "任务创建提醒");
+          sessionStorage.clear()
+          setTimeout(() => {
+            this.$router.push({path: '/videoList'})
+          }, 500)
+        } else {
+          this.$alert(res.data.message, "批量导出失败");
+        }
+      }).catch((error) => {
+        this.$alert(error, "批量导出错误");
+      });
     },
     selectItem(index) {
       this.selected_index = index
