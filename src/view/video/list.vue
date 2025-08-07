@@ -78,7 +78,7 @@
                                   :span="2" v-if="!logInfo.bgm_path">无</el-descriptions-item>
             <el-descriptions-item label="背景音乐" :labelStyle="{'width': '100px','text-align': 'center'}"
                                   :span="2" v-else>
-              <div style="display: flex">
+              <div style="display: flex;align-items: center;gap: 15px">
                 <div class="timbre-item-icon" @click="previewBgm(logInfo.bgm_path)">
                   <i :class="audioPlaying ? 'el-icon-pause' : 'el-icon-play'"
                      style="font-size: 13px; color: #6286ed"></i>
@@ -598,5 +598,9 @@ export default {
   background-color: #ffffff;
   border: 1px solid #DCDFE6;
   border-radius: 8px;
+}
+
+.timbre-item-name {
+  flex: 1;
 }
 </style>
