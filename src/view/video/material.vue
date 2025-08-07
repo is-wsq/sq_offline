@@ -154,7 +154,7 @@
         <div class="margin-b-12 font-weight">样式设置</div>
         <div class="s-card" ref="styleCard">
           <div class="s-card-item margin-b-16">
-            <div class="margin-b-12 font-weight">音频</div>
+            <div class="margin-b-12 font-weight" style="font-size: 15px">音频</div>
             <div style="display: flex" @mousedown.stop="">
               <div class="s-voice-title" style="margin-top: 5px">主播声音</div>
               <el-popover placement="bottom-start" trigger="click">
@@ -254,183 +254,233 @@
             </div>
           </div>
           <div class="s-card-item margin-b-16">
-            <div class="margin-b-12 font-weight flex-center">
-              <div style="flex: 1">口播标题</div>
-              <el-checkbox v-model="withTitle" @change="switchTitle"></el-checkbox>
-            </div>
-            <div class="flex-center margin-b-12">
-              <div class="s-voice-title" style="flex: 1">展示方式</div>
-              <el-radio v-model="show_model" label="begin" @input="saveShowModel">仅开头展示</el-radio>
-              <el-radio v-model="show_model" label="full" @input="saveShowModel">全程展示</el-radio>
-            </div>
-            <div class="flex-center">
-              <div class="s-voice-title" style="flex: 1">预设样式</div>
-              <div class="preset-style"
-                   v-for="item in titlePresets"
-                   :key="item.id"
-                   @click="selectTitlePreset(item)"
-                   :style="{
+            <el-collapse v-model="sub_expands">
+              <el-collapse-item name="sub_title">
+                <div slot="title">
+                  <el-checkbox style="margin-right: 5px" v-model="withTitle" @change="switchTitle"></el-checkbox>口播标题
+                </div>
+                <div class="flex-center margin-b-12">
+                  <div class="s-voice-title" style="flex: 1">展示方式</div>
+                  <el-radio v-model="show_model" label="begin" @input="saveShowModel">仅开头展示</el-radio>
+                  <el-radio v-model="show_model" label="full" @input="saveShowModel">全程展示</el-radio>
+                </div>
+                <div class="flex-center margin-b-8">
+                  <div class="s-voice-title" style="flex: 1">预设样式</div>
+                </div>
+                <div style="position: relative;padding-bottom: 10px">
+                  <div class="preset-group" :class="{'show-all-preset': showAllTitlePreset}">
+                    <div class="preset-style"
+                         v-for="item in titlePresets"
+                         :key="item.id"
+                         @click="selectTitlePreset(item)"
+                         :style="{
                      backgroundColor: item.backgroundColor,
                      color: item.color,
                      '-webkit-text-stroke': '0.5px' + item.stroke,
-                     border: activeTitlePresetId === item.id ? '1px solid #6286ed' : 'none'
+                     border: activeTitlePresetId === item.id ? '2px solid #00c1cd' : 'none'
                    }">
-                T
-              </div>
-            </div>
-            <div class="flex-center margin-t-8">
-              <div class="s-voice-title" style="flex: 1;display: flex;align-items: center">
-                <div style="margin-right: 10px">字体</div>
-                <el-select v-model="subtitleNameParams.name_font" placeholder="请选择" style="width: 180px"
-                           @change="saveSubtitleNameParams('name_font')" class="font-select">
-                  <el-option
-                      v-for="item in fontFamily"
-                      :key="item.id"
-                      :label="item.name"
-                      :value="item.font_id"
-                      style="line-height: 52px;height: 52px">
-                    <div style="display: flex; align-items: center">
-                      <img :src="item.img_path" style="width: 150px; height: 50px; margin-right: 8px;"/>
-                      <span>{{ item.name }}</span>
+                      T
                     </div>
-                  </el-option>
-                </el-select>
-              </div>
-              <div class="s-voice-title" style="display: flex;align-items: center">
-                <div>字号</div>
-                <el-input-number class="input-number"
-                                 v-model="subtitleNameParams.name_fontsize"
-                                 controls-position="right"
-                                 :min="5"
-                                 :max="50"
-                                 @change="saveSubtitleNameParams('name_fontsize')"
-                                 style="margin-left: 10px;width: 80px !important;">
-                </el-input-number>
-              </div>
-            </div>
-            <div class="flex-center margin-t-8">
-              <div class="s-voice-title" style="flex: 1">字体颜色</div>
-              <el-color-picker size="small" v-model="subtitleNameParams.name_color"
-                               @change="saveSubtitleNameParams('name_color')"></el-color-picker>
-            </div>
-            <div class="flex-center margin-t-8 margin-b-16">
-              <div class="s-voice-title" style="flex: 1">描边颜色</div>
-              <el-color-picker size="small" v-model="subtitleNameParams.name_stroke_color"
-                               @change="saveSubtitleNameParams('name_stroke_color')"></el-color-picker>
-            </div>
-            <div class="flex-center back-checkbox"
-                 :class="{'margin-b-16': name_background_setting}"
-                 style="cursor: pointer"
-                 @click="name_background_setting = !name_background_setting">
-              <el-checkbox v-model="name_use_background" @change="switchNameUseBackground"></el-checkbox>
-              <div class="s-voice-title" style="flex: 1">背景</div>
-              <i class="el-icon-arrow-down" style="color: #374151" v-if="name_background_setting"></i>
-              <i class="el-icon-arrow-right" style="color: #374151" v-else></i>
-            </div>
-            <div class="flex-center margin-b-12 bg-color" v-if="name_background_setting">
-              <div class="s-voice-title" style="margin-right: 12px">颜色</div>
-              <el-color-picker size="small" v-model="subtitleNameParams.name_background_color"
-                               @change="saveSubtitleNameParams('name_background_color')">
-              </el-color-picker>
-              <div style="flex: 1"></div>
-            </div>
-            <div class="flex-center opacity" v-if="name_background_setting">
-              <div class="s-voice-title" style="margin-right: 12px">不透明度</div>
-              <el-slider v-model="subtitleNameParams.name_background_opacity"
-                         :step="0.01" style="flex: 1" :min="0" :max="1"
-                         @input="saveSubtitleNameParams('name_background_opacity')">
-              </el-slider>
-              <div class="s-voice-title" style="margin-left: 8px;width: 30px">
-                {{ (subtitleNameParams.name_background_opacity * 100).toFixed(0) + '%' }}
-              </div>
-            </div>
+                  </div>
+                  <div v-if="!showAllTitlePreset" class="preset-full-mask" title="点击展开"
+                       @click="showAllTitlePreset = true">
+                    <i class="el-icon-caret-bottom" style="color: #b3b3b3;font-size: 17px"></i>
+                  </div>
+                  <div v-if="showAllTitlePreset" class="preset-not-full-mask" title="点击收起"
+                       @click="showAllTitlePreset = false">
+                    <i class="el-icon-caret-top" style="color: #b3b3b3;font-size: 17px"></i>
+                  </div>
+                </div>
+                <div class="flex-center margin-t-8">
+                  <div class="s-voice-title" style="flex: 1;display: flex;align-items: center">
+                    <div style="margin-right: 10px">字体</div>
+                    <el-select v-model="subtitleNameParams.name_font" placeholder="请选择" style="width: 180px"
+                               @change="saveSubtitleNameParams('name_font')" class="font-select">
+                      <el-option
+                          v-for="item in fontFamily"
+                          :key="item.id"
+                          :label="item.name"
+                          :value="item.font_id"
+                          style="line-height: 52px;height: 52px">
+                        <div style="display: flex; align-items: center">
+                          <img :src="item.img_path" style="width: 150px; height: 50px; margin-right: 8px;"/>
+                          <span>{{ item.name }}</span>
+                        </div>
+                      </el-option>
+                    </el-select>
+                  </div>
+                  <div class="s-voice-title" style="display: flex;align-items: center">
+                    <div>字号</div>
+                    <el-input-number class="input-number"
+                                     v-model="subtitleNameParams.name_fontsize"
+                                     controls-position="right"
+                                     :min="5"
+                                     :max="50"
+                                     @change="saveSubtitleNameParams('name_fontsize')"
+                                     style="margin-left: 10px;width: 80px !important;">
+                    </el-input-number>
+                  </div>
+                </div>
+                <div class="flex-center margin-t-8">
+                  <div class="s-voice-title" style="flex: 1">字体颜色</div>
+                  <el-color-picker size="small" v-model="subtitleNameParams.name_color"
+                                   @change="saveSubtitleNameParams('name_color')"></el-color-picker>
+                </div>
+                <div class="flex-center opacity margin-t-8">
+                  <div class="s-voice-title" style="margin-right: 12px">字体不透明度</div>
+                  <el-slider v-model="subtitleNameParams.title_font_opacity"
+                             :step="0.01" style="flex: 1" :min="0" :max="1"
+                             @input="saveSubtitleNameParams('title_font_opacity')">
+                  </el-slider>
+                  <div class="s-voice-title" style="margin-left: 8px;width: 40px">
+                    {{ (subtitleNameParams.title_font_opacity * 100).toFixed(0) + '%' }}
+                  </div>
+                </div>
+                <div class="flex-center margin-t-8 margin-b-8">
+                  <div class="s-voice-title" style="flex: 1">描边颜色</div>
+                  <el-color-picker size="small" v-model="subtitleNameParams.name_stroke_color"
+                                   @change="saveSubtitleNameParams('name_stroke_color')"></el-color-picker>
+                </div>
+                <div class="flex-center back-checkbox"
+                     :class="{'margin-b-16': name_background_setting}"
+                     style="cursor: pointer"
+                     @click="name_background_setting = !name_background_setting">
+                  <el-checkbox v-model="name_use_background" @change="switchNameUseBackground" style="line-height: 13px;"></el-checkbox>
+                  <div class="s-voice-title" style="flex: 1;line-height: 22px;">背景</div>
+                  <i class="el-icon-arrow-down" style="color: #374151" v-if="name_background_setting"></i>
+                  <i class="el-icon-arrow-right" style="color: #374151" v-else></i>
+                </div>
+                <div class="flex-center margin-b-12 bg-color" v-if="name_background_setting">
+                  <div class="s-voice-title" style="margin-right: 12px">颜色</div>
+                  <el-color-picker size="small" v-model="subtitleNameParams.name_background_color"
+                                   @change="saveSubtitleNameParams('name_background_color')">
+                  </el-color-picker>
+                  <div style="flex: 1"></div>
+                </div>
+                <div class="flex-center opacity" v-if="name_background_setting">
+                  <div class="s-voice-title" style="margin-right: 12px">不透明度</div>
+                  <el-slider v-model="subtitleNameParams.name_background_opacity"
+                             :step="0.01" style="flex: 1" :min="0" :max="1"
+                             @input="saveSubtitleNameParams('name_background_opacity')">
+                  </el-slider>
+                  <div class="s-voice-title" style="margin-left: 8px;width: 40px">
+                    {{ (subtitleNameParams.name_background_opacity * 100).toFixed(0) + '%' }}
+                  </div>
+                </div>
+              </el-collapse-item>
+            </el-collapse>
           </div>
           <div class="s-card-item">
-            <div class="margin-b-12 font-weight flex-center">
-              <div style="flex: 1">口播内容</div>
-              <el-checkbox v-model="withSubtitle" @change="switchSubtitle"></el-checkbox>
-            </div>
-            <div class="flex-center">
-              <div class="s-voice-title" style="flex: 1;display: flex">预设样式</div>
-              <div class="preset-style"
-                   v-for="item in titlePresets"
-                   :key="item.id"
-                   @click="selectPreset(item)"
-                   :style="{
-                     backgroundColor: item.backgroundColor,
-                     color: item.color,
-                     '-webkit-text-stroke': '0.5px' + item.stroke,
-                     border: activePresetId === item.id ? '1px solid #6286ed' : 'none'
-                   }">
-                T
-              </div>
-            </div>
-            <div class="flex-center margin-t-8">
-              <div class="s-voice-title" style="flex: 1;display: flex;align-items: center">
-                <div style="margin-right: 10px">字体</div>
-                <el-select v-model="subtitleParams.font" placeholder="请选择" style="width: 180px"
-                           @change="saveSubtitleParams('font')" popper-class="font-select">
-                  <el-option
-                      v-for="item in fontFamily"
-                      :key="item.font_id"
-                      :label="item.name"
-                      :value="item.font_id"
-                      style="line-height: 52px;height: 52px">
-                    <div style="display: flex; align-items: center">
-                      <img :src="item.img_path" style="width: 150px; height: 50px; margin-right: 8px;"/>
-                      <span>{{ item.name }}</span>
+            <el-collapse v-model="sub_expands">
+              <el-collapse-item name="sub_content">
+                <div slot="title">
+                  <el-checkbox style="margin-right: 5px" v-model="withSubtitle" @change="switchSubtitle"></el-checkbox>口播内容
+                </div>
+                <div class="flex-center">
+                  <div class="s-voice-title" style="flex: 1;display: flex">预设样式</div>
+                </div>
+                <div style="position: relative;padding-bottom: 10px">
+                  <div class="preset-group" :class="{'show-all-preset': showAllContentPreset}">
+                    <div class="preset-style"
+                         v-for="item in titlePresets"
+                         :key="item.id"
+                         @click="selectPreset(item)"
+                         :style="{
+                         backgroundColor: item.backgroundColor,
+                         color: item.color,
+                         '-webkit-text-stroke': '0.5px' + item.stroke,
+                         border: activePresetId === item.id ? '2px solid #00c1cd' : 'none'
+                       }">
+                      T
                     </div>
-                  </el-option>
-                </el-select>
-              </div>
-              <div class="s-voice-title" style="display: flex;align-items: center">
-                <div>字号</div>
-                <el-input-number class="input-number"
-                                 v-model="subtitleParams.fontsize"
-                                 controls-position="right"
-                                 :min="5"
-                                 :max="50"
-                                 @change="saveSubtitleParams('fontsize')"
-                                 style="margin-left: 10px;width: 80px !important;">
-                </el-input-number>
-              </div>
-            </div>
-            <div class="flex-center margin-t-8">
-              <div class="s-voice-title" style="flex: 1">字体颜色</div>
-              <el-color-picker size="small" v-model="subtitleParams.color"
-                               @change="saveSubtitleParams('color')"></el-color-picker>
-            </div>
-            <div class="flex-center margin-t-8 margin-b-16">
-              <div class="s-voice-title" style="flex: 1">描边颜色</div>
-              <el-color-picker size="small" v-model="subtitleParams.stroke_color"
-                               @change="saveSubtitleParams('stroke_color')"></el-color-picker>
-            </div>
-            <div class="flex-center back-checkbox"
-                 :class="{'margin-b-16': background_setting}"
-                 style="cursor: pointer"
-                 @click="background_setting = !background_setting">
-              <el-checkbox v-model="use_background" @change="switchUseBackground"></el-checkbox>
-              <div class="s-voice-title" style="flex: 1">背景</div>
-              <i class="el-icon-arrow-down" style="color: #374151" v-if="background_setting"></i>
-              <i class="el-icon-arrow-right" style="color: #374151" v-else></i>
-            </div>
-            <div class="flex-center margin-b-12 bg-color" v-if="background_setting">
-              <div class="s-voice-title" style="margin-right: 12px">颜色</div>
-              <el-color-picker size="small" v-model="subtitleParams.background_color"
-                               @change="saveSubtitleParams('background_color')">
-              </el-color-picker>
-              <div style="flex: 1"></div>
-            </div>
-            <div class="flex-center opacity" v-if="background_setting">
-              <div class="s-voice-title" style="margin-right: 12px">不透明度</div>
-              <el-slider v-model="subtitleParams.background_opacity"
-                         :step="0.01" style="flex: 1" :min="0" :max="1"
-                         @input="saveSubtitleParams('background_opacity')">
-              </el-slider>
-              <div class="s-voice-title" style="margin-left: 8px;width: 30px">
-                {{ (subtitleParams.background_opacity * 100).toFixed(0) + '%' }}
-              </div>
-            </div>
+                  </div>
+                  <div v-if="!showAllContentPreset" class="preset-full-mask" title="点击展开"
+                       @click="showAllContentPreset = true">
+                    <i class="el-icon-caret-bottom" style="color: #b3b3b3;font-size: 17px"></i>
+                  </div>
+                  <div v-if="showAllContentPreset" class="preset-not-full-mask" title="点击收起"
+                       @click="showAllContentPreset = false">
+                    <i class="el-icon-caret-top" style="color: #b3b3b3;font-size: 17px"></i>
+                  </div>
+                </div>
+                <div class="flex-center margin-t-8">
+                  <div class="s-voice-title" style="flex: 1;display: flex;align-items: center">
+                    <div style="margin-right: 10px">字体</div>
+                    <el-select v-model="subtitleParams.font" placeholder="请选择" style="width: 180px"
+                               @change="saveSubtitleParams('font')" popper-class="font-select">
+                      <el-option
+                          v-for="item in fontFamily"
+                          :key="item.font_id"
+                          :label="item.name"
+                          :value="item.font_id"
+                          style="line-height: 52px;height: 52px">
+                        <div style="display: flex; align-items: center">
+                          <img :src="item.img_path" style="width: 150px; height: 50px; margin-right: 8px;"/>
+                          <span>{{ item.name }}</span>
+                        </div>
+                      </el-option>
+                    </el-select>
+                  </div>
+                  <div class="s-voice-title" style="display: flex;align-items: center">
+                    <div>字号</div>
+                    <el-input-number class="input-number"
+                                     v-model="subtitleParams.fontsize"
+                                     controls-position="right"
+                                     :min="5"
+                                     :max="50"
+                                     @change="saveSubtitleParams('fontsize')"
+                                     style="margin-left: 10px;width: 80px !important;">
+                    </el-input-number>
+                  </div>
+                </div>
+                <div class="flex-center margin-t-8">
+                  <div class="s-voice-title" style="flex: 1">字体颜色</div>
+                  <el-color-picker size="small" v-model="subtitleParams.color"
+                                   @change="saveSubtitleParams('color')"></el-color-picker>
+                </div>
+                <div class="flex-center opacity margin-t-8">
+                  <div class="s-voice-title" style="margin-right: 12px">字体不透明度</div>
+                  <el-slider v-model="subtitleParams.content_font_opacity"
+                             :step="0.01" style="flex: 1" :min="0" :max="1"
+                             @input="saveSubtitleParams('content_font_opacity')">
+                  </el-slider>
+                  <div class="s-voice-title" style="margin-left: 8px;width: 40px">
+                    {{ (subtitleParams.content_font_opacity * 100).toFixed(0) + '%' }}
+                  </div>
+                </div>
+                <div class="flex-center margin-t-8 margin-b-8">
+                  <div class="s-voice-title" style="flex: 1">描边颜色</div>
+                  <el-color-picker size="small" v-model="subtitleParams.stroke_color"
+                                   @change="saveSubtitleParams('stroke_color')"></el-color-picker>
+                </div>
+                <div class="flex-center back-checkbox"
+                     :class="{'margin-b-16': background_setting}"
+                     style="cursor: pointer"
+                     @click="background_setting = !background_setting">
+                  <el-checkbox v-model="use_background" @change="switchUseBackground" style="line-height: 13px;"></el-checkbox>
+                  <div class="s-voice-title" style="flex: 1;line-height: 22px;">背景</div>
+                  <i class="el-icon-arrow-down" style="color: #374151" v-if="background_setting"></i>
+                  <i class="el-icon-arrow-right" style="color: #374151" v-else></i>
+                </div>
+                <div class="flex-center margin-b-12 bg-color" v-if="background_setting">
+                  <div class="s-voice-title" style="margin-right: 12px">颜色</div>
+                  <el-color-picker size="small" v-model="subtitleParams.background_color"
+                                   @change="saveSubtitleParams('background_color')">
+                  </el-color-picker>
+                  <div style="flex: 1"></div>
+                </div>
+                <div class="flex-center opacity" v-if="background_setting">
+                  <div class="s-voice-title" style="margin-right: 12px">不透明度</div>
+                  <el-slider v-model="subtitleParams.background_opacity"
+                             :step="0.01" style="flex: 1" :min="0" :max="1"
+                             @input="saveSubtitleParams('background_opacity')">
+                  </el-slider>
+                  <div class="s-voice-title" style="margin-left: 8px;width: 40px">
+                    {{ (subtitleParams.background_opacity * 100).toFixed(0) + '%' }}
+                  </div>
+                </div>
+              </el-collapse-item>
+            </el-collapse>
           </div>
         </div>
       </div>
@@ -449,6 +499,7 @@ export default {
   mixins: [EnhancedChoiceMixin],
   data() {
     return {
+      sub_expands: [],
       mode: 'common',
       activeName: '1',
       figure_filter_text: '',
@@ -472,73 +523,110 @@ export default {
       withTitle: true,
       show_model: 'begin',
       subtitleNameParams: {
-        'name_background_opacity': 0.6
+        name_background_opacity: 0.6,
+        title_font_opacity: 1,
       },
       name_use_background: false,
       name_background_setting: false,
       withSubtitle: true,
       subtitleParams: {
-        background_opacity: 0.6
+        background_opacity: 0.6,
+        content_font_opacity: 1
       },
       use_background: false,
       background_setting: false,
       titlePresets: [
         {
           id: '1',
-          fontFamily: 'SJxingkai-C-Regular',
+          fontFamily: 'LXGW-ZhenKai',
           backgroundColor: '#404040',
           stroke: '#000000',
           color: '#ffffff'
         },
         {
           id: '2',
-          fontFamily: 'SJxingkai-C-Regular',
+          fontFamily: 'LXGW-ZhenKai',
           backgroundColor: '#404040',
           stroke: '#ffffff',
           color: '#000000'
         },
         {
           id: '3',
-          fontFamily: 'SJxingkai-C-Regular',
+          fontFamily: 'LXGW-ZhenKai',
           backgroundColor: '#404040',
-          stroke: '#FC0202',
-          color: '#FDFF00'
+          stroke: '#000000',
+          color: '#ffde00'
         },
         {
           id: '4',
-          fontFamily: 'SJxingkai-C-Regular',
+          fontFamily: 'LXGW-ZhenKai',
           backgroundColor: '#404040',
-          stroke: '#FDFF00',
-          color: '#FC0202'
+          stroke: '#fe8a80',
+          color: '#ffffff'
         },
         {
           id: '5',
           fontFamily: 'LXGW-ZhenKai',
           backgroundColor: '#c8c8c8',
           stroke: '#000000',
-          color: '#ffffff'
+          color: '#b7dcf6'
         },
         {
           id: '6',
           fontFamily: 'LXGW-ZhenKai',
           backgroundColor: '#c8c8c8',
-          stroke: '#ffffff',
-          color: '#000000'
+          stroke: '#ff619d',
+          color: '#ffd9e8'
         },
         {
           id: '7',
           fontFamily: 'LXGW-ZhenKai',
           backgroundColor: '#c8c8c8',
-          stroke: '#FC0202',
-          color: '#FDFF00'
+          stroke: '#469df3',
+          color: '#c0f1f5'
         },
         {
           id: '8',
           fontFamily: 'LXGW-ZhenKai',
           backgroundColor: '#c8c8c8',
-          stroke: '#FDFF00',
-          color: '#FC0202'
+          stroke: '#3c5c37',
+          color: '#c3cf47'
         },
+        {
+          id: '9',
+          fontFamily: 'LXGW-ZhenKai',
+          backgroundColor: '#c8c8c8',
+          stroke: '#465773',
+          color: '#90c2cd'
+        },
+        {
+          id: '10',
+          fontFamily: 'LXGW-ZhenKai',
+          backgroundColor: '#c8c8c8',
+          stroke: '#ff1837',
+          color: '#ffffff'
+        },
+        {
+          id: '11',
+          fontFamily: 'LXGW-ZhenKai',
+          backgroundColor: '#c8c8c8',
+          stroke: '#ffffff',
+          color: '#ab4a37'
+        },
+        {
+          id: '12',
+          fontFamily: 'LXGW-ZhenKai',
+          backgroundColor: '#c8c8c8',
+          stroke: '#4a4238',
+          color: '#f9f3c4'
+        },
+        {
+          id: '13',
+          fontFamily: 'LXGW-ZhenKai',
+          backgroundColor: '#c8c8c8',
+          stroke: '#a74f59',
+          color: '#ffd9c6'
+        }
       ],
       activeTitlePresetId: '1',
       activePresetId: '1',
@@ -561,7 +649,9 @@ export default {
       topRatio: 0.25,
       bottomRatio: 0.75,
 
-      nextType: 'montage'
+      nextType: 'montage',
+      showAllTitlePreset: false,
+      showAllContentPreset: false,
     }
   },
   computed: {
@@ -676,6 +766,12 @@ export default {
 
       this.withSubtitle = sessionStorage.getItem("with_subtitle") === 'true'
       this.withTitle = sessionStorage.getItem("with_title") === 'true'
+
+      this.sub_expands = [
+        ...(this.withTitle ? ['sub_title'] : []),
+        ...(this.withSubtitle ? ['sub_content'] : [])
+      ];
+
       this.show_model = sessionStorage.getItem("show_model") || 'begin'
       this.bg_volume = Number(sessionStorage.getItem("bg_volume")) || 0.3
 
@@ -687,14 +783,20 @@ export default {
       this.subtitleParams.font = sessionStorage.getItem("font") || 'SJxingkai-C-Regular'
       this.subtitleParams.background_color = sessionStorage.getItem("background_color") || '#404040'
       this.subtitleParams.background_opacity = Number(sessionStorage.getItem("background_opacity")) || 0.6
+      this.subtitleParams.content_font_opacity = Number(sessionStorage.getItem("content_font_opacity")) || 1
       this.subtitleParams.stroke_color = sessionStorage.getItem("stroke_color") || '#000000'
 
       let rgb_color = this.hexToRgb(this.subtitleParams.background_color)
       let rgba_color = `rgba(${rgb_color.replace('rgb(', '')
           .replace(')', '')}, ${this.subtitleParams.background_opacity})`
+
+      let text_rgb_color = this.hexToRgb(this.subtitleParams.color)
+      let text_rgba_color = `rgba(${text_rgb_color.replace('rgb(', '')
+          .replace(')', '')}, ${this.subtitleParams.content_font_opacity})`
+
       this.textStyle = {
         backgroundColor: this.use_background ? rgba_color : '',
-        color: this.subtitleParams.color,
+        color: text_rgba_color,
         fontFamily: this.subtitleParams.font,
         lineHeight: 1,
         '-webkit-text-stroke': `0.5px ${this.subtitleParams.stroke_color}`,
@@ -708,14 +810,20 @@ export default {
       this.subtitleNameParams.name_font = sessionStorage.getItem("name_font") || 'SJxingkai-C-Regular'
       this.subtitleNameParams.name_background_color = sessionStorage.getItem("name_background_color") || '#404040'
       this.subtitleNameParams.name_background_opacity = Number(sessionStorage.getItem("name_background_opacity")) || 0.6
+      this.subtitleNameParams.title_font_opacity = Number(sessionStorage.getItem("title_font_opacity")) || 1
       this.subtitleNameParams.name_stroke_color = sessionStorage.getItem("name_stroke_color") || '#000000'
 
       let name_rgb_color = this.hexToRgb(this.subtitleNameParams.name_background_color)
       let name_rgba_color = `rgba(${name_rgb_color.replace('rgb(', '')
           .replace(')', '')}, ${this.subtitleNameParams.name_background_opacity})`
+
+      let font_rgb_color = this.hexToRgb(this.subtitleNameParams.name_color)
+      let font_rgba_color = `rgba(${font_rgb_color.replace('rgb(', '')
+          .replace(')', '')}, ${this.subtitleNameParams.title_font_opacity})`
+
       this.titleTextStyle = {
         backgroundColor: this.name_use_background ? name_rgba_color : '',
-        color: this.subtitleNameParams.name_color,
+        color: font_rgba_color,
         fontFamily: this.subtitleNameParams.name_font,
         lineHeight: 1,
         '-webkit-text-stroke': `0.5px ${this.subtitleNameParams.name_stroke_color}`,
@@ -1009,6 +1117,12 @@ export default {
       }, 100);
     },
     switchTitle() {
+      const hasSubTitle = this.sub_expands.includes('sub_title');
+      if (this.withTitle && !hasSubTitle) {
+        this.sub_expands.push('sub_title');
+      } else if (!this.withTitle && hasSubTitle) {
+        this.sub_expands.splice(this.sub_expands.indexOf('sub_title'), 1);
+      }
       sessionStorage.setItem("with_title", this.withTitle)
     },
     saveShowModel() {
@@ -1021,6 +1135,8 @@ export default {
       sessionStorage.setItem('name_background_color', item.backgroundColor)
       this.subtitleNameParams.name_background_opacity = 0.6
       sessionStorage.setItem('name_background_opacity', '0.6')
+      this.subtitleNameParams.title_font_opacity = 1
+      sessionStorage.setItem('title_font_opacity', '1')
       this.subtitleNameParams.name_color = item.color
       sessionStorage.setItem('name_color', item.color)
       this.subtitleNameParams.name_font = item.fontFamily
@@ -1043,9 +1159,14 @@ export default {
       let rgb_color = this.hexToRgb(this.subtitleNameParams.name_background_color)
       let rgba_color = `rgba(${rgb_color.replace('rgb(', '')
           .replace(')', '')}, ${this.subtitleNameParams.name_background_opacity})`
+
+      let font_rgb_color = this.hexToRgb(this.subtitleNameParams.name_color)
+      let font_rgba_color = `rgba(${font_rgb_color.replace('rgb(', '')
+          .replace(')', '')}, ${this.subtitleNameParams.title_font_opacity})`
+
       this.titleTextStyle = {
         backgroundColor: this.name_use_background ? rgba_color : '',
-        color: this.subtitleNameParams.name_color,
+        color: font_rgba_color,
         fontFamily: this.subtitleNameParams.name_font,
         lineHeight: 1,
         '-webkit-text-stroke': `0.5px ${this.subtitleNameParams.name_stroke_color}`,
@@ -1078,6 +1199,12 @@ export default {
       this.updateTitleTextStyle()
     },
     switchSubtitle() {
+      const hasSubContent = this.sub_expands.includes('sub_content');
+      if (this.withSubtitle && !hasSubContent) {
+        this.sub_expands.push('sub_content');
+      } else if (!this.withSubtitle && hasSubContent) {
+        this.sub_expands.splice(this.sub_expands.indexOf('sub_content'), 1);
+      }
       const container = this.$refs.styleCard
       container.scrollTop = container.scrollHeight
       sessionStorage.setItem("with_subtitle", this.withSubtitle)
@@ -1089,6 +1216,8 @@ export default {
       sessionStorage.setItem('background_color', item.backgroundColor)
       this.subtitleParams.background_opacity = 0.6
       sessionStorage.setItem('background_opacity', '0.6')
+      this.subtitleNameParams.content_font_opacity = 1
+      sessionStorage.setItem('content_font_opacity', '1')
       this.subtitleParams.color = item.color
       sessionStorage.setItem('color', item.color)
       this.subtitleParams.font = item.fontFamily
@@ -1103,9 +1232,14 @@ export default {
       let rgb_color = this.hexToRgb(this.subtitleParams.background_color)
       let rgba_color = `rgba(${rgb_color.replace('rgb(', '')
           .replace(')', '')}, ${this.subtitleParams.background_opacity})`
+
+      let text_rgb_color = this.hexToRgb(this.subtitleParams.color)
+      let text_rgba_color = `rgba(${text_rgb_color.replace('rgb(', '')
+          .replace(')', '')}, ${this.subtitleParams.content_font_opacity})`
+
       this.textStyle = {
         backgroundColor: this.use_background ? rgba_color : '',
-        color: this.subtitleParams.color,
+        color: text_rgba_color,
         fontFamily: this.subtitleParams.font,
         lineHeight: 1,
         '-webkit-text-stroke': `0.5px ${this.subtitleParams.stroke_color}`,
@@ -1456,14 +1590,54 @@ export default {
   height: 3px;
 }
 
+.preset-group {
+  display: grid;
+  gap: 7px;
+  grid-template-columns: repeat(auto-fit, 40px);
+  grid-auto-rows: min-content;
+  overflow: auto;
+  height: 67px;
+  margin-bottom: 8px;
+}
+
+.show-all-preset {
+  height: auto !important;
+}
+
 .preset-style {
-  width: 23px;
-  height: 23px;
-  line-height: 23px;
-  border-radius: 3px;
+  width: 40px;
+  height: 40px;
+  line-height: 40px;
+  border-radius: 8px;
   text-align: center;
-  font-size: 20px;
+  font-size: 22px;
   font-weight: 900;
+  cursor: pointer;
+  box-sizing: border-box;
+}
+
+.preset-full-mask {
+  position: absolute;
+  bottom: 0;
+  height: 40px;
+  width: 100%;
+  z-index: 10;
+  background: linear-gradient(to bottom, rgba(0, 0, 0, 0), rgba(249, 249, 249, 1));
+  display: flex;
+  justify-content: center;
+  align-items: end;
+  cursor: pointer;
+}
+
+.preset-not-full-mask {
+  position: absolute;
+  bottom: 0;
+  width: 100%;
+  z-index: 10;
+  background: linear-gradient(to bottom, rgba(0, 0, 0, 0), rgba(249, 249, 249, 1));
+  display: flex;
+  justify-content: center;
+  align-items: end;
   cursor: pointer;
 }
 
@@ -1688,5 +1862,29 @@ export default {
 
 .loop-group >>> .el-radio {
   display: flex;
+}
+
+.s-card-item >>> .el-collapse {
+  border: none;
+}
+
+.s-card-item >>> .el-collapse-item__header {
+  border-bottom: none;
+  background-color: transparent;
+  font-weight: bold;
+  font-size: 15px;
+  height: 20px;
+  line-height: 20px;
+}
+
+.s-card-item >>> .el-collapse-item__wrap {
+  background-color: transparent;
+}
+
+.s-card-item >>> .el-collapse-item__content {
+  padding-top: 10px;
+  padding-bottom: 0;
+  font-size: 13px;
+  color: #303133;
 }
 </style>

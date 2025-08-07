@@ -422,6 +422,7 @@ export default {
       this.subtitleParams.font = sessionStorage.getItem("figure_font") || 'SJxingkai-C-Regular'
       this.subtitleParams.background_color = sessionStorage.getItem("figure_background_color") || '#404040'
       this.subtitleParams.background_opacity = Number(sessionStorage.getItem("figure_background_opacity")) || 0.6
+      this.subtitleParams.content_font_opacity = Number(sessionStorage.getItem("figure_content_font_opacity")) || 1
       this.subtitleParams.stroke_color = sessionStorage.getItem("figure_stroke_color") || '#000000'
 
       this.show_model = sessionStorage.getItem('figure_show_model') || 'begin'
@@ -430,6 +431,7 @@ export default {
       this.subtitleNameParams.name_font = sessionStorage.getItem("figure_name_font") || 'SJxingkai-C-Regular'
       this.subtitleNameParams.name_background_color = sessionStorage.getItem("figure_name_background_color") || '#404040'
       this.subtitleNameParams.name_background_opacity = Number(sessionStorage.getItem("figure_name_background_opacity")) || 0.6
+      this.subtitleNameParams.title_font_opacity = Number(sessionStorage.getItem("figure_title_font_opacity")) || 1
       this.subtitleNameParams.name_stroke_color = sessionStorage.getItem("figure_name_stroke_color") || '#000000'
     },
     generateVideo() {
@@ -459,6 +461,7 @@ export default {
           font: this.subtitleParams.font,
           fontsize: this.subtitleParams['fontsize'],
           color: this.subtitleParams.color,
+          font_opacity: this.subtitleParams.content_font_opacity,
           stroke_color: this.subtitleParams.stroke_color,
           use_background: this.use_background,
           background_color: this.subtitleParams.background_color,
@@ -471,6 +474,7 @@ export default {
           font: this.subtitleNameParams.name_font,
           fontsize: this.subtitleNameParams.name_fontsize,
           color: this.subtitleNameParams.name_color,
+          font_opacity: this.subtitleNameParams.title_font_opacity,
           stroke_color: this.subtitleNameParams.name_stroke_color,
           use_background: this.name_use_background,
           background_color: this.subtitleNameParams.name_background_color,

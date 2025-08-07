@@ -664,6 +664,7 @@ export default {
       // 字幕内容样式设置
       this.subtitleParams.fontsize = parseInt(sessionStorage.getItem("fontsize")) || 5
       this.subtitleParams.color = sessionStorage.getItem("color") || '#ffffff'
+      this.subtitleParams.content_font_opacity = Number(sessionStorage.getItem("content_font_opacity")) || 1
       this.subtitleParams.font = sessionStorage.getItem("font") || 'SJxingkai-C-Regular'
       this.subtitleParams.background_color = sessionStorage.getItem("background_color") || '#404040'
       this.subtitleParams.background_opacity = Number(sessionStorage.getItem("background_opacity")) || 0.6
@@ -672,6 +673,7 @@ export default {
       this.show_model = sessionStorage.getItem('show_model') || 'begin'
       this.subtitleNameParams.name_fontsize = parseInt(sessionStorage.getItem("name_fontsize")) || 10
       this.subtitleNameParams.name_color = sessionStorage.getItem("name_color") || '#ffffff'
+      this.subtitleNameParams.title_font_opacity = Number(sessionStorage.getItem("title_font_opacity")) || 1
       this.subtitleNameParams.name_font = sessionStorage.getItem("name_font") || 'SJxingkai-C-Regular'
       this.subtitleNameParams.name_background_color = sessionStorage.getItem("name_background_color") || '#404040'
       this.subtitleNameParams.name_background_opacity = Number(sessionStorage.getItem("name_background_opacity")) || 0.6
@@ -829,6 +831,7 @@ export default {
           font: this.subtitleParams.font,
           fontsize: this.subtitleParams['fontsize'],
           color: this.subtitleParams.color,
+          font_opacity: this.subtitleParams.content_font_opacity,
           stroke_color: this.subtitleParams.stroke_color,
           use_background: this.use_background,
           background_color: this.subtitleParams.background_color,
@@ -840,6 +843,7 @@ export default {
           font: this.subtitleNameParams.name_font,
           fontsize: this.subtitleNameParams.name_fontsize,
           color: this.subtitleNameParams.name_color,
+          font_opacity: this.subtitleNameParams.title_font_opacity,
           stroke_color: this.subtitleNameParams.name_stroke_color,
           use_background: this.name_use_background,
           background_color: this.subtitleNameParams.name_background_color,
