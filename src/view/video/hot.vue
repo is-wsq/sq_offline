@@ -637,7 +637,7 @@ export default {
 }
 
 .upload-dialog >>> .el-dialog__close {
-  color: #9ca3af;
+  color: #d3d2d2;
   font-size: 24px;
 }
 

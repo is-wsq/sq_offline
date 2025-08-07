@@ -86,6 +86,8 @@ const actions = {
             }else {
                 Vue.prototype.$message.error(res.data.message);
             }
+        }).catch(err => {
+            console.log(err)
         })
     },
 
@@ -120,6 +122,8 @@ const actions = {
             }else {
                 Vue.prototype.$message.error(res.data.message);
             }
+        }).catch(err => {
+            console.log(err)
         })
     },
 

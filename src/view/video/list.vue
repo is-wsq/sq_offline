@@ -27,44 +27,107 @@
         <video class="video-item-file" :src="item.video_path" loop muted autoplay v-if="item.id === hover_id"></video>
         <el-image class="video-item-file" :src="item.picture" fit="cover" lazy v-else></el-image>
         <div class="video-item-info">
-          <div :title="item.filename" class="video-name" v-if="!item.isEdit">{{ item.filename }}</div>
+          <div :title="item.filename" class="video-name" v-if="editId !== item.id">{{ item.filename }}</div>
           <div v-else style="flex: 1" @click.stop="">
             <el-input :ref="'renameInput_' + item.id" style="width: 100%" v-model="newName" @change="onSave(item)"
                       @blur="onBlur(item)"></el-input>
           </div>
-          <el-popover
-              placement="left-start"
-              popper-class="video-item-more-popover"
-              v-model="popoverStates[item.id]"
-              trigger="click">
-            <div class="more-btn-item" @click="deleteVideo(item)">
-              <i class="el-icon-delete-solid menu-icon"></i>
-              <span style="margin-top: 2px">删除</span>
-            </div>
-            <div class="more-btn-item" @click="downloadVideo(item)">
-              <i class="el-icon-download menu-icon"></i>
-              <span style="margin-top: 2px">另存为</span>
-            </div>
-            <div class="more-btn-item" @click="rename(item)">
-              <i class="el-icon-edit-outline menu-icon"></i>
-              <span style="margin-top: 2px">重命名</span>
-            </div>
-            <el-button slot="reference" type="text" class="more-btn" icon="el-icon-gengduo"
-                       @click.stop="clearOther(item)"></el-button>
-          </el-popover>
+          <div class="more-btn" @click.stop="">
+            <el-dropdown trigger="click" @command="command => handleCommand(command, item)" class="action-dropdown">
+            <span class="el-dropdown-link">
+              <i class="el-icon-more"></i>
+            </span>
+              <el-dropdown-menu slot="dropdown">
+                <el-dropdown-item command="rename" style="width: 150px">
+                  <i class="el-icon-edit" style="margin-right: 15px"></i>重命名
+                </el-dropdown-item>
+                <el-dropdown-item command="delete" style="width: 150px">
+                  <i class="el-icon-delete" style="margin-right: 15px"></i>删除
+                </el-dropdown-item>
+                <el-dropdown-item command="download" style="width: 150px">
+                  <i class="el-icon-download" style="margin-right: 15px"></i>另存为
+                </el-dropdown-item>
+                <el-dropdown-item command="document" style="width: 150px">
+                  <i class="el-icon-document" style="margin-right: 15px"></i>日志
+                </el-dropdown-item>
+              </el-dropdown-menu>
+            </el-dropdown>
+          </div>
         </div>
       </div>
-      <el-dialog :visible.sync="dialogVisible" :before-close="beforeClose" :width="aspectRatio > 1? '640px' : '390px'">
+      <el-dialog class="preview-dialog" :visible.sync="dialogVisible" :before-close="beforeClose" width="390px">
         <div style="width: 100%;text-align: center;position: relative">
-          <video style="border-radius: 10px;width: calc(100% - 40px)"
-                 ref="video"
-                 :src="src"
-                 @ended="isPlaying = false"
-                 @loadedmetadata="checkAspectRatio">
+          <video style="border-radius: 10px;width: calc(100% - 40px);object-fit: cover"
+                 ref="video" :src="src" @ended="isPlaying = false">
           </video>
           <div style="position: absolute;top: 50%;left: 50%;transform: translate(-50%, -50%);">
             <i class="el-icon-play control-icon" @click="controlVideo" v-if="!isPlaying"></i>
           </div>
+        </div>
+      </el-dialog>
+      <el-dialog class="log-dialog" :visible.sync="logDialogVisible" width="80%" :before-close="logClose">
+        <div slot="title" class="log-dialog-title" @mousedown.stop="">视频生成日志</div>
+        <div class="log-dialog-body">
+          <el-descriptions title="基础信息" :column="2" border>
+            <el-descriptions-item label="文案标题" :labelStyle="{'width': '100px','text-align': 'center'}">
+              {{ logInfo.title }}</el-descriptions-item>
+            <el-descriptions-item label="视频时长" :labelStyle="{'width': '100px','text-align': 'center'}"
+                                  :contentStyle="{'width': '100px','text-align': 'center'}">
+              {{ logInfo.duration? logInfo.duration.toFixed(2) + 's' : '' }}</el-descriptions-item>
+            <el-descriptions-item label="背景音乐" :labelStyle="{'width': '100px','text-align': 'center'}"
+                                  :span="2" v-if="!logInfo.bgm_path">无</el-descriptions-item>
+            <el-descriptions-item label="背景音乐" :labelStyle="{'width': '100px','text-align': 'center'}"
+                                  :span="2" v-else>
+              <div style="display: flex">
+                <div class="timbre-item-icon" @click="previewBgm(logInfo.bgm_path)">
+                  <i :class="audioPlaying ? 'el-icon-pause' : 'el-icon-play'"
+                     style="font-size: 13px; color: #6286ed"></i>
+                </div>
+                <div class="timbre-item-name">{{ logInfo.bgm_name }}</div>
+              </div>
+            </el-descriptions-item>
+            <el-descriptions-item label="文案内容" :labelStyle="{'width': '100px','text-align': 'center'}"
+                                  :span="2">{{ logInfo.content? logInfo.content : '无文案' }}</el-descriptions-item>
+            <el-descriptions-item label="文案要求" :labelStyle="{'width': '100px','text-align': 'center'}"
+                                  :span="2">{{ logInfo.copy_request }}</el-descriptions-item>
+            <el-descriptions-item label="混剪要求" :labelStyle="{'width': '100px','text-align': 'center'}"
+                                  :span="2">{{ logInfo.user_request }}</el-descriptions-item>
+          </el-descriptions>
+          <el-divider content-position="left">分镜组混剪信息</el-divider>
+          <el-table :data="logInfo.video_data.segment_group" row-key="groupId" style="width: 100%"
+                    border v-if="logInfo.video_data" :expanded-row-keys="expandedRowKeys">
+            <el-table-column type="expand">
+              <template slot-scope="props">
+                <div style="padding: 10px 20px;">
+                  <p><strong>分镜组描述:</strong> {{ props.row.contentSummary }}</p>
+                  <p><strong>素材匹配:</strong></p>
+                  <ul>
+                    <li v-for="material in props.row.materials" :key="material.id" style="height: 30px;line-height: 30px">
+                      <div style="display: flex">
+                        <div class="material-name" @click="previewMaterial(material)">{{ material.name }}</div>
+                        <div>- 时长: {{ material.duration }}s</div>
+                      </div>
+                    </li>
+                  </ul>
+                </div>
+              </template>
+            </el-table-column>
+            <el-table-column label="分镜组类型">
+              <template slot-scope="scope">
+                {{ scope.row.groupType === 'material_clips' ? '素材':'数字人' }}
+              </template>
+            </el-table-column>
+            <el-table-column label="匹配素材数">
+              <template slot-scope="scope">{{ scope.row.materials.length }}</template>
+            </el-table-column>
+            <el-table-column label="分镜组时长(s)" prop="groupDuration"></el-table-column>
+          </el-table>
+          <el-divider content-position="left">LLM 思考过程</el-divider>
+          <el-collapse v-model="activeCollapse">
+            <el-collapse-item title="LLM 分析" name="1">
+              <div class="llm-thought-process">{{ logInfo.reason }}</div>
+            </el-collapse-item>
+          </el-collapse>
         </div>
       </el-dialog>
     </div>
@@ -95,10 +158,16 @@ export default {
       downloadFilePath: '',
       downloadFileName: '',
       selectedId: '',
-      popoverStates: {},
       inputFocus: false,
       videoList: [],
-      hover_id: null
+      hover_id: null,
+      editId: '',
+      logDialogVisible: false,
+      logInfo: {},
+      expandedRowKeys: [],
+      activeCollapse: '',
+      audioPlaying: false,
+      audio: null,
     }
   },
   computed: {
@@ -131,8 +200,19 @@ export default {
         this.dot = '.'.repeat(this.dotCount);
       }, 1000);
     },
+    handleCommand(command, item) {
+      if (command === 'rename') {
+        this.editId = item.id
+        this.rename(item)
+      } else if (command === 'delete') {
+        this.deleteVideo(item)
+      } else if (command === 'download') {
+        this.downloadVideo(item)
+      } else if (command === 'document') {
+        this.viewLog(item)
+      }
+    },
     deleteVideo(item) {
-      this.popoverStates[item.id] = false;
       this.$confirm('此操作将永久删除该文件, 是否继续?', '提示', {
         type: 'warning'
       }).then(() => {
@@ -149,7 +229,6 @@ export default {
       });
     },
     async downloadVideo(item) {
-      this.popoverStates[item.id] = false;
       let self = this
       window.electronAPI.selectFolder().then((path) => {
         if (path) {
@@ -159,8 +238,6 @@ export default {
       })
     },
     rename(item) {
-      this.popoverStates[item.id] = false;
-      item.isEdit = true;
       this.newName = item.filename;
       this.videoId = item.id;
 
@@ -176,22 +253,12 @@ export default {
         }
       });
     },
-    clearOther(item) {
-      this.videoList.forEach((video) => {
-        if (video.id !== item.id) {
-          video.isEdit = false
-          this.popoverStates[video.id] = false;
-        }
-      })
-    },
-    onBlur(item) {
-      item.isEdit = false;
-      this.$forceUpdate()
+    onBlur() {
+      this.editId = ''
     },
     onSave(item) {
       if (this.newName === item.filename) {
-        item.isEdit = false;
-        this.$forceUpdate()
+        this.editId = ''
         return
       }
       let params = {
@@ -205,10 +272,15 @@ export default {
         } else {
           this.$alert(res.data.message,'重命名提示');
         }
-        item.isEdit = false;
+        this.editId = ''
       }).catch((err) => {
         this.$message.error("重命名失败，请稍后重试！");
       });
+    },
+    viewLog(item) {
+      console.log(item)
+      this.logInfo = item.details
+      this.logDialogVisible = true;
     },
     checkAspectRatio() {
       const video = this.$refs.video;
@@ -219,6 +291,37 @@ export default {
     preview(item) {
       this.src = item.video_path;
       this.dialogVisible = true;
+    },
+    previewMaterial(material) {
+      this.src = material.filepath;
+      this.dialogVisible = true;
+    },
+    previewBgm(bgm_path) {
+      if (this.audioPlaying) {
+        this.pauseBgm()
+        return
+      }
+      this.pauseBgm()
+      setTimeout(() => {
+        this.audio = new Audio(bgm_path)
+        this.audio.play()
+        this.audioPlaying = true
+        this.audio.onended = () => {
+          this.audio = null;
+          this.audioPlaying = false;
+        };
+      }, 100);
+    },
+    pauseBgm() {
+      if (this.audioPlaying) {
+        this.audio.pause();
+        this.audio = null;
+        this.audioPlaying = false;
+      }
+    },
+    logClose() {
+      this.pauseBgm()
+      this.logDialogVisible = false;
     },
     controlVideo() {
       const video = this.$refs.video;
@@ -337,7 +440,7 @@ export default {
   text-overflow: ellipsis;
   cursor: pointer;
   color: #FFFFFF;
-  font-size: 14px;
+  font-size: 15px;
 }
 
 .video-list-item >>> .el-input__inner {
@@ -365,6 +468,9 @@ export default {
   padding: 0;
   font-size: 18px;
   color: rgba(255, 255, 255, 0.8);
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 
 .more-btn:hover {
@@ -395,14 +501,20 @@ export default {
   border: 1px solid #6286ED;
 }
 
-.video-list >>> .el-dialog {
+.preview-dialog >>> .el-dialog {
   background-color: #79777700 !important;
   box-shadow: none !important;
+  margin: 0 auto;
+  aspect-ratio: 9 / 16;
 }
 
-.video-list >>> .el-dialog__headerbtn .el-dialog__close {
+.preview-dialog >>> .el-dialog__body {
+  padding: 10px 35px;
+}
+
+.preview-dialog >>> .el-dialog__headerbtn .el-dialog__close {
   font-size: 24px;
-  color: #9a9a9a;
+  color: #d3d2d2;
 }
 
 .control-icon {
@@ -410,5 +522,81 @@ export default {
   color: #fff;
   cursor: pointer;
   filter: drop-shadow(0px 0px 10px #292929);
+}
+
+.el-dropdown-link {
+  font-size: 16px;
+  color: #dfdede;
+  transform: rotate(90deg);
+  display: inline-block;
+}
+
+.more-btn:hover .el-dropdown-link {
+  color: #409EFF;
+}
+
+.log-dialog >>> .el-dialog {
+  border-radius: 10px;
+}
+
+.log-dialog-title {
+  padding: 20px 20px 10px;
+  line-height: 24px;
+  font-size: 18px;
+  color: #303133;
+  font-weight: 700;
+}
+
+.log-dialog-body {
+  padding: 10px 20px;
+  height: calc(70vh - 75px);
+  overflow-y: auto;
+}
+
+.log-dialog-footer {
+  padding: 10px 20px 20px;
+}
+
+.log-dialog >>> .el-dialog__header {
+  padding: 0;
+}
+
+.log-dialog >>> .el-dialog__close {
+  color: #9ca3af;
+  font-size: 24px;
+}
+
+.log-dialog >>> .el-dialog__body {
+  padding: 0;
+}
+
+.log-dialog >>> .el-dialog__footer {
+  padding: 0;
+}
+
+.llm-thought-process {
+  background-color: #f5f5f5;
+  padding: 15px;
+  border-radius: 4px;
+  white-space: pre-wrap; /* 保留换行和空格 */
+  word-wrap: break-word;
+}
+
+.material-name {
+  color: #409EFF;
+  margin-right: 5px;
+  cursor: pointer;
+}
+
+.timbre-item-icon {
+  width: 32px;
+  height: 30px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  cursor: pointer;
+  background-color: #ffffff;
+  border: 1px solid #DCDFE6;
+  border-radius: 8px;
 }
 </style>
