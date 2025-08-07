@@ -233,11 +233,12 @@
               ref="videoRef"
               preload="metadata"
               controls
-              controlsList="noplaybackrate nodownload"
+              controlsList="nodownload"
               @play="mediaPlay"
               @pause="mediaPause"
-              @ended="playNextVideo"
               @volumechange="mediaVolumeChange"
+              @ratechange="mediaRateChange"
+              @timeupdate="mediaTimeUpdate"
               style="width: 280px; aspect-ratio: 9 / 16;border-radius: 12px"
           >
             您的浏览器不支持HTML5视频播放。
@@ -303,8 +304,8 @@ export default {
       openIndex: null,
       activeIndex: -1,
       selectedCopy: null,
-
-      currentIndex: 0,
+      preview_video_url: '',
+      preview_audio_url: '',
       isPlaying: false,
 
       media_volume: 0.5,
@@ -349,23 +350,11 @@ export default {
       if (this.copy_list.length > 0) {
         let segment_group = this.copy_list[this.activeIndex].segment_group
         return segment_group.reduce((acc, item) => {
-          const materials_duration = item.materials.reduce((sum, material) => sum + material.duration, 0);
-          return acc.concat(item.materials.map(material => ({
-            id: material.id,
-            video_type: material.video_type,
-            filepath: material.filepath,
-            group_duration: item.groupDuration || 0,
-            materials_duration: materials_duration,
-          })));
+          return acc.concat(item.materials);
         }, [])
       }
       return []
     },
-    base_playback_rate() {
-      let segment_group = this.copy_list[this.activeIndex].segment_group
-      const sum_segment_group = segment_group.reduce((sum, item) => sum + item.groupDuration, 0);
-      return sum_segment_group / this.copy_list[this.activeIndex].audio_file_duration
-    }
   },
   methods: {
     popoverShow(params) {
@@ -391,10 +380,8 @@ export default {
         }
       });
       this.copy_list[index].segment_group[group_index].materials.splice(material_index, 0, item);
-      this.currentIndex = 0
       this.$nextTick(() => {
-        this.loadVideo(this.currentIndex);
-        this.loadAudio()
+        this.concatVideo()
       })
       sessionStorage.setItem("segments_copy_list", JSON.stringify(this.copy_list))
     },
@@ -409,10 +396,8 @@ export default {
         }
       });
       this.copy_list[index].segment_group[group_index].materials.push(val)
-      this.currentIndex = 0
       this.$nextTick(() => {
-        this.loadVideo(this.currentIndex);
-        this.loadAudio()
+        this.concatVideo()
       })
       sessionStorage.setItem("segments_copy_list", JSON.stringify(this.copy_list))
     },
@@ -422,10 +407,8 @@ export default {
       }).then(() => {
         this.copy_list[index].segment_group[group_index].materials.splice(shot_index, 1)
         if (this.copy_list[index].segment_group[group_index].materials.length !== 0) {
-          this.currentIndex = 0
           this.$nextTick(() => {
-            this.loadVideo(this.currentIndex);
-            this.loadAudio()
+            this.concatVideo()
           })
         }
         sessionStorage.setItem("segments_copy_list", JSON.stringify(this.copy_list))
@@ -612,8 +595,10 @@ export default {
         this.activeIndex = 0;
         this.currentIndex = 0
         this.selectedCopy = this.copy_list[0]
+        this.preview_video_url = this.copy_list[0].video_file_path
+        this.preview_audio_url = this.copy_list[0].audio_file_path
         this.$nextTick(() => {
-          this.loadVideo(this.currentIndex);
+          this.loadVideo();
           this.loadAudio()
         })
       }
@@ -676,6 +661,42 @@ export default {
     formatTooltip(val) {
       return val + '%';
     },
+    concatVideo() {
+      this.loading = this.$loading({
+        lock: true,
+        text: '正在合成预览视频，耗时不会太长，请稍等...',
+        spinner: 'el-icon-loading',
+        background: 'rgba(0, 0, 0, 0.7)'
+      });
+      const list = this.preview_video.map(item => ({
+        path: item.filepath, muted: this.mute_materials.includes(item.id) || item.video_type === 'figure'
+      }))
+      let params = {
+        audio_file_duration: this.audio_file_duration,
+        video_data: this.copy_list[this.activeIndex],
+        video_list: list,
+      }
+      postAction('/figure/create_concatenated_video', params, 600000).then(res => {
+        if (res.data.status === "success") {
+          this.loading.close();
+          this.loading = null;
+          this.copy_list[this.activeIndex].video_file_path = res.data.data.result_path
+          this.preview_video_url = res.data.data.result_path
+          this.$nextTick(() => {
+            this.loadVideo();
+            this.loadAudio()
+          })
+        }else {
+          this.loading.close();
+          this.loading = null;
+          this.$message.error("视频拼接失败。");
+        }
+      }).catch((error) => {
+        this.loading.close();
+        this.loading = null;
+        console.error("视频拼接错误:", error);
+      })
+    },
     generate() {
       if (this.copy_require.trim() === '') {
         this.$alert('文案要求不能为空，请先填写文案要求', '提示')
@@ -721,8 +742,10 @@ export default {
           this.selectedCopy = this.copy_list[0]
           this.loading.close();
           this.loading = null;
+          this.preview_video_url = this.copy_list[0].video_file_path
+          this.preview_audio_url = this.copy_list[0].audio_file_path
           this.$nextTick(() => {
-            this.loadVideo(this.currentIndex);
+            this.loadVideo();
             this.loadAudio()
           })
         } else {
@@ -745,9 +768,10 @@ export default {
           this.$refs.audioRef.pause()
           this.isPlaying = false
         }
-        this.currentIndex = 0
+        this.preview_video_url = this.copy_list[this.activeIndex].video_file_path
+        this.preview_audio_url = this.copy_list[this.activeIndex].audio_file_path
         this.$nextTick(() => {
-          this.loadVideo(0);
+          this.loadVideo();
           this.loadAudio()
         })
       }
@@ -766,10 +790,11 @@ export default {
           this.already_generated = true;
           this.openIndex = 0;
           this.activeIndex = 0;
-          this.currentIndex = 0
           this.selectedCopy = this.copy_list[0]
+          this.preview_video_url = this.copy_list[0].video_file_path
+          this.preview_audio_url = this.copy_list[0].audio_file_path
           this.$nextTick(() => {
-            this.loadVideo(this.currentIndex);
+            this.loadVideo();
             this.loadAudio()
           })
         } else {
@@ -857,23 +882,14 @@ export default {
       });
     },
     loadAudio() {
-      this.$refs.audioRef.src = this.copy_list[this.activeIndex].audio_file_path
-      // this.$refs.audioRef.volume = this.media_volume;
+      this.$refs.audioRef.currentTime = 0
+      this.$refs.audioRef.src = this.preview_audio_url
       this.$refs.audioRef.play()
     },
-    loadVideo(index) {
-      if (index >= 0 && index < this.preview_video.length) {
-        this.currentIndex = index;
-        let preview = this.preview_video[index]
-        this.$refs.videoRef.src = preview.filepath
-        this.$refs.videoRef.load();
-        // this.$refs.videoRef.volume = this.media_volume;
-        this.$refs.videoRef.playbackRate = preview.materials_duration / preview.group_duration * this.base_playback_rate;
-        if (this.mute_materials.includes(preview.id) || preview.video_type === 'figure') {
-          this.$refs.videoRef.muted = true
-        }
-        this.playVideo();
-      }
+    loadVideo() {
+      this.$refs.videoRef.src = this.preview_video_url
+      this.$refs.videoRef.load();
+      this.playVideo();
     },
     playVideo() {
       this.$refs.videoRef.play().then(() => {
@@ -883,19 +899,6 @@ export default {
         // 这里可以添加错误处理逻辑，如显示错误消息
       });
     },
-    playNextVideo() {
-      if (this.currentIndex === this.preview_video.length - 1) {
-        this.currentIndex = 0;
-        this.$refs.videoRef.src = this.preview_video[0].filepath
-        this.$refs.videoRef.currentTime = 0
-        this.$refs.audioRef.pause()
-        this.$refs.audioRef.currentTime = 0
-        this.isPlaying = false;
-        return
-      }
-      const nextIndex = this.currentIndex + 1;
-      this.loadVideo(nextIndex);
-    },
     mediaPlay() {
       this.$refs.audioRef.play()
     },
@@ -903,9 +906,8 @@ export default {
       this.$refs.audioRef.pause()
     },
     mediaVolumeChange() {
-      // this.media_volume = this.$refs.videoRef.volume
-      // this.$refs.audioRef.volume = this.$refs.videoRef.volume
-      // this.$refs.audioRef.muted = this.$refs.videoRef.muted
+      this.$refs.audioRef.volume = this.$refs.videoRef.volume
+      this.$refs.audioRef.muted = this.$refs.videoRef.muted
     },
     mediaRateChange() {
       this.$refs.audioRef.playbackRate = this.$refs.videoRef.playbackRate
