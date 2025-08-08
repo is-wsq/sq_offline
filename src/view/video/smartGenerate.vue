@@ -91,11 +91,17 @@
         </el-col>
         <el-col :span="12" :md="14" :lg="16" style="height: 100%">
           <div class="smart-generate-c-r">
-            <div class="font-weight margin-b-12">文案列表</div>
+            <div class="flex-center">
+              <div class="font-weight margin-b-12" style="flex: 1">文案列表</div>
+              <el-button type="text" @click="showChecked = false" v-if="showChecked">取消</el-button>
+              <el-button type="primary" v-if="!showChecked" @click="showChecked = true">批量删除</el-button>
+              <el-button type="primary" v-if="showChecked" @click="batchRemoveCopy">确认删除</el-button>
+            </div>
             <div class="smart-generate-c-r-list">
               <div v-if="copy_list.length > 0" style="width: 100%">
                 <div v-for="(item, index) in copy_list" :key="index" class="copy-item">
-                  <i class="el-icon-tuodong" style="color: #9ca3af;font-size: 18px"></i>
+                  <i class="el-icon-tuodong" style="color: #9ca3af;font-size: 18px" v-if="!showChecked"></i>
+                  <el-checkbox v-model="deleteCheckeds[index]" style="margin-right: 10px" v-if="showChecked"></el-checkbox>
                   <div class="copy-item-content" style="cursor: pointer"
                        v-if="!item.isEdit" @click="showEdit(index)">
                     <div class="copy-item-title" :title="item.title">{{ item.title }}</div>
@@ -124,7 +130,7 @@
                     </div>
                     <el-button class="copy-item-save" type="primary" @click="saveCopy(index)">保存修改</el-button>
                   </div>
-                  <i class="el-icon-close copy-item-close" @click="removeCopy(index)"></i>
+                  <i class="el-icon-close copy-item-close" @click="removeCopy(index)" v-if="!showChecked"></i>
                 </div>
               </div>
               <div class="none-copy" v-else>
@@ -161,6 +167,8 @@ export default {
       ai_model: 'deepseek_v3',
       copy_title: '',
       copy_content: '',
+      showChecked: false,
+      deleteCheckeds: [],
       copy_list: [],
       new_title: '',
       new_content: '',
@@ -337,6 +345,11 @@ export default {
       }
     },
     showEdit(index) {
+      if (this.showChecked) {
+        this.deleteCheckeds[index] = !this.deleteCheckeds[index]
+        this.$forceUpdate()
+        return
+      }
       this.copy_list.forEach((copy, i) => {
         copy.isEdit = i === index;
       })
@@ -367,6 +380,27 @@ export default {
         type: 'warning'
       }).then(() => {
         this.copy_list.splice(index, 1);
+        if (this.script_type === 'material') {
+          sessionStorage.setItem("copy_list", JSON.stringify(this.copy_list))
+          sessionStorage.removeItem('montage_data')
+        }else {
+          sessionStorage.setItem("figure_copy_list", JSON.stringify(this.copy_list))
+        }
+      }).catch((err) => {
+        this.$message({type: 'info', message: '已取消删除'});
+      });
+    },
+    batchRemoveCopy() {
+      if (this.deleteCheckeds.every(item => !item)) {
+        this.$alert('请选择要删除的文案', '提示')
+        return
+      }
+      this.$confirm('确认删除选择的文案吗？', '提示', {
+        type: 'warning'
+      }).then(() => {
+        this.copy_list = this.copy_list.filter((item, i) => !this.deleteCheckeds[i]);
+        this.deleteCheckeds = []
+        this.$forceUpdate()
         if (this.script_type === 'material') {
           sessionStorage.setItem("copy_list", JSON.stringify(this.copy_list))
           sessionStorage.removeItem('montage_data')

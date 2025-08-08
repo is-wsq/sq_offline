@@ -81,7 +81,12 @@
       </div>
       <div class="script-panel" :style="{ width: show_settings? 'calc(100% - 648px)' : 'calc(100% - 370px)' }">
         <div class="script-selection-area">
-          <div class="panel-title">AI选用文案</div>
+          <div class="flex-center">
+            <div class="panel-title" style="flex: 1">AI选用文案</div>
+            <el-button type="text" @click="showChecked = false" v-if="showChecked">取消</el-button>
+            <el-button type="primary" v-if="!showChecked" @click="showChecked = true">批量删除</el-button>
+            <el-button type="primary" v-if="showChecked" @click="batchRemoveCopy">确认删除</el-button>
+          </div>
           <div class="script-list">
             <template v-if="!already_generated" style="width: 100%">
               <div v-for="(item, index) in copy_list" :key="index" class="script-item"
@@ -161,7 +166,8 @@
                 <div class="flex-center" @click="itemClick(index)">
                   <div class="script-item-title" :title="item.title">{{ item.title }}</div>
                   <div style="width: 16px">
-                    <i class="el-icon-close close-icon" @click="removeCopy(index)"></i>
+                    <i class="el-icon-close close-icon" @click="removeCopy(index)" v-if="!showChecked"></i>
+                    <el-checkbox v-model="deleteCheckeds[index]" v-if="showChecked"></el-checkbox>
                   </div>
                   <i class="el-icon-arrow-right" style="color: #9ca3af;font-size: 15px;font-weight: bold;"
                      v-if="activeIndex !== index"></i>
@@ -319,6 +325,8 @@ export default {
       selected_index: {},
       already_generated: false,
       show_settings: true,
+      showChecked: false,
+      deleteCheckeds: [],
       activeIndex: -1,
       isPlaying: false,
 
@@ -1022,6 +1030,11 @@ export default {
     },
 
     itemClick(index) {
+      if (this.showChecked) {
+        this.deleteCheckeds[index] = !this.deleteCheckeds[index]
+        this.$forceUpdate()
+        return
+      }
       if (this.activeIndex !== index) {
         this.activeIndex = index
         if (this.isPlaying) {
@@ -1069,6 +1082,49 @@ export default {
           return
         }
         this.copy_list.splice(index, 1)
+        sessionStorage.setItem("copy_list", JSON.stringify(this.copy_list))
+      }).catch((err) => {
+        this.$message({type: 'info', message: '已取消删除'});
+      });
+    },
+    batchRemoveCopy() {
+      if (this.deleteCheckeds.every(item => !item)) {
+        this.$alert('请选择要删除的文案', '提示')
+        return
+      }
+      this.$confirm('确认删除选择的文案吗？', '提示', {
+        type: 'warning'
+      }).then(() => {
+        if (this.already_generated) {
+          this.montage_data = this.montage_data.filter((item, i) => !this.deleteCheckeds[i]);
+          this.deleteCheckeds = []
+          this.$forceUpdate()
+          if (this.nextType === 'hot_montage') {
+            sessionStorage.setItem("hot_montage_data", JSON.stringify(this.montage_data))
+          } else {
+            sessionStorage.setItem("montage_data", JSON.stringify(this.montage_data))
+          }
+          if (this.$refs.videoRef) {
+            this.$refs.videoRef.pause()
+            this.$refs.audioRef.pause()
+            this.isPlaying = false
+          }
+          if (this.montage_data.length > 0) {
+            this.already_generated = true
+            this.activeIndex = 0
+            this.preview_video_url = this.montage_data[0].video_file_path
+            this.preview_audio_url = this.montage_data[0].audio_file_path
+            this.$nextTick(() => {
+              this.loadVideo();
+              this.loadAudio()
+            })
+          }else {
+            this.already_generated = false
+            this.activeIndex = -1
+          }
+          return
+        }
+        this.copy_list = this.copy_list.filter((item, i) => !this.deleteCheckeds[i]);
         sessionStorage.setItem("copy_list", JSON.stringify(this.copy_list))
       }).catch((err) => {
         this.$message({type: 'info', message: '已取消删除'});
