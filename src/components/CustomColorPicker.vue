@@ -6,14 +6,14 @@
       </div>
       <div class="tab-line">
         <div class="header-text">
-          <div class="header-icon" data-value="0">
-            <span class="styled__StyledToolTipSpan-sc-h6ge1t-0 sFjTR Tooltip">
-              <svg width="16" height="16" xmlns="http://www.w3.org/2000/svg">
-                <circle cx="8" cy="8" r="7.5" fill="#266FFF" stroke="#266FFF" stroke-width="1px" fill-rule="evenodd" fill-opacity=".54">
-                </circle>
-              </svg>
-            </span>
-          </div>
+<!--          <div class="header-icon" data-value="0">-->
+<!--            <span class="styled__StyledToolTipSpan-sc-h6ge1t-0 sFjTR Tooltip">-->
+<!--              <svg width="16" height="16" xmlns="http://www.w3.org/2000/svg">-->
+<!--                <circle cx="8" cy="8" r="7.5" fill="#266FFF" stroke="#266FFF" stroke-width="1px" fill-rule="evenodd" fill-opacity=".54">-->
+<!--                </circle>-->
+<!--              </svg>-->
+<!--            </span>-->
+<!--          </div>-->
         </div>
         <div class="jFPZAG">
           <div class="draw-tab" :class="{selected: colorPickerType === 'svPlane'}" @click="colorPickerType = 'svPlane'">
