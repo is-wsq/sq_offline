@@ -94,34 +94,65 @@
                                   :span="2">{{ logInfo.user_request }}</el-descriptions-item>
           </el-descriptions>
           <el-divider content-position="left">分镜组混剪信息</el-divider>
-          <el-table :data="logInfo.video_data.segment_group" row-key="groupId" style="width: 100%"
-                    border v-if="logInfo.video_data" :expanded-row-keys="expandedRowKeys">
-            <el-table-column type="expand">
-              <template slot-scope="props">
-                <div style="padding: 10px 20px;">
-                  <p><strong>分镜组描述:</strong> {{ props.row.contentSummary }}</p>
-                  <p><strong>素材匹配:</strong></p>
-                  <ul>
-                    <li v-for="material in props.row.materials" :key="material.id" style="height: 30px;line-height: 30px">
-                      <div style="display: flex">
-                        <div class="material-name" @click="previewMaterial(material)">{{ material.name }}</div>
-                        <div>- 时长: {{ material.duration }}s</div>
-                      </div>
-                    </li>
-                  </ul>
+
+          <div class="group-card">
+            <div class="group-title" :title="logInfo.title">{{ logInfo.title }}</div>
+            <div class="group-content" :title="logInfo.content" v-if="logInfo.content">
+              {{ logInfo.content }}
+            </div>
+            <div class="group-content" style="display: flex;gap: 2px" v-else>
+              <i class="el-icon-wuneirong" style="line-height: 21px"></i>
+              <div style="line-height: 21px">无文案</div>
+              <div style="margin: 0 5px;line-height: 18px">|</div>
+              <i class="el-icon-time" style="line-height: 21px"></i>
+              <div style="line-height: 21px">{{ logInfo.duration + 's' }}</div>
+            </div>
+            <div class="groups-segment" v-if="logInfo.video_data">
+              <div class="group-segment" v-for="(group,group_index) in logInfo.video_data.segment_group" :key="group_index">
+                <div class="segment-title"
+                     :style="{ width: ((group.materials.length - 1) * 100 + 80) + 'px' }"
+                     :title="group.contentSummary">
+                  {{ group.contentSummary }}
                 </div>
-              </template>
-            </el-table-column>
-            <el-table-column label="分镜组类型">
-              <template slot-scope="scope">
-                {{ scope.row.groupType === 'material_clips' ? '素材':'数字人' }}
-              </template>
-            </el-table-column>
-            <el-table-column label="匹配素材数">
-              <template slot-scope="scope">{{ scope.row.materials.length }}</template>
-            </el-table-column>
-            <el-table-column label="分镜组时长(s)" prop="groupDuration"></el-table-column>
-          </el-table>
+                <div class="material-list">
+                  <div class="material-item" v-for="(material,material_index) in group.materials"
+                       :key="material_index">
+                    <el-image class="material-item-img" :src="material.picture"></el-image>
+                    <div class="material-item-title" :title="material.name">{{ material.name }}</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+<!--          <el-table :data="logInfo.video_data.segment_group" row-key="groupId" style="width: 100%"-->
+<!--                    border v-if="logInfo.video_data" :expanded-row-keys="expandedRowKeys">-->
+<!--            <el-table-column type="expand">-->
+<!--              <template slot-scope="props">-->
+<!--                <div style="padding: 10px 20px;">-->
+<!--                  <p><strong>分镜组描述:</strong> {{ props.row.contentSummary }}</p>-->
+<!--                  <p><strong>素材匹配:</strong></p>-->
+<!--                  <ul>-->
+<!--                    <li v-for="material in props.row.materials" :key="material.id" style="height: 30px;line-height: 30px">-->
+<!--                      <div style="display: flex">-->
+<!--                        <div class="material-name" @click="previewMaterial(material)">{{ material.name }}</div>-->
+<!--                        <div>- 时长: {{ material.duration }}s</div>-->
+<!--                      </div>-->
+<!--                    </li>-->
+<!--                  </ul>-->
+<!--                </div>-->
+<!--              </template>-->
+<!--            </el-table-column>-->
+<!--            <el-table-column label="分镜组类型">-->
+<!--              <template slot-scope="scope">-->
+<!--                {{ scope.row.groupType === 'material_clips' ? '素材':'数字人' }}-->
+<!--              </template>-->
+<!--            </el-table-column>-->
+<!--            <el-table-column label="匹配素材数">-->
+<!--              <template slot-scope="scope">{{ scope.row.materials.length }}</template>-->
+<!--            </el-table-column>-->
+<!--            <el-table-column label="分镜组时长(s)" prop="groupDuration"></el-table-column>-->
+<!--          </el-table>-->
           <el-divider content-position="left">LLM 思考过程</el-divider>
           <el-collapse v-model="activeCollapse">
             <el-collapse-item title="LLM 分析" name="1">
@@ -602,5 +633,106 @@ export default {
 
 .timbre-item-name {
   flex: 1;
+}
+
+.group-card {
+  width: 100%;
+  box-sizing: border-box;
+  color: #1f2937;
+  cursor: pointer;
+  background: #f8fafc;
+  border-radius: 12px;
+  padding: 20px;
+  transition: all 0.2s ease;
+  position: relative;
+  background: linear-gradient(135deg, #dbeafe 0%, #ede9fe 100%) !important;
+  border-color: #8b5cf6 !important;
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.15), 0 4px 12px rgba(139, 92, 246, 0.15) !important;
+}
+
+.group-title {
+  width: 100%;
+  line-height: 28px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: #1e293b;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.group-content {
+  width: 100%;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  cursor: pointer;
+  color: #64748b;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.groups-segment {
+  margin-top: 12px;
+  display: flex;
+  flex-direction: row;
+  gap: 8px;
+  overflow-x: auto;
+  padding-bottom: 12px;
+}
+
+.group-segment {
+  flex-shrink: 0;
+  background-color: #f8fafc;
+  padding: 12px 20px;
+  border-radius: 8px;
+  border: 1px solid #e2e8f0;
+  overflow: hidden;
+}
+
+.segment-title {
+  font-size: 13px;
+  font-weight: 500;
+  color: #4338ca;
+  margin-bottom: 8px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.material-list {
+  display: flex;
+  gap: 20px;
+}
+
+.material-item {
+  position: relative;
+  width: 80px;
+  display: flex;
+  aspect-ratio: 9 / 16;
+  border-radius: 5px;
+  flex-shrink: 0;
+}
+
+.material-item-img {
+  width: 100%;
+  height: 100%;
+  border-radius: 5px;
+}
+
+.material-item-title {
+  position: absolute;
+  bottom: 0;
+  width: 100%;
+  background: linear-gradient(to bottom, rgba(0, 0, 0, 0), rgba(0, 0, 0, 1));
+  padding: 10px 2px;
+  box-sizing: border-box;
+  color: #FFFFFF;
+  font-size: 12px;
+  border-bottom-left-radius: 8px;
+  border-bottom-right-radius: 8px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 </style>
