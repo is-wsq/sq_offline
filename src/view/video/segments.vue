@@ -311,6 +311,7 @@ export default {
       media_volume: 0.5,
       loading: null,
       segments_description: [],
+      reference_segments: [],
 
       displayText: '',
       isComposing: false,
@@ -616,6 +617,7 @@ export default {
       this.exampleTexts = []
       this.exampleTexts[0] = hots.segments.map(segment => segment.asr_text).join('');
       this.segments_description = hots.segments.map(item => item.description)
+      this.reference_segments = hots.segmentGroups
 
       // 选择的素材id列表、素材列表、静音素材列表
       this.material_list = JSON.parse(sessionStorage.getItem('material_list')) || []
@@ -729,7 +731,7 @@ export default {
         with_subtitle: this.withSubtitle,
         reverse: this.reverse,
         figure_ratio: this.figure_ratio + '%',
-        reference_segments: this.segments_description,
+        reference_segments: this.reference_segments,
       }
       postAction('/figure/video_mix_edit_sync', params, 3600000).then(res => {
         if (res.data.status === 'success') {

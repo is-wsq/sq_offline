@@ -812,7 +812,8 @@ export default {
       let reference_segments = null
       if (this.nextType === 'hot_montage') {
         let hots = JSON.parse(sessionStorage.getItem("select_hots"))
-        reference_segments = hots.segments.map(item => item.description)
+        // reference_segments = hots.segments.map(item => item.description)
+        reference_segments = hots.segmentGroups
       }
       let params = {
         user_request: actualRequest,
@@ -924,7 +925,8 @@ export default {
       let reference_segments = null
       if (this.nextType === 'hot_montage') {
         let hots = JSON.parse(sessionStorage.getItem("select_hots"))
-        reference_segments = hots.segments.map(item => item.description)
+        // reference_segments = hots.segments.map(item => item.description)
+        reference_segments = hots.segmentGroups
       }
       let bool_list = this.material_list.map(item => this.mute_materials.includes(item))
       let name = this.setName()
