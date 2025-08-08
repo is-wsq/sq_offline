@@ -252,8 +252,12 @@
                 </div>
                 <div class="flex-center margin-t-8">
                   <div class="right-label" style="flex: 1">字体颜色</div>
-                  <el-color-picker size="small" v-model="subtitleNameParams.name_color"
-                                   @change="saveSubtitleNameParams('name_color')"></el-color-picker>
+                  <el-popover
+                      placement="left"
+                      trigger="click">
+                    <custom-color-picker :color="subtitleNameParams.name_color" @color-updated="handleNameColorUpdated"></custom-color-picker>
+                    <div slot="reference" class="color-box" :style="{background: subtitleNameParams.name_color}"></div>
+                  </el-popover>
                 </div>
                 <div class="flex-center opacity margin-t-8">
                   <div class="s-voice-title" style="margin-right: 12px">字体不透明度</div>
@@ -267,8 +271,12 @@
                 </div>
                 <div class="flex-center margin-t-8 margin-b-8">
                   <div class="right-label" style="flex: 1">描边颜色</div>
-                  <el-color-picker size="small" v-model="subtitleNameParams.name_stroke_color"
-                                   @change="saveSubtitleNameParams('name_stroke_color')"></el-color-picker>
+                  <el-popover
+                      placement="left"
+                      trigger="click">
+                    <custom-color-picker :color="subtitleNameParams.name_stroke_color" @color-updated="handleNameStrokeColorUpdated"></custom-color-picker>
+                    <div slot="reference" class="color-box" :style="{background: subtitleNameParams.name_stroke_color}"></div>
+                  </el-popover>
                 </div>
                 <div class="flex-center back-checkbox" :class="{'margin-b-16': name_background_setting}"
                      style="cursor: pointer"
@@ -280,8 +288,12 @@
                 </div>
                 <div class="flex-center margin-b-12 bg-color" v-if="name_background_setting">
                   <div class="right-label" style="margin-right: 12px">颜色</div>
-                  <el-color-picker size="small" v-model="subtitleNameParams.name_background_color"
-                                   @change="saveSubtitleNameParams('name_background_color')"></el-color-picker>
+                  <el-popover
+                      placement="left"
+                      trigger="click">
+                    <custom-color-picker :color="subtitleNameParams.name_background_color" @color-updated="handleNameBackgroundColorUpdated"></custom-color-picker>
+                    <div slot="reference" class="color-box" :style="{background: subtitleNameParams.name_background_color}"></div>
+                  </el-popover>
                   <div style="flex: 1"></div>
                 </div>
                 <div class="flex-center opacity" v-if="name_background_setting">
@@ -360,8 +372,12 @@
                 </div>
                 <div class="flex-center margin-t-8">
                   <div class="right-label" style="flex: 1">字体颜色</div>
-                  <el-color-picker size="small" v-model="subtitleParams.color"
-                                   @change="saveSubtitleParams('color')"></el-color-picker>
+                  <el-popover
+                      placement="left"
+                      trigger="click">
+                    <custom-color-picker :color="subtitleParams.color" @color-updated="handleColorUpdated"></custom-color-picker>
+                    <div slot="reference" class="color-box" :style="{background: subtitleParams.color}"></div>
+                  </el-popover>
                 </div>
                 <div class="flex-center opacity margin-t-8">
                   <div class="s-voice-title" style="margin-right: 12px">字体不透明度</div>
@@ -375,8 +391,12 @@
                 </div>
                 <div class="flex-center margin-t-8 margin-b-8">
                   <div class="right-label" style="flex: 1">描边颜色</div>
-                  <el-color-picker size="small" v-model="subtitleParams.stroke_color"
-                                   @change="saveSubtitleParams('stroke_color')"></el-color-picker>
+                  <el-popover
+                      placement="left"
+                      trigger="click">
+                    <custom-color-picker :color="subtitleParams.stroke_color" @color-updated="handleStrokeColorUpdated"></custom-color-picker>
+                    <div slot="reference" class="color-box" :style="{background: subtitleParams.stroke_color}"></div>
+                  </el-popover>
                 </div>
                 <div class="flex-center back-checkbox" :class="{'margin-b-16': background_setting}" style="cursor: pointer"
                      @click="background_setting = !background_setting">
@@ -387,8 +407,14 @@
                 </div>
                 <div class="flex-center margin-b-12 bg-color" v-if="background_setting">
                   <div class="right-label" style="margin-right: 12px">颜色</div>
-                  <el-color-picker size="small" v-model="subtitleParams.background_color"
-                                   @change="saveSubtitleParams('background_color')"></el-color-picker>
+                  <div class="custom-color-popover">
+                    <el-popover
+                        placement="left"
+                        trigger="click">
+                      <custom-color-picker :color="subtitleParams.background_color" @color-updated="handleBackgroundColorUpdated"></custom-color-picker>
+                      <div slot="reference" class="color-box" :style="{background: subtitleParams.background_color}"></div>
+                    </el-popover>
+                  </div>
                   <div style="flex: 1"></div>
                 </div>
                 <div class="flex-center opacity" v-if="background_setting">
@@ -412,9 +438,11 @@
 <script>
 import {getAction} from "@/api/api";
 import {EnhancedChoiceMixin} from "@/mixins/EnhancedChoiceMixin";
+import CustomColorPicker from "@/components/CustomColorPicker.vue";
 
 export default {
   name: 'human',
+  components: {CustomColorPicker},
   mixins: [EnhancedChoiceMixin],
   data() {
     return {
@@ -897,6 +925,36 @@ export default {
 
       sessionStorage.setItem('figure_top_offset_ratio', this.topRatio)
     },
+    handleNameColorUpdated(newColor) {
+      this.subtitleNameParams.name_color = newColor
+      this.saveSubtitleNameParams('name_color')
+      this.$forceUpdate()
+    },
+    handleNameStrokeColorUpdated(newColor) {
+      this.subtitleNameParams.name_stroke_color = newColor
+      this.saveSubtitleNameParams('name_stroke_color')
+      this.$forceUpdate()
+    },
+    handleNameBackgroundColorUpdated(newColor) {
+      this.subtitleNameParams.name_background_color = newColor
+      this.saveSubtitleNameParams('name_background_color')
+      this.$forceUpdate()
+    },
+    handleColorUpdated(newColor) {
+      this.subtitleParams.color = newColor
+      this.saveSubtitleParams('color')
+      this.$forceUpdate()
+    },
+    handleStrokeColorUpdated(newColor) {
+      this.subtitleParams.stroke_color = newColor
+      this.saveSubtitleParams('stroke_color')
+      this.$forceUpdate()
+    },
+    handleBackgroundColorUpdated(newColor) {
+      this.subtitleParams.background_color = newColor
+      this.saveSubtitleParams('background_color')
+      this.$forceUpdate()
+    },
     saveSubtitleNameParams(key) {
       let value = this.subtitleNameParams[key]
       this.updateTitleTextStyle()
@@ -1178,6 +1236,21 @@ export default {
 .right-label {
   font-size: 12px;
   color: #374151;
+}
+
+.color-box {
+  width: 22px;
+  height: 22px;
+  border-radius: 3px;
+  border: 1px solid #c8c8c8;
+  cursor: pointer;
+}
+
+.color-value {
+  font-size: 12px;
+  color: #374151;
+  width: 55px;
+  text-align: end;
 }
 
 .mode-switch {
