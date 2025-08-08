@@ -65,7 +65,7 @@
           </div>
         </div>
       </el-dialog>
-      <el-dialog class="log-dialog" :visible.sync="logDialogVisible" width="80%" :before-close="logClose">
+      <el-dialog class="log-dialog" :visible.sync="logDialogVisible" top="10vh" width="900px" :before-close="logClose">
         <div slot="title" class="log-dialog-title" @mousedown.stop="">视频生成日志</div>
         <div class="log-dialog-body">
           <el-descriptions title="基础信息" :column="2" border>
@@ -116,7 +116,7 @@
                 </div>
                 <div class="material-list">
                   <div class="material-item" v-for="(material,material_index) in group.materials"
-                       :key="material_index">
+                       :key="material_index" @click="previewMaterial(material)">
                     <el-image class="material-item-img" :src="material.picture"></el-image>
                     <div class="material-item-title" :title="material.name">{{ material.name }}</div>
                   </div>
@@ -160,6 +160,7 @@
             </el-collapse-item>
           </el-collapse>
         </div>
+        <div slot="footer" class="log-dialog-footer"></div>
       </el-dialog>
     </div>
   </div>
@@ -580,12 +581,16 @@ export default {
 
 .log-dialog-body {
   padding: 10px 20px;
-  height: calc(70vh - 75px);
+  height: calc(80vh - 75px);
   overflow-y: auto;
 }
 
+.log-dialog-body::-webkit-scrollbar {
+  width: 5px !important;
+}
+
 .log-dialog-footer {
-  padding: 10px 20px 20px;
+  padding-top: 10px;
 }
 
 .log-dialog >>> .el-dialog__header {
