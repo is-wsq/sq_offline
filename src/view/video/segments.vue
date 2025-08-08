@@ -617,7 +617,7 @@ export default {
       this.exampleTexts = []
       this.exampleTexts[0] = hots.segments.map(segment => segment.asr_text).join('');
       this.segments_description = hots.segments.map(item => item.description)
-      this.reference_segments = hots.segmentGroups
+      this.reference_segments = hots.grouped_analysis_result.segmentGroups
 
       // 选择的素材id列表、素材列表、静音素材列表
       this.material_list = JSON.parse(sessionStorage.getItem('material_list')) || []
