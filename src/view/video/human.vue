@@ -133,7 +133,7 @@
             <div class="right-label">背景声音</div>
             <div class="s-voice-content">
               <div class="s-voice-btn">
-                <i class="el-icon-play" @click="previewAudio(bgm, -2)" v-if="audioIndex !== -2"></i>
+                <i class="el-icon-play" @click="previewBGM" v-if="audioIndex !== -2"></i>
                 <i class="el-icon-pause" @click="stopAudio" v-else></i>
               </div>
               <el-popover ref="bgmRef" placement="bottom" trigger="click" @hide="stopAudio" style="flex: 1">
@@ -847,12 +847,16 @@ export default {
     },
     saveBgmVolume() {
       if (this.bg_volume !== this.previousVolume) {
-        this.playFeedbackSound();
+        this.previewBGM();
         this.previousVolume = this.bg_volume;
       }
       sessionStorage.setItem("figure_bg_volume", this.bg_volume)
     },
-    playFeedbackSound() {
+    previewBGM() {
+      if (this.bgm.id === '') {
+        this.$message.warning("无音频预览");
+        return;
+      }
       this.stopAudio();
 
       setTimeout(() => {
