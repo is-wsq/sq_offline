@@ -797,7 +797,7 @@ export default {
       let base = month + '-' + day + '_' + hours + '-' + minutes + '-' + seconds
 
       let result = [];
-      for (let i = 1; i <= this.montage_data.length; i++) {
+      for (let i = 1; i <= this.copy_list.length; i++) {
         result.push(base + '_' + i);
       }
 
