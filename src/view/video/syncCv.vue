@@ -31,6 +31,7 @@
                       @compositionstart="onCompositionStart"
                       @compositionupdate="onCompositionUpdate"
                       @compositionend="onCompositionEnd"
+                      spellcheck="false"
                       ref="inputRef"
                       class="input-layer"
                       @change="saveSetting"
@@ -478,12 +479,21 @@ export default {
         result = before + this.composingText + after;
       }
       let names = this.mention_list.map(item => '@' + item.name);
-      names.forEach(item => {
-        const regex = new RegExp(`${item}`, 'g'); // 使用全局标志
-        result = result.replace(regex, (match) => {
-          return `<span style="color: #4c8df1">${match}</span>`
-        });
+
+      function escapeRegExp(str) {
+        return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      }
+
+      names.sort((a, b) => b.length - a.length);  //按长度降序排序，防止部分匹配问题
+
+      const pattern = names.map(name => escapeRegExp(name)).join('|'); // 转义并连接，防止特殊字符匹配问题
+
+      const regex = new RegExp(pattern, 'g');
+
+      result = result.replace(regex, (match) => {   // 一次性完成所有替换
+        return `<span style="color: #4c8df1">${match}</span>`;
       });
+
       result = result.replace(/\n/g, '<br>'); // 支持换行
       this.highlightedText = result; // 返回最终结果
 
@@ -573,7 +583,7 @@ export default {
             this.requirement.slice(0, atIndex) + '@' + item.name + this.requirement.slice(cursorPos);
         this.showDropdown = false;
         this.lastInput = this.requirement;
-
+        this.saveSetting()
         // 记录提及的范围
         this.updateMentionRanges()
 

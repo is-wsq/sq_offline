@@ -19,7 +19,6 @@ import videoList from '../view/video/list.vue';
 import system from '../view/system/index.vue';
 import agreement from '../view/system/agreement.vue';
 import videoPlayer from "../view/system/videoPlayer.vue";
-import shiftSelectAll from "../view/system/shiftSelectAll.vue";
 import ShopManagement from '../view/shop/index.vue';
 
 const routes = [
@@ -102,11 +101,6 @@ const routes = [
         path: '/videoPlayer',
         name: 'videoPlayer',
         component: videoPlayer
-    },
-    {
-        path: '/shiftSelectAll',
-        name: 'shiftSelectAll',
-        component: shiftSelectAll
     },
     {
         path: '/login',
