@@ -1697,18 +1697,6 @@ export default {
   justify-content: center;
 }
 
-.video-placeholder-preview video::-webkit-media-controls-timeline {
-  display: none !important;
-}
-
-.video-placeholder-preview video::-moz-controls-progressbar {
-  display: none !important;
-}
-
-.video-placeholder-preview video::-ms-media-controls-timeline {
-  display: none !important;
-}
-
 .li-video {
   height: 200px;
   background-color: #ffffff;
