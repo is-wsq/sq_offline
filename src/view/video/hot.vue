@@ -105,19 +105,19 @@
         <div class="el-upload__text">将文件拖到此处，或<em>点击上传</em></div>
       </el-upload>
 
-      <div class="flex-center" style="margin-top: 10px">
+      <div class="flex-center" style="margin: 10px 0 5px 0">
         <el-checkbox v-model="use_link"></el-checkbox>
         <div style="font-size: 15px;font-weight: bold;flex: 1">使用链接上传</div>
       </div>
+      <el-input prefix-icon="el-icon-link" v-model="dy_link" placeholder="粘贴抖音视频分享链接上传"
+                :disabled="!use_link"></el-input>
       <div style="line-height: 50px">
         <el-radio-group v-model="withAsr">
           <el-radio :label="true">有文案复刻</el-radio>
           <el-radio :label="false">无文案复刻</el-radio>
         </el-radio-group>
       </div>
-      <el-input prefix-icon="el-icon-link" v-model="dy_link" placeholder="粘贴抖音视频分享链接上传"
-                :disabled="!use_link"></el-input>
-      <div style="margin: 10px 0 5px 0;font-size: 15px;font-weight: bold">分类</div>
+      <div style="margin-bottom: 5px;font-size: 15px;font-weight: bold">分类</div>
       <div class="classifies">
         <el-tag v-for="(tag, index) in classifies" :key="index" size="small" class="tag"
                 :class="{ 'tag-active': tag.name === classify }" @click="classify = tag.name">
