@@ -55,13 +55,21 @@
         </el-col>
         <el-col :span="12" :md="14" :lg="16" style="height: 100%">
           <div class="smart-generate-c-r">
-            <div class="font-weight margin-b-12">文案列表</div>
+            <div class="flex-center" style="line-height: 50px">
+              <div class="font-weight" style="flex: 1">文案列表</div>
+              <template v-if="showChecked">
+                <el-button type="primary" size="mini" class="delete-group-btn" @click="batchRemoveCopy">确认删除</el-button>
+                <el-button class="delete-group-btn" size="mini" @click="showChecked = false">取消</el-button>
+              </template>
+              <el-button type="primary" size="mini" class="delete-group-btn" v-else @click="showChecked = true">批量删除</el-button>
+            </div>
             <div class="smart-generate-c-r-list">
               <div v-if="hot_copy_list.length > 0" style="width: 100%">
                 <div v-for="(item, index) in hot_copy_list" :key="index" class="copy-item">
-                  <i class="el-icon-tuodong" style="color: #9ca3af;font-size: 18px"></i>
+                  <i class="el-icon-tuodong" style="color: #9ca3af;font-size: 18px" v-if="!showChecked"></i>
+                  <el-checkbox v-model="deleteCheckeds[index]" style="margin-right: 10px" v-if="showChecked"></el-checkbox>
                   <div class="copy-item-content" style="cursor: pointer"
-                       v-if="!item.isEdit" @click="showEdit(item)">
+                       v-if="!item.isEdit" @click="showEdit(index)">
                     <div class="copy-item-title" :title="item.title">{{ item.title }}</div>
                     <div class="copy-item-desc">{{ item.content }}</div>
                   </div>
@@ -72,7 +80,7 @@
                               class="margin-b-12" v-model="new_content" resize="none"></el-input>
                     <el-button class="copy-item-save" type="primary" @click="saveCopy(index)">保存修改</el-button>
                   </div>
-                  <i class="el-icon-close copy-item-close" @click="removeCopy(index)"></i>
+                  <i class="el-icon-close copy-item-close" @click="removeCopy(index)" v-if="!showChecked"></i>
                 </div>
               </div>
               <div class="none-copy" v-else>
@@ -103,6 +111,8 @@ export default {
       copy_num: 100,
       script_num: 1,
       ai_model: 'deepseek_v3',
+      showChecked: false,
+      deleteCheckeds: [],
       hot_copy_list: [],
       new_title: '',
       new_content: '',
@@ -189,10 +199,17 @@ export default {
         this.$alert(err,'文案生成错误')
       })
     },
-    showEdit(item) {
-      item.isEdit = true;
-      this.new_title = item.title
-      this.new_content = item.content
+    showEdit(index) {
+      if (this.showChecked) {
+        this.deleteCheckeds[index] = !this.deleteCheckeds[index]
+        this.$forceUpdate()
+        return
+      }
+      this.hot_copy_list.forEach((copy, i) => {
+        copy.isEdit = i === index;
+      })
+      this.new_title = this.hot_copy_list[index].title
+      this.new_content = this.hot_copy_list[index].content
     },
     saveCopy(index) {
       if (this.new_title === '') {
@@ -214,6 +231,24 @@ export default {
         type: 'warning'
       }).then(() => {
         this.hot_copy_list.splice(index, 1);
+        sessionStorage.setItem("hot_copy_list", JSON.stringify(this.hot_copy_list))
+        sessionStorage.removeItem('hot_montage_data')
+      }).catch((err) => {
+        this.$message({type: 'info', message: '已取消删除'});
+      });
+    },
+    batchRemoveCopy() {
+      if (this.deleteCheckeds.every(item => !item)) {
+        this.$alert('请选择要删除的文案', '提示')
+        return
+      }
+      this.$confirm('确认删除选择的文案吗？', '提示', {
+        type: 'warning'
+      }).then(() => {
+        this.hot_copy_list = this.hot_copy_list.filter((item, i) => !this.deleteCheckeds[i]);
+        this.deleteCheckeds = []
+        this.showChecked = false
+        this.$forceUpdate()
         sessionStorage.setItem("hot_copy_list", JSON.stringify(this.hot_copy_list))
         sessionStorage.removeItem('hot_montage_data')
       }).catch((err) => {
@@ -265,6 +300,11 @@ export default {
   border-radius: 16px;
   padding: 16px;
   box-sizing: border-box;
+}
+
+.delete-group-btn {
+  padding: 8px !important;
+  font-family: "Helvetica Neue", Arial, sans-serif;
 }
 
 .smart-generate-c-l >>> .el-collapse {

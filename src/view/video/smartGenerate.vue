@@ -91,11 +91,13 @@
         </el-col>
         <el-col :span="12" :md="14" :lg="16" style="height: 100%">
           <div class="smart-generate-c-r">
-            <div class="flex-center">
-              <div class="font-weight margin-b-12" style="flex: 1">文案列表</div>
-              <el-button type="text" @click="showChecked = false" v-if="showChecked">取消</el-button>
-              <el-button type="primary" v-if="!showChecked" @click="showChecked = true">批量删除</el-button>
-              <el-button type="primary" v-if="showChecked" @click="batchRemoveCopy">确认删除</el-button>
+            <div class="flex-center" style="line-height: 50px">
+              <div class="font-weight" style="flex: 1">文案列表</div>
+              <template v-if="showChecked">
+                <el-button type="primary" size="mini" class="delete-group-btn" @click="batchRemoveCopy">确认删除</el-button>
+                <el-button class="delete-group-btn" size="mini" @click="showChecked = false">取消</el-button>
+              </template>
+              <el-button type="primary" size="mini" class="delete-group-btn" v-else @click="showChecked = true">批量删除</el-button>
             </div>
             <div class="smart-generate-c-r-list">
               <div v-if="copy_list.length > 0" style="width: 100%">
@@ -400,6 +402,7 @@ export default {
       }).then(() => {
         this.copy_list = this.copy_list.filter((item, i) => !this.deleteCheckeds[i]);
         this.deleteCheckeds = []
+        this.showChecked = false
         this.$forceUpdate()
         if (this.script_type === 'material') {
           sessionStorage.setItem("copy_list", JSON.stringify(this.copy_list))
@@ -589,6 +592,11 @@ export default {
 .smart-generate-c-r {
   display: flex;
   flex-direction: column;
+}
+
+.delete-group-btn {
+  padding: 8px !important;
+  font-family: "Helvetica Neue", Arial, sans-serif;
 }
 
 .smart-generate-c-l >>> .el-collapse {

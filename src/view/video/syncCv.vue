@@ -114,18 +114,30 @@
       <div class="center-panel"
            :style="{ width: show_left_panel? 'calc(100% - 648px)' : activeIndex !== -1? 'calc(100% - 733px)' : 'calc(100% - 370px)' }">
         <div class="script-selection-area">
-          <div class="panel-title">AI选用文案</div>
+          <div class="flex-center" style="line-height: 50px">
+            <div class="panel-title" style="flex: 1">AI选用文案</div>
+            <div v-if="copy_list.length > 0">
+              <template v-if="showChecked">
+                <el-button type="primary" size="mini" class="delete-group-btn" @click="sureRemove">确认删除</el-button>
+                <el-button class="delete-group-btn" size="mini" @click="showChecked = false">取消</el-button>
+              </template>
+              <el-button type="primary" size="mini" class="delete-group-btn" v-else @click="batchRemoveCopy">批量删除</el-button>
+            </div>
+          </div>
           <div class="copy-list" v-if="copy_list.length > 0">
             <div class="copy-item" v-for="(item, index) in copy_list" :key="index"
                  :class="{'active-item': index === activeIndex}">
-              <el-collapse v-model="openIndex" accordion @change="collapseChange">
+              <el-collapse v-model="openIndex" accordion @change="collapseChange(index)">
                 <el-collapse-item :name="index">
                   <template slot="title">
                     <div style="padding-left: 12px">
                       <div class="flex-center">
                         <div class="copy-item-title" :title="item.title">{{ item.title }}</div>
                         <div style="width: 16px">
-                          <i class="el-icon-close close-icon" @click="removeCopy(index)"></i>
+                          <i class="el-icon-close close-icon" @click="removeCopy(index)" v-if="!showChecked"></i>
+                          <div @click.stop="">
+                            <el-checkbox v-model="deleteCheckeds[index]" v-if="showChecked"></el-checkbox>
+                          </div>
                         </div>
                       </div>
                       <div class="copy-item-desc">{{ item.content }}</div>
@@ -308,6 +320,8 @@ export default {
       video_time: 15,
       script_num: 1,
       ai_model: 'deepseek_v3',
+      showChecked: false,
+      deleteCheckeds: [],
       copy_list: [],
       openIndex: null,
       activeIndex: -1,
@@ -405,7 +419,6 @@ export default {
         }
       });
       this.copy_list[index].segment_group[group_index].materials.push(val)
-      this.currentIndex = 0
       this.$nextTick(() => {
         this.concatVideo()
       })
@@ -625,7 +638,6 @@ export default {
         this.already_generated = true;
         this.openIndex = 0;
         this.activeIndex = 0;
-        this.currentIndex = 0
         this.selectedCopy = this.copy_list[0]
         this.preview_video_url = this.copy_list[0].video_file_path
         this.preview_audio_url = this.copy_list[0].audio_file_path
@@ -784,10 +796,15 @@ export default {
         this.$alert(error, "混剪错误");
       })
     },
-    collapseChange(val) {
-      if (val !== '' && this.activeIndex !== val) {
-        this.activeIndex = val
-        this.selectedCopy = this.copy_list[val]
+    collapseChange(index) {
+      if (this.showChecked) {
+        this.deleteCheckeds[index] = !this.deleteCheckeds[index]
+        this.$forceUpdate()
+        return
+      }
+      if (this.activeIndex !== index) {
+        this.activeIndex = index
+        this.selectedCopy = this.copy_list[index]
         if (this.isPlaying) {
           this.$refs.videoRef.pause()
           this.$refs.audioRef.pause()
@@ -815,7 +832,6 @@ export default {
           this.already_generated = true;
           this.openIndex = 0;
           this.activeIndex = 0;
-          this.currentIndex = 0
           this.selectedCopy = this.copy_list[0]
           this.preview_video_url = this.copy_list[0].video_file_path
           this.preview_audio_url = this.copy_list[0].audio_file_path
@@ -826,7 +842,52 @@ export default {
         }else {
           this.already_generated = false;
           this.selectedCopy = null;
-          this.currentIndex = 0;
+          this.openIndex = null
+          this.activeIndex = -1
+        }
+        sessionStorage.setItem("sync_cv_copy_list", JSON.stringify(this.copy_list))
+      }).catch((err) => {
+        this.$message({type: 'info', message: '已取消删除'});
+      });
+    },
+
+    batchRemoveCopy() {
+      this.showChecked = true
+      this.activeIndex = -1
+      this.openIndex = null
+      this.isPlaying = false
+    },
+    sureRemove() {
+      if (this.deleteCheckeds.every(item => !item)) {
+        this.$alert('请选择要删除的文案', '提示')
+        return
+      }
+      this.$confirm('确认删除选择的文案吗？', '提示', {
+        type: 'warning'
+      }).then(() => {
+        this.copy_list = this.copy_list.filter((item, i) => !this.deleteCheckeds[i]);
+        this.deleteCheckeds = []
+        this.showChecked = false
+        this.$forceUpdate()
+        if (this.$refs.videoRef) {
+          this.$refs.videoRef.pause()
+          this.$refs.audioRef.pause()
+          this.isPlaying = false
+        }
+        if (this.copy_list.length > 0) {
+          this.already_generated = true;
+          this.openIndex = 0;
+          this.activeIndex = 0;
+          this.selectedCopy = this.copy_list[0]
+          this.preview_video_url = this.copy_list[0].video_file_path
+          this.preview_audio_url = this.copy_list[0].audio_file_path
+          this.$nextTick(() => {
+            this.loadVideo();
+            this.loadAudio()
+          })
+        }else {
+          this.already_generated = false;
+          this.selectedCopy = null;
           this.openIndex = null
           this.activeIndex = -1
         }
@@ -1701,5 +1762,10 @@ export default {
   font-weight: bold;
   line-height: 25px;
   text-align: end;
+}
+
+.delete-group-btn {
+  padding: 8px !important;
+  font-family: "Helvetica Neue", Arial, sans-serif;
 }
 </style>

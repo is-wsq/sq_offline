@@ -82,11 +82,15 @@
       </div>
       <div class="script-panel" :style="{ width: show_settings? 'calc(100% - 648px)' : 'calc(100% - 370px)' }">
         <div class="script-selection-area">
-          <div class="flex-center">
+          <div class="flex-center" style="line-height: 50px">
             <div class="panel-title" style="flex: 1">AI选用文案</div>
-            <el-button type="text" @click="showChecked = false" v-if="showChecked">取消</el-button>
-            <el-button type="primary" v-if="!showChecked" @click="showChecked = true">批量删除</el-button>
-            <el-button type="primary" v-if="showChecked" @click="batchRemoveCopy">确认删除</el-button>
+            <div v-if="already_generated">
+              <template v-if="showChecked">
+                <el-button type="primary" size="mini" class="delete-group-btn" @click="sureRemove">确认删除</el-button>
+                <el-button class="delete-group-btn" size="mini" @click="showChecked = false">取消</el-button>
+              </template>
+              <el-button type="primary" size="mini" class="delete-group-btn" v-else @click="batchRemoveCopy">批量删除</el-button>
+            </div>
           </div>
           <div class="script-list">
             <template v-if="!already_generated" style="width: 100%">
@@ -168,12 +172,16 @@
                   <div class="script-item-title" :title="item.title">{{ item.title }}</div>
                   <div style="width: 16px">
                     <i class="el-icon-close close-icon" @click="removeCopy(index)" v-if="!showChecked"></i>
-                    <el-checkbox v-model="deleteCheckeds[index]" v-if="showChecked"></el-checkbox>
+                    <div @click.stop="">
+                      <el-checkbox v-model="deleteCheckeds[index]" v-if="showChecked"></el-checkbox>
+                    </div>
                   </div>
-                  <i class="el-icon-arrow-right" style="color: #9ca3af;font-size: 15px;font-weight: bold;"
-                     v-if="activeIndex !== index"></i>
-                  <i class="el-icon-arrow-down" style="color: #9ca3af;font-size: 15px;font-weight: bold;"
-                     v-else></i>
+                  <template v-if="!showChecked">
+                    <i class="el-icon-arrow-right" style="color: #9ca3af;font-size: 15px;font-weight: bold;"
+                       v-if="activeIndex !== index"></i>
+                    <i class="el-icon-arrow-down" style="color: #9ca3af;font-size: 15px;font-weight: bold;"
+                       v-else></i>
+                  </template>
                 </div>
                 <div class="script-item-content" :title="item.content" v-if="item.content" @click="itemClick(index)">
                   {{ item.content }}
@@ -1100,6 +1108,11 @@ export default {
       });
     },
     batchRemoveCopy() {
+      this.showChecked = true
+      this.activeIndex = -1
+      this.isPlaying = false
+    },
+    sureRemove() {
       if (this.deleteCheckeds.every(item => !item)) {
         this.$alert('请选择要删除的文案', '提示')
         return
@@ -1110,6 +1123,7 @@ export default {
         if (this.already_generated) {
           this.montage_data = this.montage_data.filter((item, i) => !this.deleteCheckeds[i]);
           this.deleteCheckeds = []
+          this.showChecked = false
           this.$forceUpdate()
           if (this.nextType === 'hot_montage') {
             sessionStorage.setItem("hot_montage_data", JSON.stringify(this.montage_data))
@@ -1650,7 +1664,11 @@ export default {
   font-size: 16px;
   font-weight: 600;
   color: #111827;
-  margin-bottom: 8px;
+}
+
+.delete-group-btn {
+  padding: 8px !important;
+  font-family: "Helvetica Neue", Arial, sans-serif;
 }
 
 .setting-require {
