@@ -706,6 +706,7 @@ export default {
       if (event.ctrlKey && event.key.toLowerCase() === 'z') {
         event.preventDefault();
         this.clearAllSelectMaterials()
+        this.filterMaterials()
       }
     },
     clearAllSelectMaterials() {
