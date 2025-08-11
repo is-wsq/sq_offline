@@ -27,7 +27,7 @@
                 <div style="display: flex;gap: 12px" class="margin-b-12">
                   <div style="flex: 1">
                     <div class="smart-generate-c-l-ai-title">文案字数</div>
-                    <el-select v-model="copy_num" placeholder="请选择" style="width: 100%" @change="saveSetting">
+                    <el-select v-model="copy_num" placeholder="请选择" style="width: 100%">
                       <el-option label="100" value="100"></el-option>
                       <el-option label="200" value="200"></el-option>
                       <el-option label="300" value="300"></el-option>
@@ -124,11 +124,16 @@ export default {
     this.initData()
   },
   methods: {
+    findNearestHundred(length) {  // 动态设置字数
+      if (length <= 100) {
+        return 100;
+      }
+      return Math.round(length / 100) * 100;
+    },
     saveSetting() {
       this.validateNum()
       let duplicate_setting = {
         copy_require: this.copy_require,
-        copy_num: this.copy_num,
         script_num: this.script_num,
         ai_model: this.ai_model,
       }
@@ -147,7 +152,6 @@ export default {
     initData() {
       let duplicate_setting = JSON.parse(sessionStorage.getItem("duplicate_setting")) || {}
       this.copy_require = duplicate_setting.copy_require || ''
-      this.copy_num = parseInt(duplicate_setting.copy_num) || 100
       this.script_num = parseInt(duplicate_setting.script_num) || 1
       this.ai_model = duplicate_setting.ai_model || 'deepseek_v3'
 
@@ -159,6 +163,7 @@ export default {
       this.material_bgm = JSON.parse(sessionStorage.getItem('setting_bgm')) || {}
       this.exampleTexts = []
       this.exampleTexts[0] = hots.segments.map(segment => segment.asr_text).join('');
+      this.copy_num = this.findNearestHundred(this.exampleTexts[0].length)
     },
     batchGenerate() {
       let url = ''

@@ -155,6 +155,8 @@ export const EnhancedChoiceMixin = {
             // 重置选框尺寸
             this.selectionWidth = 0
             this.selectionHeight = 0
+            this.size_select = ''
+            this.store_select = ''
         },
 
         // 更新选中项
