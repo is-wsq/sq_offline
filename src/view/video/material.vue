@@ -150,7 +150,7 @@
           </el-button>
         </div>
       </div>
-      <div class="c-right">
+      <div class="c-right" @mousedown.stop="">
         <div class="margin-b-12 font-weight">样式设置</div>
         <div class="s-card" ref="styleCard">
           <div class="s-card-item margin-b-16">
@@ -330,6 +330,15 @@
                     <div slot="reference" class="color-box" :style="{background: subtitleNameParams.name_color}"></div>
                   </el-popover>
                 </div>
+                <div class="flex-center margin-t-12 margin-b-8">
+                  <div class="s-voice-title" style="flex: 1">描边颜色</div>
+                  <el-popover
+                      placement="left"
+                      trigger="click">
+                    <custom-color-picker :color="subtitleNameParams.name_stroke_color" @color-updated="handleNameStrokeColorUpdated"></custom-color-picker>
+                    <div slot="reference" class="color-box" :style="{background: subtitleNameParams.name_stroke_color}"></div>
+                  </el-popover>
+                </div>
                 <div class="flex-center opacity margin-t-8">
                   <div class="s-voice-title" style="margin-right: 12px">字体不透明度</div>
                   <el-slider v-model="subtitleNameParams.title_font_opacity"
@@ -339,15 +348,6 @@
                   <div class="s-voice-title" style="margin-left: 8px;width: 40px">
                     {{ (subtitleNameParams.title_font_opacity * 100).toFixed(0) + '%' }}
                   </div>
-                </div>
-                <div class="flex-center margin-t-8 margin-b-8">
-                  <div class="s-voice-title" style="flex: 1">描边颜色</div>
-                  <el-popover
-                      placement="left"
-                      trigger="click">
-                    <custom-color-picker :color="subtitleNameParams.name_stroke_color" @color-updated="handleNameStrokeColorUpdated"></custom-color-picker>
-                    <div slot="reference" class="color-box" :style="{background: subtitleNameParams.name_stroke_color}"></div>
-                  </el-popover>
                 </div>
                 <div class="flex-center back-checkbox"
                      :class="{'margin-b-16': name_background_setting}"
@@ -453,6 +453,15 @@
                     <div slot="reference" class="color-box" :style="{background: subtitleParams.color}"></div>
                   </el-popover>
                 </div>
+                <div class="flex-center margin-t-12 margin-b-8">
+                  <div class="s-voice-title" style="flex: 1">描边颜色</div>
+                  <el-popover
+                      placement="left"
+                      trigger="click">
+                    <custom-color-picker :color="subtitleParams.stroke_color" @color-updated="handleStrokeColorUpdated"></custom-color-picker>
+                    <div slot="reference" class="color-box" :style="{background: subtitleParams.stroke_color}"></div>
+                  </el-popover>
+                </div>
                 <div class="flex-center opacity margin-t-8">
                   <div class="s-voice-title" style="margin-right: 12px">字体不透明度</div>
                   <el-slider v-model="subtitleParams.content_font_opacity"
@@ -462,15 +471,6 @@
                   <div class="s-voice-title" style="margin-left: 8px;width: 40px">
                     {{ (subtitleParams.content_font_opacity * 100).toFixed(0) + '%' }}
                   </div>
-                </div>
-                <div class="flex-center margin-t-8 margin-b-8">
-                  <div class="s-voice-title" style="flex: 1">描边颜色</div>
-                  <el-popover
-                      placement="left"
-                      trigger="click">
-                    <custom-color-picker :color="subtitleParams.stroke_color" @color-updated="handleStrokeColorUpdated"></custom-color-picker>
-                    <div slot="reference" class="color-box" :style="{background: subtitleParams.stroke_color}"></div>
-                  </el-popover>
                 </div>
                 <div class="flex-center back-checkbox"
                      :class="{'margin-b-16': background_setting}"
@@ -763,6 +763,7 @@ export default {
       } else {
         this.figure = {}
       }
+      sessionStorage.setItem('material_figure', JSON.stringify(this.figure))
     },
     formatTooltip(val) {
       return val * 100 + '%';
@@ -1663,12 +1664,13 @@ export default {
   grid-template-columns: repeat(auto-fit, 40px);
   grid-auto-rows: min-content;
   overflow: auto;
-  height: 67px;
+  max-height: 67px;
   margin-bottom: 8px;
 }
 
 .show-all-preset {
   height: auto !important;
+  max-height: 1000px;
 }
 
 .preset-style {
