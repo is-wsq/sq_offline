@@ -23,18 +23,49 @@
       <div class="timbre-card margin-t-12">
         <div class="timbre-card-title">
           <div style="flex: 1">克隆音色</div>
-          <el-upload
-            action="http://127.0.0.1:6006/timbres/clone"
-            :show-file-list="false"
-            accept=".mp3, .wav"
-            :on-success="uploadSuccess"
-            :on-error="uploadError"
-            :before-upload="beforeUpload">
-            <el-button type="primary" icon="el-icon-upload">上传音频克隆</el-button>
-          </el-upload>
+<!--          <el-upload-->
+<!--            action="http://127.0.0.1:6006/timbres/clone"-->
+<!--            :show-file-list="false"-->
+<!--            accept=".mp3, .wav"-->
+<!--            :on-success="uploadSuccess"-->
+<!--            :on-error="uploadError"-->
+<!--            :before-upload="beforeUpload">-->
+<!--            <el-button type="primary" icon="el-icon-upload">上传音频克隆</el-button>-->
+<!--          </el-upload>-->
         </div>
         <div class="timbre-card-content">
           <el-row :gutter="16">
+            <el-col :span="6">
+              <el-popover
+                  placement="top"
+                  ref="timbreRef"
+                  width="200"
+                  trigger="click">
+                <div style="margin-top: 5px">
+                  <i class="el-icon-info" style="margin-right: 5px;color: #f90"></i>
+                  请选择音色克隆类型
+                </div>
+                <div style="display: flex;margin-top: 10px;gap: 8px">
+                  <div style="flex: 1"></div>
+                  <el-button size="small" @click="advancedClone" disabled>高级音色</el-button>
+                  <el-upload
+                      action="http://127.0.0.1:6006/timbres/clone"
+                      :show-file-list="false"
+                      accept=".mp3, .wav"
+                      :on-success="uploadSuccess"
+                      :on-error="uploadError"
+                      :before-upload="beforeUpload">
+                    <el-button type="primary" size="small" @click="$refs.timbreRef.showPopper = false">普通音色</el-button>
+                  </el-upload>
+                </div>
+                <div slot="reference" class="clone-item">
+                  <div class="timbre-item-icon">
+                    <i class="el-icon-plus" style="font-size: 13px; font-weight: bold; color: #6286ed"></i>
+                  </div>
+                  <div class="timbre-item-name">上传音频克隆</div>
+                </div>
+              </el-popover>
+            </el-col>
             <el-col :span="6" v-for="task in processVoice" :key="task.id">
               <div class="timbre-item">
                 <div class="timbre-item-icon">
@@ -133,6 +164,10 @@ export default {
     this.querySystemVoice()
   },
   methods: {
+    advancedClone() {
+      this.$refs.timbreRef.showPopper = false
+      this.$alert('敬请期待','提示')
+    },
     querySystemVoice() {
       getAction('/timbres/get_all_system_timbres').then(res => {
         if (res.data.status === 'success') {
@@ -281,6 +316,19 @@ export default {
   box-sizing: border-box;
 }
 
+.clone-item {
+  display: flex;
+  align-items: center;
+  height: 56px;
+  padding: 0 12px;
+  border: 1px solid #E4E7ED;
+  border-radius: 6px;
+  background-color: #FFFFFF;
+  transition: all 0.2s ease-in-out;
+  margin-bottom: 16px;
+  cursor: pointer;
+}
+
 .timbre-item {
   display: flex;
   align-items: center;
@@ -293,7 +341,7 @@ export default {
   margin-bottom: 16px;
 }
 
-.timbre-item:hover {
+.timbre-item:hover,.clone-item:hover {
   background-color: #EFF5FF;
   border-color: #A0CFFF;
 }
