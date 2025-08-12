@@ -59,10 +59,10 @@
                   </el-upload>
                 </div>
                 <div slot="reference" class="clone-item">
-                  <div class="timbre-item-icon">
-                    <i class="el-icon-plus" style="font-size: 13px; font-weight: bold; color: #6286ed"></i>
+                  <div class="clone-item-icon">
+                    <i class="el-icon-upload"></i>
                   </div>
-                  <div class="timbre-item-name">上传音频克隆</div>
+                  <div class="clone-item-name">上传音频克隆</div>
                 </div>
               </el-popover>
             </el-col>
@@ -321,12 +321,13 @@ export default {
   align-items: center;
   height: 56px;
   padding: 0 12px;
-  border: 1px solid #E4E7ED;
   border-radius: 6px;
-  background-color: #FFFFFF;
   transition: all 0.2s ease-in-out;
   margin-bottom: 16px;
   cursor: pointer;
+  background-color: #6366fe !important;
+  border-color: #DCDFE6 !important;
+  color: #fff !important;
 }
 
 .timbre-item {
@@ -363,11 +364,32 @@ export default {
   border-radius: 8px;
 }
 
+.clone-item-icon {
+  width: 32px;
+  height: 30px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border: 1px solid #7893d1;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
 .timbre-item-name {
   flex: 1;
   margin: 0 10px;
   font-size: 14px;
   color: #101010;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.clone-item-name {
+  flex: 1;
+  margin: 0 10px;
+  font-size: 14px;
+  color: #ffffff;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
