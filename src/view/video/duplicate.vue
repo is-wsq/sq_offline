@@ -165,7 +165,7 @@ export default {
           JSON.parse(sessionStorage.getItem("hot_copy_list")) : []
       let hots = JSON.parse(sessionStorage.getItem("select_hots"))
       this.material_bgm = JSON.parse(sessionStorage.getItem('setting_bgm')) || {}
-      this.exampleTexts = hots.segments.map(segment => segment.asr_text).join('');
+      this.exampleTexts = hots.segments.map(segment => segment.asr_text ? segment.asr_text : '').join('');
       this.copy_num = this.findNearestHundred(this.exampleTexts.length)
     },
     batchGenerate() {

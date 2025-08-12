@@ -38,9 +38,10 @@
                       @scroll="handleScroll">
             </el-input>
             <div v-if="showDropdown" class="dropdown" :style="dropdownStyle">
-              <ul>
+              <ul ref="urRef">
                 <li v-for="(item, index) in mention_list" :key="index" @click="selectMention(item)"
-                    @mouseleave="liLeave(item)" @mouseenter="liEnter(item)" :title="item.name">
+                    @mouseenter="liEnter(item)" :title="item.name"
+                    @mouseover="liMouseover(index)" :class="{'li-active': selectedShotIndex === index}">
                   {{ item.name }}
                 </li>
               </ul>
@@ -306,6 +307,7 @@ export default {
 
       lastInput: '',
       replaceDivHeight: 102,
+      selectedShotIndex: -1,
       showDropdown: false,
       dropdownStyle: {
         position: 'absolute',
@@ -345,12 +347,14 @@ export default {
   },
   beforeDestroy() {
     document.removeEventListener('click', this.handleClickOutside);
+    document.removeEventListener('keydown', this.handleKeyDown);
     const inputEl = this.$refs.inputRef.$el.querySelector('textarea')
     inputEl.removeEventListener('scroll', this.handleScroll);
   },
   mounted() {
     this.initData()
     document.addEventListener('click', this.handleClickOutside);
+    document.addEventListener('keydown', this.handleKeyDown);
     const inputEl = this.$refs.inputRef.$el.querySelector('textarea')
     this.replaceDivHeight = inputEl.clientHeight + 2
     inputEl.addEventListener('scroll', this.handleScroll);
@@ -380,6 +384,27 @@ export default {
     },
   },
   methods: {
+    handleKeyDown(event) {
+      if (this.showDropdown) {
+        if (event.key === 'ArrowUp' && this.selectedShotIndex > 0) {
+          this.selectedShotIndex--;
+          this.hover_li = this.mention_list[this.selectedShotIndex]
+          if (this.selectedShotIndex > 4) {
+            this.$refs.urRef.scrollTop = (this.selectedShotIndex - 4) * 38;
+          }else {
+            this.$refs.urRef.scrollTop = 0
+          }
+        } else if (event.key === 'ArrowDown' && this.selectedShotIndex < this.mention_list.length - 1) {
+          this.selectedShotIndex++;
+          this.hover_li = this.mention_list[this.selectedShotIndex]
+          if (this.selectedShotIndex > 4) {
+            this.$refs.urRef.scrollTop = (this.selectedShotIndex - 4) * 38;
+          }
+        } else if (event.key === 'Enter' && this.selectedShotIndex !== -1) {
+          this.selectMention(this.mention_list[this.selectedShotIndex])
+        }
+      }
+    },
     popoverShow(params) {
       this.$nextTick(() => {
         let popover = document.querySelector('.custom-popover-material');
@@ -537,6 +562,8 @@ export default {
         });
       } else {
         this.showDropdown = false;
+        this.selectedShotIndex = -1;
+        this.hover_li = null;
       }
     },
     validateNum() {
@@ -549,7 +576,11 @@ export default {
         this.script_num = val
       }
     },
+    liMouseover(index) {
+      this.selectedShotIndex = index
+    },
     liLeave(item) {
+      this.selectedShotIndex = -1
       item.isHover = false
       this.hover_li = null
     },
@@ -593,8 +624,10 @@ export default {
       const atIndex = this.requirement.lastIndexOf('@', cursorPos - 1);
       if (atIndex !== -1) {
         this.requirement =
-            this.requirement.slice(0, atIndex) + '@' + item.name + this.requirement.slice(cursorPos);
+            this.requirement.slice(0, atIndex) + '@' + item.name + ' ' + this.requirement.slice(cursorPos);
         this.showDropdown = false;
+        this.selectedShotIndex = -1;
+        this.hover_li = null;
         this.lastInput = this.requirement;
         this.saveSetting()
         // 记录提及的范围
@@ -614,6 +647,8 @@ export default {
       // 检查点击是否发生在输入框或选择框内
       if (!inputEl.contains(event.target) && (!dropdownEl || !dropdownEl.contains(event.target))) {
         this.showDropdown = false;
+        this.selectedShotIndex = -1;
+        this.hover_li = null;
       }
     },
     addExampleText() {
@@ -1629,6 +1664,11 @@ export default {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+}
+
+.li-active {
+  background-color: #6366f1;
+  color: #ffffff !important;
 }
 
 .dropdown li:hover {
