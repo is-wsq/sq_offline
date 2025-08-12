@@ -166,6 +166,13 @@ export default {
       let hots = JSON.parse(sessionStorage.getItem("select_hots"))
       this.material_bgm = JSON.parse(sessionStorage.getItem('setting_bgm')) || {}
       this.exampleTexts = hots.segments.map(segment => segment.asr_text ? segment.asr_text : '').join('');
+      let voice = JSON.parse(sessionStorage.getItem('setting_voice')) || {}
+      if (this.exampleTexts.length === 0) {
+        let speed = 31 / voice.duration    // 字数/时长 = 速率
+        let l = Math.round(hots.duration * speed)
+        this.copy_num = this.findNearestHundred(l)
+        return
+      }
       this.copy_num = this.findNearestHundred(this.exampleTexts.length)
     },
     batchGenerate() {
