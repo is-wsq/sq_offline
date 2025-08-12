@@ -20,18 +20,24 @@
                           class="margin-b-12" v-model="copy_require"
                           resize="none" @change="saveSetting">
                 </el-input>
-                <div class="smart-generate-c-l-ai-title">示例文案</div>
-                <div class="flex-center margin-b-8" v-for="(text, index) in exampleTexts" :key="index">
-                  <div class="copy-item-example">{{ exampleTexts[index] }}</div>
-                </div>
+                <template v-if="exampleTexts">
+                  <div class="smart-generate-c-l-ai-title">示例文案</div>
+                  <div class="flex-center margin-b-8">
+                    <div class="copy-item-example">{{ exampleTexts }}</div>
+                  </div>
+                </template>
                 <div style="display: flex;gap: 12px" class="margin-b-12">
                   <div style="flex: 1">
                     <div class="smart-generate-c-l-ai-title">文案字数</div>
                     <el-select v-model="copy_num" placeholder="请选择" style="width: 100%">
                       <el-option label="100" value="100"></el-option>
+                      <el-option label="150" value="150"></el-option>
                       <el-option label="200" value="200"></el-option>
+                      <el-option label="250" value="250"></el-option>
                       <el-option label="300" value="300"></el-option>
+                      <el-option label="350" value="350"></el-option>
                       <el-option label="400" value="400"></el-option>
+                      <el-option label="450" value="450"></el-option>
                       <el-option label="500" value="500"></el-option>
                     </el-select>
                   </div>
@@ -107,7 +113,7 @@ export default {
     return {
       activeName: '1',
       copy_require: '',
-      exampleTexts: [''],
+      exampleTexts: '',
       copy_num: 100,
       script_num: 1,
       ai_model: 'deepseek_v3',
@@ -125,10 +131,8 @@ export default {
   },
   methods: {
     findNearestHundred(length) {  // 动态设置字数
-      if (length <= 100) {
-        return 100;
-      }
-      return Math.round(length / 100) * 100;
+      const nearestMultiple = Math.round(length / 50) * 50;
+      return Math.min(500, Math.max(100, nearestMultiple))
     },
     saveSetting() {
       this.validateNum()
@@ -161,9 +165,8 @@ export default {
           JSON.parse(sessionStorage.getItem("hot_copy_list")) : []
       let hots = JSON.parse(sessionStorage.getItem("select_hots"))
       this.material_bgm = JSON.parse(sessionStorage.getItem('setting_bgm')) || {}
-      this.exampleTexts = []
-      this.exampleTexts[0] = hots.segments.map(segment => segment.asr_text).join('');
-      this.copy_num = this.findNearestHundred(this.exampleTexts[0].length)
+      this.exampleTexts = hots.segments.map(segment => segment.asr_text).join('');
+      this.copy_num = this.findNearestHundred(this.exampleTexts.length)
     },
     batchGenerate() {
       let url = ''
@@ -175,9 +178,8 @@ export default {
           url = 'http://127.0.0.1:9669/api/generate_script'
           break
       }
-      const cleanTexts = this.exampleTexts.map(text => text.trim()).filter(text => text !== '');
       let params = {
-        examples: cleanTexts,
+        examples: this.exampleTexts,
         requirements: this.copy_require,
         num_of_words: parseInt(this.copy_num),
         script_count: parseInt(this.script_num),

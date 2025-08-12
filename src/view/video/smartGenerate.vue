@@ -39,9 +39,13 @@
                         <div class="smart-generate-c-l-ai-title">文案字数</div>
                         <el-select v-model="copy_num" placeholder="请选择" style="width: 100%" @change="saveSetting">
                           <el-option label="100" value="100"></el-option>
+                          <el-option label="150" value="150"></el-option>
                           <el-option label="200" value="200"></el-option>
+                          <el-option label="250" value="250"></el-option>
                           <el-option label="300" value="300"></el-option>
+                          <el-option label="350" value="350"></el-option>
                           <el-option label="400" value="400"></el-option>
+                          <el-option label="450" value="450"></el-option>
                           <el-option label="500" value="500"></el-option>
                         </el-select>
                       </div>
