@@ -78,6 +78,10 @@
             <i class="el-icon-delete-solid menu-icon"></i>
             删除
           </div>
+          <div class="material-function" @click="showDetail">
+            <i class="el-icon-document menu-icon"></i>
+            分镜详情
+          </div>
         </div>
       </div>
     </div>
@@ -152,12 +156,20 @@
         <el-button type="primary" @click="sureRename" size="small">确认</el-button>
       </span>
     </el-dialog>
+    <el-dialog class="detail-dialog" :visible.sync="detailDialogVisible" width="800px" title="爆款视频分镜详情">
+      <div class="detail-list">
+        <div class="detail-item" v-for="(segment, index) in segments" :key="index">
+          <div v-html="marked(segment.description)" class="markdown-content"></div>
+        </div>
+      </div>
+    </el-dialog>
   </div>
 </template>
 
 <script>
 import {delAction, getAction, postAction} from "@/api/api";
 import {v4 as uuidv4} from 'uuid';
+import {marked} from "marked";
 
 export default {
   data() {
@@ -211,7 +223,9 @@ export default {
         original: '',
         name: ''
       },
-      renameId: ''
+      renameId: '',
+      detailDialogVisible: false,
+      segments: []
     }
   },
   mounted() {
@@ -223,6 +237,7 @@ export default {
     clearInterval(this.dotTimer);
   },
   methods: {
+    marked,
     startDotAnimation() {
       this.dotTimer = setInterval(() => {
         this.dotCount = this.dotCount % 3 + 1;
@@ -331,6 +346,10 @@ export default {
       }).catch(() => {
         this.$message({type: 'info', message: '已取消删除'});
       });
+    },
+    showDetail() {
+      this.segments = this.rightItem.segments
+      this.detailDialogVisible = true
     },
     initData() {
       this.select_hots = JSON.parse(sessionStorage.getItem('select_hots')) || {}
@@ -690,5 +709,41 @@ export default {
   color: #fff;
   cursor: pointer;
   filter: drop-shadow(0px 0px 10px #292929);
+}
+
+.detail-dialog >>> .el-dialog {
+  border-radius: 10px;
+}
+
+.detail-dialog >>> .el-dialog__title {
+  font-weight: 700;
+}
+
+.detail-dialog >>> .el-dialog__close {
+  color: #d3d2d2;
+  font-size: 24px;
+}
+
+.detail-dialog >>> .el-dialog__body {
+  padding: 0 !important;
+}
+
+.detail-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  height: calc(70vh - 80px);
+  overflow-y: auto;
+  padding: 10px 20px;
+}
+
+.detail-list::-webkit-scrollbar {
+  width: 5px !important;
+}
+
+.detail-item {
+  background-color: #f5f5f5;
+  padding: 0 10px;
+  border-radius: 8px;
 }
 </style>
