@@ -39,8 +39,8 @@
             </el-input>
             <div v-if="showDropdown" class="dropdown" :style="dropdownStyle">
               <ul ref="urRef">
-                <li v-for="(item, index) in mention_list" :key="index" @click="selectMention(item)"
-                    @mouseenter="liEnter(item)" :title="item.name"
+                <li v-for="(item, index) in filtered_mention_list" :key="index" @click="selectMention(item)"
+                    @mouseenter="liEnter(item)" @mouseleave="liLeave" :title="item.name"
                     @mouseover="liMouseover(index)" :class="{'li-active': selectedShotIndex === index}">
                   {{ item.name }}
                 </li>
@@ -343,6 +343,8 @@ export default {
       show_model: '',
       reverse: false,
       selected_figure: {},
+      filtered_mention_list: [],
+      isSelecting: false,
     }
   },
   beforeDestroy() {
@@ -387,21 +389,24 @@ export default {
     handleKeyDown(event) {
       if (this.showDropdown) {
         if (event.key === 'ArrowUp' && this.selectedShotIndex > 0) {
+          event.preventDefault();
           this.selectedShotIndex--;
-          this.hover_li = this.mention_list[this.selectedShotIndex]
+          this.hover_li = this.filtered_mention_list[this.selectedShotIndex];
           if (this.selectedShotIndex > 4) {
             this.$refs.urRef.scrollTop = (this.selectedShotIndex - 4) * 38;
-          }else {
+          } else {
             this.$refs.urRef.scrollTop = 0
           }
-        } else if (event.key === 'ArrowDown' && this.selectedShotIndex < this.mention_list.length - 1) {
+        } else if (event.key === 'ArrowDown' && this.selectedShotIndex < this.filtered_mention_list.length - 1) {
+          event.preventDefault();
           this.selectedShotIndex++;
-          this.hover_li = this.mention_list[this.selectedShotIndex]
+          this.hover_li = this.filtered_mention_list[this.selectedShotIndex];
           if (this.selectedShotIndex > 4) {
             this.$refs.urRef.scrollTop = (this.selectedShotIndex - 4) * 38;
           }
         } else if (event.key === 'Enter' && this.selectedShotIndex !== -1) {
-          this.selectMention(this.mention_list[this.selectedShotIndex])
+          event.preventDefault();
+          this.selectMention(this.filtered_mention_list[this.selectedShotIndex]);
         }
       }
     },
@@ -522,44 +527,69 @@ export default {
         return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
       }
 
-      names.sort((a, b) => b.length - a.length);  //按长度降序排序，防止部分匹配问题
+      names.sort((a, b) => b.length - a.length);
 
-      const pattern = names.map(name => escapeRegExp(name)).join('|'); // 转义并连接，防止特殊字符匹配问题
+      const pattern = names.map(name => escapeRegExp(name)).join('|');
 
       const regex = new RegExp(pattern, 'g');
 
-      result = result.replace(regex, (match) => {   // 一次性完成所有替换
+      result = result.replace(regex, (match) => {
         return `<span style="color: #4c8df1">${match}</span>`;
       });
 
-      result = result.replace(/\n/g, '<br>'); // 支持换行
-      this.highlightedText = result; // 返回最终结果
+      result = result.replace(/\n/g, '<br>');
+      this.highlightedText = result;
 
-      const textBeforeCursorUpdated = this.requirement.slice(0, cursorPos);
-      const validMention = textBeforeCursorUpdated.charAt(textBeforeCursorUpdated.length - 1) === '@';
-      if (validMention) {
-        this.showDropdown = true;
+      if (this.isSelecting) {
+        return;
+      }
+      const atIndex = this.requirement.lastIndexOf('@', cursorPos - 1);
+      let activeMention = false;
 
-        this.$nextTick(() => {
-          const paddingLeft = parseFloat(getComputedStyle(inputEl).paddingLeft) || 0;
+      if (atIndex !== -1) {
+        const textBetweenAtAndCursor = this.requirement.substring(atIndex + 1, cursorPos);
+        if (!/\s/.test(textBetweenAtAndCursor)) {
+          activeMention = true;
+        }
+      }
 
-          const canvas = document.createElement('canvas');
-          const context = canvas.getContext('2d');
-          const computedStyle = getComputedStyle(inputEl);
-          context.font = `${computedStyle.fontSize} ${computedStyle.fontFamily}`;
+      if (activeMention) {
+        const searchTerm = this.requirement.substring(atIndex + 1, cursorPos);
 
-          const textWidth = context.measureText(textBeforeCursorUpdated).width;
-          const inputWidth = inputEl.clientWidth - 30;
+        this.filtered_mention_list = this.mention_list.filter(mention =>
+            mention.name.toLowerCase().startsWith(searchTerm.toLowerCase())
+        );
 
-          const lineHeight = parseFloat(computedStyle.lineHeight) || parseFloat(computedStyle.fontSize);
+        this.showDropdown = this.filtered_mention_list.length > 0;
 
-          let offsetTop = Math.floor((paddingLeft + textWidth + 10) / inputWidth) + 1;
-          offsetTop = Math.min(offsetTop, 4); // 限制最大显示数量
-          let remainder = (paddingLeft + textWidth + 5) % inputWidth;
+        if (this.showDropdown) {
+          if (this.selectedShotIndex !== 0) {
+            this.selectedShotIndex = 0;
+            this.hover_li = this.filtered_mention_list[0];
+          }
+          this.$nextTick(() => {
+            const paddingLeft = parseFloat(getComputedStyle(inputEl).paddingLeft) || 0;
+            const canvas = document.createElement('canvas');
+            const context = canvas.getContext('2d');
+            const computedStyle = getComputedStyle(inputEl);
+            context.font = `${computedStyle.fontSize} ${computedStyle.fontFamily}`;
 
-          this.dropdownStyle.top = `${window.scrollY + offsetTop * lineHeight}px`;
-          this.dropdownStyle.left = `${remainder}px`;
-        });
+            const textBeforeAt = this.requirement.substring(0, atIndex + 1);
+            const textWidth = context.measureText(textBeforeAt).width;
+            const inputWidth = inputEl.clientWidth - 30;
+            const lineHeight = parseFloat(computedStyle.lineHeight) || parseFloat(computedStyle.fontSize);
+
+            let offsetTop = Math.floor((paddingLeft + textWidth + 10) / inputWidth) + 1;
+            offsetTop = Math.min(offsetTop, 4);
+            let remainder = (paddingLeft + textWidth + 5) % inputWidth;
+
+            this.dropdownStyle.top = `${window.scrollY + offsetTop * lineHeight}px`;
+            this.dropdownStyle.left = `${remainder}px`;
+          });
+        } else {
+          this.selectedShotIndex = -1;
+          this.hover_li = null;
+        }
       } else {
         this.showDropdown = false;
         this.selectedShotIndex = -1;
@@ -623,19 +653,26 @@ export default {
       const cursorPos = inputEl.selectionStart;
       const atIndex = this.requirement.lastIndexOf('@', cursorPos - 1);
       if (atIndex !== -1) {
-        this.requirement =
-            this.requirement.slice(0, atIndex) + '@' + item.name + ' ' + this.requirement.slice(cursorPos);
+        this.isSelecting = true;
+        const startPart = this.requirement.slice(0, atIndex);
+        const endPart = this.requirement.slice(cursorPos);
+        const mentionText = '@' + item.name + ' ';
+        this.requirement = startPart + mentionText + endPart;
+
         this.showDropdown = false;
         this.selectedShotIndex = -1;
         this.hover_li = null;
         this.lastInput = this.requirement;
-        this.saveSetting()
-        // 记录提及的范围
+        this.saveSetting();
         this.updateMentionRanges()
 
-        // 设置光标位置到提及内容的末尾
-        inputEl.selectionStart = this.mentionRanges[this.mentionRanges.length - 1].end;
-        inputEl.selectionEnd = this.mentionRanges[this.mentionRanges.length - 1].end;
+        this.$nextTick(() => {
+          const newCursorPos = atIndex + mentionText.length;
+          inputEl.focus();
+          inputEl.selectionStart = newCursorPos;
+          inputEl.selectionEnd = newCursorPos;
+          this.isSelecting = false;
+        });
       }
     },
     handleClickOutside(event) {
@@ -1645,7 +1682,7 @@ export default {
 .dropdown ul {
   list-style: none;
   margin: 0;
-  padding: 0;
+  padding: 4px;
   background: white;
   border: 1px solid #ccc;
   border-radius: 8px;
@@ -1664,10 +1701,13 @@ export default {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  border-radius: 8px;
+  color: #606266;
+  font-size: 14px;
 }
 
 .li-active {
-  background-color: #6366f1;
+  background-color: #6366f1 !important;
   color: #ffffff !important;
 }
 
