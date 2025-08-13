@@ -155,17 +155,17 @@
                         <div class="material-item" v-for="(material,material_index) in group.materials"
                              :key="material_index">
                           <el-popover placement="bottom" :ref="'popoverRef_' + material_index" trigger="click"
-                                      popper-class="custom-popover-material" @show="popoverShow"
+                                      @show="popoverShow(index,group_index,material_index)" @hide="popoverHide"
                                       v-if="group.groupType !== 'digital_human'">
-                            <div class="shot-list">
+                            <div class="shot-list" :ref="'shotRef_'+index+'_'+group_index+'_'+material_index">
                               <div v-for="(shot, shot_index) in mention_list" :key="shot_index"
-                                   class="shot-name" :title="shot.name"
+                                   class="shot-name" :title="shot.name" :class="{'shot-name-active': activeShotIndex === shot_index}"
                                    @click="addShot(index,group_index,material_index,shot)"
-                                   @mouseenter="liEnter(shot)" @mouseleave="liLeave(shot)">
+                                   @mouseover="shotEnter(shot_index)" @mouseleave="shotLeave">
                                 {{ shot.name }}
                               </div>
-                              <div class="li-video" style="position: absolute; top: 0; right: -132px" v-if="hover_li">
-                                <video :src="hover_li.filepath" style="width: 100%; height: 100%;border-radius: 4px;"
+                              <div class="li-video" style="position: absolute; top: 0; right: -132px" v-if="selectShot">
+                                <video :src="selectShot.filepath" style="width: 100%; height: 100%;border-radius: 4px;"
                                        loop muted autoplay></video>
                               </div>
                             </div>
@@ -183,18 +183,17 @@
                           <div class="material-item-title" :title="material.name">{{ material.name }}</div>
                         </div>
                         <div class="material-item" v-if="group.groupType !== 'digital_human'">
-                          <el-popover :ref="'pushRef_' + index" placement="bottom" width="200" trigger="click"
-                                      popper-class="custom-popover-material1" @show="popoverShow(true)">
-                            <div class="shot-list">
-                              <div v-for="val in mention_list" :key="val.id"
-                                   class="shot-name" :title="val.name"
+                          <el-popover :ref="'pushRef_' + index" placement="bottom" trigger="click"
+                                      @show="pushShow(index,group_index)" @hide="pushHide">
+                            <div class="shot-list" :ref="'materialRef_' + index + '_' + group_index">
+                              <div v-for="(val, val_index) in mention_list" :key="val.id"
+                                   class="shot-name" :title="val.name" :class="{'shot-name-active': activeShotIndex === val_index}"
                                    @click="pushShot(index,group_index,val)"
-                                   @mouseleave="liLeave(val)"
-                                   @mouseenter="liEnter(val)">
+                                   @mouseover="shotEnter(val_index)" @mouseleave="shotLeave">
                                 {{ val.name }}
                               </div>
-                              <div class="li-video" style="position: absolute; top: 0; right: -145px" v-if="hover_li">
-                                <video :src="hover_li.filepath" style="width: 100%; height: 100%;border-radius: 4px;"
+                              <div class="li-video" style="position: absolute; top: 0; right: -145px" v-if="selectShot">
+                                <video :src="selectShot.filepath" style="width: 100%; height: 100%;border-radius: 4px;"
                                        loop muted autoplay></video>
                               </div>
                             </div>
@@ -286,6 +285,17 @@ export default {
       mention_list: [],
       reverse: false,
       hover_li: null,
+      selectedShotIndex: -1,
+
+      selectShot: null,
+      activeShotIndex: -1,
+      add_shot_popover: false,
+      push_shot_popover: false,
+
+      v_index: -1,  // 视频
+      g_index: -1,  // 分镜组
+      m_index: -1,  // 素材
+
       sound: {},
       voice_mode: '',
       bgm: {},
@@ -302,7 +312,6 @@ export default {
 
       lastInput: '',
       replaceDivHeight: 102,
-      selectedShotIndex: -1,
       showDropdown: false,
       dropdownStyle: {
         position: 'absolute',
@@ -381,6 +390,25 @@ export default {
     },
   },
   methods: {
+    popoverShow(index,g_index,m_index) {
+      this.add_shot_popover = true
+      this.v_index = index
+      this.g_index = g_index
+      this.m_index = m_index
+    },
+    popoverHide() {
+      this.activeShotIndex = -1
+      this.add_shot_popover = false
+    },
+    pushShow(index,g_index) {
+      this.push_shot_popover = true
+      this.v_index = index
+      this.g_index = g_index
+    },
+    pushHide() {
+      this.activeShotIndex = -1
+      this.push_shot_popover = false
+    },
     handleKeyDown(event) {
       if (this.showDropdown) {
         if (event.key === 'ArrowUp' && this.selectedShotIndex > 0) {
@@ -404,18 +432,50 @@ export default {
           this.selectMention(this.filtered_mention_list[this.selectedShotIndex]);
         }
       }
-    },
-    popoverShow(params) {
-      this.$nextTick(() => {
-        let popover = document.querySelector('.custom-popover-material');
-        if (params) {
-          popover = document.querySelector('.custom-popover-material1');
+      if (this.add_shot_popover) {
+        if (event.key === 'ArrowUp' && this.activeShotIndex > 0) {
+          event.preventDefault();
+          this.activeShotIndex--;
+          this.selectShot = this.mention_list[this.activeShotIndex]
+          if (this.activeShotIndex > 4) {
+            this.$refs[`shotRef_${this.v_index}_${this.g_index}_${this.m_index}`][0].scrollTop = (this.activeShotIndex - 4) * 40;
+          } else {
+            this.$refs[`shotRef_${this.v_index}_${this.g_index}_${this.m_index}`][0].scrollTop = 0
+          }
+        } else if (event.key === 'ArrowDown' && this.activeShotIndex < this.mention_list.length - 1) {
+          event.preventDefault();
+          this.activeShotIndex++;
+          this.selectShot = this.mention_list[this.activeShotIndex]
+          if (this.activeShotIndex > 4) {
+            this.$refs[`shotRef_${this.v_index}_${this.g_index}_${this.m_index}`][0].scrollTop = (this.activeShotIndex - 4) * 40;
+          }
+        } else if (event.key === 'Enter' && this.activeShotIndex !== -1) {
+          event.preventDefault();
+          this.addShot(this.v_index,this.g_index,this.m_index,this.selectShot)
         }
-        if (popover) {
-          popover.style.borderRadius = '10px';
-          popover.style.padding = '0 0 0 2px';
+      }
+      if (this.push_shot_popover) {
+        if (event.key === 'ArrowUp' && this.activeShotIndex > 0) {
+          event.preventDefault();
+          this.activeShotIndex--;
+          this.selectShot = this.mention_list[this.activeShotIndex]
+          if (this.activeShotIndex > 4){
+            this.$refs[`materialRef_${this.v_index}_${this.g_index}`][0].scrollTop = (this.activeShotIndex - 4) * 40;
+          } else {
+            this.$refs[`materialRef_${this.v_index}_${this.g_index}`][0].scrollTop = 0
+          }
+        } else if (event.key === 'ArrowDown' && this.activeShotIndex < this.mention_list.length - 1) {
+          event.preventDefault();
+          this.activeShotIndex++;
+          this.selectShot = this.mention_list[this.activeShotIndex]
+          if (this.activeShotIndex > 4) {
+            this.$refs[`materialRef_${this.v_index}_${this.g_index}`][0].scrollTop = (this.activeShotIndex - 4) * 40;
+          }
+        } else if (event.key === 'Enter' && this.activeShotIndex !== -1) {
+          event.preventDefault();
+          this.pushShot(this.v_index,this.g_index,this.selectShot)
         }
-      });
+      }
     },
     addShot(index, group_index, material_index, item) {
       this.$nextTick(() => {
@@ -611,6 +671,14 @@ export default {
     liEnter(item) {
       item.isHover = true
       this.hover_li = item
+    },
+    shotLeave() {
+      this.activeShotIndex = -1
+      this.selectShot = null
+    },
+    shotEnter(shotIndex) {
+      this.activeShotIndex = shotIndex
+      this.selectShot = this.mention_list[shotIndex]
     },
     handleScroll(event) {
       const inputEl = this.$refs.inputRef.$el.querySelector('textarea');
@@ -1731,11 +1799,6 @@ export default {
   box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.1);
 }
 
-::v-deep >>> .el-popover {
-  border-radius: 10px !important;
-  padding: 0 !important;
-}
-
 .shot-list {
   width: 210px;
   height: 200px;
@@ -1743,6 +1806,7 @@ export default {
   flex-direction: column;
   overflow-y: auto;
   padding: 4px;
+  margin: -12px;
   background-color: #ffffff;
 }
 
@@ -1762,7 +1826,7 @@ export default {
   position: relative;
 }
 
-.shot-name:hover {
+.shot-name-active {
   background-color: #6366f1;
   color: #ffffff;
 }
