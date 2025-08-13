@@ -66,10 +66,12 @@
               <el-input type="textarea" :autosize="{ minRows: 3, maxRows: 6 }"
                         placeholder="例如：关于 店铺品类(如火锅店、服装店等)相关文案，主推 产品/服务(如招牌菜、爆款服装等)"
                         class="margin-b-12" v-model="copy_require" resize="none" @change="saveSetting"></el-input>
-              <div class="panel-label">示例文案</div>
-              <div class="flex-center margin-b-8" v-for="(text, index) in exampleTexts" :key="index">
-                <div class="copy-item-example">{{ exampleTexts[index] }}</div>
-              </div>
+              <template v-if="exampleTexts">
+                <div class="panel-label">示例文案</div>
+                <div class="flex-center margin-b-8">
+                  <div class="copy-item-example">{{ exampleTexts }}</div>
+                </div>
+              </template>
               <div style="display: flex;gap: 12px" class="margin-b-12">
                 <div style="flex: 1">
                   <div class="panel-label">时长 (秒)</div>
@@ -311,7 +313,7 @@ export default {
 
       already_generated: false,
       copy_require: '',
-      exampleTexts: [''],
+      exampleTexts: '',
       video_time: 15,
       script_num: 1,
       ai_model: 'deepseek_v3',
@@ -643,6 +645,10 @@ export default {
         this.hover_li = null;
       }
     },
+    findNearestHundred(length) {  // 动态设置时长
+      const nearestMultiple = Math.round(length / 15) * 15;
+      return Math.max(15, nearestMultiple)
+    },
     initData() {
       this.figure_ratio = parseInt(sessionStorage.getItem('montage_figure_ratio')) || 30
       this.selected_figure = JSON.parse(sessionStorage.getItem('material_figure')) || {}
@@ -672,10 +678,12 @@ export default {
       sessionStorage.setItem('segments_setting', JSON.stringify(segments_setting))
 
       let hots = JSON.parse(sessionStorage.getItem("select_hots"))
-      this.exampleTexts = []
-      this.exampleTexts[0] = hots.segments.map(segment => segment.asr_text ? segment.asr_text : '').join('');
+      this.exampleTexts = hots.segments.map(segment => segment.asr_text ? segment.asr_text : '').join('');
       this.segments_description = hots.segments.map(item => item.description)
       this.reference_segments = hots.grouped_analysis_result.segmentGroups
+
+      let video_time = Math.round(hots.duration)
+      this.video_time = this.findNearestHundred(video_time)
 
       // 选择的素材id列表、素材列表、静音素材列表
       this.material_list = JSON.parse(sessionStorage.getItem('material_list')) || []
@@ -773,11 +781,10 @@ export default {
       names.forEach((item, index) => {
         actualRequest = actualRequest.replace(item, `@{${this.material_list[index]}}`)
       })
-      const cleanTexts = this.exampleTexts.map(text => text.trim()).filter(text => text !== '');
       let params = {
         requirements: this.copy_require,
         video_time: parseInt(this.video_time),
-        example: cleanTexts,
+        example: this.exampleTexts,
         count: parseInt(this.script_num),
         material_list: this.material_list,
         mute_materials: this.mute_materials,
