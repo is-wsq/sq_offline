@@ -6,7 +6,7 @@
     <div class="box-card">
       <div class="search-content">
         <el-input prefix-icon="el-icon-search" placeholder="一句话搜模板，例如：科技感转场" clearable
-                  class="search-input" v-model="searchText" @change="searchFilter"></el-input>
+                  class="search-input" v-model="searchText"></el-input>
       </div>
       <div class="tags">
         <el-tag size="small" class="tag" :class="{ 'tag-active': activeTag === '全部推荐' }"
@@ -170,14 +170,13 @@
 import {delAction, getAction, postAction} from "@/api/api";
 import {v4 as uuidv4} from 'uuid';
 import {marked} from "marked";
+import {mapGetters} from "vuex";
 
 export default {
   data() {
     return {
       searchText: '',
       activeTag: '全部推荐',
-      hots: [],
-      filter_hots: [],
       select_hots: {},
       uploadDialogVisible: false,
       uploadFile: null,
@@ -200,7 +199,6 @@ export default {
       ],
       classify: '行业热点',
       loading: false,
-      processFile: [],
       dotCount: 1,
       dotTimer: null,
       dot: '.',
@@ -228,10 +226,36 @@ export default {
       segments: []
     }
   },
+  computed: {
+    ...mapGetters("task", ["figureTasks"]),
+    processFile() {
+      return this.figureTasks.filter((item) => item.status === 'pending' && item.video_type === 'hot_video');
+    },
+    hots() {
+      let data = this.figureTasks.filter((item) => item.status === 'success' && item.video_type === 'hot_video');
+      return data.map(item => ({...item, isHover: false}))
+    },
+    filter_hots() {
+      let filteredItems = this.hots;
+
+      if (this.searchText) {
+        filteredItems = filteredItems.filter(item =>
+            item.name.includes(this.searchText) ||
+            item.tag.split(/[,，]/).includes(this.searchText)
+        );
+      }
+
+      if (this.activeTag !== '全部推荐') {
+        filteredItems = filteredItems.filter(item => item.category === this.activeTag);
+      }
+
+      return filteredItems
+    }
+  },
   mounted() {
     this.initData()
-    this.queryHots()
     this.startDotAnimation();
+    this.$store.dispatch("task/pollFigureTasks");
   },
   beforeDestroy() {
     clearInterval(this.dotTimer);
@@ -251,25 +275,8 @@ export default {
       const formattedSeconds = seconds < 10 ? `0${seconds}` : seconds;
       return `${minutes}:${formattedSeconds}`;
     },
-    searchFilter() {
-      let filteredItems = this.hots;
-
-      if (this.searchText) {
-        filteredItems = filteredItems.filter(item =>
-            item.name.includes(this.searchText) ||
-            item.tag.split(/[,，]/).includes(this.searchText)
-        );
-      }
-
-      if (this.activeTag !== '全部推荐') {
-        filteredItems = filteredItems.filter(item => item.category === this.activeTag);
-      }
-
-      this.filter_hots = filteredItems;
-    },
     tagFilter(name) {
       this.activeTag = name
-      this.searchFilter()
     },
     selectVideo(item) {
       this.select_hots = item
@@ -319,7 +326,7 @@ export default {
       postAction("/figure/update_name", params).then((res) => {
         if (res.data.status === "success") {
           this.$message.success("重命名成功");
-          this.queryHots()
+          this.$store.dispatch("task/pollFigureTasks");
         } else {
           this.$alert(res.data.message,'重命名失败')
         }
@@ -336,7 +343,7 @@ export default {
         delAction("/figure/delete", {ids: this.deleteId}).then((res) => {
           if (res.data.status === "success") {
             this.$message.success("删除成功");
-            this.queryHots()
+            this.$store.dispatch("task/pollFigureTasks");
           } else {
             this.$alert(res.data.message, "删除失败")
           }
@@ -353,22 +360,6 @@ export default {
     },
     initData() {
       this.select_hots = JSON.parse(sessionStorage.getItem('select_hots')) || {}
-    },
-    queryHots() {
-      let params = {
-        video_type: 'hot_video',
-      }
-      getAction("/figure/query_success", params).then((res) => {
-        if (res.data.status === "success") {
-          let data = res.data.data.filter(item => item.status === "success");
-          this.hots = data.map(item => ({...item, isHover: false}))
-          this.searchText = ''
-          this.activeTag = '全部推荐'
-          this.filter_hots = this.hots
-        }
-      }).catch((error) => {
-        console.error("获取爆款视频列表失败:", error);
-      });
     },
     beforeUploadClose() {
       this.uploadFile = null
@@ -393,8 +384,6 @@ export default {
         return;
       }
       this.uploadDialogVisible = false
-      let name = 'dy' + new Date().getTime()
-      this.processFile.unshift({name: name, id: uuidv4()})
       let params = {
         url: this.dy_link,
         tag: this.uploadTag,
@@ -405,40 +394,38 @@ export default {
         if (res.data.status === 'success') {
           this.$notify({
             title: "上传提示",
-            message: `${name}爆款视频上传成功`,
-            duration: 20000,
+            message: `已创建爆款视频上传任务`,
+            duration: 5000,
             type: "success",
           });
         } else {
           this.$notify({
             title: "上传提示",
-            message: `${name}爆款视频上传失败，${res.data.message}`,
+            message: `创建爆款视频上传任务失败，${res.data.message}`,
             duration: 0,
             type: "error",
           });
         }
-        this.processFile = this.processFile.filter(item => item.name !== name)
-        this.queryHots()
+        this.$store.dispatch("task/pollFigureTasks");
       })
     },
     uploadSuccess(res, file) {
       if (res.status === "success") {
         this.$notify({
           title: "上传提示",
-          message: `${file.name}爆款视频上传成功`,
-          duration: 20000,
+          message: `创建${file.name}爆款视频上传任务成功`,
+          duration: 5000,
           type: "success",
         });
       } else {
         this.$notify({
           title: "上传提示",
-          message: `${file.name}爆款视频上传失败，${res.message}`,
+          message: `创建${file.name}爆款视频上传任务失败，${res.message}`,
           duration: 0,
           type: "error",
         });
       }
-      this.processFile = this.processFile.filter(item => item.name !== file.name)
-      this.queryHots()
+      this.$store.dispatch("task/pollFigureTasks");
     },
     uploadError() {
       if (this.loading) {
@@ -447,7 +434,6 @@ export default {
       }
     },
     beforeUpload(file) {
-      this.processFile.unshift({name: file.name, id: uuidv4()})
       this.uploadDialogVisible = false
     },
     duplicate() {

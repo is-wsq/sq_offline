@@ -44,6 +44,7 @@ const actions = {
                 const list = res.data.data;
                 list.forEach(figure => {
                     const prev = state.figurePreviousStatusMap[figure.id];
+                    const message = figure.video_type === 'hot_video' ? '爆款视频上传' : '素材上传'
                     if (prev === "ready" && figure.status === "success") {
                         Vue.prototype.$notify({
                             title: "形象克隆成功",
@@ -62,16 +63,16 @@ const actions = {
                     }
                     if (prev === "pending" && figure.status === "success") {
                         Vue.prototype.$notify({
-                            title: "素材上传成功",
-                            message: `《${figure.name}》素材上传任务已完成`,
+                            title: message + '成功',
+                            message: `《${figure.name}》${message}任务已完成`,
                             type: "success",
                             duration: 5000
                         });
                     }
                     if (prev === "pending" && figure.status === "failed") {
                         Vue.prototype.$notify({
-                            title: "素材上传失败",
-                            message: `《${figure.name}》素材上传任务失败,${figure.message}`,
+                            title: message + '失败',
+                            message: `《${figure.name}》${message}任务失败,${figure.message}`,
                             duration: 0,
                             type: "error",
                         })
