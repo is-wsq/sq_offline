@@ -25,7 +25,7 @@
         <div style="line-height: 40px;font-weight: bold;margin-left: 15px">素材库</div>
         <div class="library">
           <el-collapse v-model="activeName" accordion>
-            <el-collapse-item title="素材(快捷键: Ctrl + A 全选, Ctrl + Z 反选)" name="1">
+            <el-collapse-item title="素材(快捷键: Ctrl + A 全选, Ctrl + Z 取消选中)" name="1">
               <div class="filter-content" @mousedown.stop="">
                 <el-input prefix-icon="el-icon-search" placeholder="输入素材名称、标签匹配搜索" clearable
                           class="filter-input" v-model="filter_text" @change="filterMaterials"></el-input>
