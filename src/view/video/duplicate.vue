@@ -27,7 +27,7 @@
                   </div>
                 </template>
                 <div style="display: flex;gap: 12px" class="margin-b-12">
-                  <div style="flex: 1">
+                  <div style="flex: 1" v-if="exampleTexts">
                     <div class="smart-generate-c-l-ai-title">文案字数</div>
                     <el-select v-model="copy_num" placeholder="请选择" style="width: 100%">
                       <el-option label="100" value="100"></el-option>
@@ -40,6 +40,10 @@
                       <el-option label="450" value="450"></el-option>
                       <el-option label="500" value="500"></el-option>
                     </el-select>
+                  </div>
+                  <div style="flex: 1" v-if="!exampleTexts">
+                    <div class="smart-generate-c-l-ai-title">时长 (秒)</div>
+                    <el-input type="number" v-model="video_time" :step="15"></el-input>
                   </div>
                   <div style="flex: 1">
                     <div class="smart-generate-c-l-ai-title">文案数量</div>
@@ -115,6 +119,7 @@ export default {
       copy_require: '',
       exampleTexts: '',
       copy_num: 100,
+      video_time: 15,
       script_num: 1,
       ai_model: 'deepseek_v3',
       showChecked: false,
@@ -124,6 +129,7 @@ export default {
       new_content: '',
       material_bgm: {},
       mention_list: [],
+      voice: {}
     }
   },
   mounted() {
@@ -133,6 +139,10 @@ export default {
     findNearestHundred(length) {  // 动态设置字数
       const nearestMultiple = Math.round(length / 50) * 50;
       return Math.min(500, Math.max(100, nearestMultiple))
+    },
+    findNearestHundredTime(length) {  // 动态设置时长
+      const nearestMultiple = Math.round(length / 15) * 15;
+      return Math.max(15, nearestMultiple)
     },
     saveSetting() {
       this.validateNum()
@@ -166,52 +176,79 @@ export default {
       let hots = JSON.parse(sessionStorage.getItem("select_hots"))
       this.material_bgm = JSON.parse(sessionStorage.getItem('setting_bgm')) || {}
       this.exampleTexts = hots.segments.map(segment => segment.asr_text ? segment.asr_text : '').join('');
-      let voice = JSON.parse(sessionStorage.getItem('setting_voice')) || {}
-      if (this.exampleTexts.length === 0) {
-        let speed = 31 / voice.duration    // 字数/时长 = 速率
-        let l = Math.round(hots.duration * speed)
-        this.copy_num = this.findNearestHundred(l)
-        return
-      }
+      this.voice = JSON.parse(sessionStorage.getItem('setting_voice')) || {}
+      let video_time = Math.round(hots.duration)
+      this.video_time = this.findNearestHundredTime(video_time)
       this.copy_num = this.findNearestHundred(this.exampleTexts.length)
     },
     batchGenerate() {
-      let url = ''
-      switch (this.ai_model) {
-        case 'local_model':
-          url = 'http://127.0.0.1:9669/generate_script'
-          break
-        case 'deepseek_v3':
-          url = 'http://127.0.0.1:9669/api/generate_script'
-          break
-      }
-      let params = {
-        examples: this.exampleTexts,
-        requirements: this.copy_require,
-        num_of_words: parseInt(this.copy_num),
-        script_count: parseInt(this.script_num),
-        store_id: this.mention_list[0].store_id
-      }
-      this.loading = this.$loading({
-        lock: true, text: '文案生成中，请耐心等待...',
-        spinner: 'el-icon-loading', background: 'rgba(0, 0, 0, 0.7)'
-      });
-      axios.post(url, params).then(res => {
-        this.loading.close();
-        this.loading = null;
-        if (res.data.status === "success") {
-          this.hot_copy_list = this.hot_copy_list.concat(res.data.data.map(
-              item => ({title: item.title, content: item.script, isEdit: false, bgm: this.material_bgm})))
-          sessionStorage.setItem("hot_copy_list", JSON.stringify(this.hot_copy_list))
-          sessionStorage.removeItem('hot_montage_data')
-        } else {
-          this.$alert(res.data.message,'文案生成失败')
+      if (this.exampleTexts) {
+        let url = ''
+        switch (this.ai_model) {
+          case 'local_model':
+            url = 'http://127.0.0.1:9669/generate_script'
+            break
+          case 'deepseek_v3':
+            url = 'http://127.0.0.1:9669/api/generate_script'
+            break
         }
-      }).catch(err => {
-        this.loading.close();
-        this.loading = null;
-        this.$alert(err,'文案生成错误')
-      })
+        let params = {
+          examples: this.exampleTexts,
+          requirements: this.copy_require,
+          num_of_words: parseInt(this.copy_num),
+          script_count: parseInt(this.script_num),
+          store_id: this.mention_list[0].store_id
+        }
+        this.loading = this.$loading({
+          lock: true, text: '文案生成中，请耐心等待...',
+          spinner: 'el-icon-loading', background: 'rgba(0, 0, 0, 0.7)'
+        });
+        axios.post(url, params).then(res => {
+          this.loading.close();
+          this.loading = null;
+          if (res.data.status === "success") {
+            this.hot_copy_list = this.hot_copy_list.concat(res.data.data.map(
+                item => ({title: item.title, content: item.script, isEdit: false, bgm: this.material_bgm})))
+            sessionStorage.setItem("hot_copy_list", JSON.stringify(this.hot_copy_list))
+            sessionStorage.removeItem('hot_montage_data')
+          } else {
+            this.$alert(res.data.message,'文案生成失败')
+          }
+        }).catch(err => {
+          this.loading.close();
+          this.loading = null;
+          this.$alert(err,'文案生成错误')
+        })
+      }else {
+        let url = 'http://127.0.0.1:9669/api/generate_script_by_duration'
+        let params = {
+          requirements: this.copy_require,
+          duration: parseInt(this.video_time),
+          voice_id: this.voice.id,
+          script_count: parseInt(this.script_num),
+          store_id: this.mention_list[0].store_id
+        }
+        this.loading = this.$loading({
+          lock: true, text: '文案生成中，请耐心等待...',
+          spinner: 'el-icon-loading', background: 'rgba(0, 0, 0, 0.7)'
+        });
+        axios.post(url, params).then(res => {
+          this.loading.close();
+          this.loading = null;
+          if (res.data.status === "success") {
+            this.hot_copy_list = this.hot_copy_list.concat(res.data.data.map(
+                item => ({title: item.title, content: item.script, isEdit: false, bgm: this.material_bgm})))
+            sessionStorage.setItem("hot_copy_list", JSON.stringify(this.hot_copy_list))
+            sessionStorage.removeItem('hot_montage_data')
+          } else {
+            this.$alert(res.data.message,'文案生成失败')
+          }
+        }).catch(err => {
+          this.loading.close();
+          this.loading = null;
+          this.$alert(err,'文案生成错误')
+        })
+      }
     },
     showEdit(index) {
       if (this.showChecked) {
