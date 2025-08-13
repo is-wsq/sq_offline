@@ -157,6 +157,7 @@ export const EnhancedChoiceMixin = {
             this.selectionHeight = 0
             this.size_select = ''
             this.store_select = ''
+            this.filterMaterials()
         },
 
         // 更新选中项
@@ -196,13 +197,11 @@ export const EnhancedChoiceMixin = {
                     if (this.size_select && this.size_select !== this.filter_materials[index].size) {
                         this.$alert('检测到不同尺寸的素材，已结束框选，并自动过滤不同尺寸的素材','提示')
                         this.endSelection()
-                        this.filterMaterials()
                         return;
                     }
                     if (this.store_select && this.store_select !== this.filter_materials[index].store_id) {
                         this.$alert('检测到不同店铺的素材，已结束框选，并自动过滤不同店铺的素材','提示')
                         this.endSelection()
-                        this.filterMaterials()
                         return;
                     }
                     this.size_select = this.filter_materials[index].size
