@@ -501,6 +501,7 @@ export default {
 
       let name = this.setName()
       let params = {
+        copy_request: this.copy_require,
         video_id: this.figure.video_id,
         voice_id: this.sound.voice_id,
         voice_mode: this.voice_mode,
