@@ -437,6 +437,9 @@ export default {
       this.uploadDialogVisible = false
     },
     duplicate() {
+      if (!this.select_hots.id) {
+        this.$alert('请先选择一个要复刻的爆款视频','提示')
+      }
       sessionStorage.setItem('video_path', '/material')
       this.$router.push({path: '/material'})
     },
