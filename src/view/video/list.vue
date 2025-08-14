@@ -103,9 +103,9 @@
               {{ logInfo.user_request }}
             </el-descriptions-item>
           </el-descriptions>
-          <el-divider content-position="left">分镜组混剪信息</el-divider>
+          <el-divider content-position="left" v-if="logInfo.video_data">分镜组混剪信息</el-divider>
 
-          <div class="group-card">
+          <div class="group-card" v-if="logInfo.video_data">
             <div class="group-title" :title="logInfo.title">{{ logInfo.title }}</div>
             <div class="group-content" :title="logInfo.content" v-if="logInfo.content">
               {{ logInfo.content }}
@@ -164,8 +164,8 @@
           <!--            </el-table-column>-->
           <!--            <el-table-column label="分镜组时长(s)" prop="groupDuration"></el-table-column>-->
           <!--          </el-table>-->
-          <el-divider content-position="left">LLM 思考过程</el-divider>
-          <el-collapse v-model="activeCollapse">
+          <el-divider content-position="left" v-if="logInfo.reason">分镜组混剪信息</el-divider>
+          <el-collapse v-model="activeCollapse" v-if="logInfo.reason">
             <el-collapse-item title="LLM 分析" name="1">
               <div class="llm-thought-process">{{ logInfo.reason }}</div>
             </el-collapse-item>
@@ -595,7 +595,7 @@ export default {
 
 .log-dialog-body {
   padding: 10px 20px;
-  height: calc(80vh - 75px);
+  max-height: calc(80vh - 75px);
   overflow-y: auto;
 }
 
