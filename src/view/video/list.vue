@@ -68,17 +68,24 @@
       <el-dialog class="log-dialog" :visible.sync="logDialogVisible" top="10vh" width="900px" :before-close="logClose">
         <div slot="title" class="log-dialog-title" @mousedown.stop="">视频生成日志</div>
         <div class="log-dialog-body">
-          <el-descriptions title="基础信息" :column="2" border>
-            <el-descriptions-item label="文案标题" :labelStyle="{'width': '100px','text-align': 'center'}">
-              {{ logInfo.title }}</el-descriptions-item>
-            <el-descriptions-item label="视频时长" :labelStyle="{'width': '100px','text-align': 'center'}"
-                                  :contentStyle="{'width': '100px','text-align': 'center'}">
-              {{ logInfo.duration? logInfo.duration.toFixed(2) + 's' : '' }}</el-descriptions-item>
-            <el-descriptions-item label="背景音乐" :labelStyle="{'width': '100px','text-align': 'center'}"
-                                  :span="2" v-if="!logInfo.bgm_path">无</el-descriptions-item>
-            <el-descriptions-item label="背景音乐" :labelStyle="{'width': '100px','text-align': 'center'}"
-                                  :span="2" v-else>
-              <div style="display: flex;align-items: center;gap: 15px">
+          <el-descriptions title="基础信息" :column="2" border :labelStyle="{'width': '120px','text-align': 'center'}">
+            <el-descriptions-item label="开始生成时间" :contentStyle="{'width': '307px'}">
+              {{ logInfo.created_at || '' }}
+            </el-descriptions-item>
+            <el-descriptions-item label="完成时间" :contentStyle="{'width': '307px'}">
+              {{ logInfo.finished_at || '' }}
+            </el-descriptions-item>
+            <el-descriptions-item label="文案标题" :span="2">
+              {{ logInfo.title }}
+            </el-descriptions-item>
+            <el-descriptions-item label="视频时长" :contentStyle="{'width': '307px'}">
+              {{ logInfo.duration ? logInfo.duration.toFixed(2) + 's' : '' }}
+            </el-descriptions-item>
+            <el-descriptions-item label="背景音乐" :contentStyle="{'width': '307px'}">
+              <div v-if="!logInfo.bgm_path">
+                无
+              </div>
+              <div style="display: flex;align-items: center;gap: 15px" v-else>
                 <div class="timbre-item-icon" @click="previewBgm(logInfo.bgm_path)">
                   <i :class="audioPlaying ? 'el-icon-pause' : 'el-icon-play'"
                      style="font-size: 13px; color: #6286ed"></i>
@@ -86,12 +93,15 @@
                 <div class="timbre-item-name">{{ logInfo.bgm_name }}</div>
               </div>
             </el-descriptions-item>
-            <el-descriptions-item label="文案内容" :labelStyle="{'width': '100px','text-align': 'center'}"
-                                  :span="2">{{ logInfo.content? logInfo.content : '无文案' }}</el-descriptions-item>
-            <el-descriptions-item label="文案要求" :labelStyle="{'width': '100px','text-align': 'center'}"
-                                  :span="2">{{ logInfo.copy_request }}</el-descriptions-item>
-            <el-descriptions-item label="混剪要求" :labelStyle="{'width': '100px','text-align': 'center'}"
-                                  :span="2">{{ logInfo.user_request }}</el-descriptions-item>
+            <el-descriptions-item label="文案内容" :span="2">
+              {{ logInfo.content ? logInfo.content : '无文案' }}
+            </el-descriptions-item>
+            <el-descriptions-item label="文案要求" :span="2">
+              {{ logInfo.copy_request }}
+            </el-descriptions-item>
+            <el-descriptions-item label="混剪要求" :span="2">
+              {{ logInfo.user_request }}
+            </el-descriptions-item>
           </el-descriptions>
           <el-divider content-position="left">分镜组混剪信息</el-divider>
 
@@ -108,7 +118,8 @@
               <div style="line-height: 21px">{{ logInfo.duration + 's' }}</div>
             </div>
             <div class="groups-segment" v-if="logInfo.video_data">
-              <div class="group-segment" v-for="(group,group_index) in logInfo.video_data.segment_group" :key="group_index">
+              <div class="group-segment" v-for="(group,group_index) in logInfo.video_data.segment_group"
+                   :key="group_index">
                 <div class="segment-title"
                      :style="{ width: ((group.materials.length - 1) * 100 + 80) + 'px' }"
                      :title="group.contentSummary">
@@ -125,34 +136,34 @@
             </div>
           </div>
 
-<!--          <el-table :data="logInfo.video_data.segment_group" row-key="groupId" style="width: 100%"-->
-<!--                    border v-if="logInfo.video_data" :expanded-row-keys="expandedRowKeys">-->
-<!--            <el-table-column type="expand">-->
-<!--              <template slot-scope="props">-->
-<!--                <div style="padding: 10px 20px;">-->
-<!--                  <p><strong>分镜组描述:</strong> {{ props.row.contentSummary }}</p>-->
-<!--                  <p><strong>素材匹配:</strong></p>-->
-<!--                  <ul>-->
-<!--                    <li v-for="material in props.row.materials" :key="material.id" style="height: 30px;line-height: 30px">-->
-<!--                      <div style="display: flex">-->
-<!--                        <div class="material-name" @click="previewMaterial(material)">{{ material.name }}</div>-->
-<!--                        <div>- 时长: {{ material.duration }}s</div>-->
-<!--                      </div>-->
-<!--                    </li>-->
-<!--                  </ul>-->
-<!--                </div>-->
-<!--              </template>-->
-<!--            </el-table-column>-->
-<!--            <el-table-column label="分镜组类型">-->
-<!--              <template slot-scope="scope">-->
-<!--                {{ scope.row.groupType === 'material_clips' ? '素材':'数字人' }}-->
-<!--              </template>-->
-<!--            </el-table-column>-->
-<!--            <el-table-column label="匹配素材数">-->
-<!--              <template slot-scope="scope">{{ scope.row.materials.length }}</template>-->
-<!--            </el-table-column>-->
-<!--            <el-table-column label="分镜组时长(s)" prop="groupDuration"></el-table-column>-->
-<!--          </el-table>-->
+          <!--          <el-table :data="logInfo.video_data.segment_group" row-key="groupId" style="width: 100%"-->
+          <!--                    border v-if="logInfo.video_data" :expanded-row-keys="expandedRowKeys">-->
+          <!--            <el-table-column type="expand">-->
+          <!--              <template slot-scope="props">-->
+          <!--                <div style="padding: 10px 20px;">-->
+          <!--                  <p><strong>分镜组描述:</strong> {{ props.row.contentSummary }}</p>-->
+          <!--                  <p><strong>素材匹配:</strong></p>-->
+          <!--                  <ul>-->
+          <!--                    <li v-for="material in props.row.materials" :key="material.id" style="height: 30px;line-height: 30px">-->
+          <!--                      <div style="display: flex">-->
+          <!--                        <div class="material-name" @click="previewMaterial(material)">{{ material.name }}</div>-->
+          <!--                        <div>- 时长: {{ material.duration }}s</div>-->
+          <!--                      </div>-->
+          <!--                    </li>-->
+          <!--                  </ul>-->
+          <!--                </div>-->
+          <!--              </template>-->
+          <!--            </el-table-column>-->
+          <!--            <el-table-column label="分镜组类型">-->
+          <!--              <template slot-scope="scope">-->
+          <!--                {{ scope.row.groupType === 'material_clips' ? '素材':'数字人' }}-->
+          <!--              </template>-->
+          <!--            </el-table-column>-->
+          <!--            <el-table-column label="匹配素材数">-->
+          <!--              <template slot-scope="scope">{{ scope.row.materials.length }}</template>-->
+          <!--            </el-table-column>-->
+          <!--            <el-table-column label="分镜组时长(s)" prop="groupDuration"></el-table-column>-->
+          <!--          </el-table>-->
           <el-divider content-position="left">LLM 思考过程</el-divider>
           <el-collapse v-model="activeCollapse">
             <el-collapse-item title="LLM 分析" name="1">
@@ -253,7 +264,7 @@ export default {
             this.$message.success('删除成功');
             this.$store.dispatch("task/pollVideoTasks")
           } else {
-            this.$alert(res.data.message,'删除提示');
+            this.$alert(res.data.message, '删除提示');
           }
         })
       }).catch(() => {
@@ -302,7 +313,7 @@ export default {
           this.$message.success("重命名成功");
           this.$store.dispatch("task/pollVideoTasks")
         } else {
-          this.$alert(res.data.message,'重命名提示');
+          this.$alert(res.data.message, '重命名提示');
         }
         this.editId = ''
       }).catch((err) => {
