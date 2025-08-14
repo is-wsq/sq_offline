@@ -196,7 +196,7 @@ export default {
         let url = ''
         switch (this.ai_model) {
           case 'local_model':
-            url = 'http://127.0.0.1:9669/generate_script'
+            url = 'http://127.0.0.1:9669/api/generate_script'
             break
           case 'deepseek_v3':
             url = 'http://127.0.0.1:9669/api/generate_script'
