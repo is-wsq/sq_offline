@@ -13,8 +13,15 @@
           <div class="smart-generate-c-l">
             <div class="font-weight margin-b-12">生成文案</div>
             <div class="smart-generate-c-l-ai">
-              <div style="height: calc(100% - 50px); overflow-y: auto">
-                <div class="smart-generate-c-l-ai-title">文案要求</div>
+              <div style="height: calc(100% - 50px); overflow-y: auto;overflow-x: hidden">
+                <div class="smart-generate-c-l-ai-title">语言选择</div>
+                <el-select v-model="language" placeholder="请选择" style="width: 100%" @change="saveSetting">
+                  <el-option label="中文" value="中文"></el-option>
+                  <el-option label="英文" value="英文"></el-option>
+                  <el-option label="日文" value="日文"></el-option>
+                  <el-option label="其他（需在文案要求指定语言类型）" value="其他"></el-option>
+                </el-select>
+                <div class="smart-generate-c-l-ai-title margin-t-12">文案要求</div>
                 <el-input type="textarea" :autosize="{ minRows: 3, maxRows: 6 }"
                           placeholder="例如：关于 店铺品类(如火锅店、服装店等)相关文案，主推 产品/服务(如招牌菜、爆款服装等)"
                           class="margin-b-12" v-model="copy_require"
@@ -116,6 +123,7 @@ export default {
   data() {
     return {
       activeName: '1',
+      language: '中文',
       copy_require: '',
       exampleTexts: '',
       copy_num: 100,
@@ -147,6 +155,7 @@ export default {
     saveSetting() {
       this.validateNum()
       let duplicate_setting = {
+        language: this.language,
         copy_require: this.copy_require,
         script_num: this.script_num,
         ai_model: this.ai_model,
@@ -165,6 +174,7 @@ export default {
     },
     initData() {
       let duplicate_setting = JSON.parse(sessionStorage.getItem("duplicate_setting")) || {}
+      this.language = duplicate_setting.language || '中文'
       this.copy_require = duplicate_setting.copy_require || ''
       this.script_num = parseInt(duplicate_setting.script_num) || 1
       this.ai_model = duplicate_setting.ai_model || 'deepseek_v3'
@@ -175,8 +185,8 @@ export default {
           JSON.parse(sessionStorage.getItem("hot_copy_list")) : []
       let hots = JSON.parse(sessionStorage.getItem("select_hots"))
       this.material_bgm = JSON.parse(sessionStorage.getItem('setting_bgm')) || {}
-      this.exampleTexts = hots.segments.map(segment => segment.asr_text ? segment.asr_text : '').join('');
       this.voice = JSON.parse(sessionStorage.getItem('setting_voice')) || {}
+      this.exampleTexts = hots.segments.map(segment => segment.asr_text ? segment.asr_text : '').join('');
       let video_time = Math.round(hots.duration)
       this.video_time = this.findNearestHundredTime(video_time)
       this.copy_num = this.findNearestHundred(this.exampleTexts.length)
@@ -193,6 +203,7 @@ export default {
             break
         }
         let params = {
+          language: this.language,
           examples: this.exampleTexts,
           requirements: this.copy_require,
           num_of_words: parseInt(this.copy_num),
@@ -222,6 +233,7 @@ export default {
       }else {
         let url = 'http://127.0.0.1:9669/api/generate_script_by_duration'
         let params = {
+          language: this.language,
           requirements: this.copy_require,
           duration: parseInt(this.video_time),
           voice_id: this.voice.id,

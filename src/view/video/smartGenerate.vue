@@ -15,8 +15,18 @@
             <el-collapse v-model="activeName" accordion>
               <el-collapse-item title="AI批量生成" name="1">
                 <div class="smart-generate-c-l-ai">
-                  <div style="max-height: max(calc(100vh - 410px), 330px); overflow-y: auto" ref="scriptForm">
-                    <div class="smart-generate-c-l-ai-title">文案要求</div>
+                  <div style="overflow-y: auto; overflow-x: hidden;" ref="scriptForm"
+                       :style="{ maxHeight: script_type === 'material' && !selected_figure.id ?
+                                'max(calc(100vh - 410px), 330px)' :
+                                'max(calc(100vh - 360px), 380px)' }">
+                    <div class="smart-generate-c-l-ai-title">语言选择</div>
+                    <el-select v-model="language" placeholder="请选择" style="width: 100%" @change="saveSetting">
+                      <el-option label="中文" value="中文"></el-option>
+                      <el-option label="英文" value="英文"></el-option>
+                      <el-option label="日文" value="日文"></el-option>
+                      <el-option label="其他（需在文案要求指定语言类型）" value="其他"></el-option>
+                    </el-select>
+                    <div class="smart-generate-c-l-ai-title margin-t-12">文案要求</div>
                     <el-input type="textarea" :autosize="{ minRows: 3, maxRows: 6 }"
                               placeholder="例如：关于 店铺品类(如火锅店、服装店等)相关文案，主推 产品/服务(如招牌菜、爆款服装等)"
                               class="margin-b-12" v-model="copy_require" resize="none" @change="saveSetting"></el-input>
@@ -166,6 +176,7 @@ export default {
   data() {
     return {
       activeName: '1',
+      language: '中文',
       copy_require: '',
       exampleTexts: [''],
       copy_num: 100,
@@ -233,6 +244,7 @@ export default {
     saveSetting() {
       this.validateNum()
       let smart_generate_setting = {
+        language: this.language,
         copy_require: this.copy_require,
         exampleTexts: this.exampleTexts,
         copy_num: this.copy_num,
@@ -275,6 +287,7 @@ export default {
         this.material_bgm = JSON.parse(sessionStorage.getItem('figure_setting_bgm')) || {}
       }
       let smart_generate_setting = JSON.parse(sessionStorage.getItem("smart_generate_setting")) || {}
+      this.language = smart_generate_setting.language || '中文'
       this.copy_require = smart_generate_setting.copy_require || ''
       this.exampleTexts = smart_generate_setting.exampleTexts || ['']
       this.copy_num = parseInt(smart_generate_setting.copy_num) || 100
@@ -295,6 +308,7 @@ export default {
       const cleanTexts = this.exampleTexts.map(text => text.trim()).filter(text => text !== '');
       const store_id = this.script_type === 'material' ? this.mention_list[0].store_id : ''
       let params = {
+        language: this.language,
         examples: cleanTexts,
         requirements: this.copy_require,
         num_of_words: parseInt(this.copy_num),

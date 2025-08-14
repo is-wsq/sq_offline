@@ -61,8 +61,15 @@
           </template>
           <div class="without_at" :style="{height: selected_figure.id? 'calc(100% - 200px)': 'calc(100% - 150px)'}">
             <div class="panel-title margin-t-8">文案设置</div>
-            <div style="max-height: calc(100% - 35px);overflow-y: auto">
-              <div class="panel-label">文案要求</div>
+            <div style="max-height: calc(100% - 35px);overflow-y: auto;overflow-x: hidden">
+              <div class="panel-label">语言选择</div>
+              <el-select v-model="language" placeholder="请选择" style="width: 100%" @change="saveSetting">
+                <el-option label="中文" value="中文"></el-option>
+                <el-option label="英文" value="英文"></el-option>
+                <el-option label="日文" value="日文"></el-option>
+                <el-option label="其他（需在文案要求指定语言类型）" value="其他"></el-option>
+              </el-select>
+              <div class="panel-label margin-t-12">文案要求</div>
               <el-input type="textarea" :autosize="{ minRows: 3, maxRows: 6 }"
                         placeholder="例如：关于 店铺品类(如火锅店、服装店等)相关文案，主推 产品/服务(如招牌菜、爆款服装等)"
                         class="margin-b-12" v-model="copy_require" resize="none" @change="saveSetting"></el-input>
@@ -321,6 +328,7 @@ export default {
       mentionRanges: [],
 
       already_generated: false,
+      language: '中文',
       copy_require: '',
       exampleTexts: '',
       video_time: 15,
@@ -527,6 +535,7 @@ export default {
     saveSetting() {
       this.validateNum()
       let segments_setting = {
+        language: this.language,
         requirement: this.requirement,
         copy_require: this.copy_require,
         video_time: this.video_time,
@@ -774,6 +783,7 @@ export default {
       }
 
       let segments_setting = JSON.parse(sessionStorage.getItem("segments_setting")) || {}
+      this.language = segments_setting.language || '中文'
       this.requirement = segments_setting.requirement || ''
       this.copy_require = segments_setting.copy_require || ''
       this.video_time = parseInt(segments_setting.video_time) || 15
@@ -887,6 +897,7 @@ export default {
         actualRequest = actualRequest.replace(item, `@{${this.material_list[index]}}`)
       })
       let params = {
+        language: this.language,
         requirements: this.copy_require,
         video_time: parseInt(this.video_time),
         example: this.exampleTexts,
