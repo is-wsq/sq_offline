@@ -112,7 +112,27 @@
       </div>
     </div>
     <el-dialog class="detail-dialog" title="素材分析结果" :visible.sync="detailDialogVisible" width="640px">
-      <div v-html="htmlContent" class="markdown-content" @mousedown.stop=""></div>
+      <div style="max-height: calc(70vh - 100px);overflow-y: auto">
+        <div v-html="htmlContent" class="markdown-content" @mousedown.stop=""></div>
+        <template v-if="video_score.camera_movement_and_dynamic_aesthetics" @mousedown.stop="">
+          <el-divider content-position="left" style="margin: 15px 0;font-weight: bold;font-size: 16px">素材评分({{video_score.total_score}})</el-divider>
+          <div style="font-weight: bold;line-height: 24px">构图与视觉引导(Composition and Visual Guidance)</div>
+          <div style="line-height: 24px;margin-left: 20px"><span style="font-weight: bold">评分:</span> {{ video_score.composition_and_visual_guidance.score }}</div>
+          <div style="line-height: 24px;margin-left: 20px"><span style="font-weight: bold">分析:</span> {{ video_score.composition_and_visual_guidance.reason }}</div>
+          <div style="font-weight: bold;line-height: 24px;margin-top: 10px">光影与色彩运用(Lighting and Color)</div>
+          <div style="line-height: 24px;margin-left: 20px"><span style="font-weight: bold">评分:</span> {{ video_score.lighting_and_color.score }}</div>
+          <div style="line-height: 24px;margin-left: 20px"><span style="font-weight: bold">分析:</span> {{ video_score.lighting_and_color.reason }}</div>
+          <div style="font-weight: bold;line-height: 24px;margin-top: 10px">焦点与景深控制(Focus and Depth of Field)</div>
+          <div style="line-height: 24px;margin-left: 20px"><span style="font-weight: bold">评分:</span> {{ video_score.focus_and_depth_of_field.score }}</div>
+          <div style="line-height: 24px;margin-left: 20px"><span style="font-weight: bold">分析:</span> {{ video_score.focus_and_depth_of_field.reason }}</div>
+          <div style="font-weight: bold;line-height: 24px;margin-top: 10px">运镜与动态美感(Camera Movement and Dynamic Aesthetics)</div>
+          <div style="line-height: 24px;margin-left: 20px"><span style="font-weight: bold">评分:</span> {{ video_score.camera_movement_and_dynamic_aesthetics.score }}</div>
+          <div style="line-height: 24px;margin-left: 20px"><span style="font-weight: bold">分析:</span> {{ video_score.camera_movement_and_dynamic_aesthetics.reason }}</div>
+          <div style="font-weight: bold;line-height: 24px;margin-top: 10px">叙事与情感表达(Narrative and Emotional Expression)</div>
+          <div style="line-height: 24px;margin-left: 20px"><span style="font-weight: bold">评分:</span> {{ video_score.narrative_and_emotional_expression.score }}</div>
+          <div style="line-height: 24px;margin-left: 20px"><span style="font-weight: bold">分析:</span> {{ video_score.narrative_and_emotional_expression.reason }}</div>
+        </template>
+      </div>
     </el-dialog>
     <el-dialog class="upload-dialog" :visible.sync="uploadDialogVisible" width="32rem" :before-close="beforeUploadClose">
       <div slot="title" class="upload-dialog-title" @mousedown.stop="">上传素材</div>
@@ -234,6 +254,7 @@ export default {
       response_list: [],
       detailDialogVisible: false,
       detail_content: '',
+      video_score: {},
 
       // 框选相关状态
       isSelecting: false,
@@ -466,6 +487,7 @@ export default {
     detail() {
       this.detailDialogVisible = true;
       this.detail_content = this.selectedItem.material_summary;
+      this.video_score = this.selectedItem.video_score || {};
     },
     checkAspectRatio() {
       const video = this.$refs.video;
@@ -812,11 +834,6 @@ export default {
   color: #6d7177;
   font-size: 15px;
   font-family: "Helvetica Neue", Arial, sans-serif;
-}
-
-.markdown-content {
-  max-height: 400px;
-  overflow: auto;
 }
 
 .detail-dialog >>> .el-dialog {
