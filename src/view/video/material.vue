@@ -326,7 +326,9 @@
                   <el-popover
                       placement="left"
                       trigger="click">
-                    <custom-color-picker :color="subtitleNameParams.name_color" @color-updated="handleNameColorUpdated"></custom-color-picker>
+                    <div style="margin: -12px">
+                      <custom-color-picker :color="subtitleNameParams.name_color" @color-updated="handleNameColorUpdated"></custom-color-picker>
+                    </div>
                     <div slot="reference" class="color-box" :style="{background: subtitleNameParams.name_color}"></div>
                   </el-popover>
                 </div>
@@ -335,7 +337,9 @@
                   <el-popover
                       placement="left"
                       trigger="click">
-                    <custom-color-picker :color="subtitleNameParams.name_stroke_color" @color-updated="handleNameStrokeColorUpdated"></custom-color-picker>
+                    <div style="margin: -12px">
+                      <custom-color-picker :color="subtitleNameParams.name_stroke_color" @color-updated="handleNameStrokeColorUpdated"></custom-color-picker>
+                    </div>
                     <div slot="reference" class="color-box" :style="{background: subtitleNameParams.name_stroke_color}"></div>
                   </el-popover>
                 </div>
@@ -363,7 +367,9 @@
                   <el-popover
                       placement="left"
                       trigger="click">
-                    <custom-color-picker :color="subtitleNameParams.name_background_color" @color-updated="handleNameBackgroundColorUpdated"></custom-color-picker>
+                    <div style="margin: -12px">
+                      <custom-color-picker :color="subtitleNameParams.name_background_color" @color-updated="handleNameBackgroundColorUpdated"></custom-color-picker>
+                    </div>
                     <div slot="reference" class="color-box" :style="{background: subtitleNameParams.name_background_color}"></div>
                   </el-popover>
                   <div style="flex: 1"></div>
@@ -449,7 +455,9 @@
                   <el-popover
                       placement="left"
                       trigger="click">
-                    <custom-color-picker :color="subtitleParams.color" @color-updated="handleColorUpdated"></custom-color-picker>
+                    <div style="margin: -12px">
+                      <custom-color-picker :color="subtitleParams.color" @color-updated="handleColorUpdated"></custom-color-picker>
+                    </div>
                     <div slot="reference" class="color-box" :style="{background: subtitleParams.color}"></div>
                   </el-popover>
                 </div>
@@ -458,7 +466,9 @@
                   <el-popover
                       placement="left"
                       trigger="click">
-                    <custom-color-picker :color="subtitleParams.stroke_color" @color-updated="handleStrokeColorUpdated"></custom-color-picker>
+                    <div style="margin: -12px">
+                      <custom-color-picker :color="subtitleParams.stroke_color" @color-updated="handleStrokeColorUpdated"></custom-color-picker>
+                    </div>
                     <div slot="reference" class="color-box" :style="{background: subtitleParams.stroke_color}"></div>
                   </el-popover>
                 </div>
@@ -486,7 +496,9 @@
                   <el-popover
                       placement="left"
                       trigger="click">
-                    <custom-color-picker :color="subtitleParams.background_color" @color-updated="handleBackgroundColorUpdated"></custom-color-picker>
+                    <div style="margin: -12px">
+                      <custom-color-picker :color="subtitleParams.background_color" @color-updated="handleBackgroundColorUpdated"></custom-color-picker>
+                    </div>
                     <div slot="reference" class="color-box" :style="{background: subtitleParams.background_color}"></div>
                   </el-popover>
                   <div style="flex: 1"></div>

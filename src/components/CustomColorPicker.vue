@@ -296,7 +296,7 @@ export default {
   width: 240px;
   color: rgb(65, 80, 88);
   background: rgb(255, 255, 255);
-  border-radius: 8px;
+  border-radius: 4px;
   box-shadow: rgba(0, 0, 0, 0.1) 0px 3px 10px 0px;
   font-size: 12px;
   text-align: left;
