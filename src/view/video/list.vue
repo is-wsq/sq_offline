@@ -99,7 +99,7 @@
             <el-descriptions-item label="文案要求" :span="2">
               {{ logInfo.copy_request }}
             </el-descriptions-item>
-            <el-descriptions-item label="混剪要求" :span="2">
+            <el-descriptions-item label="混剪要求" :span="2" v-if="logInfo.user_request">
               {{ logInfo.user_request }}
             </el-descriptions-item>
           </el-descriptions>
@@ -321,7 +321,10 @@ export default {
       });
     },
     viewLog(item) {
-      console.log(item)
+      if (!item.details) {
+        this.$alert('当前视频无日志信息','提示')
+        return
+      }
       this.logInfo = item.details
       this.logDialogVisible = true;
     },
