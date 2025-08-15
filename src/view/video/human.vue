@@ -87,7 +87,7 @@
             <div class="margin-b-12 font-weight" style="font-size: 15px">音频</div>
             <div style="display: flex">
               <div class="right-label" style="margin-top: 5px">主播声音</div>
-              <el-popover placement="bottom-start" trigger="click">
+              <el-popover ref="modePopoverRef" placement="bottom-start" trigger="click">
                 <div class="mode-popover-item" @click="saveMode('common')">
                   普通模式
                   <i class="el-icon-check mode-select" v-if="mode === 'common'"></i>
@@ -798,6 +798,7 @@ export default {
       }else {
         this.sound = this.minimax_voices[0]
       }
+      this.$refs.modePopoverRef.showPopper = false
       sessionStorage.setItem("figure_setting_voice", JSON.stringify(this.sound))
       sessionStorage.setItem("figure_setting_mode", mode)
     },
