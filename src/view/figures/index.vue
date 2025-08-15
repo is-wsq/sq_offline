@@ -114,24 +114,22 @@
     <el-dialog class="detail-dialog" title="素材分析结果" :visible.sync="detailDialogVisible" width="640px">
       <div style="max-height: calc(70vh - 100px);overflow-y: auto">
         <div v-html="htmlContent" class="markdown-content" @mousedown.stop=""></div>
-        <template v-if="video_score.camera_movement_and_dynamic_aesthetics" @mousedown.stop="">
-          <el-divider content-position="left" style="margin: 15px 0;font-weight: bold;font-size: 16px">素材评分({{video_score.total_score}})</el-divider>
-          <div style="font-weight: bold;line-height: 24px">构图与视觉引导(Composition and Visual Guidance)</div>
-          <div style="line-height: 24px;margin-left: 20px"><span style="font-weight: bold">评分:</span> {{ video_score.composition_and_visual_guidance.score }}</div>
-          <div style="line-height: 24px;margin-left: 20px"><span style="font-weight: bold">分析:</span> {{ video_score.composition_and_visual_guidance.reason }}</div>
-          <div style="font-weight: bold;line-height: 24px;margin-top: 10px">光影与色彩运用(Lighting and Color)</div>
-          <div style="line-height: 24px;margin-left: 20px"><span style="font-weight: bold">评分:</span> {{ video_score.lighting_and_color.score }}</div>
-          <div style="line-height: 24px;margin-left: 20px"><span style="font-weight: bold">分析:</span> {{ video_score.lighting_and_color.reason }}</div>
-          <div style="font-weight: bold;line-height: 24px;margin-top: 10px">焦点与景深控制(Focus and Depth of Field)</div>
-          <div style="line-height: 24px;margin-left: 20px"><span style="font-weight: bold">评分:</span> {{ video_score.focus_and_depth_of_field.score }}</div>
-          <div style="line-height: 24px;margin-left: 20px"><span style="font-weight: bold">分析:</span> {{ video_score.focus_and_depth_of_field.reason }}</div>
-          <div style="font-weight: bold;line-height: 24px;margin-top: 10px">运镜与动态美感(Camera Movement and Dynamic Aesthetics)</div>
-          <div style="line-height: 24px;margin-left: 20px"><span style="font-weight: bold">评分:</span> {{ video_score.camera_movement_and_dynamic_aesthetics.score }}</div>
-          <div style="line-height: 24px;margin-left: 20px"><span style="font-weight: bold">分析:</span> {{ video_score.camera_movement_and_dynamic_aesthetics.reason }}</div>
-          <div style="font-weight: bold;line-height: 24px;margin-top: 10px">叙事与情感表达(Narrative and Emotional Expression)</div>
-          <div style="line-height: 24px;margin-left: 20px"><span style="font-weight: bold">评分:</span> {{ video_score.narrative_and_emotional_expression.score }}</div>
-          <div style="line-height: 24px;margin-left: 20px"><span style="font-weight: bold">分析:</span> {{ video_score.narrative_and_emotional_expression.reason }}</div>
-        </template>
+<!--        <div v-if="video_score.camera_movement_and_dynamic_aesthetics" @mousedown.stop="" class="score-card">-->
+<!--          <el-divider content-position="left" class="score-card__divider">素材评分({{video_score.total_score}})</el-divider>-->
+<!--          <div v-for="item in scoreItems" :key="item.key" class="score-item">-->
+<!--            <div class="score-item__title">-->
+<!--              {{ item.label }} ({{ item.englishLabel }})-->
+<!--            </div>-->
+<!--            <div class="score-item__detail">-->
+<!--              <span class="score-item__label">评分:</span>-->
+<!--              <span class="score-item__value">{{ video_score[item.key].score }}</span>-->
+<!--            </div>-->
+<!--            <div class="score-item__detail">-->
+<!--              <span class="score-item__label">分析:</span>-->
+<!--              <span class="score-item__value">{{ video_score[item.key].reason }}</span>-->
+<!--            </div>-->
+<!--          </div>-->
+<!--        </div>-->
       </div>
     </el-dialog>
     <el-dialog class="upload-dialog" :visible.sync="uploadDialogVisible" width="32rem" :before-close="beforeUploadClose">
@@ -279,6 +277,33 @@ export default {
         original: '',
         name: ''
       },
+      scoreItems: [
+        {
+          key: 'composition_and_visual_guidance',
+          label: '构图与视觉引导',
+          englishLabel: 'Composition and Visual Guidance'
+        },
+        {
+          key: 'lighting_and_color',
+          label: '光影与色彩运用',
+          englishLabel: 'Lighting and Color'
+        },
+        {
+          key: 'focus_and_depth_of_field',
+          label: '焦点与景深控制',
+          englishLabel: 'Focus and Depth of Field'
+        },
+        {
+          key: 'camera_movement_and_dynamic_aesthetics',
+          label: '运镜与动态美感',
+          englishLabel: 'Camera Movement and Dynamic Aesthetics'
+        },
+        {
+          key: 'narrative_and_emotional_expression',
+          label: '叙事与情感表达',
+          englishLabel: 'Narrative and Emotional Expression'
+        }
+      ]
     };
   },
   watch: {
@@ -944,5 +969,38 @@ export default {
 
 .button-new-tag {
   padding: 5px;
+}
+
+.score-card__divider {
+  margin: 15px 0;
+  font-weight: bold;
+  font-size: 16px;
+}
+
+.score-item {
+  margin-top: 10px;
+}
+
+.score-item:first-child {
+  margin-top: 0;
+}
+
+.score-item__title {
+  font-weight: bold;
+  line-height: 24px;
+  margin: 0;
+}
+
+.score-item__detail {
+  line-height: 24px;
+  margin-left: 20px;
+}
+
+.score-item__label {
+  font-weight: bold;
+}
+
+.score-item__value {
+  margin-left: 5px;
 }
 </style>
