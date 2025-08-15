@@ -202,9 +202,11 @@ export default {
             url = 'http://127.0.0.1:9669/api/generate_script'
             break
         }
+        let examples = []
+        examples[0] = this.exampleTexts
         let params = {
           language: this.language,
-          examples: this.exampleTexts,
+          examples: examples,
           requirements: this.copy_require,
           num_of_words: parseInt(this.copy_num),
           script_count: parseInt(this.script_num),

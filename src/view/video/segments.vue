@@ -896,11 +896,13 @@ export default {
       names.forEach((item, index) => {
         actualRequest = actualRequest.replace(item, `@{${this.material_list[index]}}`)
       })
+      let example = []
+      example[0] = this.exampleTexts
       let params = {
         language: this.language,
         requirements: this.copy_require,
         video_time: parseInt(this.video_time),
-        example: this.exampleTexts,
+        example: example,
         count: parseInt(this.script_num),
         material_list: this.material_list,
         mute_materials: this.mute_materials,
