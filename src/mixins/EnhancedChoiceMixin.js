@@ -15,20 +15,9 @@ export const EnhancedChoiceMixin = {
             selectingThreshold: 50, // 新增：框选最小移动阈值（像素）
             isVideoItemClick: false, // 新增：标记是否为视频项点击
             shouldShowPopover: false,
-            size_select: '',
-            store_select: '',
+            info_msg: ''
         }
     },
-    // watch: {
-    //     material_list: {
-    //         handler(newValue, oldValue) {
-    //             if (newValue.length === 1 || newValue.length === 0) {
-    //                 this.filterMaterials()
-    //             }
-    //         },
-    //         deep: true
-    //     },
-    // },
     methods: {
         onVideoItemMouseDown() {
             this.isVideoItemClick = true; // 初始化为点击
@@ -128,10 +117,6 @@ export const EnhancedChoiceMixin = {
             // 只有当移动超过阈值时，才认为是真正的框选
             if (distance >= this.selectingThreshold) {
 
-                // if (this.material_list.length === 0) {
-                //     this.$alert('框选操作只针对于同尺寸、同店铺的素材，请先选择至少一个素材后使用', '框选操作')
-                //     return;
-                // }
                 // 阻止点击事件
                 event.preventDefault();
                 event.stopPropagation();
@@ -155,9 +140,35 @@ export const EnhancedChoiceMixin = {
             // 重置选框尺寸
             this.selectionWidth = 0
             this.selectionHeight = 0
-            this.size_select = ''
-            this.store_select = ''
             this.filterMaterials()
+        },
+
+        /**
+         * 用于校验新加入的素材是否与已选素材的 size 和 store 属性一致
+         * @param {object} newItem - 准备新加入选区的素材对象
+         * @returns {boolean} - true 表示校验通过，false 表示不一致
+         */
+        checkConsistency(newItem) {
+            if (this.material_list.length === 0) {
+                return true;
+            }
+
+            const firstSelectedId = this.material_list[0];
+            const referenceItem = this.filter_materials.find(m => m.id === firstSelectedId);
+
+            // 检查 size 和 store 是否一致
+            const isSizeConsistent = referenceItem.size === newItem.size;
+            if (!isSizeConsistent) {
+                this.info_msg = '检测到不同尺寸的素材，已结束框选，并自动过滤不同尺寸的素材'
+                return false;
+            }
+            const isStoreConsistent = referenceItem.store_id === newItem.store_id;
+            if (!isStoreConsistent) {
+                this.info_msg = '检测到不同店铺的素材，已结束框选，并自动过滤不同店铺的素材'
+                return false;
+            }
+
+            return true
         },
 
         // 更新选中项
@@ -171,10 +182,10 @@ export const EnhancedChoiceMixin = {
             }
 
             // 检查每个视频项是否在选框内
-            this.$refs.videoItems.forEach((el, index) => {
+            for (const [index , el] of this.$refs.videoItems.entries()) {
+                const domElement = el.$el || el;
                 const rect = el.getBoundingClientRect()
                 const containerRect = this.$el.getBoundingClientRect()
-                const container = this.$refs.videoGrid
 
                 // 计算相对于容器的位置
                 const itemRect = {
@@ -191,27 +202,23 @@ export const EnhancedChoiceMixin = {
                     itemRect.top < selectionRect.bottom &&
                     itemRect.bottom > selectionRect.top
 
-                // 更新选中状态
-                let id = this.filter_materials[index].id
+                const id = domElement.dataset.id;
+                const currentItem = this.filter_materials.find(m => m.id === id);
+
                 if (isOverlapping && !this.material_list.includes(id)) {
-                    if (this.size_select && this.size_select !== this.filter_materials[index].size) {
-                        this.$alert('检测到不同尺寸的素材，已结束框选，并自动过滤不同尺寸的素材','提示')
-                        this.endSelection()
+                    if (this.checkConsistency(currentItem)) {
+                        this.material_list.push(id);
+                    } else {
+                        this.$alert(this.info_msg,'提示')
+                        this.endSelection();
                         return;
                     }
-                    if (this.store_select && this.store_select !== this.filter_materials[index].store_id) {
-                        this.$alert('检测到不同店铺的素材，已结束框选，并自动过滤不同店铺的素材','提示')
-                        this.endSelection()
-                        return;
-                    }
-                    this.size_select = this.filter_materials[index].size
-                    this.store_select = this.filter_materials[index].store_id
-                    this.material_list.push(id)
                 }
+
                 if (!isOverlapping && !this.initial_material_list.includes(id)) {
                     this.material_list = this.material_list.filter(item => item !== id)
                 }
-            })
+            }
             sessionStorage.setItem('material_list', JSON.stringify(this.material_list))
             this.contentHeight = 640
             if (this.mentionList.length > 0) {

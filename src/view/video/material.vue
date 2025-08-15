@@ -44,7 +44,7 @@
                      v-else @click="showFullTags = false"></i>
                 </div>
                 <div class="m-card" ref="videoGrid">
-                  <div class="m-item" v-for="item in filter_materials" :key="item.id"
+                  <div class="m-item" v-for="item in filter_materials" :key="item.id" :data-id="item.id"
                        @mousedown="onVideoItemMouseDown"
                        @click="selectMaterial(item, $event)"
                        ref="videoItems">
