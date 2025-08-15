@@ -1,6 +1,6 @@
 <template>
   <div class="video-list">
-    <div class="list-content">
+    <div class="list-content" ref="videoContentRef">
       <div v-for="item in processList" :key="item.id" style="text-align: center">
         <div class="image-wrapper shining">
           <el-image style="width: 100%;height: 100%;border-radius: 8px;filter: blur(15px);opacity: 0.8"
@@ -25,7 +25,7 @@
            @mouseleave="hover_id = null"
            @mouseenter="hover_id = item.id">
         <video class="video-item-file" :src="item.video_path" loop muted autoplay v-if="item.id === hover_id"></video>
-        <el-image class="video-item-file" :src="item.picture" fit="cover" lazy v-else></el-image>
+        <el-image class="video-item-file" :src="item.picture" fit="cover" lazy v-else :scroll-container="$refs.videoContentRef"></el-image>
         <div class="video-item-info">
           <div :title="item.filename" class="video-name" v-if="editId !== item.id">{{ item.filename }}</div>
           <div v-else style="flex: 1" @click.stop="">
@@ -211,6 +211,8 @@ export default {
       activeCollapse: '',
       audioPlaying: false,
       audio: null,
+
+      resizeObserver: null
     }
   },
   computed: {
@@ -235,6 +237,22 @@ export default {
   mounted() {
     this.startDotAnimation();
     this.$store.dispatch("task/pollVideoTasks")
+    this.$nextTick(() => {
+      const container = this.$refs.videoContentRef;
+      if (container) {
+        this.resizeObserver = new ResizeObserver(() => {
+          container.dispatchEvent(new Event('scroll'));
+        });
+        this.resizeObserver.observe(container);
+      }
+    });
+  },
+  beforeDestroy() {
+    clearInterval(this.dotTimer);
+    if (this.resizeObserver && this.$refs.videoContentRef) {
+      this.resizeObserver.unobserve(this.$refs.videoContentRef);
+      this.resizeObserver.disconnect();
+    }
   },
   methods: {
     startDotAnimation() {
@@ -386,9 +404,6 @@ export default {
       this.dialogVisible = false;
     },
   },
-  beforeDestroy() {
-    clearInterval(this.dotTimer);
-  }
 }
 
 </script>

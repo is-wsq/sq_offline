@@ -15,7 +15,7 @@
     <div class="figures-content">
       <div class="figure-item">
         <div style="margin-bottom: 10px;font-weight: bold">素材(快捷键: Ctrl + A 全选)</div>
-        <div class="figures-list">
+        <div class="figures-list" ref="materialsRef">
           <div v-for="item in processMaterials" :key="item.id">
             <div class="figure-image-wrapper shining">
               <el-image
@@ -39,7 +39,7 @@
                @click="selectMaterial(item)"
                ref="materialItems">
             <el-image class="figures-img" :class="{'figure-img-active': selected_materials.includes(item.id)}"
-                      :src="item.picture" fit="cover" lazy></el-image>
+                      :src="item.picture" fit="cover" lazy :scroll-container="$refs.materialsRef"></el-image>
             <div class="figure-name" :class="{'figure-name-active': selected_materials.includes(item.id)}"
                  :title="item.name">{{ item.name }}
             </div>
@@ -303,7 +303,9 @@ export default {
           label: '叙事与情感表达',
           englishLabel: 'Narrative and Emotional Expression'
         }
-      ]
+      ],
+
+      resizeObserver: null
     };
   },
   watch: {
@@ -349,10 +351,23 @@ export default {
     this.startDotAnimation();
     this.$store.dispatch("task/pollFigureTasks");
     window.addEventListener('keydown', this.handleKeyDown);
+    this.$nextTick(() => {
+      const container = this.$refs.materialsRef;
+      if (container) {
+        this.resizeObserver = new ResizeObserver(() => {
+          container.dispatchEvent(new Event('scroll'));
+        });
+        this.resizeObserver.observe(container);
+      }
+    });
   },
   beforeDestroy() {
     window.removeEventListener('keydown', this.handleKeyDown);
     clearInterval(this.dotTimer);
+    if (this.resizeObserver && this.$refs.materialsRef) {
+      this.resizeObserver.unobserve(this.$refs.materialsRef);
+      this.resizeObserver.disconnect();
+    }
   },
   methods: {
     openUploadDialog() {

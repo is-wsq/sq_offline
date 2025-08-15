@@ -49,7 +49,7 @@
                        @click="selectMaterial(item, $event)"
                        ref="videoItems">
                     <el-image class="m-item-img" :class="{'m-img-selected': material_list.includes(item.id) }"
-                              :src="item.picture" fit="cover" lazy></el-image>
+                              :src="item.picture" fit="cover" lazy :scroll-container="$refs.videoGrid"></el-image>
                     <div class="flex-center">
                       <div class="m-item-title" :class="{'m-title-selected': material_list.includes(item.id) }"
                            :title="item.name">{{ item.name }}
@@ -687,6 +687,18 @@ export default {
       nextType: 'montage',
       showAllTitlePreset: false,
       showAllContentPreset: false,
+
+      resizeObserver: null
+    }
+  },
+  watch: {
+    filter_materials() {
+      this.$nextTick(() => {
+        const scrollContainer = this.$refs.videoGrid;
+        if (scrollContainer) {
+          scrollContainer.dispatchEvent(new Event('scroll'));
+        }
+      });
     }
   },
   computed: {
@@ -705,9 +717,22 @@ export default {
     this.queryFontFamily();
     this.initParams()
     window.addEventListener('keydown', this.handleKeyDown);
+    this.$nextTick(() => {
+      const container = this.$refs.videoGrid;
+      if (container) {
+        this.resizeObserver = new ResizeObserver(() => {
+          container.dispatchEvent(new Event('scroll'));
+        });
+        this.resizeObserver.observe(container);
+      }
+    });
   },
   beforeDestroy() {
     window.removeEventListener('keydown', this.handleKeyDown);
+    if (this.resizeObserver && this.$refs.videoGrid) {
+      this.resizeObserver.unobserve(this.$refs.videoGrid);
+      this.resizeObserver.disconnect();
+    }
   },
   methods: {
     handleKeyDown(event) {
