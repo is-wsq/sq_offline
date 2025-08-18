@@ -75,7 +75,11 @@ body {
 }
 
 .font-weight {
-  font-weight: bold;
+  font-weight: bold !important;
+}
+
+.cursor-pointer {
+  cursor: pointer !important;
 }
 
 .flex-center {

@@ -12,44 +12,32 @@
             height: `${selectionHeight}px`
          }">
     </div>
-    <div class="figures-content">
-      <div class="figure-item">
-        <div style="margin-bottom: 10px;font-weight: bold">素材(快捷键: Ctrl + A 全选)</div>
-        <div class="figures-list" ref="materialsRef">
-          <div v-for="item in processMaterials" :key="item.id">
-            <div class="figure-image-wrapper shining">
-              <el-image
-                  class="figures-img"
-                  style="filter: blur(15px);opacity: 0.8"
-                  :src="require('/public/images/4.jpg')"
-                  fit="cover">
-              </el-image>
-              <div class="shine-layer"></div>
-              <div class="figure-progress">
-                <div>素材上传中</div>
-                <div style="width: 10px;text-align: left;margin-left: 5px;font-size: 22px">{{ dot }}</div>
-              </div>
-            </div>
-            <div class="figure-name" :title="item.name">{{ item.name }}</div>
-          </div>
-
-          <div v-for="(item, index) in materials"
-               :key="index"
-               @contextmenu.stop="handleContextMenu(item, $event)"
-               @click="selectMaterial(item)"
-               ref="materialItems">
-            <el-image class="figures-img" :class="{'figure-img-active': selected_materials.includes(item.id)}"
-                      :src="item.picture" fit="cover" lazy :scroll-container="$refs.materialsRef"></el-image>
-            <div class="figure-name" :class="{'figure-name-active': selected_materials.includes(item.id)}"
-                 :title="item.name">{{ item.name }}
-            </div>
-          </div>
-        </div>
+    <div class="classify-btn-group">
+      <div v-for="item in classify_types" :key="item.type" @click="classify_type = item.type"
+           class="classify-btn" :class="{'classify-btn-active': classify_type === item.type}" >
+        <i :class="item.icon"></i>
+        {{ item.name }}
       </div>
-      <div class="figure-item">
+    </div>
+    <div class="classify-content">
+      <template v-if="classify_type === 'character'">
         <div style="margin-bottom: 10px;font-weight: bold">形象</div>
         <div class="figures-list">
-          <div v-for="item in processTasks" :key="item.id">
+          <el-upload
+              class="avatar-uploader"
+              action="http://127.0.0.1:6006/figure/clone"
+              :show-file-list="false"
+              accept=".mp4, .mov"
+              :on-success="uploadSuccess"
+              :on-error="uploadError"
+              :before-upload="beforeUpload"
+              :data="{ lip_sync: true }">
+            <div class="source-item upload-item">
+              <i class="el-icon-upload" style="font-size: 30px"></i>
+              <span style="font-size: 14px;margin-top: 8px">上传形象</span>
+            </div>
+          </el-upload>
+          <div v-for="item in processTasks" :key="item.id" class="source-item">
             <div class="figure-image-wrapper shining">
               <el-image
                   class="figures-img"
@@ -63,17 +51,77 @@
                 <div style="width: 10px;text-align: left;margin-left: 5px;font-size: 22px">{{ dot }}</div>
               </div>
             </div>
-            <div class="figure-name" :title="item.name">{{ item.name }}</div>
+            <div class="source-title" :title="item.name">{{ item.name }}</div>
           </div>
           <div v-for="(item, index) in figures"
                :key="index"
+               class="source-item"
                @contextmenu.stop="handleContextMenu(item, $event)"
                @click="selectItem(item)">
             <el-image class="figures-img" :src="item.picture" fit="cover"></el-image>
-            <div class="figure-name" :title="item.name">{{ item.name }}</div>
+            <div class="source-title" :title="item.name">{{ item.name }}</div>
           </div>
         </div>
-      </div>
+      </template>
+
+      <template v-else-if="classify_type === 'material'">
+        <div style="margin-bottom: 10px;font-weight: bold">素材(快捷键: Ctrl + A 全选)</div>
+        <div class="figures-list" ref="materialsRef">
+          <div class="source-item upload-item" @click="openUploadDialog">
+            <i class="el-icon-upload" style="font-size: 30px"></i>
+            <span style="font-size: 14px;margin-top: 8px">上传素材</span>
+          </div>
+          <div v-for="item in processMaterials" :key="item.id" class="source-item">
+            <div class="figure-image-wrapper shining">
+              <el-image
+                  class="figures-img"
+                  style="filter: blur(15px);opacity: 0.8"
+                  :src="require('/public/images/4.jpg')"
+                  fit="cover">
+              </el-image>
+              <div class="shine-layer"></div>
+              <div class="figure-progress">
+                <div>素材上传中</div>
+                <div style="width: 10px;text-align: left;margin-left: 5px;font-size: 22px">{{ dot }}</div>
+              </div>
+            </div>
+            <div class="source-title" :title="item.name">{{ item.name }}</div>
+          </div>
+          <div v-for="(item, index) in materials"
+               :key="index"
+               class="source-item"
+               @contextmenu.stop="handleContextMenu(item, $event)"
+               @click="selectMaterial(item)"
+               ref="materialItems">
+            <el-image class="figures-img" :class="{'figure-img-active': selected_materials.includes(item.id)}"
+                      :src="item.picture" fit="cover" lazy :scroll-container="$refs.materialsRef"></el-image>
+            <div class="source-title" :title="item.name">{{ item.name }}</div>
+          </div>
+        </div>
+      </template>
+
+      <template v-else>
+        <div style="margin-bottom: 10px;font-weight: bold">产品图片</div>
+        <div class="product-list">
+          <div v-for="(item, index) in product_list" :key="index" class="product-item">
+            <div class="product-item-name" @dblclick="renameProduct(item,index)">{{ item.name }}</div>
+            <div class="product-item-img">
+              <div class="img-content" v-for="(img, img_index) in item.images" :key="img_index">
+                <el-image :src="img.img" class="product-item-img-item"></el-image>
+                <div class="extra flex-center" v-if="item.images.length > 4 && img_index === 3">
+                  +{{ item.images.length - 4 }}
+                </div>
+              </div>
+            </div>
+            <div class="product-item-detail">
+              <span style="flex: 1">{{ item.images.length }}张图片</span>
+              <i class="el-icon-plus font-weight cursor-pointer" @click="addImage(item)"></i>
+              <i class="el-icon-delete font-weight cursor-pointer" @click="deleteProduct(index)"></i>
+            </div>
+          </div>
+        </div>
+      </template>
+
       <div :style="menuStyle" v-if="rightMenuVisible" style="padding: 8px 12px">
         <div class="material-function" @click="preview">
           <i class="el-icon-view menu-icon"></i>
@@ -91,24 +139,6 @@
           <i class="el-icon-document menu-icon"></i>
           详情
         </div>
-      </div>
-    </div>
-    <div style="display: flex;margin-top: 30px;gap: 100px">
-      <div style="text-align: end;flex: 1">
-        <el-button type="primary" @click="openUploadDialog">上传素材</el-button>
-      </div>
-      <div style="flex: 1">
-        <el-upload
-            class="avatar-uploader"
-            action="http://127.0.0.1:6006/figure/clone"
-            :show-file-list="false"
-            accept=".mp4, .mov"
-            :on-success="uploadSuccess"
-            :on-error="uploadError"
-            :before-upload="beforeUpload"
-            :data="{ lip_sync: true }">
-          <el-button type="primary">添加形象</el-button>
-        </el-upload>
       </div>
     </div>
     <el-dialog class="detail-dialog" title="素材分析结果" :visible.sync="detailDialogVisible" width="640px">
@@ -215,7 +245,8 @@
       </div>
     </el-dialog>
     <div class="figures-footer">
-      上传的视频文件格式需为:mp4、mov、MP4、MOV格式；上传的视频文件的时长最少应不低于30秒，建议不超过90秒；上传的视频内容必须符合规范，包含单个人物形象，脸部无遮挡；容量小的原始视频（建议50-100M左右）有利于提高模型速度。
+      <el-button type="primary" v-if="classify_type === 'image'" style="width: 150px">上传图片</el-button>
+      <span v-else>上传的视频文件格式需为:mp4、mov、MP4、MOV格式；上传的视频文件的时长最少应不低于30秒，建议不超过90秒；上传的视频内容必须符合规范，包含单个人物形象，脸部无遮挡；容量小的原始视频（建议50-100M左右）有利于提高模型速度。</span>
     </div>
   </div>
 </template>
@@ -231,6 +262,12 @@ export default {
   mixins: [RightMenuMixin],
   data() {
     return {
+      classify_type: 'image',
+      classify_types: [
+        { type: 'character', name: '形象库', icon: 'el-icon-fa-user' },
+        { type: 'material', name: '素材库', icon: 'el-icon-film-c' },
+        { type: 'image', name: '图片库', icon: 'el-icon-fa-image' },
+      ],
       selected_materials: [],
       uploadDialogVisible: false,
       uploadData: {
@@ -305,7 +342,39 @@ export default {
         }
       ],
 
-      resizeObserver: null
+      resizeObserver: null,
+      // product data
+
+      product_list: [
+        {
+          name: '智能手表Pro',
+          images: [
+            { name: 'Product A1', img: 'https://placehold.co/300x400/60A5FA/FFFFFF?text=Product+A1' },
+            { name: 'Product A2', img: 'https://placehold.co/300x400/34D399/FFFFFF?text=Product+A2' },
+            { name: 'Product A3', img: 'https://placehold.co/300x400/A78BFA/FFFFFF?text=Product+A3' },
+            { name: 'Product A4', img: 'https://placehold.co/300x400/FBBF24/FFFFFF?text=Product+A4' },
+          ]
+        },
+        {
+          name: '无线蓝牙耳机',
+          images: [
+            { name: 'Product B1', img: 'https://placehold.co/300x400/4ADE80/FFFFFF?text=Product+B1' },
+            { name: 'Product B2', img: 'https://placehold.co/300x400/2DD4BF/FFFFFF?text=Product+B2' },
+          ]
+        },
+        {
+          name: '新款运动鞋',
+          images: [
+            { name: 'Product C1', img: 'https://placehold.co/300x400/FF6347/FFFFFF?text=Product+C1' },
+            { name: 'Product C2', img: 'https://placehold.co/300x400/FF7F50/FFFFFF?text=Product+C2' },
+            { name: 'Product C3', img: 'https://placehold.co/300x400/FFA07A/FFFFFF?text=Product+C3' },
+            { name: 'Product C4', img: 'https://placehold.co/300x400/E9967A/FFFFFF?text=Product+C4' },
+            { name: 'Product C5', img: 'https://placehold.co/300x400/FA8072/FFFFFF?text=Product+C5' },
+            { name: 'Product C6', img: 'https://placehold.co/300x400/F08080/FFFFFF?text=Product+C6' },
+          ]
+        },
+      ],
+      productIndex: 0,
     };
   },
   watch: {
@@ -469,7 +538,19 @@ export default {
       this.form.name = '';
       this.renameDialogVisible = true;
     },
+    renameProduct(item,index) {
+      this.productIndex = index
+      this.form.original = item.name;
+      this.form.name = '';
+      this.renameDialogVisible = true;
+    },
     sureRename() {
+      if (this.classify_type === 'image') {
+        this.product_list[this.productIndex].name = this.form.name;
+        this.$message.success("重命名成功");
+        this.renameDialogVisible = false;
+        return
+      }
       let params = {
         figure_id: this.figureId,
         name: this.form.name,
@@ -528,6 +609,19 @@ export default {
       this.detailDialogVisible = true;
       this.detail_content = this.selectedItem.material_summary;
       this.video_score = this.selectedItem.video_score || {};
+    },
+    addImage(item) {
+      this.$alert('待完善','提示')
+    },
+    deleteProduct(index) {
+      this.$confirm('确定要删除这个产品吗？', '删除', {
+        type: 'warning'
+      }).then(() => {
+        this.product_list.splice(index, 1);
+        this.$message.success("删除成功");
+      }).catch(() => {
+        this.$message({type: 'info', message: '已取消删除'});
+      });
     },
     checkAspectRatio() {
       const video = this.$refs.video;
@@ -654,7 +748,7 @@ export default {
     },
 
     startSelection(event) {
-      if (event.button !== 0) {
+      if (event.button !== 0 || this.classify_type !== 'material') {
         return
       }
       event.preventDefault()
@@ -764,9 +858,35 @@ export default {
   min-height: 700px;
   display: flex;
   flex-direction: column;
-  justify-content: center;
   align-items: center;
   position: relative;
+}
+
+.classify-btn-group {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 16px;
+}
+
+.classify-btn {
+  padding: 12px 24px;
+  color: #374151;
+  border-radius: 8px;
+  line-height: 21px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  box-sizing: border-box;
+  background: #ffffff;
+  box-shadow: 0 0 #0000, 0 0 #0000, 0 1px 2px 0 rgb(0 0 0 / 0.05)
+}
+
+.classify-btn-active {
+  background-color: #3b82f6 !important;
+  color: #FFFFFF !important;
 }
 
 .selection-box {
@@ -778,60 +898,68 @@ export default {
   transition: all 0.1s ease;
 }
 
-.figure-name {
-  width: 120px;
-  text-align: center;
-  line-height: 23px;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  font-size: 15px;
-  color: #101010;
-  font-family: "Helvetica Neue", Arial, sans-serif;
-}
-
-.preview-dialog >>> .el-dialog {
-  background-color: #79777700 !important;
-  box-shadow: none !important;
-  margin: 0 auto;
-  aspect-ratio: 9 / 16;
-}
-
-.preview-dialog >>> .el-dialog__body {
-  padding: 10px 35px;
-}
-
-.preview-dialog >>> .el-dialog__headerbtn .el-dialog__close {
-  font-size: 24px;
-  color: #9a9a9a;
-}
-
-.figures-content {
+.classify-content {
   width: 100%;
-  height: calc(100% - 140px);
-  padding: 20px;
+  height: calc(100% - 135px);
+  padding: 10px;
+  margin-top: 10px;
   box-sizing: border-box;
-  display: flex;
-  gap: 20px;
-}
-
-.figure-item {
-  flex: 1;
-  height: 100%;
   background-color: #ffffff;
   border-radius: 10px;
-  padding: 10px;
-  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
 }
 
 .figures-list {
-  height: calc(100% - 40px);
+  flex: 1;
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
-  grid-auto-rows: 190px;
+  grid-auto-rows: 160px;
   gap: 20px;
   justify-items: center;
   overflow: auto;
+}
+
+.upload-item {
+  background-color: #f8fafc;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  color: #64748b;
+  border: 2px dashed #d9d9d9;
+  cursor: pointer;
+  border-radius: 8px;
+  box-sizing: border-box;
+  font-weight: bold;
+}
+
+.source-item {
+  width: 120px;
+  height: 160px;
+  border-radius: 6px;
+  position: relative;
+}
+
+.source-title {
+  position: absolute;
+  bottom: 0;
+  width: 100%;
+  background: linear-gradient(to bottom, rgba(0, 0, 0, 0), rgba(0, 0, 0, 1));
+  padding: 10px;
+  box-sizing: border-box;
+  color: #FFFFFF;
+  font-size: 12px;
+  border-bottom-left-radius: 8px;
+  border-bottom-right-radius: 8px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  cursor: pointer;
+}
+
+.source-title-active {
+  color: #4c8df1 !important;
 }
 
 .figure-progress {
@@ -848,7 +976,7 @@ export default {
 .figures-img {
   width: 120px;
   height: 160px;
-  border-radius: 8px;
+  border-radius: 6px;
 }
 
 .figure-img-active {
@@ -856,8 +984,88 @@ export default {
   box-sizing: border-box;
 }
 
-.figure-name-active {
-  color: #4c8df1 !important;
+.product-list {
+  flex: 1;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(248px, 1fr));
+  grid-auto-rows: 436px;
+  gap: 20px;
+  justify-items: center;
+  overflow: auto;
+}
+
+.product-item {
+  background-color: #ffffff;
+  border-radius: 12px;
+  padding: 16px;
+  overflow: hidden;
+  box-shadow: 0 0 #0000, 0 0 #0000, 0 1px 2px 0 rgb(0 0 0 / 0.05);
+  transition-property: all;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  transition-duration: 300ms;
+  box-sizing: border-box;
+}
+
+.product-item:hover {
+  transform: translate(0, -4px);
+  box-shadow: 0 0 #0000, 0 0 #0000, 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);;
+}
+
+.product-item-name {
+  font-weight: bold;
+  font-size: 18px;
+  line-height: 28px;
+  margin-bottom: 12px;
+  cursor: pointer;
+}
+
+.product-item-img {
+  width: 248px;
+  height: 328px;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  flex-grow: 1;
+  gap: 8px;
+  margin-bottom: 12px;
+  cursor: pointer;
+  overflow: hidden;
+}
+
+.img-content {
+  width: 120px;
+  height: 160px;
+  border-radius: 8px;
+  position: relative;
+}
+
+.product-item-img-item {
+  width: 100%;
+  height: 100%;
+  border-radius: 8px;
+  object-fit: cover;
+}
+
+.extra {
+  position: absolute;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  color: #ffffff;
+  font-weight: bold;
+  font-size: 24px;
+  line-height: 32px;
+  background-color: #00000080;
+  border-radius: 8px;
+}
+
+.product-item-detail {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+  align-items: center;
+  font-size: 14px !important;
+  line-height: 20px !important;
+  color: #6b7280 !important;
 }
 
 .control-icon {
@@ -874,6 +1082,23 @@ export default {
   color: #6d7177;
   font-size: 15px;
   font-family: "Helvetica Neue", Arial, sans-serif;
+  text-align: center;
+}
+
+.preview-dialog >>> .el-dialog {
+  background-color: #79777700 !important;
+  box-shadow: none !important;
+  margin: 0 auto;
+  aspect-ratio: 9 / 16;
+}
+
+.preview-dialog >>> .el-dialog__body {
+  padding: 10px 35px;
+}
+
+.preview-dialog >>> .el-dialog__headerbtn .el-dialog__close {
+  font-size: 24px;
+  color: #9a9a9a;
 }
 
 .detail-dialog >>> .el-dialog {

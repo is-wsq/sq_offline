@@ -6,6 +6,27 @@
   "description": "",
   "glyphs": [
     {
+      "icon_id": "87046",
+      "name": "film",
+      "font_class": "fa-film",
+      "unicode": "e6c21",
+      "unicode_decimal": 945185
+    },
+    {
+      "icon_id": "16193995",
+      "name": "fa-user-circle",
+      "font_class": "fa-user",
+      "unicode": "e60a",
+      "unicode_decimal": 58890
+    },
+    {
+      "icon_id": "35290356",
+      "name": "fa-image",
+      "font_class": "fa-image",
+      "unicode": "e611",
+      "unicode_decimal": 58897
+    },
+    {
       "icon_id": "1538919",
       "name": "无内容",
       "font_class": "wuneirong",
