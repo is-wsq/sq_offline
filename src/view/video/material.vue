@@ -22,7 +22,11 @@
     </div>
     <div class="material-content">
       <div class="c-left">
-        <div style="line-height: 40px;font-weight: bold;margin-left: 15px">素材库</div>
+        <div class="flex-center">
+          <div style="flex: 1;line-height: 40px;font-weight: bold;margin-left: 15px">素材库</div>
+          <el-button type="primary" class="mute-btn" @click="allMute">一键静音</el-button>
+          <el-button type="primary" class="mute-btn" style="margin-right: 10px" @click="disMute">解除静音</el-button>
+        </div>
         <div class="library">
           <el-collapse v-model="activeName" accordion>
             <el-collapse-item title="素材(快捷键: Ctrl + A 全选, Ctrl + Z 取消选中)" name="1">
@@ -805,6 +809,14 @@ export default {
     },
     formatTooltip(val) {
       return val * 100 + '%';
+    },
+    allMute() {
+      this.mute_materials = this.filter_materials.map(item => item.id)
+      sessionStorage.setItem("mute_materials", JSON.stringify(this.mute_materials))
+    },
+    disMute() {
+      this.mute_materials = []
+      sessionStorage.setItem("mute_materials", JSON.stringify(this.mute_materials))
     },
     addMute(id) {
       this.mute_materials.push(id)
@@ -1998,5 +2010,12 @@ export default {
   padding-bottom: 0;
   font-size: 13px;
   color: #303133;
+}
+
+.mute-btn {
+  padding: 0 10px;
+  line-height: 30px !important;
+  height: 30px;
+  font-size: 13px;
 }
 </style>
