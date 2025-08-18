@@ -331,7 +331,8 @@
                       placement="left"
                       trigger="click">
                     <div style="margin: -12px">
-                      <custom-color-picker :color="subtitleNameParams.name_color" @color-updated="handleNameColorUpdated"></custom-color-picker>
+                      <custom-color-picker ref="titleColorRef" :color.sync="subtitleNameParams.name_color"
+                                           @color-updated="handleNameColorUpdated"></custom-color-picker>
                     </div>
                     <div slot="reference" class="color-box" :style="{background: subtitleNameParams.name_color}"></div>
                   </el-popover>
@@ -342,7 +343,8 @@
                       placement="left"
                       trigger="click">
                     <div style="margin: -12px">
-                      <custom-color-picker :color="subtitleNameParams.name_stroke_color" @color-updated="handleNameStrokeColorUpdated"></custom-color-picker>
+                      <custom-color-picker ref="titleStrokeRef" :color="subtitleNameParams.name_stroke_color"
+                                           @color-updated="handleNameStrokeColorUpdated"></custom-color-picker>
                     </div>
                     <div slot="reference" class="color-box" :style="{background: subtitleNameParams.name_stroke_color}"></div>
                   </el-popover>
@@ -372,7 +374,8 @@
                       placement="left"
                       trigger="click">
                     <div style="margin: -12px">
-                      <custom-color-picker :color="subtitleNameParams.name_background_color" @color-updated="handleNameBackgroundColorUpdated"></custom-color-picker>
+                      <custom-color-picker ref="titleBackgroundRef" :color="subtitleNameParams.name_background_color"
+                                           @color-updated="handleNameBackgroundColorUpdated"></custom-color-picker>
                     </div>
                     <div slot="reference" class="color-box" :style="{background: subtitleNameParams.name_background_color}"></div>
                   </el-popover>
@@ -460,7 +463,8 @@
                       placement="left"
                       trigger="click">
                     <div style="margin: -12px">
-                      <custom-color-picker :color="subtitleParams.color" @color-updated="handleColorUpdated"></custom-color-picker>
+                      <custom-color-picker ref="colorRef" :color="subtitleParams.color"
+                                           @color-updated="handleColorUpdated"></custom-color-picker>
                     </div>
                     <div slot="reference" class="color-box" :style="{background: subtitleParams.color}"></div>
                   </el-popover>
@@ -471,7 +475,8 @@
                       placement="left"
                       trigger="click">
                     <div style="margin: -12px">
-                      <custom-color-picker :color="subtitleParams.stroke_color" @color-updated="handleStrokeColorUpdated"></custom-color-picker>
+                      <custom-color-picker ref="strokeRef" :color="subtitleParams.stroke_color"
+                                           @color-updated="handleStrokeColorUpdated"></custom-color-picker>
                     </div>
                     <div slot="reference" class="color-box" :style="{background: subtitleParams.stroke_color}"></div>
                   </el-popover>
@@ -501,7 +506,8 @@
                       placement="left"
                       trigger="click">
                     <div style="margin: -12px">
-                      <custom-color-picker :color="subtitleParams.background_color" @color-updated="handleBackgroundColorUpdated"></custom-color-picker>
+                      <custom-color-picker ref="backgroundRef" :color="subtitleParams.background_color"
+                                           @color-updated="handleBackgroundColorUpdated"></custom-color-picker>
                     </div>
                     <div slot="reference" class="color-box" :style="{background: subtitleParams.background_color}"></div>
                   </el-popover>
@@ -860,6 +866,16 @@ export default {
       this.subtitleParams.content_font_opacity = Number(sessionStorage.getItem("content_font_opacity")) || 1
       this.subtitleParams.stroke_color = sessionStorage.getItem("stroke_color") || '#000000'
 
+      if (this.$refs.strokeRef) {
+        this.$refs.strokeRef.color_value = this.subtitleParams.stroke_color.replace('#','')
+      }
+      if (this.$refs.colorRef) {
+        this.$refs.colorRef.color_value = this.subtitleParams.color.replace('#','')
+      }
+      if (this.$refs.backgroundRef) {
+        this.$refs.backgroundRef.color_value = this.subtitleParams.background_color.replace('#','')
+      }
+
       let rgb_color = this.hexToRgb(this.subtitleParams.background_color)
       let rgba_color = `rgba(${rgb_color.replace('rgb(', '')
           .replace(')', '')}, ${this.subtitleParams.background_opacity})`
@@ -886,6 +902,16 @@ export default {
       this.subtitleNameParams.name_background_opacity = Number(sessionStorage.getItem("name_background_opacity")) || 0.6
       this.subtitleNameParams.title_font_opacity = Number(sessionStorage.getItem("title_font_opacity")) || 1
       this.subtitleNameParams.name_stroke_color = sessionStorage.getItem("name_stroke_color") || '#000000'
+
+      if (this.$refs.titleStrokeRef) {
+        this.$refs.titleStrokeRef.color_value = this.subtitleNameParams.name_stroke_color.replace('#','')
+      }
+      if (this.$refs.titleColorRef) {
+        this.$refs.titleColorRef.color_value = this.subtitleNameParams.name_color.replace('#', '')
+      }
+      if (this.$refs.titleBackgroundRef) {
+        this.$refs.titleBackgroundRef.color_value = this.subtitleNameParams.name_background_color.replace('#','')
+      }
 
       let name_rgb_color = this.hexToRgb(this.subtitleNameParams.name_background_color)
       let name_rgba_color = `rgba(${name_rgb_color.replace('rgb(', '')
@@ -1224,6 +1250,16 @@ export default {
       sessionStorage.setItem('name_fontsize', '10')
       this.subtitleNameParams.name_stroke_color = item.stroke
       sessionStorage.setItem('name_stroke_color', item.stroke)
+
+      if (this.$refs.titleStrokeRef) {
+        this.$refs.titleStrokeRef.color_value = this.subtitleNameParams.name_stroke_color.replace('#','')
+      }
+      if (this.$refs.titleColorRef) {
+        this.$refs.titleColorRef.color_value = this.subtitleNameParams.name_color.replace('#', '')
+      }
+      if (this.$refs.titleBackgroundRef) {
+        this.$refs.titleBackgroundRef.color_value = this.subtitleNameParams.name_background_color.replace('#','')
+      }
       this.updateTitleTextStyle()
     },
     hexToRgb(hex) { //16进制颜色转RGB格式
@@ -1305,6 +1341,16 @@ export default {
       sessionStorage.setItem('fontsize', '5')
       this.subtitleParams.stroke_color = item.stroke
       sessionStorage.setItem('stroke_color', item.stroke)
+
+      if (this.$refs.strokeRef) {
+        this.$refs.strokeRef.color_value = this.subtitleParams.stroke_color.replace('#','')
+      }
+      if (this.$refs.colorRef) {
+        this.$refs.colorRef.color_value = this.subtitleParams.color.replace('#','')
+      }
+      if (this.$refs.backgroundRef) {
+        this.$refs.backgroundRef.color_value = this.subtitleParams.background_color.replace('#','')
+      }
       this.updateTextStyle()
     },
     updateTextStyle() {

@@ -73,10 +73,25 @@
         <div class="input-section-center">
           <div style="display: flex;width: 100%;">
             <div style="width: 30px;text-align: center;line-height: 28px">#</div>
-            <div style="flex: 1;line-height: 28px">{{ color_value }}</div>
+            <div style="flex: 1;line-height: 28px">{{ color_value.toUpperCase() }}</div>
           </div>
         </div>
       </div>
+<!--      <div class="input-section">-->
+<!--        <div class="input-section-left">-->
+<!--          <div class="btn-wp">-->
+<!--            <div>HEX</div>-->
+<!--            <div class="caret">-->
+<!--              <svg width="7" height="4" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" clip-rule="evenodd" d="M.171.168a.564.564 0 000 .809l2.916 2.855a.593.593 0 00.826 0L6.83.977a.564.564 0 000-.81.593.593 0 00-.826 0L3.5 2.62.997.168a.593.593 0 00-.826 0z" fill="#8B8C8F"></path></svg>-->
+<!--            </div>-->
+<!--          </div>-->
+<!--        </div>-->
+<!--        <div class="hex-input-container">-->
+<!--          <el-input class="hex-input" v-model="color_value" size="small" maxlength="6" placeholder="请输入颜色值">-->
+<!--            <div slot="prefix" style="width: 30px;text-align: center;line-height: 28px">#</div>-->
+<!--          </el-input>-->
+<!--        </div>-->
+<!--      </div>-->
       <div class="divider"></div>
       <div class="label">最近使用</div>
       <div class="self-container margin-b-12">
@@ -104,7 +119,7 @@ export default {
   props: {
     color: {
       type: String,
-      default: 'FF9100',
+      default: '#FF9100',
     },
   },
   data() {
@@ -535,8 +550,28 @@ export default {
   border: 1px solid rgb(219, 219, 219);
 }
 
-.input-section-center:hover .ratio {
-  border-left: 1px solid rgb(219, 219, 219);
+.hex-input {
+  position: relative;
+  -webkit-box-align: center;
+  align-items: center;
+  border-radius: 6px;
+  margin-left: 2px;
+  margin-right: 10px;
+  height: 28px;
+  border: 1px solid transparent;
+  width: 155px;
+}
+
+.hex-input >>> .el-input__prefix {
+  left: 0 !important;
+  font-size: 12px;
+  color: #415058;
+}
+
+.hex-input >>> .el-input__inner {
+  line-height: 28px;
+  height: 28px;
+  border: 1px solid transparent;
 }
 
 .label {
