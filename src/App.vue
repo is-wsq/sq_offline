@@ -207,4 +207,16 @@ body {
 ::-webkit-scrollbar-thumb:hover {
   background: #555; /* 悬停时的滑块颜色 */
 }
+
+.el-textarea__inner:focus {
+  outline: none;
+  background: white;
+  border-color: #8b5cf6 !important;
+  box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.1);
+}
+
+.el-textarea__inner {
+  font-family: "Helvetica Neue", Arial, sans-serif;
+  padding: 5px 10px;
+}
 </style>

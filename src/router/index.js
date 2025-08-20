@@ -5,6 +5,8 @@ import LogIn from '../view/login/Login.vue';
 import Register from '../view/login/Register.vue';
 import ai from '../view/ai/index.vue';
 import figures from '../view/figures/index.vue';
+import imageToScript from '../view/figures/imageToScript.vue';
+import scriptToImage from '../view/figures/scriptToImage.vue';
 import voice from '../view/voice/index.vue';
 import video from '../view/video/home.vue';
 import human from '../view/video/human.vue';
@@ -31,6 +33,16 @@ const routes = [
         path: '/figures',
         name: 'figures',
         component: figures
+    },
+    {
+        path: '/imageToScript',
+        name: 'imageToScript',
+        component: imageToScript
+    },
+    {
+        path: '/scriptToImage',
+        name: 'scriptToImage',
+        component: scriptToImage
     },
     {
         path: '/voice',

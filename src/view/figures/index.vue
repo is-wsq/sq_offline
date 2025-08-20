@@ -104,10 +104,11 @@
         <div style="margin-bottom: 10px;font-weight: bold">产品图片</div>
         <div class="product-list">
           <div v-for="(item, index) in product_list" :key="index" class="product-item">
-            <div class="product-item-name" @dblclick="renameProduct(item,index)">{{ item.name }}</div>
+            <div class="product-item-name" @dblclick="renameProduct(item,index)">{{ item.group_name }}</div>
             <div class="product-item-img">
-              <div class="img-content" v-for="(img, img_index) in item.images" :key="img_index">
-                <el-image :src="img.img" class="product-item-img-item"></el-image>
+              <div class="img-content" v-for="(img, img_index) in item.images" :key="img_index"
+                   @click="operateProductImage(item, img_index)">
+                <el-image :src="img.filepath" class="product-item-img-item" fit="cover"></el-image>
                 <div class="extra flex-center" v-if="item.images.length > 4 && img_index === 3">
                   +{{ item.images.length - 4 }}
                 </div>
@@ -244,8 +245,44 @@
         <el-button type="primary" @click="sureRename" size="small">确认</el-button>
       </div>
     </el-dialog>
+    <el-dialog class="upload-dialog" :visible.sync="uploadImageDialogVisible" width="32rem" :before-close="handleClear">
+      <div slot="title" class="upload-dialog-title">上传产品图片</div>
+      <div class="upload-dialog-body">
+        <el-form ref="uploadForm" label-position="top" label-width="80px" :model="uploadImageData">
+          <el-form-item label="">
+            <el-upload
+                drag
+                ref="imageUpload"
+                class="material-uploader"
+                style="width: 100%"
+                action="#"
+                accept=".png, .jpg, .jpeg"
+                :http-request="handleUploadImage"
+                :before-upload="beforeUpload"
+                :on-change="handleImagesChange"
+                :on-remove="handleImagesRemove"
+                :file-list.sync="imagesList"
+                :data="uploadImageData"
+                :auto-upload="false"
+                :limit="20"
+                :on-exceed="handleExceed"
+                multiple>
+              <i class="el-icon-upload"></i>
+              <div class="el-upload__text">将文件拖到此处，或<em>点击上传</em></div>
+            </el-upload>
+          </el-form-item>
+          <el-form-item label="产品名称" prop="group_name">
+            <el-input v-model="uploadImageData.group_name" placeholder="输入产品名称"></el-input>
+          </el-form-item>
+        </el-form>
+      </div>
+      <div slot="footer" class="upload-dialog-footer" @mousedown.stop="">
+        <el-button @click="handleClear" size="small">取消</el-button>
+        <el-button type="primary" @click="handleSubmitUpload" size="small">确认上传</el-button>
+      </div>
+    </el-dialog>
     <div class="figures-footer">
-      <el-button type="primary" v-if="classify_type === 'image'" style="width: 150px">上传图片</el-button>
+      <el-button type="primary" v-if="classify_type === 'image'" style="width: 150px" @click="uploadImageDialogVisible = true">上传图片</el-button>
       <span v-else>上传的视频文件格式需为:mp4、mov、MP4、MOV格式；上传的视频文件的时长最少应不低于30秒，建议不超过90秒；上传的视频内容必须符合规范，包含单个人物形象，脸部无遮挡；容量小的原始视频（建议50-100M左右）有利于提高模型速度。</span>
     </div>
   </div>
@@ -256,6 +293,7 @@ import {RightMenuMixin} from "@/mixins/RightMenuMixin";
 import {delAction, getAction, postAction} from "@/api/api";
 import {mapGetters} from "vuex";
 import {marked} from "marked";
+import axios from "axios";
 
 export default {
   name: "figures",
@@ -344,37 +382,13 @@ export default {
 
       resizeObserver: null,
       // product data
-
-      product_list: [
-        {
-          name: '智能手表Pro',
-          images: [
-            { name: 'Product A1', img: 'https://placehold.co/300x400/60A5FA/FFFFFF?text=Product+A1' },
-            { name: 'Product A2', img: 'https://placehold.co/300x400/34D399/FFFFFF?text=Product+A2' },
-            { name: 'Product A3', img: 'https://placehold.co/300x400/A78BFA/FFFFFF?text=Product+A3' },
-            { name: 'Product A4', img: 'https://placehold.co/300x400/FBBF24/FFFFFF?text=Product+A4' },
-          ]
-        },
-        {
-          name: '无线蓝牙耳机',
-          images: [
-            { name: 'Product B1', img: 'https://placehold.co/300x400/4ADE80/FFFFFF?text=Product+B1' },
-            { name: 'Product B2', img: 'https://placehold.co/300x400/2DD4BF/FFFFFF?text=Product+B2' },
-          ]
-        },
-        {
-          name: '新款运动鞋',
-          images: [
-            { name: 'Product C1', img: 'https://placehold.co/300x400/FF6347/FFFFFF?text=Product+C1' },
-            { name: 'Product C2', img: 'https://placehold.co/300x400/FF7F50/FFFFFF?text=Product+C2' },
-            { name: 'Product C3', img: 'https://placehold.co/300x400/FFA07A/FFFFFF?text=Product+C3' },
-            { name: 'Product C4', img: 'https://placehold.co/300x400/E9967A/FFFFFF?text=Product+C4' },
-            { name: 'Product C5', img: 'https://placehold.co/300x400/FA8072/FFFFFF?text=Product+C5' },
-            { name: 'Product C6', img: 'https://placehold.co/300x400/F08080/FFFFFF?text=Product+C6' },
-          ]
-        },
-      ],
+      product_list: [],
       productIndex: 0,
+      uploadImageDialogVisible: false,
+      uploadImageData: {
+        group_name: '',
+      },
+      imagesList: [],
     };
   },
   watch: {
@@ -417,6 +431,7 @@ export default {
   },
   mounted() {
     this.queryShops()
+    this.queryProducts()
     this.startDotAnimation();
     this.$store.dispatch("task/pollFigureTasks");
     window.addEventListener('keydown', this.handleKeyDown);
@@ -540,13 +555,13 @@ export default {
     },
     renameProduct(item,index) {
       this.productIndex = index
-      this.form.original = item.name;
+      this.form.original = item.group_name;
       this.form.name = '';
       this.renameDialogVisible = true;
     },
     sureRename() {
       if (this.classify_type === 'image') {
-        this.product_list[this.productIndex].name = this.form.name;
+        this.product_list[this.productIndex].group_name = this.form.name;
         this.$message.success("重命名成功");
         this.renameDialogVisible = false;
         return
@@ -611,7 +626,8 @@ export default {
       this.video_score = this.selectedItem.video_score || {};
     },
     addImage(item) {
-      this.$alert('待完善','提示')
+      this.uploadImageData.group_name = item.group_name;
+      this.uploadImageDialogVisible = true;
     },
     deleteProduct(index) {
       this.$confirm('确定要删除这个产品吗？', '删除', {
@@ -622,6 +638,23 @@ export default {
       }).catch(() => {
         this.$message({type: 'info', message: '已取消删除'});
       });
+    },
+    queryProducts() {
+      getAction('/picture/all/grouped').then(res => {
+        if (res.data.status === 'success') {
+          this.product_list = res.data.data
+        }else {
+          this.$message.error('获取产品列表失败')
+        }
+      }).catch(err => {
+        console.log(err)
+        this.$message.error('获取产品列表错误')
+      })
+    },
+    operateProductImage(item, img_index) {
+      sessionStorage.setItem('operate_product', JSON.stringify(item))
+      sessionStorage.setItem('operate_img_index', img_index)
+      this.$router.push({path: '/imageToScript'})
     },
     checkAspectRatio() {
       const video = this.$refs.video;
@@ -657,6 +690,52 @@ export default {
         }
       })
     },
+    handleSubmitUpload() {
+      if (this.imagesList.length === 0) {
+        this.$message.warning("请先选择文件！");
+        return;
+      }
+
+      const formData = new FormData();
+      this.imagesList.forEach((file) => {
+        formData.append("file", file.raw); // 将文件添加到 FormData 中
+      });
+      formData.append('group_name', this.uploadImageData.group_name);
+
+      axios.post("http://127.0.0.1:6006/picture/upload", formData,{
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      }).then((res) => {
+        if (res.data.status === "success") {
+          this.$message.success("上传成功");
+          this.queryProducts()
+          this.handleClear();
+        }else {
+          this.$message.error(res.data.message);
+        }
+      }).catch((err) => {
+        console.log(err)
+        this.$message.error('上传错误，请稍后再试！')
+      })
+    },
+    handleClear() {
+      if (this.$refs.imageUpload) {
+        this.$refs.imageUpload.clearFiles();
+      }
+      this.imagesList = [];
+      this.uploadImageDialogVisible = false
+    },
+    handleUploadImage({ file }) {
+      console.log(file)
+    },
+    handleImagesChange(file, fileList) {
+      this.imagesList = fileList;
+    },
+    handleImagesRemove(file, fileList) {
+      this.imagesList = fileList;
+    },
+
     handleFileChange(event, file, fileList) {
       this.materialList = fileList;
     },
@@ -1027,7 +1106,6 @@ export default {
   flex-grow: 1;
   gap: 8px;
   margin-bottom: 12px;
-  cursor: pointer;
   overflow: hidden;
 }
 
@@ -1036,6 +1114,7 @@ export default {
   height: 160px;
   border-radius: 8px;
   position: relative;
+  cursor: pointer;
 }
 
 .product-item-img-item {
