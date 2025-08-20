@@ -24,8 +24,14 @@
       <div class="c-left">
         <div class="flex-center">
           <div style="flex: 1;line-height: 40px;font-weight: bold;margin-left: 15px">素材库</div>
-          <el-button type="primary" class="mute-btn" @click="allMute">一键静音</el-button>
-          <el-button type="primary" class="mute-btn" style="margin-right: 10px" @click="disMute">解除静音</el-button>
+          <div class="cursor-pointer" title="一键静音" @click="allMute"
+               v-if="mute_materials.length < this.filter_materials.length">
+            <i class="el-icon-shengyin_fill" style="font-size: 16px; color: #6286ed;"></i>
+          </div>
+          <div class="cursor-pointer" title="取消静音" @click="disMute" v-else>
+            <i class="el-icon-jingyin_fill" style="font-size: 16px; color: #6286ed;"></i>
+          </div>
+          <div style="width: 15px"></div>
         </div>
         <div class="library">
           <el-collapse v-model="activeName" accordion>
