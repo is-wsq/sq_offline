@@ -74,15 +74,25 @@ export default {
         return;
       }
       this.active = type;
-      let cache_path = sessionStorage.getItem("video_path");
-      if (type === 3 && cache_path) {
-        this.$router.push({path: cache_path})
+      let figure_path = sessionStorage.getItem("figure_path");
+      if (type === 1 && figure_path) {
+        this.$router.push({path: figure_path})
+        return;
+      }
+      let video_path = sessionStorage.getItem("video_path");
+      if (type === 3 && video_path) {
+        this.$router.push({path: video_path})
         return;
       }
       this.$router.push({path: path})
     },
     updateActiveFromRoute() {
       let paths = ['/human', '/material', '/smartGenerate', '/syncCv', '/duplicate', '/segments', '/montage', '/hot']
+      let first_paths = ['/imageToScript', '/scriptToImage']
+      if (first_paths.includes(this.$route.path)) {
+        this.active = 1;
+        return;
+      }
       if (paths.includes(this.$route.path)) {
         this.active = 3;
         return;

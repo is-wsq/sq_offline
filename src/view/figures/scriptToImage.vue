@@ -131,6 +131,7 @@ export default {
       this.operate_scripts = JSON.parse(sessionStorage.getItem("operate_scripts"))
     },
     backToImage() {
+      sessionStorage.setItem('figure_path', '/imageToScript')
       this.$router.push({ path: '/imageToScript' })
     }
   },

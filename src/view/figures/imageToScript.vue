@@ -12,8 +12,8 @@
       <div style="width: 36px"></div>
     </div>
     <div class="imageToScript-content">
-      <div class="first-operation-content first-left">
-        <div class="first-title">展示区</div>
+      <div class="operation-content left">
+        <div class="title">展示区</div>
         <div class="view-area" v-if="scripts.length === 0">
           <template v-if="operateProductInfo.images">
             <div class="flex-center" style="flex: 1;">
@@ -62,7 +62,7 @@
             </div>
           </div>
         </div>
-        <div class="first-footer flex-center">
+        <div class="footer flex-center">
           <div style="flex: 1;">
             <span style="color: #4b5563;font-size: 14px" v-if="scripts.length > 0">
               已生成 {{ scripts.length }} 条视觉脚本，可进行编辑或删除</span>
@@ -70,32 +70,34 @@
           <el-button type="primary" :disabled="scripts.length === 0" @click="next">下一步：脚本生图</el-button>
         </div>
       </div>
-      <div class="first-right">
-        <div class="first-operation-content">
-          <div class="first-title">图片列表</div>
-          <div class="images-grid">
-            <div v-for="(item,index) in operateProductInfo.images" :key="index"
-                 class="images-grid-item" @click="imageIndex = index">
-              <el-image :src="item.filepath" style="width: 100%;height: 100%;" fit="cover"></el-image>
+      <div class="right">
+        <template>
+          <div class="operation-content">
+            <div class="title">图片列表</div>
+            <div class="images-grid">
+              <div v-for="(item,index) in operateProductInfo.images" :key="index"
+                   class="images-grid-item" @click="imageIndex = index">
+                <el-image :src="item.filepath" style="width: 100%;height: 100%;" fit="cover"></el-image>
+              </div>
             </div>
           </div>
-        </div>
-        <div class="first-operation-content design-area">
-          <div class="first-title">设计工作区</div>
-          <div class="design-area-content">
-            <div class="design-label">产品核心卖点</div>
-            <el-input type="textarea" resize="none" class="sell-input margin-b-12"
-                      placeholder="文案内容..." v-model="sell_point"></el-input>
-            <div class="design-label">生成脚本数量</div>
-            <div class="flex-center">
-              <el-input-number v-model="script_num" :min="1" :max="4" class="margin-b-12"></el-input-number>
-              <div class="placeholder-label">可选择1-4条</div>
+          <div class="operation-content design-area">
+            <div class="title">设计工作区</div>
+            <div class="design-area-content">
+              <div class="design-label">产品核心卖点</div>
+              <el-input type="textarea" resize="none" class="sell-input margin-b-12"
+                        placeholder="文案内容..." v-model="sell_point"></el-input>
+              <div class="design-label">生成脚本数量</div>
+              <div class="flex-center">
+                <el-input-number v-model="script_num" :min="1" :max="4" class="margin-b-12"></el-input-number>
+                <div class="placeholder-label">可选择1-4条</div>
+              </div>
+              <el-button type="primary" @click="generateScriptsByImage"><i class="el-icon-bianjiqi btn-icon"></i>
+                生成视觉脚本
+              </el-button>
             </div>
-            <el-button type="primary" @click="generateScriptsByImage"><i class="el-icon-bianjiqi btn-icon"></i>
-              生成视觉脚本
-            </el-button>
           </div>
-        </div>
+        </template>
       </div>
     </div>
   </div>
@@ -173,10 +175,12 @@ export default {
       this.imageIndex = parseInt(sessionStorage.getItem('operate_img_index'))
     },
     backToFigure() {
+      sessionStorage.setItem('figure_path', '/figures')
       this.$router.push({path: '/figures'})
     },
     next() {
       sessionStorage.setItem('operate_scripts', JSON.stringify(this.scripts))
+      sessionStorage.setItem('figure_path', '/scriptToImage')
       this.$router.push({path: '/scriptToImage'})
     }
   }
@@ -187,6 +191,7 @@ export default {
 .imageToScript {
   height: 100%;
   min-height: 800px;
+  min-width: 900px;
   overflow-y: auto;
 }
 
@@ -214,21 +219,21 @@ export default {
   gap: 16px;
 }
 
-.first-operation-content {
+.operation-content {
   background: #ffffff;
   border-radius: 12px;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
   box-sizing: border-box;
 }
 
-.first-left {
+.left {
   flex: 1;
   height: 100%;
   display: flex;
   flex-direction: column;
 }
 
-.first-title {
+.title {
   padding: 8px 16px;
   color: #475569;
   font-size: 18px;
@@ -303,17 +308,17 @@ export default {
   color: #475569;
 }
 
-.first-footer {
+.footer {
   padding: 8px 16px;
   height: 40px;
   border-top: 1px solid #f3f4f6;
 }
 
-.first-footer >>> .el-button--primary {
+.footer >>> .el-button--primary {
   border-color: transparent !important;
 }
 
-.first-right {
+.right {
   /* width: 410px; */
   height: 100%;
   display: flex;

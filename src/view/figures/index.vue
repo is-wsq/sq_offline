@@ -300,7 +300,7 @@ export default {
   mixins: [RightMenuMixin],
   data() {
     return {
-      classify_type: 'image',
+      classify_type: 'character',
       classify_types: [
         { type: 'character', name: '形象库', icon: 'el-icon-fa-user' },
         { type: 'material', name: '素材库', icon: 'el-icon-film-c' },
@@ -392,6 +392,12 @@ export default {
     };
   },
   watch: {
+    classify_type: {
+      handler(newValue, oldValue) {
+        sessionStorage.setItem('classify_type', newValue);
+      },
+      deep: true
+    },
     tags: {
       handler(newValue, oldValue) {
         if (newValue.join(',') === oldValue.join(','))
@@ -430,6 +436,7 @@ export default {
     }
   },
   mounted() {
+    this.classify_type = sessionStorage.getItem('classify_type') || 'character'
     this.queryShops()
     this.queryProducts()
     this.startDotAnimation();
@@ -654,6 +661,7 @@ export default {
     operateProductImage(item, img_index) {
       sessionStorage.setItem('operate_product', JSON.stringify(item))
       sessionStorage.setItem('operate_img_index', img_index)
+      sessionStorage.setItem('figure_path', '/imageToScript')
       this.$router.push({path: '/imageToScript'})
     },
     checkAspectRatio() {
