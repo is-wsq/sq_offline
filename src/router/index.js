@@ -7,6 +7,7 @@ import ai from '../view/ai/index.vue';
 import figures from '../view/figures/index.vue';
 import imageToScript from '../view/figures/imageToScript.vue';
 import scriptToImage from '../view/figures/scriptToImage.vue';
+import imageToVideo from '../view/figures/imageToVideo.vue';
 import voice from '../view/voice/index.vue';
 import video from '../view/video/home.vue';
 import human from '../view/video/human.vue';
@@ -43,6 +44,11 @@ const routes = [
         path: '/scriptToImage',
         name: 'scriptToImage',
         component: scriptToImage
+    },
+    {
+        path: '/imageToVideo',
+        name: 'imageToVideo',
+        component: imageToVideo
     },
     {
         path: '/voice',

@@ -16,22 +16,17 @@
         <div style="font-size: 24px; font-weight: bold;">脚本生图</div>
         <div style="font-size: 14px; color: #4b5563;margin-top: 4px">基于您的分镜脚本生成对应图片，可进行调整和优化</div>
       </div>
-      <el-button type="primary">生成视频分镜</el-button>
+      <el-button type="primary" @click="generateVideo">生成视频分镜</el-button>
     </div>
     <div class="scriptToImage-body">
-      <div class="storyboard-item" v-for="(item, index) in operate_scripts" :key="index">
+      <div class="storyboard-item" v-for="(item, index) in image_scripts" :key="index">
         <div class="storyboard-item-header">
           <div style="flex: 1">
             <div style="display: flex;gap: 8px">
               <div style="font-size: 18px; font-weight: bold;">分镜脚本{{ index + 1 }}</div>
-              <el-tag v-for="(tag, tag_index) in item.tags" :key="tag_index" size="small" class="tag">
-                {{ tag }}
-              </el-tag>
             </div>
             <div class="storyboard-item-copy">
-              <template v-if="editIndex !== index">
-                {{ item.copy }}
-              </template>
+              <template v-if="editIndex !== index">{{ item.copy }}</template>
               <template v-else>
                 <el-input type="textarea" :autosize="{ minRows: 3, maxRows: 6 }"
                           resize="none" v-model="editCopy"></el-input>
@@ -63,8 +58,10 @@
         <div class="storyboard-item-body">
           <div style="color: #4b5563;margin-bottom: 16px">生成图片组</div>
           <div class="storyboard-item-images">
-            <div v-for="(item,index) in text_images" :key="index">
-              <el-image :src="item.img" style="width: 120px;border-radius: 8px"></el-image>
+            <div v-for="(image,image_index) in item.images" :key="image_index" @click="setImage(index,image)">
+              <el-image :src="image" style="width: 120px;border-radius: 8px"
+                        :class="{'active-image': item.selected_image === image}">
+              </el-image>
             </div>
           </div>
         </div>
@@ -74,27 +71,17 @@
 </template>
 
 <script>
+import {postAction} from "@/api/api";
+
 export default {
   name: "scriptToImage",
   data() {
     return {
-      operate_scripts: [],
-      text_images: [
-        { name: 'Product A1', img: 'https://placehold.co/300x400/60A5FA/FFFFFF?text=Product+A1' },
-        { name: 'Product A2', img: 'https://placehold.co/300x400/34D399/FFFFFF?text=Product+A2' },
-        { name: 'Product A3', img: 'https://placehold.co/300x400/A78BFA/FFFFFF?text=Product+A3' },
-        { name: 'Product A4', img: 'https://placehold.co/300x400/FBBF24/FFFFFF?text=Product+A4' },
-      ],
+      operateProductInfo: {},
+      image_scripts: [],
       editIndex: -1,
       editCopy: '',
-    }
-  },
-  watch: {
-    operate_scripts: {
-      deep: true,
-      handler(newValue, oldValue) {
-        sessionStorage.setItem("operate_scripts", JSON.stringify(newValue))
-      }
+      loading: null,
     }
   },
   mounted() {
@@ -103,32 +90,112 @@ export default {
   methods: {
     handleEdit(index) {
       this.editIndex = index
-      this.editCopy = this.operate_scripts[index].copy
+      this.editCopy = this.image_scripts[index].copy
     },
     handleReload(index) {
-
+      this.loading = this.$loading({
+        lock: true,
+        text: '图片重新生成中，请稍等...',
+        spinner: 'el-icon-loading',
+        background: 'rgba(0, 0, 0, 0.7)'
+      });
+      let scripts = []
+      let script = this.image_scripts.map(item => item.copy)[index]
+      scripts.push({ copy: script })
+      let params = {
+        product_id: this.operateProductInfo.id,
+        scripts: scripts,
+        size: "portrait"
+      }
+      postAction('/picture/generate_images_parallel',params, 600000).then(res => {
+        if (res.data.status === 'success') {
+          this.loading.close();
+          this.loading = null;
+          this.image_scripts[index] = res.data.data[0]
+          sessionStorage.setItem("image_scripts", JSON.stringify(this.image_scripts))
+          this.$message.success('图片重新生成成功')
+          this.$forceUpdate()
+        } else {
+          this.loading.close();
+          this.loading = null;
+          this.$alert(res.data.message,'提示')
+        }
+      }).catch(err => {
+        this.loading.close();
+        this.loading = null;
+        this.$alert(err,'提示')
+      })
     },
     handleDelete(index) {
       this.$confirm('确认删除该分镜脚本吗？','提示', {
         type: 'warning'
       }).then(() => {
-        this.operate_scripts.splice(index, 1)
+        this.image_scripts.splice(index, 1)
+        sessionStorage.setItem("image_scripts", JSON.stringify(this.image_scripts))
         this.$message.success('删除成功')
       }).catch(() => {
         this.$message.info('已取消删除')
       })
     },
     handleSure() {
-      this.operate_scripts[this.editIndex].copy = this.editCopy
+      this.image_scripts[this.editIndex].copy = this.editCopy
       this.editIndex = -1
+      sessionStorage.setItem("image_scripts", JSON.stringify(this.image_scripts))
       this.$message.success('保存成功')
     },
     handleCancel() {
       this.editIndex = -1
       this.$message.info('已取消编辑')
     },
+    setImage(index, image) {
+      this.$set(this.image_scripts[index], 'selected_image', image);
+      sessionStorage.setItem("image_scripts", JSON.stringify(this.image_scripts))
+      this.$forceUpdate()
+    },
     initData() {
-      this.operate_scripts = JSON.parse(sessionStorage.getItem("operate_scripts"))
+      this.operateProductInfo = JSON.parse(sessionStorage.getItem('operate_product'))
+      this.image_scripts = JSON.parse(sessionStorage.getItem("image_scripts"))
+    },
+    generateVideo() {
+      let scripts = this.image_scripts.map(item => {
+        return {
+          copy: item.copy,
+          image_path: item.selected_image
+        }
+      })
+      let hasImagePathUndefined = scripts.every(item => !item.image_path);
+      if (hasImagePathUndefined) {
+        this.$alert('请先给每个分镜脚本选择生成视频的图片后重新尝试','生成失败')
+        return
+      }
+      this.loading = this.$loading({
+        lock: true,
+        text: '视频生成中，请稍等...',
+        spinner: 'el-icon-loading',
+        background: 'rgba(0, 0, 0, 0.7)'
+      });
+      let params = {
+        scripts: scripts,
+        duration: 4,
+      }
+      postAction('/picture/generate_video', params, 600000).then(res => {
+        if (res.data.status ==='success') {
+          this.loading.close();
+          this.loading = null;
+          sessionStorage.setItem('video_scripts', JSON.stringify(res.data.data))
+
+          sessionStorage.setItem('figure_path', '/imageToVideo')
+          this.$router.push({ path: '/imageToVideo' })
+        } else {
+          this.loading.close();
+          this.loading = null;
+          this.$alert(res.data.message,'生成视频失败')
+        }
+      }).catch(err => {
+        this.loading.close();
+        this.loading = null;
+        this.$alert(err,'生成视频错误')
+      })
     },
     backToImage() {
       sessionStorage.setItem('figure_path', '/imageToScript')
@@ -221,5 +288,10 @@ export default {
 .storyboard-item-images {
   display: flex;
   gap: 16px;
+}
+
+.active-image {
+  border: 2px solid #6366fe;
+  box-sizing: border-box;
 }
 </style>

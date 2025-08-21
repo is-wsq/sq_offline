@@ -34,10 +34,8 @@
         <div class="view-area" v-else>
           <div class="script-item" v-for="(item, index) in scripts" :key="index">
             <div class="script-item-header">
-              <div class="script-item-tags">
-                <el-tag v-for="(tag, tag_index) in item.tags" :key="tag_index" size="small" class="tag">
-                  {{ tag }}
-                </el-tag>
+              <div class="script-item-label">
+                分镜脚本{{ index + 1 }}
               </div>
               <div class="script-item-btn flex-center">
                 <template v-if="editIndex !== index">
@@ -71,7 +69,7 @@
         </div>
       </div>
       <div class="right">
-        <template>
+        <template v-if="!isAlreadyGenerated">
           <div class="operation-content">
             <div class="title">图片列表</div>
             <div class="images-grid">
@@ -98,13 +96,94 @@
             </div>
           </div>
         </template>
+        <template v-else>
+          <div class="chat-area">
+            <div class="chat-frame" ref="chatFrameRef">
+              <div v-for="(item, index) in chats" :key="index">
+                <div v-if="item.type === 'userMessage'" style="display: flex;justify-content: end;">
+                  <div class="user-message">
+                    {{ item.content }}
+                  </div>
+                </div>
+                <template v-if="item.type === 'answerMessage'">
+                  <div class="answer-message">
+                    <div class="avatar-area"></div>
+                    <div style="flex: 1">
+                      <el-collapse>
+                        <el-collapse-item>
+                          <template slot="title">
+                            <div class="answer-message-label">AI思考过程</div>
+                          </template>
+                          <div class="ai-thinking-content">{{ item.thinking }}</div>
+                        </el-collapse-item>
+                      </el-collapse>
+                      <div class="answer-message-label margin-t-12">生成的脚本</div>
+                      <div class="script-content" v-for="(script,script_index) in item.scripts" :key="script_index">
+                        {{ script.copy }}
+                        <div class="script-btn-group">
+                          <div title="选择该脚本" class="script-btn-item" @click="selectScript([{copy: script.copy}])">
+                            <i class="el-icon-copy-document cursor-pointer"></i>
+                          </div>
+                          <div title="删除该脚本" class="script-btn-item" @click="deleteScript(index,script_index)">
+                            <i class="el-icon-delete cursor-pointer"></i>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="select-script-btn" @click="selectScript(item.scripts)">
+                    <i class="el-icon-copy-document font-weight"></i>
+                    选择本次生成脚本
+                  </div>
+                </template>
+                <div v-if="item.type === 'newChat'">
+                  <el-divider>新会话</el-divider>
+                </div>
+              </div>
+              <div class="loading-content" v-if="isGenerating">
+                <div class="avatar-area"></div>
+                <div class="loading-area flex-center"><i class="el-icon-loading"></i></div>
+              </div>
+            </div>
+            <div class="chat-input">
+              <template v-if="!isNewChat">
+                <div class="create-chat-btn" @click="createNewChat">
+                  <i class="el-icon-edit-outline" style="margin-right: 5px"></i>
+                  发起新会话
+                </div>
+                <div class="flex-center">
+                  <el-input type="textarea" placeholder="请输入您的修改意见..." resize="none" v-model="chat_input"
+                            @keydown.native="enterSendChat"></el-input>
+                  <el-button type="primary" style="padding: 0 20px" @click="sendChat">
+                    <i class="el-icon-s-promotion" style="font-size: 18px;line-height: 35px"></i>
+                  </el-button>
+                </div>
+                <div class="send-placeholder">按Enter或发送按钮发送，Shift+Enter换行</div>
+              </template>
+              <template v-else>
+                <div class="design-label">产品核心卖点</div>
+                <el-input type="textarea" resize="none" class="sell-input margin-b-12"
+                          placeholder="文案内容..." v-model="sell_point"></el-input>
+                <div class="design-label">生成脚本数量</div>
+                <div class="flex-center">
+                  <el-input-number v-model="script_num" :min="1" :max="4" class="margin-b-12"></el-input-number>
+                  <div class="placeholder-label">可选择1-4条</div>
+                </div>
+                <el-button type="primary" @click="generateScriptsByImage" style="width: 100%;">
+                  <i class="el-icon-bianjiqi btn-icon"></i>
+                  生成视觉脚本
+                </el-button>
+              </template>
+            </div>
+          </div>
+        </template>
       </div>
     </div>
   </div>
 </template>
 
 <script>
-import {delAction} from "@/api/api";
+import {delAction, postAction} from "@/api/api";
 
 export default {
   name: 'imageToScript',
@@ -115,27 +194,42 @@ export default {
       sell_point: '',
       script_num: 1,
       scripts: [],
-      test_scripts: [
-        {
-          tags:['产品特写','科技感'],
-          copy: '细节镜头：聚焦产品的创新设计细节，配合文字说明突出采用最新一代技术，性能提升30%。通过微距摄影展现工艺品质，突出产品的精致做工'
-        },
-        {
-          tags:['办公场景','办公场景'],
-          copy: '特写镜头：展示采用最新一代技术，性能提升30%的核心部件，配合蓝色科技光效，突出科技感，展现未来设计理念。镜头缓慢推进，突出产品细节。'
-        },
-        {
-          tags:['多场景展示','对比强烈'],
-          copy: '特写镜头：展示采用最新一代技术，性能提升30%的核心部件，配合蓝色科技光效，突出科技感，展现未来设计理念。镜头缓慢推进，突出产品细节。'
-        },
-        {
-          tags:['产品特写','对比强烈'],
-          copy: '对比镜头：将本产品与传统产品并排放置，通过分屏展示采用最新一代技术，性能提升30%带来的显著优势。快速切换镜头强调差异，传递可靠耐用的产品特性。'
-        },
-      ],
+      lastGeneratedScripts: [],
       editIndex: -1,
-      new_copy: ''
+      new_copy: '',
+      isAlreadyGenerated: false,
+      chats: [],
+      chat_input: '',
+      isGenerating: false,
+      isNewChat: false,
+      loading: null,
     };
+  },
+  watch: {
+    scripts: {
+      handler(newValue, oldValue) {
+        sessionStorage.setItem('operate_scripts', JSON.stringify(newValue))
+      },
+      deep: true
+    },
+    isAlreadyGenerated: {
+      handler(newValue, oldValue) {
+        sessionStorage.setItem('operate_isAlreadyGenerated', newValue)
+      },
+      deep: true
+    },
+    chats: {
+      handler(newValue, oldValue) {
+        sessionStorage.setItem('chats', JSON.stringify(newValue))
+      },
+      deep: true
+    },
+    isNewChat: {
+      handler(newValue, oldValue) {
+        sessionStorage.setItem('is_newChat', JSON.stringify(newValue))
+      },
+      deep: true
+    }
   },
   mounted() {
     this.initData();
@@ -146,7 +240,40 @@ export default {
         this.$alert('请先输入产品核心卖点','提示')
         return
       }
-      this.scripts = this.scripts.concat(this.test_scripts.slice(0, this.script_num));
+      this.isAlreadyGenerated = true
+      this.isNewChat = false
+      this.chats.push({
+        type: 'userMessage',
+        content: this.sell_point,
+      });
+      this.isGenerating = true
+      this.$nextTick(() => {
+        this.scrollToBottom()
+      })
+      let params = {
+        selling_points: this.sell_point,
+        product_id: this.operateProductInfo.id,
+        num_scripts: this.script_num,
+      }
+      postAction('/picture/generate_script', params, 600000).then(res => {
+        if (res.data.status === 'success') {
+          this.isGenerating = false
+          this.lastGeneratedScripts = res.data.data.scripts
+          sessionStorage.setItem('last_generated_scripts', JSON.stringify(this.lastGeneratedScripts))
+          this.chats.push({
+            type: 'answerMessage',
+            scripts: res.data.data.scripts,
+            thinking: res.data.data.thinking,
+          })
+          this.$nextTick(() => {
+            this.scrollToBottom()
+          })
+        }else {
+          this.$alert(res.data.message,'生成失败')
+        }
+      }).catch(err => {
+        this.$alert(err,'生成错误')
+      })
     },
     editCopy(index) {
       this.new_copy = this.scripts[index].copy;
@@ -169,19 +296,125 @@ export default {
     cancelEdit() {
       this.editIndex = -1;
     },
+    scrollToBottom() {
+      if (this.$refs.chatFrameRef) {
+        this.$refs.chatFrameRef.scrollTop = this.$refs.chatFrameRef.scrollHeight
+      }
+    },
+    createNewChat() {
+      this.isNewChat = true
+      this.chats.push({ type: 'newChat' })
+      this.$nextTick(() => {
+        this.scrollToBottom()
+      })
+    },
+    enterSendChat(event) {
+      if (event.key === 'Enter' && !event.shiftKey) {
+        event.preventDefault();
+        this.sendChat();
+      }
+    },
+    sendChat() {
+      this.chats.push({
+        type: 'userMessage',
+        content: this.chat_input,
+      });
+      let params = {
+        scripts: this.lastGeneratedScripts,
+        user_feedback: this.chat_input,
+      }
+      this.chat_input = '';
+      this.isGenerating = true
+      this.$nextTick(() => {
+        this.scrollToBottom()
+      })
+      postAction('/picture/refine_scripts_batch', params, 600000).then(res => {
+        if (res.data.status ==='success') {
+          this.isGenerating = false
+          this.lastGeneratedScripts = res.data.data.scripts
+          sessionStorage.setItem('last_generated_scripts', JSON.stringify(this.lastGeneratedScripts))
+          this.chats.push({
+            type: 'answerMessage',
+            scripts: res.data.data.scripts,
+            thinking: res.data.data.thinking,
+          })
+          this.$nextTick(() => {
+            this.scrollToBottom()
+          })
+        } else {
+          this.isGenerating = false
+          this.$alert(res.data.message,'生成失败')
+        }
+      }).catch(err => {
+        this.isGenerating = false
+        this.$alert(err,'生成错误')
+      })
+    },
+
+    selectScript(scripts) {
+      console.log(scripts)
+      this.scripts = this.scripts.concat(scripts);
+    },
+    deleteScript(index,script_index) {
+      let copy = this.chats[index].scripts[script_index].copy
+      this.$confirm('确认删除该生成脚本吗？', '提示', {
+        type: 'warning'
+      }).then(() => {
+        this.chats[index].scripts.splice(script_index, 1);
+        this.lastGeneratedScripts = this.lastGeneratedScripts.filter(item => item.copy !== copy)
+        sessionStorage.setItem('last_generated_scripts', JSON.stringify(this.lastGeneratedScripts))
+        this.$message.success('删除成功')
+      }).catch(() => {
+        this.$message.info('已取消删除');
+      })
+    },
 
     initData() {
       this.operateProductInfo = JSON.parse(sessionStorage.getItem('operate_product'))
       this.imageIndex = parseInt(sessionStorage.getItem('operate_img_index'))
+      this.scripts = JSON.parse(sessionStorage.getItem('operate_scripts'))
+      this.lastGeneratedScripts = JSON.parse(sessionStorage.getItem('last_generated_scripts'))
+      this.isAlreadyGenerated = sessionStorage.getItem('operate_isAlreadyGenerated') === 'true'
+      this.isNewChat = sessionStorage.getItem('is_newChat') === 'true'
+      this.chats = JSON.parse(sessionStorage.getItem('chats'))
+      this.$nextTick(() => {
+        this.scrollToBottom()
+      })
     },
     backToFigure() {
       sessionStorage.setItem('figure_path', '/figures')
       this.$router.push({path: '/figures'})
     },
     next() {
-      sessionStorage.setItem('operate_scripts', JSON.stringify(this.scripts))
-      sessionStorage.setItem('figure_path', '/scriptToImage')
-      this.$router.push({path: '/scriptToImage'})
+      this.loading = this.$loading({
+        lock: true,
+        text: '图片生成中，请稍等...',
+        spinner: 'el-icon-loading',
+        background: 'rgba(0, 0, 0, 0.7)'
+      });
+      let params = {
+        product_id: this.operateProductInfo.id,
+        scripts: this.scripts,
+        size: "portrait"
+      }
+      postAction('/picture/generate_images_parallel',params, 600000).then(res => {
+        if (res.data.status === 'success') {
+          this.loading.close();
+          this.loading = null;
+          sessionStorage.setItem('image_scripts', JSON.stringify(res.data.data))
+
+          sessionStorage.setItem('figure_path', '/scriptToImage')
+          this.$router.push({path: '/scriptToImage'})
+        } else {
+          this.loading.close();
+          this.loading = null;
+          this.$alert(res.data.message,'提示')
+        }
+      }).catch(err => {
+        this.loading.close();
+        this.loading = null;
+        this.$alert(err,'提示')
+      })
     }
   }
 }
@@ -193,6 +426,7 @@ export default {
   min-height: 800px;
   min-width: 900px;
   overflow-y: auto;
+  overflow-x: hidden;
 }
 
 .imageToScript-header {
@@ -235,11 +469,11 @@ export default {
 
 .title {
   padding: 8px 16px;
-  color: #475569;
   font-size: 18px;
   line-height: 28px;
   font-weight: bold;
   border-bottom: 1px solid #f3f4f6;
+  color: #475569;
 }
 
 .view-area {
@@ -278,21 +512,11 @@ export default {
   margin-bottom: 8px;
 }
 
-.script-item-tags {
+.script-item-label {
   flex: 1;
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-}
-
-.tag {
-  border-radius: 14px;
-  border: 1px solid #F5F5F5;
-  cursor: pointer;
-  height: 28px;
-  line-height: 28px;
-  padding-left: 12px;
-  padding-right: 12px;
+  font-size: 18px;
+  font-weight: bold;
+  line-height: 36px;
 }
 
 .script-item-copy {
@@ -385,15 +609,15 @@ export default {
   padding: 5px 10px;
 }
 
-.design-area-content >>> .el-input__inner:focus {
+.imageToScript >>> .el-input__inner:focus {
   outline: none;
   background: white;
   border-color: #8b5cf6;
   box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.1);
 }
 
-.design-area-content >>> .el-input-number__decrease,
-.design-area-content >>> .el-input-number__increase {
+.imageToScript >>> .el-input-number__decrease,
+.imageToScript >>> .el-input-number__increase {
   background-color: transparent;
   border: none;
 }
@@ -404,5 +628,181 @@ export default {
   color: #4b5563;
   text-align: right;
   line-height: 40px;
+}
+
+.chat-area {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  width: 408px;
+  box-shadow: 0 1px 3px 0 #0000001a, 0 1px 2px -1px #0000001a;
+  background-color: #FFFFFF;
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.chat-frame {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 12px;
+  overflow-y: auto;
+}
+
+.chat-frame >>> .el-divider--horizontal {
+  margin: 10px 0 !important;
+}
+
+.chat-frame >>> .el-divider__text {
+  color: #9ca3af;
+}
+
+.user-message {
+  max-width: 85%;
+  background-color: #dbeafe;
+  padding: 10px;
+  box-shadow: 0 0  #0000, 0 0 #0000, 0 1px 2px 0 rgb(0 0 0 / 0.05);
+  border-radius: 8px;
+  border-top-left-radius: 0 !important;
+  color: #4B5563;
+  font-size: 14px;
+}
+
+.answer-message {
+  max-width: 85%;
+  background-color: #eff6ff;
+  padding: 10px;
+  box-shadow: 0 0  #0000, 0 0 #0000, 0 1px 2px 0 rgb(0 0 0 / 0.05);
+  border-radius: 8px;
+  border-top-right-radius: 0 !important;
+  display: flex;
+  gap: 8px;
+}
+
+.answer-message >>> .el-collapse  {
+  border: none;
+}
+
+.answer-message >>> .el-collapse-item__wrap {
+  background-color: transparent;
+  border: none;
+}
+
+.answer-message >>> .el-collapse-item__header {
+  height: 32px;
+  line-height: 32px;
+  background-color: transparent;
+  border: none;
+}
+
+.answer-message >>> .el-collapse-item__arrow {
+  margin: 0 10px;
+  font-weight: bold;
+}
+
+.answer-message >>> .el-collapse-item__content {
+  padding-bottom: 0;
+}
+
+.loading-content {
+  width: 65px;
+  background-color: #eff6ff;
+  padding: 10px;
+  box-shadow: 0 0  #0000, 0 0 #0000, 0 1px 2px 0 rgb(0 0 0 / 0.05);
+  border-radius: 8px;
+  border-top-right-radius: 0 !important;
+  display: flex;
+  gap: 8px;
+}
+
+.loading-area {
+  font-size: 20px;
+  color: #4B5563;
+}
+
+.select-script-btn {
+  width: 120px;
+  font-size: 12px;
+  color: #4B5563;
+  margin-top: 4px;
+  cursor: pointer;
+}
+
+.avatar-area {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background-color: #6366fe;
+}
+
+.answer-message-label {
+  color: #3b82f6;
+  font-weight: bold;
+  font-size: 12px;
+  line-height: 16px;
+}
+
+.ai-thinking-content {
+  color: #4b5563;
+  font-size: 14px;
+  line-height: 20px;
+  font-style: italic;
+}
+
+.script-content {
+  margin-top: 5px;
+  background-color: #ffffff;
+  font-size: 12px;
+  line-height: 18px;
+  border: 1px solid #f3f4f6;
+  border-radius: 6px;
+  padding: 10px;
+  color: #4b5563;
+  position: relative;
+  cursor: pointer;
+}
+
+.script-btn-group {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  display: flex;
+  gap: 10px;
+  background-color: rgba(0, 0, 0, 0.7);
+  padding: 4px 8px;
+  border-radius: 5px;
+  opacity: 0;
+}
+
+.script-content:hover .script-btn-group {
+  opacity: 1;
+}
+
+.script-btn-item {
+  color: #ffffff;
+  font-size: 14px;
+  padding: 2px 5px;
+}
+
+.chat-input {
+  padding: 12px;
+  background-color: #f3f4f6;
+  border-top: 1px solid #e5e7eb;
+}
+
+.create-chat-btn {
+  color: #4b5563;
+  font-size: 14px;
+  line-height: 20px;
+  margin-bottom: 8px;
+  cursor: pointer;
+}
+
+.send-placeholder {
+  color: #6b7280;
+  font-size: 12px;
+  line-height: 16px;
+  margin-top: 8px;
 }
 </style>

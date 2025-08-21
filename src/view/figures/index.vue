@@ -104,7 +104,7 @@
         <div style="margin-bottom: 10px;font-weight: bold">产品图片</div>
         <div class="product-list">
           <div v-for="(item, index) in product_list" :key="index" class="product-item">
-            <div class="product-item-name" @dblclick="renameProduct(item,index)">{{ item.group_name }}</div>
+            <div class="product-item-name" @dblclick="renameProduct(item)">{{ item.name }}</div>
             <div class="product-item-img">
               <div class="img-content" v-for="(img, img_index) in item.images" :key="img_index"
                    @click="operateProductImage(item, img_index)">
@@ -145,22 +145,6 @@
     <el-dialog class="detail-dialog" title="素材分析结果" :visible.sync="detailDialogVisible" width="640px">
       <div style="max-height: calc(70vh - 100px);overflow-y: auto">
         <div v-html="htmlContent" class="markdown-content" @mousedown.stop=""></div>
-<!--        <div v-if="video_score.camera_movement_and_dynamic_aesthetics" @mousedown.stop="" class="score-card">-->
-<!--          <el-divider content-position="left" class="score-card__divider">素材评分({{video_score.total_score}})</el-divider>-->
-<!--          <div v-for="item in scoreItems" :key="item.key" class="score-item">-->
-<!--            <div class="score-item__title">-->
-<!--              {{ item.label }} ({{ item.englishLabel }})-->
-<!--            </div>-->
-<!--            <div class="score-item__detail">-->
-<!--              <span class="score-item__label">评分:</span>-->
-<!--              <span class="score-item__value">{{ video_score[item.key].score }}</span>-->
-<!--            </div>-->
-<!--            <div class="score-item__detail">-->
-<!--              <span class="score-item__label">分析:</span>-->
-<!--              <span class="score-item__value">{{ video_score[item.key].reason }}</span>-->
-<!--            </div>-->
-<!--          </div>-->
-<!--        </div>-->
       </div>
     </el-dialog>
     <el-dialog class="upload-dialog" :visible.sync="uploadDialogVisible" width="32rem" :before-close="beforeUploadClose">
@@ -246,7 +230,7 @@
       </div>
     </el-dialog>
     <el-dialog class="upload-dialog" :visible.sync="uploadImageDialogVisible" width="32rem" :before-close="handleClear">
-      <div slot="title" class="upload-dialog-title">上传产品图片</div>
+      <div slot="title" class="upload-dialog-title">{{ readonly? '添加产品图片' : '新增产品' }}</div>
       <div class="upload-dialog-body">
         <el-form ref="uploadForm" label-position="top" label-width="80px" :model="uploadImageData">
           <el-form-item label="">
@@ -271,18 +255,19 @@
               <div class="el-upload__text">将文件拖到此处，或<em>点击上传</em></div>
             </el-upload>
           </el-form-item>
-          <el-form-item label="产品名称" prop="group_name">
-            <el-input v-model="uploadImageData.group_name" placeholder="输入产品名称"></el-input>
+          <el-form-item label="产品名称" prop="name">
+            <el-input v-model="uploadImageData.name" placeholder="输入产品名称" :readonly="readonly"></el-input>
           </el-form-item>
         </el-form>
       </div>
       <div slot="footer" class="upload-dialog-footer" @mousedown.stop="">
         <el-button @click="handleClear" size="small">取消</el-button>
-        <el-button type="primary" @click="handleSubmitUpload" size="small">确认上传</el-button>
+        <el-button type="primary" @click="handleSubmitUpload" size="small" :loading="loading">
+          {{ loading? '上传中': '确认上传' }}</el-button>
       </div>
     </el-dialog>
     <div class="figures-footer">
-      <el-button type="primary" v-if="classify_type === 'image'" style="width: 150px" @click="uploadImageDialogVisible = true">上传图片</el-button>
+      <el-button type="primary" v-if="classify_type === 'image'" style="width: 150px" @click="addProduct">新增产品</el-button>
       <span v-else>上传的视频文件格式需为:mp4、mov、MP4、MOV格式；上传的视频文件的时长最少应不低于30秒，建议不超过90秒；上传的视频内容必须符合规范，包含单个人物形象，脸部无遮挡；容量小的原始视频（建议50-100M左右）有利于提高模型速度。</span>
     </div>
   </div>
@@ -383,12 +368,14 @@ export default {
       resizeObserver: null,
       // product data
       product_list: [],
-      productIndex: 0,
+      productId: '',
       uploadImageDialogVisible: false,
       uploadImageData: {
-        group_name: '',
+        name: '',
       },
       imagesList: [],
+      readonly: false,
+      loading: false
     };
   },
   watch: {
@@ -560,27 +547,24 @@ export default {
       this.form.name = '';
       this.renameDialogVisible = true;
     },
-    renameProduct(item,index) {
-      this.productIndex = index
-      this.form.original = item.group_name;
+    renameProduct(item) {
+      this.productId = item.id
+      this.form.original = item.name;
       this.form.name = '';
       this.renameDialogVisible = true;
     },
     sureRename() {
-      if (this.classify_type === 'image') {
-        this.product_list[this.productIndex].group_name = this.form.name;
-        this.$message.success("重命名成功");
-        this.renameDialogVisible = false;
-        return
-      }
+      let url = this.classify_type === 'image' ? '/product/update' : '/figure/update_name'
       let params = {
+        product_id: this.productId,
         figure_id: this.figureId,
         name: this.form.name,
-      };
-      postAction("/figure/update_name", params).then((res) => {
+      }
+      postAction(url, params).then((res) => {
         if (res.data.status === "success") {
           this.$message.success("重命名成功");
           this.$store.dispatch("task/pollFigureTasks");
+          this.queryProducts()
         } else {
           this.$alert(res.data.message,'重命名失败')
         }
@@ -633,21 +617,35 @@ export default {
       this.video_score = this.selectedItem.video_score || {};
     },
     addImage(item) {
-      this.uploadImageData.group_name = item.group_name;
+      this.readonly = true
+      this.productId = item.id
+      this.uploadImageData.name = item.name;
       this.uploadImageDialogVisible = true;
+    },
+    addProduct() {
+      this.readonly = false
+      this.productId = ''
+      this.uploadImageDialogVisible = true
     },
     deleteProduct(index) {
       this.$confirm('确定要删除这个产品吗？', '删除', {
         type: 'warning'
       }).then(() => {
-        this.product_list.splice(index, 1);
-        this.$message.success("删除成功");
+        let ids = [this.product_list[index].id]
+        postAction('/product/delete', { product_ids: ids }).then(res => {
+          if (res.data.status === "success") {
+            this.$message.success("删除成功");
+            this.queryProducts()
+          } else {
+            this.$alert(res.data.message, "删除失败")
+          }
+        })
       }).catch(() => {
         this.$message({type: 'info', message: '已取消删除'});
       });
     },
     queryProducts() {
-      getAction('/picture/all/grouped').then(res => {
+      getAction('/product/all/grouped').then(res => {
         if (res.data.status === 'success') {
           this.product_list = res.data.data
         }else {
@@ -659,8 +657,14 @@ export default {
       })
     },
     operateProductImage(item, img_index) {
+      // 重置图生脚本缓存
       sessionStorage.setItem('operate_product', JSON.stringify(item))
       sessionStorage.setItem('operate_img_index', img_index)
+      sessionStorage.setItem('operate_scripts', JSON.stringify([]))
+      sessionStorage.removeItem('operate_isAlreadyGenerated')
+      sessionStorage.removeItem('is_newChat')
+      sessionStorage.setItem('chats', JSON.stringify([]))
+
       sessionStorage.setItem('figure_path', '/imageToScript')
       this.$router.push({path: '/imageToScript'})
     },
@@ -708,30 +712,36 @@ export default {
       this.imagesList.forEach((file) => {
         formData.append("file", file.raw); // 将文件添加到 FormData 中
       });
-      formData.append('group_name', this.uploadImageData.group_name);
-
+      formData.append('group_name', this.uploadImageData.name);
+      this.loading = true
       axios.post("http://127.0.0.1:6006/picture/upload", formData,{
         headers: {
           'Content-Type': 'multipart/form-data',
         },
       }).then((res) => {
         if (res.data.status === "success") {
+          this.loading = false
           this.$message.success("上传成功");
           this.queryProducts()
           this.handleClear();
         }else {
-          this.$message.error(res.data.message);
+          this.loading = false
+          this.$alert(res.data.message, "上传失败");
         }
       }).catch((err) => {
-        console.log(err)
-        this.$message.error('上传错误，请稍后再试！')
+        this.loading = false
+        this.$alert(err, "上传错误");
       })
     },
     handleClear() {
+      if (this.loading) {
+        return;
+      }
       if (this.$refs.imageUpload) {
         this.$refs.imageUpload.clearFiles();
       }
       this.imagesList = [];
+      this.uploadImageData.name = ''
       this.uploadImageDialogVisible = false
     },
     handleUploadImage({ file }) {
