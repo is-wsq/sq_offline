@@ -41,16 +41,40 @@
           </div>
         </div>
         <div class="video-item-body">
-          <div style="color: #4b5563;margin-bottom: 16px">生成视频</div>
-          <div class="video-item-images" @mouseleave="item.hover = false"  @mouseenter="item.hover = true">
-            <video :src="item.video_path" style="width: 120px;height: 160px;border-radius: 8px"
-                   v-if="item.hover" loop muted autoplay></video>
-            <el-image :src="item.image_path" style="width: 120px;height: 160px;border-radius: 8px"
-                      v-else fit="cover"></el-image>
+          <div style="color: #4b5563;">生成视频组</div>
+          <div class="storyboard-item-videos">
+            <template v-if="item.video_paths && item.video_paths.length > 0">
+              <div v-for="(video,video_index) in item.video_paths" :key="video_index"
+                   @click="previewVideo(video)" class="storyboard-item-video"
+                   @mouseenter="hover(index,video_index,video,item)" @mouseleave="leave">
+                <video :src="video" loop muted autoplay
+                       style="width: 120px;height: 160px;border-radius: 8px;object-fit: cover"
+                       v-if="hoverIndex === index && hoverVideoIndex === video_index">
+                </video>
+                <el-image :src="item.images[video_index]" style="width: 120px;height: 160px;border-radius: 8px"
+                          v-else fit="cover"></el-image>
+                <i class="el-icon-zoom-in zoom-in"></i>
+                <i class="el-icon-close close-btn" @click.stop="deleteVideo(index,video_index)"></i>
+              </div>
+            </template>
+            <template v-else>
+              <div class="storyboard-item-video-empty">
+                <i class="el-icon-empty-video"></i>
+                <div style="font-size: 14px !important;">暂无视频，请点击右侧重新生成按钮生成视频</div>
+              </div>
+            </template>
           </div>
         </div>
       </div>
     </div>
+    <el-dialog class="preview-video-dialog" :visible.sync="previewVideoVisible" width="430px" :before-close="closePreviewVideo">
+      <div class="preview-video-container">
+        <video style="border-radius: 8px;width: 100%" ref="video"
+               :src="previewVideoUrl" @ended="isPlaying = false">
+        </video>
+        <i class="el-icon-play control-icon" @click="controlVideo" v-if="!isPlaying"></i>
+      </div>
+    </el-dialog>
   </div>
 </template>
 
@@ -62,7 +86,13 @@ export default {
   data() {
     return {
       video_scripts: [],
+      params_scripts: [],
       loading: false,
+      hoverIndex: null,
+      hoverVideoIndex: null,
+      previewVideoVisible: false,
+      previewVideoUrl: '',
+      isPlaying: false,
     }
   },
   mounted() {
@@ -76,20 +106,20 @@ export default {
         spinner: 'el-icon-loading',
         background: 'rgba(0, 0, 0, 0.7)'
       });
-      let scripts = [{
-        copy: this.video_scripts[index].copy,
-        image_path: this.video_scripts[index].image_path,
-      }]
       let params = {
-        scripts: scripts,
+        scripts: [this.params_scripts[index]],
         duration: 4,
       }
       postAction('/picture/generate_video', params, 600000).then(res => {
         if (res.data.status ==='success') {
           this.loading.close();
           this.loading = null;
-          this.video_scripts[index] = res.data.data[0]
-          sessionStorage.setItem('video_scripts', JSON.stringify(res.data.data))
+          this.video_scripts[index].images = [...this.video_scripts[index].images, ...res.data.data[0].images]
+          this.video_scripts[index].video_paths = [...this.video_scripts[index].video_paths, ...res.data.data[0].video_paths]
+          sessionStorage.setItem('video_scripts', JSON.stringify(this.video_scripts))
+
+          this.params_scripts[index].video_paths = [...this.params_scripts[index].video_paths, ...res.data.data[0].video_paths]
+          sessionStorage.setItem('params_scripts', JSON.stringify(this.params_scripts))
           this.$message.success('分镜视频重新生成成功')
           this.$forceUpdate()
         } else {
@@ -109,15 +139,60 @@ export default {
       }).then(() => {
         this.video_scripts.splice(index, 1)
         sessionStorage.setItem("video_scripts", JSON.stringify(this.video_scripts))
+
+        this.params_scripts.splice(index, 1)
+        sessionStorage.setItem("params_scripts", JSON.stringify(this.params_scripts))
+        this.$message.success('删除成功')
+      }).catch(() => {
+        this.$message.info('已取消删除')
+      })
+    },
+    hover(index, video_index) {
+      this.hoverIndex = index
+      this.hoverVideoIndex = video_index
+    },
+    leave() {
+      this.hoverIndex = null
+      this.hoverVideoIndex = null
+    },
+    previewVideo(video) {
+      this.previewVideoUrl = video
+      this.previewVideoVisible = true
+    },
+    closePreviewVideo() {
+      this.isPlaying = false
+      this.$refs.video.pause()
+      this.$refs.video.currentTime = 0
+      this.previewVideoVisible = false
+    },
+    controlVideo() {
+      const video = this.$refs.video;
+      if (this.isPlaying) {
+        video.pause();
+        this.isPlaying = false;
+      } else {
+        video.play();
+        this.isPlaying = true;
+      }
+    },
+    deleteVideo(index, video_index) {
+      this.$confirm('确认删除该视频吗？','提示', {
+        type: 'warning'
+      }).then(() => {
+        this.video_scripts[index].video_paths.splice(video_index, 1)
+        this.video_scripts[index].images.splice(video_index, 1)
+        sessionStorage.setItem("video_scripts", JSON.stringify(this.video_scripts))
+
+        this.params_scripts[index].video_paths.splice(video_index, 1)
+        sessionStorage.setItem("params_scripts", JSON.stringify(this.params_scripts))
         this.$message.success('删除成功')
       }).catch(() => {
         this.$message.info('已取消删除')
       })
     },
     initData() {
-      this.video_scripts = JSON.parse(sessionStorage.getItem("video_scripts")).map(item => {
-        return { ...item, hover: false }
-      })
+      this.video_scripts = JSON.parse(sessionStorage.getItem("video_scripts"))
+      this.params_scripts = JSON.parse(sessionStorage.getItem("params_scripts"))
     },
     backToScript() {
       sessionStorage.setItem('figure_path', '/scriptToImage')
@@ -207,9 +282,97 @@ export default {
   padding: 16px;
 }
 
-.video-item-images {
-  width: 120px;
+.storyboard-item-videos {
   display: flex;
   gap: 16px;
+  overflow-x: auto;
+  padding: 8px 0;
+  white-space: nowrap;
+}
+
+.storyboard-item-video {
+  width: 120px;
+  height: 160px;
+  border-radius: 8px;
+  position: relative;
+  cursor: pointer;
+  flex: 0 0 auto;
+}
+
+.storyboard-item-video:hover {
+  transform: scale(1.05);
+}
+
+.zoom-in, .close-btn {
+  color: #ffffff;
+  position: absolute;
+  opacity: 0;
+}
+
+.zoom-in {
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 20px;
+}
+
+.close-btn {
+  top: 5px;
+  right: 5px;
+  font-size: 16px;
+  font-weight: bold;
+}
+
+.storyboard-item-video:hover .zoom-in,
+.storyboard-item-video:hover .close-btn {
+  opacity: 1;
+}
+
+.storyboard-item-video-empty {
+  width: 100%;
+  height: 160px;
+  display: flex;
+  gap: 12px;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  color: #cdcdcd;
+  font-size: 50px;
+}
+
+.preview-video-dialog >>> .el-dialog {
+  background-color: transparent;
+  box-shadow: none !important;
+  margin: 0 auto;
+}
+
+.preview-video-dialog >>> .el-dialog__headerbtn {
+  right: 0;
+}
+
+.preview-video-dialog >>> .el-dialog__close {
+  font-size: 24px;
+  font-weight: bold;
+  color: #9ca3af;
+}
+
+.preview-video-dialog >>> .el-dialog__body {
+  padding: 15px 35px;
+}
+
+.preview-video-container {
+  width: 360px;
+  position: relative;
+}
+
+.control-icon {
+  font-size: 30px;
+  color: #fff;
+  cursor: pointer;
+  filter: drop-shadow(0px 0px 10px #292929);
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
 }
 </style>
