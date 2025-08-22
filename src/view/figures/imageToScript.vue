@@ -13,7 +13,7 @@
     </div>
     <div class="imageToScript-content">
       <div class="operation-content left">
-        <div class="title">展示区</div>
+        <div class="title">{{ scripts.length === 0 ? '展示区' : '选定脚本' }}</div>
         <div class="view-area" v-if="scripts.length === 0">
           <template v-if="operateProductInfo.images">
             <div class="flex-center" style="flex: 1;">
