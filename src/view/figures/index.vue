@@ -147,7 +147,7 @@
         <div v-html="htmlContent" class="markdown-content" @mousedown.stop=""></div>
       </div>
     </el-dialog>
-    <el-dialog class="upload-dialog" :visible.sync="uploadDialogVisible" width="32rem" :before-close="beforeUploadClose">
+    <el-dialog class="upload-dialog" :visible.sync="uploadDialogVisible" width="600px" :before-close="beforeUploadClose">
       <div slot="title" class="upload-dialog-title" @mousedown.stop="">上传素材</div>
       <div class="upload-dialog-body" @mousedown.stop="">
         <el-form ref="uploadForm" label-position="top" label-width="80px" :model="uploadData">
@@ -216,7 +216,7 @@
         </div>
       </div>
     </el-dialog>
-    <el-dialog class="upload-dialog" :visible.sync="renameDialogVisible" width="32rem">
+    <el-dialog class="upload-dialog" :visible.sync="renameDialogVisible" width="600px">
       <div slot="title" class="upload-dialog-title" @mousedown.stop="">重命名</div>
       <div class="upload-dialog-body" @mousedown.stop="">
         <div style="margin: 10px 0 5px 0;font-size: 15px;font-weight: bold">原名称</div>
@@ -229,7 +229,7 @@
         <el-button type="primary" @click="sureRename" size="small">确认</el-button>
       </div>
     </el-dialog>
-    <el-dialog class="upload-dialog" :visible.sync="uploadImageDialogVisible" width="32rem" :before-close="handleClear">
+    <el-dialog class="upload-dialog" :visible.sync="uploadImageDialogVisible" width="600px" :before-close="handleClear">
       <div slot="title" class="upload-dialog-title">{{ readonly? '添加产品图片' : '新增产品' }}</div>
       <div class="upload-dialog-body">
         <el-form ref="uploadForm" label-position="top" label-width="80px" :model="uploadImageData">
@@ -250,13 +250,25 @@
                 :auto-upload="false"
                 :limit="20"
                 :on-exceed="handleExceed"
+                :disabled="loading"
                 multiple>
               <i class="el-icon-upload"></i>
               <div class="el-upload__text">将文件拖到此处，或<em>点击上传</em></div>
             </el-upload>
           </el-form-item>
           <el-form-item label="产品名称" prop="name">
-            <el-input v-model="uploadImageData.name" placeholder="输入产品名称" :readonly="readonly"></el-input>
+            <el-input v-model="uploadImageData.name" placeholder="输入产品名称" :readonly="readonly || loading"></el-input>
+          </el-form-item>
+          <el-form-item label="关联店铺 (必选)" prop="store_id">
+            <el-select v-model="uploadImageData.store_id" placeholder="请选择要关联的店铺" :disabled="readonly || loading"
+                       style="width: 100%">
+              <el-option
+                  v-for="shop in shops"
+                  :key="shop.id"
+                  :label="shop.name"
+                  :value="shop.id">
+              </el-option>
+            </el-select>
           </el-form-item>
         </el-form>
       </div>
@@ -372,6 +384,7 @@ export default {
       uploadImageDialogVisible: false,
       uploadImageData: {
         name: '',
+        store_id: ''
       },
       imagesList: [],
       readonly: false,
@@ -707,12 +720,21 @@ export default {
         this.$message.warning("请先选择文件！");
         return;
       }
+      if (this.uploadImageData.name === '') {
+        this.$message.warning("请输入产品名称！");
+        return;
+      }
+      if (this.uploadImageData.store_id === '') {
+        this.$message.warning("请选择关联店铺！");
+        return;
+      }
 
       const formData = new FormData();
       this.imagesList.forEach((file) => {
         formData.append("file", file.raw); // 将文件添加到 FormData 中
       });
       formData.append('group_name', this.uploadImageData.name);
+      formData.append('store_id', this.uploadImageData.store_id);
       this.loading = true
       axios.post("http://127.0.0.1:6006/picture/upload", formData,{
         headers: {
@@ -742,6 +764,7 @@ export default {
       }
       this.imagesList = [];
       this.uploadImageData.name = ''
+      this.uploadImageData.store_id = ''
       this.uploadImageDialogVisible = false
     },
     handleUploadImage({ file }) {
@@ -1232,6 +1255,8 @@ export default {
 
 .upload-dialog-body {
   padding: 10px 20px;
+  max-height: calc(70vh - 120px);
+  overflow-y: auto;
 }
 
 .upload-dialog-footer {

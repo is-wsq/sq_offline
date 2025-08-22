@@ -88,7 +88,7 @@
     <div style="text-align: center; margin-top: 12px;">
       <el-button type="primary" class="foot-btn" @click="duplicate">一键复刻</el-button>
     </div>
-    <el-dialog class="upload-dialog" :visible.sync="uploadDialogVisible" width="32rem"
+    <el-dialog class="upload-dialog" :visible.sync="uploadDialogVisible" width="600px"
                title="上传爆款视频" :before-close="beforeUploadClose">
       <el-upload
           v-if="!use_link"
@@ -146,7 +146,7 @@
         </div>
       </div>
     </el-dialog>
-    <el-dialog class="upload-dialog" :visible.sync="renameDialogVisible" width="32rem" title="重命名视频名称">
+    <el-dialog class="upload-dialog" :visible.sync="renameDialogVisible" width="600px" title="重命名视频名称">
       <div style="margin: 10px 0 5px 0;font-size: 15px;font-weight: bold">原名称</div>
       <el-input v-model="form.original" readonly></el-input>
       <div style="margin: 10px 0 5px 0;font-size: 15px;font-weight: bold">新名称</div>

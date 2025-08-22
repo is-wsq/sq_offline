@@ -109,7 +109,7 @@
     <div class="timbre-footer">
       请上传格式为mp3\wav的音频进行声音克隆，建议音频时长为3分钟。避免采集环境噪音过大、声音失真或包含他人声音的样本，否则会影响克隆效果。
     </div>
-    <el-dialog class="rename-dialog" :visible.sync="renameDialogVisible" width="32rem">
+    <el-dialog class="rename-dialog" :visible.sync="renameDialogVisible" width="600px">
       <div slot="title" class="rename-dialog-title">重命名音色</div>
       <div class="rename-dialog-body">
         <div style="margin: 10px 0 5px 0;font-size: 15px;font-weight: bold">原名称</div>
