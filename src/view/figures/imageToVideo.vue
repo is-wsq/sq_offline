@@ -18,7 +18,7 @@
           基于您分镜脚本生成的图片生成对应的视频，可进行调整和优化
         </div>
       </div>
-      <el-button type="primary">批量下载</el-button>
+      <el-button type="primary" @click="saveAsMaterial">保存为素材</el-button>
     </div>
     <div class="imageToVideo-body">
       <div class="video-item" v-for="(item, index) in video_scripts" :key="index">
@@ -27,7 +27,7 @@
             <div style="display: flex;gap: 8px">
               <div style="font-size: 18px; font-weight: bold;">分镜脚本{{ index + 1 }}</div>
             </div>
-            <div class="video-item-copy">{{ item.copy }}</div>
+            <div class="video-item-copy">{{ item.video_copy || item.copy }}</div>
           </div>
           <div class="operate-btn-group">
             <el-button type="primary" @click="handleReload(index)">
@@ -93,6 +93,7 @@ export default {
       previewVideoVisible: false,
       previewVideoUrl: '',
       isPlaying: false,
+      productInfo: {}
     }
   },
   mounted() {
@@ -190,7 +191,44 @@ export default {
         this.$message.info('已取消删除')
       })
     },
+    saveAsMaterial() {
+      let params_scripts = this.params_scripts.map(item => {
+        return {
+          ...item,
+          video_copy: item.video_copy || item.copy,
+        }
+      })
+      let params = {
+        store_id: this.productInfo.store_id,
+        scripts: params_scripts,
+      }
+      postAction('/figure/upload_generated_video_list',params).then(res => {
+        if (res.data.status ==='success') {
+          this.$message.success('保存为素材成功')
+          this.clearCache()
+          sessionStorage.setItem('classify_type', 'material')
+          this.$router.push({path: '/figures'})
+        } else {
+          this.$alert(res.data.message,'保存为素材失败')
+        }
+      }).catch(err => {
+        this.$alert(err,'保存为素材错误')
+      })
+    },
+    clearCache() {
+      sessionStorage.removeItem('video_scripts')
+      sessionStorage.removeItem('params_scripts')
+      sessionStorage.removeItem('operate_product')
+      sessionStorage.removeItem('figure_path')
+      sessionStorage.removeItem('chats')
+      sessionStorage.removeItem('image_scripts')
+      sessionStorage.removeItem('last_generated_scripts')
+      sessionStorage.removeItem('operate_img_index')
+      sessionStorage.removeItem('operate_isAlreadyGenerated')
+      sessionStorage.removeItem('operate_scripts')
+    },
     initData() {
+      this.productInfo = JSON.parse(sessionStorage.getItem("operate_product"))
       this.video_scripts = JSON.parse(sessionStorage.getItem("video_scripts"))
       this.params_scripts = JSON.parse(sessionStorage.getItem("params_scripts"))
     },
