@@ -56,14 +56,22 @@
           </div>
         </div>
         <div class="storyboard-item-body">
-          <div style="color: #4b5563;margin-bottom: 16px">生成图片组</div>
+          <div style="color: #4b5563">生成图片组</div>
           <div class="storyboard-item-images">
-            <div v-for="(image,image_index) in item.images" :key="image_index"
-                 @click="previewImage(image)" class="storyboard-item-image">
-              <el-image :src="image" style="width: 100%;border-radius: 8px"></el-image>
-              <i class="el-icon-zoom-in zoom-in"></i>
-              <i class="el-icon-close close-btn" @click.stop="deleteImage(index,image_index)"></i>
-            </div>
+            <template v-if="item.images && item.images.length > 0">
+              <div v-for="(image,image_index) in item.images" :key="image_index"
+                   @click="previewImage(image)" class="storyboard-item-image">
+                <el-image :src="image" style="width: 100%;height: 100%;border-radius: 8px" fit="cover"></el-image>
+                <i class="el-icon-zoom-in zoom-in"></i>
+                <i class="el-icon-close close-btn" @click.stop="deleteImage(index,image_index)"></i>
+              </div>
+            </template>
+            <template v-else>
+              <div class="storyboard-item-image-empty">
+                <i class="el-icon-empty-image"></i>
+                <div style="font-size: 14px !important;">暂无图片，请点击右侧重新生成按钮生成图片</div>
+              </div>
+            </template>
           </div>
         </div>
       </div>
@@ -105,19 +113,16 @@ export default {
         spinner: 'el-icon-loading',
         background: 'rgba(0, 0, 0, 0.7)'
       });
-      let scripts = []
-      let script = this.image_scripts.map(item => item.copy)[index]
-      scripts.push({ copy: script })
       let params = {
         product_id: this.operateProductInfo.id,
-        scripts: scripts,
+        scripts: [this.image_scripts[index]],
         size: "portrait"
       }
       postAction('/picture/generate_images_parallel',params, 600000).then(res => {
         if (res.data.status === 'success') {
           this.loading.close();
           this.loading = null;
-          this.image_scripts[index] = res.data.data[0]
+          this.image_scripts[index].images = [...this.image_scripts[index].images, ...res.data.data[0].images]
           sessionStorage.setItem("image_scripts", JSON.stringify(this.image_scripts))
           this.$message.success('图片重新生成成功')
           this.$forceUpdate()
@@ -173,15 +178,11 @@ export default {
       this.image_scripts = JSON.parse(sessionStorage.getItem("image_scripts"))
     },
     generateVideo() {
-      let scripts = this.image_scripts.map(item => {
-        return {
-          copy: item.copy,
-          image_path: item.selected_image
-        }
-      })
-      let hasImagePathUndefined = scripts.every(item => !item.image_path);
-      if (hasImagePathUndefined) {
-        this.$alert('请先给每个分镜脚本选择生成视频的图片后重新尝试','生成失败')
+      const hasEmptyImages = this.image_scripts.some(item => {
+        return !item.images || item.images.length === 0;
+      });
+      if (hasEmptyImages) {
+        this.$alert('生成视频失败，请先给每个分镜脚本生成图片后重新尝试！', '提示')
         return
       }
       this.loading = this.$loading({
@@ -191,7 +192,7 @@ export default {
         background: 'rgba(0, 0, 0, 0.7)'
       });
       let params = {
-        scripts: scripts,
+        scripts: this.image_scripts,
         duration: 4,
       }
       postAction('/picture/generate_video', params, 600000).then(res => {
@@ -199,6 +200,7 @@ export default {
           this.loading.close();
           this.loading = null;
           sessionStorage.setItem('video_scripts', JSON.stringify(res.data.data))
+          sessionStorage.setItem('params_scripts', JSON.stringify(res.data.data))
 
           sessionStorage.setItem('figure_path', '/imageToVideo')
           this.$router.push({ path: '/imageToVideo' })
@@ -304,13 +306,18 @@ export default {
 .storyboard-item-images {
   display: flex;
   gap: 16px;
+  overflow-x: auto;
+  padding: 8px 0;
+  white-space: nowrap;
 }
 
 .storyboard-item-image {
   width: 120px;
+  height: 160px;
   border-radius: 8px;
   position: relative;
   cursor: pointer;
+  flex: 0 0 auto;
 }
 
 .storyboard-item-image:hover {
@@ -340,6 +347,18 @@ export default {
 .storyboard-item-image:hover .zoom-in,
 .storyboard-item-image:hover .close-btn {
   opacity: 1;
+}
+
+.storyboard-item-image-empty {
+  width: 100%;
+  height: 160px;
+  display: flex;
+  gap: 12px;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  color: #cdcdcd;
+  font-size: 50px;
 }
 
 .preview-img-dialog >>> .el-dialog {

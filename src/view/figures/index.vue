@@ -976,6 +976,7 @@ export default {
   width: 100%;
   height: 100%;
   min-height: 700px;
+  min-width: 900px;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -1107,11 +1108,12 @@ export default {
 .product-list {
   flex: 1;
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(248px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
   grid-auto-rows: 436px;
   gap: 20px;
   justify-items: center;
-  overflow: auto;
+  overflow-y: auto;
+  overflow-x: hidden;
 }
 
 .product-item {
