@@ -58,15 +58,19 @@
         <div class="storyboard-item-body">
           <div style="color: #4b5563;margin-bottom: 16px">生成图片组</div>
           <div class="storyboard-item-images">
-            <div v-for="(image,image_index) in item.images" :key="image_index" @click="setImage(index,image)">
-              <el-image :src="image" style="width: 120px;border-radius: 8px"
-                        :class="{'active-image': item.selected_image === image}">
-              </el-image>
+            <div v-for="(image,image_index) in item.images" :key="image_index"
+                 @click="previewImage(image)" class="storyboard-item-image">
+              <el-image :src="image" style="width: 100%;border-radius: 8px"></el-image>
+              <i class="el-icon-zoom-in zoom-in"></i>
+              <i class="el-icon-close close-btn" @click.stop="deleteImage(index,image_index)"></i>
             </div>
           </div>
         </div>
       </div>
     </div>
+    <el-dialog class="preview-img-dialog" :visible.sync="previewImgVisible" width="430px">
+      <el-image :src="previewImgUrl" style="width: 360px;border-radius: 8px"></el-image>
+    </el-dialog>
   </div>
 </template>
 
@@ -82,6 +86,8 @@ export default {
       editIndex: -1,
       editCopy: '',
       loading: null,
+      previewImgVisible: false,
+      previewImgUrl: ''
     }
   },
   mounted() {
@@ -147,10 +153,20 @@ export default {
       this.editIndex = -1
       this.$message.info('已取消编辑')
     },
-    setImage(index, image) {
-      this.$set(this.image_scripts[index], 'selected_image', image);
-      sessionStorage.setItem("image_scripts", JSON.stringify(this.image_scripts))
-      this.$forceUpdate()
+    previewImage(image) {
+      this.previewImgUrl = image
+      this.previewImgVisible = true
+    },
+    deleteImage(index, image_index) {
+      this.$confirm('确认删除该图片吗？','提示', {
+        type: 'warning'
+      }).then(() => {
+        this.image_scripts[index].images.splice(image_index, 1)
+        sessionStorage.setItem("image_scripts", JSON.stringify(this.image_scripts))
+        this.$message.success('删除成功')
+      }).catch(() => {
+        this.$message.info('已取消删除')
+      })
     },
     initData() {
       this.operateProductInfo = JSON.parse(sessionStorage.getItem('operate_product'))
@@ -290,8 +306,59 @@ export default {
   gap: 16px;
 }
 
-.active-image {
-  border: 2px solid #6366fe;
-  box-sizing: border-box;
+.storyboard-item-image {
+  width: 120px;
+  border-radius: 8px;
+  position: relative;
+  cursor: pointer;
+}
+
+.storyboard-item-image:hover {
+  transform: scale(1.05);
+}
+
+.zoom-in, .close-btn {
+  color: #ffffff;
+  position: absolute;
+  opacity: 0;
+}
+
+.zoom-in {
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 20px;
+}
+
+.close-btn {
+  top: 5px;
+  right: 5px;
+  font-size: 16px;
+  font-weight: bold;
+}
+
+.storyboard-item-image:hover .zoom-in,
+.storyboard-item-image:hover .close-btn {
+  opacity: 1;
+}
+
+.preview-img-dialog >>> .el-dialog {
+  background-color: transparent;
+  box-shadow: none !important;
+  margin: 0 auto;
+}
+
+.preview-img-dialog >>> .el-dialog__headerbtn {
+  right: 0;
+}
+
+.preview-img-dialog >>> .el-dialog__close {
+  font-size: 24px;
+  font-weight: bold;
+  color: #9ca3af;
+}
+
+.preview-img-dialog >>> .el-dialog__body {
+  padding: 15px 35px;
 }
 </style>
