@@ -1,8 +1,8 @@
 @font-face {
   font-family: "element-icons"; /* Project id 3257355 */
-  src: url('iconfont.woff2?t=1755499008616') format('woff2'),
-       url('iconfont.woff?t=1755499008616') format('woff'),
-       url('iconfont.ttf?t=1755499008616') format('truetype');
+  src: url('iconfont.woff2?t=1755854493148') format('woff2'),
+       url('iconfont.woff?t=1755854493148') format('woff'),
+       url('iconfont.ttf?t=1755854493148') format('truetype');
 }
 
 .element-icons {
@@ -11,6 +11,14 @@
   font-style: normal;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+.el-icon-empty-video:before {
+  content: "\e605";
+}
+
+.el-icon-empty-image:before {
+  content: "\e604";
 }
 
 .el-icon-fa-film:before {
