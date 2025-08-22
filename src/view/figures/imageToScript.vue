@@ -99,15 +99,16 @@
         <template v-else>
           <div class="chat-area">
             <div class="chat-frame" ref="chatFrameRef">
-              <div v-for="(item, index) in chats" :key="index">
+              <div v-for="(item, index) in chats" :key="index"
+                   :class="{'historical-chat': lastNewChatIndex !== -1 && index < lastNewChatIndex}">
                 <div v-if="item.type === 'userMessage'" style="display: flex;justify-content: end;">
                   <div class="user-message">
                     {{ item.content }}
                   </div>
                 </div>
-                <template v-if="item.type === 'answerMessage'">
+                <div v-if="item.type === 'answerMessage'" class="answer-message-content">
                   <div class="answer-message">
-                    <div class="avatar-area"></div>
+                    <div class="avatar-area">奇</div>
                     <div style="flex: 1">
                       <el-collapse>
                         <el-collapse-item>
@@ -135,13 +136,13 @@
                     <i class="el-icon-copy-document font-weight"></i>
                     选择本次生成脚本
                   </div>
-                </template>
+                </div>
                 <div v-if="item.type === 'newChat'">
                   <el-divider>新会话</el-divider>
                 </div>
               </div>
               <div class="loading-content" v-if="isGenerating">
-                <div class="avatar-area"></div>
+                <div class="avatar-area">奇</div>
                 <div class="loading-area flex-center"><i class="el-icon-loading"></i></div>
               </div>
             </div>
@@ -229,6 +230,16 @@ export default {
         sessionStorage.setItem('is_newChat', JSON.stringify(newValue))
       },
       deep: true
+    }
+  },
+  computed: {
+    lastNewChatIndex() {
+      for (let i = this.chats.length - 1; i >= 0; i--) {
+        if (this.chats[i].type === 'newChat') {
+          return i;
+        }
+      }
+      return -1;
     }
   },
   mounted() {
@@ -658,6 +669,12 @@ export default {
   color: #9ca3af;
 }
 
+.historical-chat {
+  opacity: 0.5;
+  /* pointer-events: none; */
+  transition: opacity 0.3s ease-in-out;
+}
+
 .user-message {
   max-width: 85%;
   background-color: #dbeafe;
@@ -670,7 +687,6 @@ export default {
 }
 
 .answer-message {
-  max-width: 85%;
   background-color: #eff6ff;
   padding: 10px;
   box-shadow: 0 0  #0000, 0 0 #0000, 0 1px 2px 0 rgb(0 0 0 / 0.05);
@@ -727,13 +743,31 @@ export default {
   color: #4B5563;
   margin-top: 4px;
   cursor: pointer;
+  opacity: 0;
+}
+
+.answer-message-content {
+  max-width: 85%;
+}
+
+.answer-message-content:hover .select-script-btn {
+  opacity: 1;
 }
 
 .avatar-area {
   width: 32px;
   height: 32px;
+  background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #ec4899 100%);
   border-radius: 50%;
-  background-color: #6366fe;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-weight: bold;
+  font-size: 18px;
+  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+  position: relative;
+  overflow: hidden;
 }
 
 .answer-message-label {
