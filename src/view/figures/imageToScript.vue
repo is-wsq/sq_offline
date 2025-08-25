@@ -85,7 +85,12 @@
               <div class="design-label">产品核心卖点</div>
               <el-input type="textarea" resize="none" class="sell-input margin-b-12"
                         placeholder="文案内容..." v-model="sell_point"></el-input>
-              <div class="design-label">生成脚本数量</div>
+              <div class="design-label">营销亮点</div>
+              <div class="marketing-highlights">
+                <el-tag v-for="tag in highlights" :key="tag" class="marketing-highlights-tag" @click="selectHighlight(tag)"
+                        :class="{'active-highlights-tag': active_highlights.includes(tag)}">{{ tag }}</el-tag>
+              </div>
+              <div class="design-label margin-t-12">生成脚本数量</div>
               <div class="flex-center">
                 <el-input-number v-model="script_num" :min="1" :max="4" class="margin-b-12"></el-input-number>
                 <div class="placeholder-label">可选择1-4条</div>
@@ -165,7 +170,14 @@
                 <div class="design-label">产品核心卖点</div>
                 <el-input type="textarea" resize="none" class="sell-input margin-b-12"
                           placeholder="文案内容..." v-model="sell_point"></el-input>
-                <div class="design-label">生成脚本数量</div>
+                <div class="design-label">营销亮点</div>
+                <div class="marketing-highlights">
+                  <el-tag v-for="tag in highlights" :key="tag" class="marketing-highlights-tag"
+                          :style="{backgroundColor: '#ffffff !important',border: '1px solid #DCDFE6 !important'}"
+                          :class="{'active-highlights-tag': active_highlights.includes(tag)}" @click="selectHighlight(tag)">
+                    {{ tag }}</el-tag>
+                </div>
+                <div class="design-label margin-t-12">生成脚本数量</div>
                 <div class="flex-center">
                   <el-input-number v-model="script_num" :min="1" :max="4" class="margin-b-12"></el-input-number>
                   <div class="placeholder-label">可选择1-4条</div>
@@ -193,6 +205,8 @@ export default {
       operateProductInfo: {},
       imageIndex: 0,
       sell_point: '',
+      highlights: ['科技感','运动活力','时尚高级','自然场景','续航性强'],
+      active_highlights: [],
       script_num: 1,
       scripts: [],
       lastGeneratedScripts: [],
@@ -246,6 +260,13 @@ export default {
     this.initData();
   },
   methods: {
+    selectHighlight(tag) {
+      if (this.active_highlights.includes(tag)) {
+        this.active_highlights.splice(this.active_highlights.indexOf(tag), 1);
+      } else {
+        this.active_highlights.push(tag);
+      }
+    },
     generateScriptsByImage() {
       if (!this.sell_point) {
         this.$alert('请先输入产品核心卖点','提示')
@@ -655,6 +676,29 @@ export default {
 .imageToScript >>> .el-input-number__increase {
   background-color: transparent;
   border: none;
+}
+
+.marketing-highlights {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.marketing-highlights-tag {
+  background-color: #F5F5F5;
+  color: #525252;
+  border-radius: 14px;
+  border: 1px solid #F5F5F5;
+  cursor: pointer;
+  height: 28px;
+  line-height: 28px;
+  padding-left: 12px;
+  padding-right: 12px;
+}
+
+.active-highlights-tag {
+  background-color: #3b82f6 !important;
+  color: #FFFFFF !important;
 }
 
 .placeholder-label {
