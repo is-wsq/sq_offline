@@ -633,6 +633,7 @@ export default {
       this.readonly = true
       this.productId = item.id
       this.uploadImageData.name = item.name;
+      this.uploadImageData.store_id = item.store_id;
       this.uploadImageDialogVisible = true;
     },
     addProduct() {
