@@ -88,7 +88,7 @@ export default {
     },
     updateActiveFromRoute() {
       let paths = ['/human', '/material', '/smartGenerate', '/syncCv', '/duplicate', '/segments', '/montage', '/hot']
-      let first_paths = ['/imageToScript', '/scriptToImage']
+      let first_paths = ['/imageToScript', '/scriptToImage', '/imageToVideo']
       if (first_paths.includes(this.$route.path)) {
         this.active = 1;
         return;
