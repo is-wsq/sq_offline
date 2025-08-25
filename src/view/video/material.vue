@@ -43,8 +43,17 @@
               <div style="display: flex;flex-direction: column;height: calc(100vh - 280px)">
                 <div style="display: flex">
                   <div class="tags" :class="{'show-tags': showFullTags }">
+                    <el-tag :class="{ 'tag-active': filter_active_tags.length === 0 && filter_active_store.length === 0 }"
+                            class="tag" size="small" @click="tagFilter('')">
+                      全部</el-tag>
+                    <template v-for="store_id in storeIds">
+                      <el-tag :key="store_id" size="small" v-if="shops.some(shop => shop.id.includes(store_id))"
+                              class="tag" :class="{'tag-active': filter_active_store.includes(store_id)}"
+                              @click="storeFilter(store_id)">
+                        {{ shops.find(shop => shop.id === store_id).name }}</el-tag>
+                    </template>
                     <el-tag v-for="(tag, index) in tags" :key="index" size="small" class="tag"
-                            :class="{ 'tag-active': activeTags.includes(tag) }" @click="selectTag(tag)">
+                            :class="{ 'tag-active': filter_active_tags.includes(tag) }" @click="tagFilter(tag)">
                       {{ tag }}
                     </el-tag>
                   </div>
@@ -561,9 +570,11 @@ export default {
       reverse: false,
 
       filter_text: '',
-
+      shops: [],
+      storeIds: [],
+      filter_active_store: [],
+      filter_active_tags: [],
       tags: [],
-      activeTags: ['全部'],
       select_tags: [],
       showFullTags: false,
 
@@ -726,6 +737,7 @@ export default {
   mounted() {
     this.queryMaterials();
     this.queryFigures();
+    this.queryShops()
     this.mode = sessionStorage.getItem('setting_mode') || 'common'
     this.querySounds();
     this.queryMiniMaxVoices()
@@ -774,28 +786,39 @@ export default {
       this.material_list = this.filter_materials.map(item => item.id)
       sessionStorage.setItem('material_list', JSON.stringify(this.material_list))
     },
-    popoverShow() {
-      this.$nextTick(() => {
-        let popover = document.querySelector('.full-popover');
-        if (popover) {
-          popover.style.marginTop = '0';
-        }
-      });
-    },
-    selectTag(tag) {
-      if (tag === '全部') {
-        this.activeTags = ['全部'];
-      } else {
-        if (this.activeTags.includes('全部')) {
-          this.activeTags = [tag];
-        } else if (this.activeTags.includes(tag)) {
-          this.activeTags = this.activeTags.filter(t => t !== tag);
-          if (this.activeTags.length === 0) this.activeTags = ['全部'];
+    queryShops() {
+      getAction('/store/all').then(res => {
+        if (res.data.status === 'success') {
+          this.shops = res.data.data
         } else {
-          this.activeTags.push(tag);
+          this.$message.error('获取店铺列表失败')
+        }
+      }).catch(err => {
+        this.$message.error('获取店铺列表失败')
+      })
+    },
+    storeFilter(id) {
+      if (this.filter_active_store.includes(id)) {
+        this.filter_active_store = this.filter_active_store.filter(item => item !== id)
+      } else {
+        this.filter_active_store.push(id)
+      }
+      sessionStorage.setItem('active_store', JSON.stringify(this.filter_active_store));
+      this.filterMaterials();
+    },
+    tagFilter(tag) {
+      if (!tag) {
+        this.filter_active_tags = []
+        this.filter_active_store = []
+      } else {
+        if (this.filter_active_tags.includes(tag)) {
+          this.filter_active_tags = this.filter_active_tags.filter(item => item!== tag)
+        } else {
+          this.filter_active_tags.push(tag)
         }
       }
-      sessionStorage.setItem('active_tags', JSON.stringify(this.activeTags));
+      sessionStorage.setItem('active_tags', JSON.stringify(this.filter_active_tags));
+      sessionStorage.setItem('active_store', JSON.stringify(this.filter_active_store));
       this.filterMaterials();
     },
     filterFigure() {
@@ -945,11 +968,13 @@ export default {
         if (res.data.status === "success") {
           let data = res.data.data.filter(item => item.status === "success");
           if (data.length > 0) {
-            this.tags = ['全部', ...new Set(
+            this.tags = [...new Set(
                 data.flatMap(item => item.tag ? item.tag.split(/[,，]/).filter(Boolean) : [])
             )];
+            this.storeIds = [...new Set(data.flatMap(item => item.store_id).filter(id => !!id))];
 
-            this.activeTags = JSON.parse(sessionStorage.getItem('active_tags')) || ['全部']
+            this.filter_active_tags = JSON.parse(sessionStorage.getItem('active_tags')) || []
+            this.filter_active_store = JSON.parse(sessionStorage.getItem('active_store')) || []
 
             this.materials = data.map(item => ({
               ...item, previewing: false, size: item.height + '*' + item.width
@@ -1066,11 +1091,17 @@ export default {
         filtered = filtered.filter(item => item.size === size && item.store_id === store_id)
       }
 
-      if (this.activeTags[0] !== '全部') {
+      if (this.filter_active_tags.length > 0) {
         filtered = filtered.filter(item => {
           if (!item.tag) return false;
           const itemTags = item.tag.split(/[,，]/).map(tag => tag.trim());
-          return itemTags.some(tag => this.activeTags.includes(tag));
+          return itemTags.some(tag => this.filter_active_tags.includes(tag));
+        })
+      }
+      if (this.filter_active_store.length > 0) {
+        filtered = filtered.filter(item => {
+          if (!item.store_id) return false;
+          return this.filter_active_store.includes(item.store_id)
         })
       }
 
