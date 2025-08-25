@@ -347,12 +347,20 @@ export default {
       }
     },
     sendChat() {
+      let history_chats = this.chats
+      for (let i = this.chats.length - 1; i >= 0; i--) {
+        if (this.chats[i].type === 'newChat') {
+          history_chats = this.chats.slice(i + 1);
+          break;
+        }
+      }
       this.chats.push({
         type: 'userMessage',
         content: this.chat_input,
       });
       let params = {
         scripts: this.lastGeneratedScripts,
+        history_chats: history_chats,
         user_feedback: this.chat_input,
       }
       this.chat_input = '';
