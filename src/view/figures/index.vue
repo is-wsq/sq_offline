@@ -66,6 +66,20 @@
 
       <template v-else-if="classify_type === 'material'">
         <div style="margin-bottom: 10px;font-weight: bold">素材(快捷键: Ctrl + A 全选)</div>
+        <div class="filter-tags">
+          <el-tag :class="{'filter-tag-active': filter_active_tags.length === 0 && filter_active_store.length === 0}"
+                  class="filter-tag" size="small" @click="tagFilter('')">
+            全部</el-tag>
+          <template v-for="store_id in storeIds">
+            <el-tag :key="store_id" size="small" v-if="shops.some(shop => shop.id.includes(store_id))"
+                    class="filter-tag" :class="{'filter-tag-active': filter_active_store.includes(store_id)}"
+                    @click="storeFilter(store_id)">
+              {{ shops.find(shop => shop.id === store_id).name }}</el-tag>
+          </template>
+          <el-tag v-for="(tag, tag_index) in tags" :key="tag_index" size="small" @click="tagFilter(tag)"
+                  class="filter-tag" :class="{'filter-tag-active': filter_active_tags.includes(tag)}">
+            {{ tag }}</el-tag>
+        </div>
         <div class="figures-list" ref="materialsRef">
           <div class="source-item upload-item" @click="openUploadDialog">
             <i class="el-icon-upload" style="font-size: 30px"></i>
@@ -87,7 +101,7 @@
             </div>
             <div class="source-title" :title="item.name">{{ item.name }}</div>
           </div>
-          <div v-for="(item, index) in materials"
+          <div v-for="(item, index) in filteredMaterials"
                :key="index"
                class="source-item"
                @contextmenu.stop="handleContextMenu(item, $event)"
@@ -300,6 +314,8 @@ export default {
   mixins: [RightMenuMixin],
   data() {
     return {
+      filter_active_store: [],
+      filter_active_tags: [],
       classify_type: 'character',
       classify_types: [
         { type: 'character', name: '形象库', icon: 'el-icon-fa-user' },
@@ -427,6 +443,33 @@ export default {
     materials() {
       return this.figureTasks.filter((item) => item.status === "success" && item.video_type === 'material');
     },
+    filteredMaterials() {
+      let filteredMaterials = this.figureTasks.filter((item) => item.status === "success" && item.video_type === 'material')
+      if (this.filter_active_tags.length > 0) {
+        filteredMaterials = filteredMaterials.filter(item => {
+          if (!item.tag) return false;
+          const itemTags = item.tag.split(/[,，]/).map(tag => tag.trim());
+          return itemTags.some(tag => this.filter_active_tags.includes(tag));
+        })
+      }
+      if (this.filter_active_store.length > 0) {
+        filteredMaterials = filteredMaterials.filter(item => {
+          if (!item.store_id) return false;
+          return this.filter_active_store.includes(item.store_id)
+        })
+      }
+      return filteredMaterials;
+    },
+    storeIds() {
+      let data = this.figureTasks.filter((item) => item.status === "success" && item.video_type === 'material');
+      let storeIds = data.reduce((acc, cur) => {
+        if (cur.store_id) {
+          acc.push(cur.store_id);
+        }
+        return acc;
+      }, []);
+      return [...new Set(storeIds)];
+    },
     tags() {
       let data = this.figureTasks.filter((item) => item.status === "success" && item.video_type === 'material');
       let tagsArray = data.reduce((acc, cur) => {
@@ -464,6 +507,25 @@ export default {
     }
   },
   methods: {
+    storeFilter(id) {
+      if (this.filter_active_store.includes(id)) {
+        this.filter_active_store = this.filter_active_store.filter(item => item !== id)
+      } else {
+        this.filter_active_store.push(id)
+      }
+    },
+    tagFilter(tag) {
+      if (!tag) {
+        this.filter_active_tags = []
+        this.filter_active_store = []
+        return;
+      }
+      if (this.filter_active_tags.includes(tag)) {
+        this.filter_active_tags = this.filter_active_tags.filter(item => item!== tag)
+      } else {
+        this.filter_active_tags.push(tag)
+      }
+    },
     openUploadDialog() {
       this.materialList = []
       this.uploadData.store_id = ''
@@ -520,7 +582,7 @@ export default {
       }
     },
     selectAllMaterials() {
-      this.selected_materials = this.materials.map(item => item.id)
+      this.selected_materials = this.filteredMaterials.map(item => item.id)
     },
     selectMaterial(item) {
       this.selected_materials = [item.id]
@@ -1054,6 +1116,7 @@ export default {
 
 .figures-list {
   flex: 1;
+  margin-top: 10px;
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
   grid-auto-rows: 160px;
@@ -1404,5 +1467,28 @@ export default {
 
 .score-item__value {
   margin-left: 5px;
+}
+
+.filter-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+}
+
+.filter-tag {
+  background-color: #F5F5F5;
+  color: #525252;
+  border-radius: 14px;
+  border: 1px solid #F5F5F5;
+  cursor: pointer;
+  height: 28px;
+  line-height: 28px;
+  padding-left: 12px;
+  padding-right: 12px;
+}
+
+.filter-tag-active {
+  background-color: #3b82f6 !important;
+  color: #FFFFFF !important;
 }
 </style>
