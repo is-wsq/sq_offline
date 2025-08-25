@@ -45,7 +45,7 @@
           <div class="storyboard-item-videos">
             <template v-if="item.video_paths && item.video_paths.length > 0">
               <div v-for="(video,video_index) in item.video_paths" :key="video_index"
-                   @click="previewVideo(video)" class="storyboard-item-video"
+                   @click="previewVideo(item.video_paths, video, video_index)" class="storyboard-item-video"
                    @mouseenter="hover(index,video_index,video,item)" @mouseleave="leave">
                 <video :src="video" loop muted autoplay
                        style="width: 120px;height: 160px;border-radius: 8px;object-fit: cover"
@@ -68,10 +68,16 @@
       </div>
     </div>
     <el-dialog class="preview-video-dialog" :visible.sync="previewVideoVisible" width="430px" :before-close="closePreviewVideo">
-      <div class="preview-video-container">
-        <video style="border-radius: 8px;width: 100%" ref="video"
-               :src="previewVideoUrl" @ended="isPlaying = false">
+      <div class="preview-video-container flex-center">
+        <div class="preview-video-btn">
+          <i class="el-icon-arrow-left" @click="lastPreview"></i>
+        </div>
+        <video style="border-radius: 8px;width: 300px;aspect-ratio: 9 / 16;object-fit: cover"
+               ref="video" :src="previewVideoUrl" @ended="endPreview">
         </video>
+        <div class="preview-video-btn">
+          <i class="el-icon-arrow-right" @click="nextPreview"></i>
+        </div>
         <i class="el-icon-play control-icon" @click="controlVideo" v-if="!isPlaying"></i>
       </div>
     </el-dialog>
@@ -91,7 +97,9 @@ export default {
       hoverIndex: null,
       hoverVideoIndex: null,
       previewVideoVisible: false,
+      previewVideos: [],
       previewVideoUrl: '',
+      previewVideoIndex: 0,
       isPlaying: false,
       productInfo: {}
     }
@@ -156,8 +164,10 @@ export default {
       this.hoverIndex = null
       this.hoverVideoIndex = null
     },
-    previewVideo(video) {
-      this.previewVideoUrl = video
+    previewVideo(vList, v, vIndex) {
+      this.previewVideos = vList
+      this.previewVideoUrl = v
+      this.previewVideoIndex = vIndex
       this.previewVideoVisible = true
     },
     closePreviewVideo() {
@@ -165,6 +175,32 @@ export default {
       this.$refs.video.pause()
       this.$refs.video.currentTime = 0
       this.previewVideoVisible = false
+    },
+    lastPreview() {
+      if (this.previewVideoIndex === 0) {
+        this.$message.warning('已是第一个视频')
+        return
+      }
+      this.previewVideoIndex--
+      this.reload()
+    },
+    nextPreview() {
+      if (this.previewVideoIndex === this.previewVideos.length - 1) {
+        this.$message.warning('已是最后一个视频')
+        return
+      }
+      this.previewVideoIndex++
+      this.reload()
+    },
+    reload() {
+      this.previewVideoUrl = this.previewVideos[this.previewVideoIndex]
+      this.isPlaying = false
+      this.$refs.video.pause()
+      this.$refs.video.currentTime = 0
+    },
+    endPreview() {
+      this.$refs.video.currentTime = 0
+      this.isPlaying = false
     },
     controlVideo() {
       const video = this.$refs.video;
@@ -401,6 +437,17 @@ export default {
 .preview-video-container {
   width: 360px;
   position: relative;
+}
+
+.preview-video-btn {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  color: #a9a9a9;
+  font-size: 24px;
+  cursor: pointer;
+  filter: drop-shadow(0px 0px 10px #292929);
 }
 
 .control-icon {
