@@ -122,7 +122,7 @@
                       <div class="script-content" v-for="(script,script_index) in item.scripts" :key="script_index">
                         {{ script.copy }}
                         <div class="script-btn-group">
-                          <div title="选择该脚本" class="script-btn-item" @click="selectScript([{copy: script.copy}])">
+                          <div title="选择该脚本" class="script-btn-item" @click="selectScript(script)">
                             <i class="el-icon-copy-document cursor-pointer"></i>
                           </div>
                           <div title="删除该脚本" class="script-btn-item" @click="deleteScript(index,script_index)">
@@ -132,7 +132,7 @@
                       </div>
                     </div>
                   </div>
-                  <div class="select-script-btn" @click="selectScript(item.scripts)">
+                  <div class="select-script-btn" @click="selectAllScript(item.scripts)">
                     <i class="el-icon-copy-document font-weight"></i>
                     选择本次生成脚本
                   </div>
@@ -361,10 +361,34 @@ export default {
         this.$alert(err,'生成错误')
       })
     },
+    selectScript(script) {
+      if (this.scripts.some(item => item.original_copy === script.copy)) {
+        this.$message.warning('脚本已添加，请勿重复添加');
+      } else {
+        this.scripts.push({
+          ...script,
+          original_copy: script.copy
+        });
+        this.$message.success('脚本已添加到列表');
+      }
+    },
+    selectAllScript(scripts) {
+      const existingCopies = new Set(this.scripts.map(item => item.original_copy));
+      const newScripts = scripts.filter(script => !existingCopies.has(script.copy));
+      const duplicatedScripts = scripts.filter(script => existingCopies.has(script.copy));
+      if (newScripts.length === 0) {
+        this.$message.warning('本次生成脚本已添加，请勿重复添加');
+        return;
+      }
+      const scriptsToAdd = newScripts.map(item => ({
+        ...item,
+        original_copy: item.copy
+      }));
 
-    selectScript(scripts) {
-      console.log(scripts)
-      this.scripts = this.scripts.concat(scripts);
+      this.scripts = this.scripts.concat(scriptsToAdd);
+      if (duplicatedScripts.length > 0) {
+        this.$message.success('脚本添加成功，已自动忽略重复脚本');
+      }
     },
     deleteScript(index,script_index) {
       let copy = this.chats[index].scripts[script_index].copy
