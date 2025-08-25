@@ -77,7 +77,11 @@
             {{ Math.round(scope.row.balance) }}
           </template>
         </el-table-column>
-        <el-table-column property="created_at" label="创建时间" align="center" width="250px"></el-table-column>
+        <el-table-column property="created_at" label="创建时间" align="center" width="250px">
+          <template slot-scope="scope">
+            {{ scope.row.created_at ? scope.row.created_at.replace(/\.\d+$/, "") : '' }}
+          </template>
+        </el-table-column>
       </el-table>
       <div style="text-align: right;">
         <el-pagination
