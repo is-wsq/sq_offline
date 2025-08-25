@@ -70,10 +70,10 @@
         <div class="log-dialog-body">
           <el-descriptions title="基础信息" :column="2" border :labelStyle="{'width': '120px','text-align': 'center'}">
             <el-descriptions-item label="开始生成时间" :contentStyle="{'width': '307px'}">
-              {{ logInfo.created_at || '' }}
+              {{ logInfo.created_at ? logInfo.created_at.replace(/\.\d+$/, "") : '' }}
             </el-descriptions-item>
             <el-descriptions-item label="完成时间" :contentStyle="{'width': '307px'}">
-              {{ logInfo.finished_at || '' }}
+              {{ logInfo.finished_at ? logInfo.finished_at.replace(/\.\d+$/, "") : '' }}
             </el-descriptions-item>
             <el-descriptions-item label="文案标题" :span="2">
               {{ logInfo.title }}

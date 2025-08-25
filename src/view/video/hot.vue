@@ -150,7 +150,7 @@
       <div style="margin: 10px 0 5px 0;font-size: 15px;font-weight: bold">原名称</div>
       <el-input v-model="form.original" readonly></el-input>
       <div style="margin: 10px 0 5px 0;font-size: 15px;font-weight: bold">新名称</div>
-      <el-input v-model="form.name"  placeholder="请输入新的视频名称"></el-input>
+      <el-input v-model="form.name"  placeholder="请输入新名称"></el-input>
       <span slot="footer" class="dialog-footer">
         <el-button @click="renameDialogVisible = false" size="small">取消</el-button>
         <el-button type="primary" @click="sureRename" size="small">确认</el-button>
