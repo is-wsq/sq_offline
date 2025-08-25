@@ -284,6 +284,7 @@ export default {
       })
       let params = {
         selling_points: this.sell_point,
+        marketing_highlights: this.active_highlights,
         product_id: this.operateProductInfo.id,
         num_scripts: this.script_num,
       }
