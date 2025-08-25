@@ -109,6 +109,9 @@
               <div class="img-content" v-for="(img, img_index) in item.images" :key="img_index"
                    @click="operateProductImage(item, img_index)">
                 <el-image :src="img.filepath" class="product-item-img-item" fit="cover"></el-image>
+                <div class="delete-img-icon">
+                  <i class="el-icon-delete" @click.stop="deleteProductImage(img)"></i>
+                </div>
                 <div class="extra flex-center" v-if="item.images.length > 4 && img_index === 3">
                   +{{ item.images.length - 4 }}
                 </div>
@@ -671,7 +674,6 @@ export default {
       })
     },
     operateProductImage(item, img_index) {
-      // 重置图生脚本缓存
       sessionStorage.setItem('operate_product', JSON.stringify(item))
       sessionStorage.setItem('operate_img_index', img_index)
       sessionStorage.setItem('operate_scripts', JSON.stringify([]))
@@ -681,6 +683,24 @@ export default {
 
       sessionStorage.setItem('figure_path', '/imageToScript')
       this.$router.push({path: '/imageToScript'})
+    },
+    deleteProductImage(img) {
+      this.$confirm('确定要删除这张图片吗？', '删除', {
+        type: 'warning'
+      }).then(() => {
+        delAction('/picture/delete', {picture_id: img.id}).then(res => {
+          if (res.data.status === "success") {
+            this.$message.success("删除成功");
+            this.queryProducts()
+          } else {
+            this.$alert(res.data.message, "删除失败")
+          }
+        }).catch(err => {
+          this.$alert(err, "删除错误")
+        })
+      }).catch(() => {
+        this.$message.info('已取消删除');
+      })
     },
     checkAspectRatio() {
       const video = this.$refs.video;
@@ -1166,6 +1186,23 @@ export default {
   height: 100%;
   border-radius: 8px;
   object-fit: cover;
+}
+
+.delete-img-icon {
+  position: absolute;
+  top: 5px;
+  right: 5px;
+  background-color: rgba(0, 0, 0, 0.7);
+  color: #ffffff;
+  font-size: 14px;
+  padding: 2px 5px;
+  border-radius: 3px;
+  z-index: 999;
+  opacity: 0;
+}
+
+.img-content:hover .delete-img-icon {
+  opacity: 1;
 }
 
 .extra {
