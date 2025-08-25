@@ -7,18 +7,18 @@
       <el-steps style="flex: 1;" :active="2" align-center finish-status="success">
         <el-step title="图生脚本"></el-step>
         <el-step title="脚本生图"></el-step>
-        <el-step title="图生视频"></el-step>
+        <el-step title="图生素材"></el-step>
       </el-steps>
       <div style="width: 36px"></div>
     </div>
     <div class="flex-center" style="margin-bottom: 20px">
       <div style="flex: 1">
-        <div style="font-size: 24px; font-weight: bold;">图生视频</div>
+        <div style="font-size: 24px; font-weight: bold;">图生素材</div>
         <div style="font-size: 14px; color: #4b5563;margin-top: 4px">
-          基于您分镜脚本生成的图片生成对应的视频，可进行调整和优化
+          基于您分镜脚本生成的图片生成对应的素材，可进行调整和优化
         </div>
       </div>
-      <el-button type="primary" @click="saveAsMaterial">保存为素材</el-button>
+      <el-button type="primary" @click="saveAsMaterial">保存至素材列表</el-button>
     </div>
     <div class="imageToVideo-body">
       <div class="video-item" v-for="(item, index) in video_scripts" :key="index">
@@ -41,7 +41,7 @@
           </div>
         </div>
         <div class="video-item-body">
-          <div style="color: #4b5563;">生成视频组</div>
+          <div style="color: #4b5563;">生成素材组</div>
           <div class="storyboard-item-videos">
             <template v-if="item.video_paths && item.video_paths.length > 0">
               <div v-for="(video,video_index) in item.video_paths" :key="video_index"
@@ -60,7 +60,7 @@
             <template v-else>
               <div class="storyboard-item-video-empty">
                 <i class="el-icon-empty-video"></i>
-                <div style="font-size: 14px !important;">暂无视频，请点击右侧重新生成按钮生成视频</div>
+                <div style="font-size: 14px !important;">暂未生成素材，请点击右侧重新生成按钮生成素材</div>
               </div>
             </template>
           </div>
@@ -111,7 +111,7 @@ export default {
     handleReload(index) {
       this.loading = this.$loading({
         lock: true,
-        text: '视频生成中，请稍等...',
+        text: '素材生成中，请稍等...',
         spinner: 'el-icon-loading',
         background: 'rgba(0, 0, 0, 0.7)'
       });
@@ -129,17 +129,17 @@ export default {
 
           this.params_scripts[index].video_paths = [...this.params_scripts[index].video_paths, ...res.data.data[0].video_paths]
           sessionStorage.setItem('params_scripts', JSON.stringify(this.params_scripts))
-          this.$message.success('分镜视频重新生成成功')
+          this.$message.success('分镜素材重新生成成功')
           this.$forceUpdate()
         } else {
           this.loading.close();
           this.loading = null;
-          this.$alert(res.data.message,'生成视频失败')
+          this.$alert(res.data.message,'生成素材失败')
         }
       }).catch(err => {
         this.loading.close();
         this.loading = null;
-        this.$alert(err,'生成视频错误')
+        this.$alert(err,'生成素材错误')
       })
     },
     handleDelete(index) {
@@ -178,7 +178,7 @@ export default {
     },
     lastPreview() {
       if (this.previewVideoIndex === 0) {
-        this.$message.warning('已是第一个视频')
+        this.$message.warning('已是第一个素材')
         return
       }
       this.previewVideoIndex--
@@ -186,7 +186,7 @@ export default {
     },
     nextPreview() {
       if (this.previewVideoIndex === this.previewVideos.length - 1) {
-        this.$message.warning('已是最后一个视频')
+        this.$message.warning('已是最后一个素材')
         return
       }
       this.previewVideoIndex++
@@ -213,7 +213,7 @@ export default {
       }
     },
     deleteVideo(index, video_index) {
-      this.$confirm('确认删除该视频吗？','提示', {
+      this.$confirm('确认删除该素材吗？','提示', {
         type: 'warning'
       }).then(() => {
         this.video_scripts[index].video_paths.splice(video_index, 1)

@@ -7,7 +7,7 @@
       <el-steps style="flex: 1;" :active="1" align-center finish-status="success">
         <el-step title="图生脚本"></el-step>
         <el-step title="脚本生图"></el-step>
-        <el-step title="图生视频"></el-step>
+        <el-step title="图生素材"></el-step>
       </el-steps>
       <div style="width: 36px"></div>
     </div>
@@ -16,7 +16,7 @@
         <div style="font-size: 24px; font-weight: bold;">脚本生图</div>
         <div style="font-size: 14px; color: #4b5563;margin-top: 4px">基于您的分镜脚本生成对应图片，可进行调整和优化</div>
       </div>
-      <el-button type="primary" @click="generateVideo">生成视频分镜</el-button>
+      <el-button type="primary" @click="generateVideo">生成素材分镜</el-button>
     </div>
     <div class="scriptToImage-body">
       <div class="storyboard-item" v-for="(item, index) in image_scripts" :key="index">
@@ -182,12 +182,12 @@ export default {
         return !item.images || item.images.length === 0;
       });
       if (hasEmptyImages) {
-        this.$alert('生成视频失败，请先给每个分镜脚本生成图片后重新尝试！', '提示')
+        this.$alert('生成素材失败，请先给每个分镜脚本生成图片后重新尝试！', '提示')
         return
       }
       this.loading = this.$loading({
         lock: true,
-        text: '视频生成中，请稍等...',
+        text: '素材生成中，请稍等...',
         spinner: 'el-icon-loading',
         background: 'rgba(0, 0, 0, 0.7)'
       });
@@ -207,12 +207,12 @@ export default {
         } else {
           this.loading.close();
           this.loading = null;
-          this.$alert(res.data.message,'生成视频失败')
+          this.$alert(res.data.message,'生成素材失败')
         }
       }).catch(err => {
         this.loading.close();
         this.loading = null;
-        this.$alert(err,'生成视频错误')
+        this.$alert(err,'生成素材错误')
       })
     },
     backToImage() {

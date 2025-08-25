@@ -7,7 +7,7 @@
       <el-steps style="flex: 1;" :active="0" align-center finish-status="success">
         <el-step title="图生脚本"></el-step>
         <el-step title="脚本生图"></el-step>
-        <el-step title="图生视频"></el-step>
+        <el-step title="图生素材"></el-step>
       </el-steps>
       <div style="width: 36px"></div>
     </div>
