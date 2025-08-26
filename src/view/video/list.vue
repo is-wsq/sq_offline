@@ -69,6 +69,9 @@
         <div slot="title" class="log-dialog-title" @mousedown.stop="">视频生成日志</div>
         <div class="log-dialog-body">
           <el-descriptions title="基础信息" :column="2" border :labelStyle="{'width': '120px','text-align': 'center'}">
+            <el-descriptions-item label="视频来源" :span="2">
+              {{ logInfo.source }}
+            </el-descriptions-item>
             <el-descriptions-item label="开始生成时间" :contentStyle="{'width': '307px'}">
               {{ logInfo.created_at ? logInfo.created_at.replace(/\.\d+$/, "") : '' }}
             </el-descriptions-item>

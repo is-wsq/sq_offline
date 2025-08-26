@@ -946,7 +946,7 @@ export default {
 
 .ai-thinking-content {
   color: #4b5563;
-  font-size: 14px;
+  font-size: 13px;
   line-height: 20px;
   font-style: italic;
 }
