@@ -219,7 +219,7 @@ export default {
       operateProductInfo: {},
       imageIndex: 0,
       sell_point: '',
-      highlights: ['科技感','运动活力','时尚高级','自然场景','续航性强'],
+      highlights: [],
       active_highlights: [],
       script_num: 1,
       scripts: [],
@@ -461,6 +461,7 @@ export default {
 
     initData() {
       this.operateProductInfo = JSON.parse(sessionStorage.getItem('operate_product'))
+      this.highlights = this.operateProductInfo.highlights || []
       this.imageIndex = parseInt(sessionStorage.getItem('operate_img_index'))
       this.scripts = JSON.parse(sessionStorage.getItem('operate_scripts'))
       this.lastGeneratedScripts = JSON.parse(sessionStorage.getItem('last_generated_scripts'))
