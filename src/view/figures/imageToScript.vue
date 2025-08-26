@@ -156,6 +156,15 @@
                     选择本次生成脚本
                   </div>
                 </div>
+                <div v-if="item.type === 'errorMessage'" class="error-content">
+                  <div class="avatar-area">奇</div>
+                  <div class="error-message">
+                    生成失败，
+                    <span style="color: #3b82f6;font-size: 14px;cursor: pointer;" @click="regenerate">
+                      点击重新生成
+                    </span>
+                  </div>
+                </div>
                 <div v-if="item.type === 'newChat'">
                   <el-divider>新会话</el-divider>
                 </div>
@@ -359,6 +368,55 @@ export default {
         this.scrollToBottom()
       })
     },
+    regenerate() {
+      this.chats = this.chats.filter(item => item.type !== 'errorMessage')
+      let history_chats = this.chats
+      for (let i = this.chats.length - 1; i >= 0; i--) {
+        if (this.chats[i].type === 'newChat') {
+          history_chats = this.chats.slice(i + 1);
+          break;
+        }
+      }
+      let params = {
+        scripts: this.lastGeneratedScripts,
+        history_chats: history_chats,
+        user_feedback: this.chat_input,
+      }
+      this.chat_input = '';
+      this.isGenerating = true
+      this.$nextTick(() => {
+        this.scrollToBottom()
+      })
+      postAction('/picture/refine_scripts_batch', params, 600000).then(res => {
+        if (res.data.status ==='success') {
+          this.isGenerating = false
+          this.lastGeneratedScripts = res.data.data.scripts
+          sessionStorage.setItem('last_generated_scripts', JSON.stringify(this.lastGeneratedScripts))
+          this.chats.push({
+            type: 'answerMessage',
+            scripts: res.data.data.scripts,
+            thinking: res.data.data.thinking,
+          })
+          this.$nextTick(() => {
+            this.scrollToBottom()
+          })
+        } else {
+          this.isGenerating = false
+          this.chats.push({ type: 'errorMessage' })
+          this.$nextTick(() => {
+            this.scrollToBottom()
+          })
+          this.$alert(res.data.message,'生成失败')
+        }
+      }).catch(err => {
+        this.isGenerating = false
+        this.chats.push({ type: 'errorMessage' })
+        this.$nextTick(() => {
+          this.scrollToBottom()
+        })
+        this.$alert(err,'生成错误')
+      })
+    },
     enterSendChat(event) {
       if (event.key === 'Enter' && !event.shiftKey) {
         event.preventDefault();
@@ -373,6 +431,7 @@ export default {
         this.$alert('请先输入修改意见','提示')
         return
       }
+      this.chats = this.chats.filter(item => item.type !== 'errorMessage')
       let history_chats = this.chats
       for (let i = this.chats.length - 1; i >= 0; i--) {
         if (this.chats[i].type === 'newChat') {
@@ -409,10 +468,18 @@ export default {
           })
         } else {
           this.isGenerating = false
+          this.chats.push({ type: 'errorMessage' })
+          this.$nextTick(() => {
+            this.scrollToBottom()
+          })
           this.$alert(res.data.message,'生成失败')
         }
       }).catch(err => {
         this.isGenerating = false
+        this.chats.push({ type: 'errorMessage' })
+        this.$nextTick(() => {
+          this.scrollToBottom()
+        })
         this.$alert(err,'生成错误')
       })
     },
@@ -900,6 +967,17 @@ export default {
   padding-bottom: 0;
 }
 
+.error-content {
+  width: 200px;
+  background-color: #eff6ff;
+  padding: 10px;
+  box-shadow: 0 0  #0000, 0 0 #0000, 0 1px 2px 0 rgb(0 0 0 / 0.05);
+  border-radius: 8px;
+  border-top-right-radius: 0 !important;
+  display: flex;
+  gap: 8px;
+}
+
 .loading-content {
   width: 65px;
   background-color: #eff6ff;
@@ -961,6 +1039,12 @@ export default {
   font-size: 13px;
   line-height: 20px;
   font-style: italic;
+}
+
+.error-message {
+  color: #4B5563;
+  font-size: 14px;
+  line-height: 32px;
 }
 
 .script-content {

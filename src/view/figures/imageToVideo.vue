@@ -261,7 +261,7 @@ export default {
       }
       postAction('/figure/upload_generated_video_list',params).then(res => {
         if (res.data.status ==='success') {
-          this.$message.success('保存为素材成功')
+          // this.$message.success('保存为素材成功')
           this.clearCache()
           sessionStorage.setItem('classify_type', 'material')
           this.$router.push({path: '/figures'})
