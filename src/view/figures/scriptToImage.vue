@@ -4,11 +4,30 @@
       <el-button type="text" class="back-btn" @click="backToImage">
         <i class="el-icon-arrow-left" style="font-size: 20px;"></i>
       </el-button>
-      <el-steps style="flex: 1;" :active="1" align-center finish-status="success">
-        <el-step title="图生脚本"></el-step>
-        <el-step title="脚本生图"></el-step>
-        <el-step title="图生素材"></el-step>
-      </el-steps>
+      <div class="flex-center" style="flex: 1;">
+        <div class="custom-steps">
+          <div class="custom-step-item cursor-pointer custom-completed" @click="backToImage">
+            <div class="custom-step-circle">
+              <i class="el-icon-check font-weight"></i>
+            </div>
+            <div class="custom-step-title">图生脚本</div>
+          </div>
+          <div class="custom-step-lines first-step">
+            <div class="custom-step-line step-line-completed"></div>
+          </div>
+          <div class="custom-step-item cursor-pointer custom-active">
+            <div class="custom-step-circle">2</div>
+            <div class="custom-step-title">脚本生图</div>
+          </div>
+          <div class="custom-step-lines second-step">
+            <div class="custom-step-line"></div>
+          </div>
+          <div class="custom-step-item cursor-pointer" @click="toVideo">
+            <div class="custom-step-circle">3</div>
+            <div class="custom-step-title">图生视频</div>
+          </div>
+        </div>
+      </div>
       <div style="width: 36px"></div>
     </div>
     <div class="flex-center" style="margin-bottom: 20px">
@@ -218,6 +237,15 @@ export default {
     backToImage() {
       sessionStorage.setItem('figure_path', '/imageToScript')
       this.$router.push({ path: '/imageToScript' })
+    },
+    toVideo() {
+      let video_scripts = sessionStorage.getItem('video_scripts') ? JSON.parse(sessionStorage.getItem('video_scripts')) : []
+      if (video_scripts.length === 0) {
+        this.$message.warning('无图生视频页面缓存，无法获取缓存跳转')
+        return
+      }
+      sessionStorage.setItem('figure_path', '/imageToVideo')
+      this.$router.push({ path: '/imageToVideo' })
     }
   },
 }
@@ -237,13 +265,91 @@ export default {
   align-items: center;
 }
 
-.scriptToImage-header >>> .el-step__title.is-process {
-  color: #6366fe;
+.custom-steps {
+  width: 70%;
+  position: relative;
+  display: flex;
+  justify-content: space-between;
 }
 
-.scriptToImage-header >>> .el-step__head.is-process {
-  color: #6366fe !important;
+.custom-step-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  z-index: 10;
+  cursor: default;
+}
+
+.custom-step-circle {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 4px;
+  font-size: 14px;
+  font-weight: 700;
+  color: #c0c4cc;
+  border: 2px solid #C0C4CC;
+  background-color: #fff;
+  transition: all 0.3s ease;
+  box-sizing: border-box;
+}
+
+.custom-step-title {
+  font-size: 15px;
+  font-weight: 500;
+  color: #C0C4CC;
+  transition: all 0.3s ease;
+}
+
+.custom-step-item.custom-active .custom-step-circle {
   border-color: #6366fe !important;
+  color: #6366fe !important;
+}
+
+.custom-step-item.custom-active .custom-step-title {
+  font-weight: 700 !important;
+  color: #6366fe !important;
+}
+
+.custom-step-item.custom-completed .custom-step-circle {
+  border-color: #67c23a;
+  color: #67c23a;
+}
+
+.custom-step-item.custom-completed .custom-step-title {
+  color: #67c23a;
+}
+
+.custom-step-lines {
+  width: 100%;
+  position: absolute;
+  top: 17px;
+  display: flex;
+  justify-content: space-between;
+  z-index: 5;
+}
+
+.first-step {
+  left: 24px;
+}
+
+.second-step {
+  left: 50%;
+}
+
+.custom-step-line {
+  height: 2px;
+  width: calc(50% - 30px);
+  background-color: #C0C4CC;
+  transition: all 0.3s ease;
+  margin: 0 10px;
+}
+
+.step-line-completed {
+  background-color: #67c23a !important;
 }
 
 .scriptToImage-body {

@@ -4,11 +4,32 @@
       <el-button type="text" class="back-btn" @click="backToScript">
         <i class="el-icon-arrow-left" style="font-size: 20px;"></i>
       </el-button>
-      <el-steps style="flex: 1;" :active="2" align-center finish-status="success">
-        <el-step title="图生脚本"></el-step>
-        <el-step title="脚本生图"></el-step>
-        <el-step title="图生素材"></el-step>
-      </el-steps>
+      <div class="flex-center" style="flex: 1;">
+        <div class="custom-steps">
+          <div class="custom-step-item cursor-pointer custom-completed" @click="toImage">
+            <div class="custom-step-circle">
+              <i class="el-icon-check font-weight"></i>
+            </div>
+            <div class="custom-step-title">图生脚本</div>
+          </div>
+          <div class="custom-step-lines first-step">
+            <div class="custom-step-line step-line-completed"></div>
+          </div>
+          <div class="custom-step-item cursor-pointer custom-completed" @click="backToScript">
+            <div class="custom-step-circle">
+              <i class="el-icon-check font-weight"></i>
+            </div>
+            <div class="custom-step-title">脚本生图</div>
+          </div>
+          <div class="custom-step-lines second-step">
+            <div class="custom-step-line step-line-completed"></div>
+          </div>
+          <div class="custom-step-item cursor-pointer custom-active">
+            <div class="custom-step-circle">3</div>
+            <div class="custom-step-title">图生视频</div>
+          </div>
+        </div>
+      </div>
       <div style="width: 36px"></div>
     </div>
     <div class="flex-center" style="margin-bottom: 20px">
@@ -271,7 +292,11 @@ export default {
     backToScript() {
       sessionStorage.setItem('figure_path', '/scriptToImage')
       this.$router.push({path: '/scriptToImage'})
-    }
+    },
+    toImage() {
+      sessionStorage.setItem('figure_path', '/imageToScript')
+      this.$router.push({ path: '/imageToScript' })
+    },
   }
 }
 </script>
@@ -290,13 +315,91 @@ export default {
   align-items: center;
 }
 
-.imageToVideo-header >>> .el-step__title.is-process {
-  color: #6366fe;
+.custom-steps {
+  width: 70%;
+  position: relative;
+  display: flex;
+  justify-content: space-between;
 }
 
-.imageToVideo-header >>> .el-step__head.is-process {
-  color: #6366fe !important;
+.custom-step-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  z-index: 10;
+  cursor: default;
+}
+
+.custom-step-circle {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 4px;
+  font-size: 14px;
+  font-weight: 700;
+  color: #c0c4cc;
+  border: 2px solid #C0C4CC;
+  background-color: #fff;
+  transition: all 0.3s ease;
+  box-sizing: border-box;
+}
+
+.custom-step-title {
+  font-size: 15px;
+  font-weight: 500;
+  color: #C0C4CC;
+  transition: all 0.3s ease;
+}
+
+.custom-step-item.custom-active .custom-step-circle {
   border-color: #6366fe !important;
+  color: #6366fe !important;
+}
+
+.custom-step-item.custom-active .custom-step-title {
+  font-weight: 700 !important;
+  color: #6366fe !important;
+}
+
+.custom-step-item.custom-completed .custom-step-circle {
+  border-color: #67c23a;
+  color: #67c23a;
+}
+
+.custom-step-item.custom-completed .custom-step-title {
+  color: #67c23a;
+}
+
+.custom-step-lines {
+  width: 100%;
+  position: absolute;
+  top: 17px;
+  display: flex;
+  justify-content: space-between;
+  z-index: 5;
+}
+
+.first-step {
+  left: 24px;
+}
+
+.second-step {
+  left: 50%;
+}
+
+.custom-step-line {
+  height: 2px;
+  width: calc(50% - 30px);
+  background-color: #C0C4CC;
+  transition: all 0.3s ease;
+  margin: 0 10px;
+}
+
+.step-line-completed {
+  background-color: #67c23a !important;
 }
 
 .imageToVideo-body {

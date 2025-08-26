@@ -4,11 +4,25 @@
       <el-button type="text" class="back-btn" @click="backToFigure">
         <i class="el-icon-arrow-left" style="font-size: 20px;"></i>
       </el-button>
-      <el-steps style="flex: 1;" :active="0" align-center finish-status="success">
-        <el-step title="图生脚本"></el-step>
-        <el-step title="脚本生图"></el-step>
-        <el-step title="图生素材"></el-step>
-      </el-steps>
+      <div class="flex-center" style="flex: 1;">
+        <div class="custom-steps">
+          <div class="custom-step-item cursor-pointer custom-active">
+            <div class="custom-step-circle">1</div>
+            <div class="custom-step-title">图生脚本</div>
+          </div>
+          <div class="custom-step-item cursor-pointer" @click="toScript">
+            <div class="custom-step-circle">2</div>
+            <div class="custom-step-title">脚本生图</div>
+          </div>
+          <div class="custom-step-item cursor-pointer" @click="toVideo">
+            <div class="custom-step-circle">3</div>
+            <div class="custom-step-title">图生视频</div>
+          </div>
+          <div class="custom-step-lines">
+            <div class="custom-step-line"></div>
+          </div>
+        </div>
+      </div>
       <div style="width: 36px"></div>
     </div>
     <div class="imageToScript-content">
@@ -480,6 +494,24 @@ export default {
         this.loading = null;
         this.$alert(err,'提示')
       })
+    },
+    toScript() {
+      let image_scripts = sessionStorage.getItem('image_scripts') ? JSON.parse(sessionStorage.getItem('image_scripts')) : []
+      if (image_scripts.length === 0) {
+        this.$message.warning('无脚本生图页面缓存，无法获取缓存跳转')
+        return
+      }
+      sessionStorage.setItem('figure_path', '/scriptToImage')
+      this.$router.push({path: '/scriptToImage'})
+    },
+    toVideo() {
+      let video_scripts = sessionStorage.getItem('video_scripts') ? JSON.parse(sessionStorage.getItem('video_scripts')) : []
+      if (video_scripts.length === 0) {
+        this.$message.warning('无图生视频页面缓存，无法获取缓存跳转')
+        return
+      }
+      sessionStorage.setItem('figure_path', '/imageToVideo')
+      this.$router.push({ path: '/imageToVideo' })
     }
   }
 }
@@ -502,13 +534,71 @@ export default {
   align-items: center;
 }
 
-.imageToScript-header >>> .el-step__title.is-process {
-  color: #6366fe;
+.custom-steps {
+  width: 70%;
+  position: relative;
+  display: flex;
+  justify-content: space-between;
 }
 
-.imageToScript-header >>> .el-step__head.is-process {
-  color: #6366fe !important;
+.custom-step-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  z-index: 10;
+  cursor: default;
+}
+
+.custom-step-circle {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 4px;
+  font-size: 14px;
+  font-weight: 700;
+  color: #c0c4cc;
+  border: 2px solid #C0C4CC;
+  background-color: #fff;
+  transition: all 0.3s ease;
+  box-sizing: border-box;
+}
+
+.custom-step-title {
+  font-size: 15px;
+  font-weight: 500;
+  color: #C0C4CC;
+  transition: all 0.3s ease;
+}
+
+.custom-step-item.custom-active .custom-step-circle {
   border-color: #6366fe !important;
+  color: #6366fe !important;
+}
+
+.custom-step-item.custom-active .custom-step-title {
+  font-weight: 700 !important;
+  color: #6366fe !important;
+}
+
+.custom-step-lines {
+  position: absolute;
+  top: 17px;
+  left: 24px;
+  right: 24px;
+  display: flex;
+  justify-content: space-between;
+  z-index: 5;
+}
+
+.custom-step-line {
+  height: 2px;
+  flex: 1;
+  background-color: #C0C4CC;
+  transition: all 0.3s ease;
+  margin: 0 10px;
 }
 
 .imageToScript-content {
