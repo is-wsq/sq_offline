@@ -174,7 +174,7 @@
                 <div class="flex-center">
                   <el-input type="textarea" placeholder="请输入您的修改意见..." resize="none" v-model="chat_input"
                             @keydown.native="enterSendChat"></el-input>
-                  <el-button type="primary" style="padding: 0 20px" @click="sendChat">
+                  <el-button type="primary" style="padding: 0 20px" @click="sendChat" :disabled="isGenerating">
                     <i class="el-icon-s-promotion" style="font-size: 18px;line-height: 35px"></i>
                   </el-button>
                 </div>
@@ -349,6 +349,10 @@ export default {
       }
     },
     createNewChat() {
+      if (this.isGenerating) {
+        this.$alert('请等待生成结束后再发起新会话','提示')
+        return
+      }
       this.isNewChat = true
       this.chats.push({ type: 'newChat' })
       this.$nextTick(() => {
@@ -358,10 +362,17 @@ export default {
     enterSendChat(event) {
       if (event.key === 'Enter' && !event.shiftKey) {
         event.preventDefault();
+        if (this.isGenerating) {
+          return;
+        }
         this.sendChat();
       }
     },
     sendChat() {
+      if (!this.chat_input) {
+        this.$alert('请先输入修改意见','提示')
+        return
+      }
       let history_chats = this.chats
       for (let i = this.chats.length - 1; i >= 0; i--) {
         if (this.chats[i].type === 'newChat') {
