@@ -1,5 +1,5 @@
 <template>
-  <div class="video-list">
+  <div class="video-list-css">
     <div class="list-content" ref="videoContentRef">
       <div v-for="item in processList" :key="item.id" style="text-align: center">
         <div class="image-wrapper shining">
@@ -176,6 +176,9 @@
         </div>
         <div slot="footer" class="log-dialog-footer"></div>
       </el-dialog>
+    </div>
+    <div class="placeholder-footer">
+      当前页只显示近7天生成的视频，7天前生成的视频可到视频缓存文件夹查看，请注意视频缓存文件夹只保留30天内生成的视频。
     </div>
   </div>
 </template>
@@ -412,12 +415,11 @@ export default {
 </script>
 
 <style scoped>
-.video-list {
+.video-list-css {
   width: 100%;
   height: 100%;
   padding: 12px;
   box-sizing: border-box;
-  min-height: 800px;
 }
 
 .list-search {
@@ -444,7 +446,7 @@ export default {
 }
 
 .list-content {
-  height: calc(100% - 63px);
+  height: calc(100% - 50px);
   padding: 10px;
   margin-top: 20px;
   box-sizing: border-box;
@@ -771,5 +773,13 @@ export default {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+}
+
+.placeholder-footer {
+  color: #6d7177;
+  font-size: 15px;
+  font-family: "Helvetica Neue", Arial, sans-serif;
+  text-align: center;
+  margin-top: 12px;
 }
 </style>
