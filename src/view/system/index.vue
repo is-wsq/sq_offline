@@ -66,7 +66,7 @@
     </el-dialog>
     <el-dialog class="bill-dialog" title="账单详情" :visible.sync="billVisible" width="800px">
       <el-table :data="bills" stripe height="336">
-        <el-table-column property="function_name" label="function_name" align="center"></el-table-column>
+        <el-table-column property="function_name" label="功能名称" align="center"></el-table-column>
         <el-table-column property="cost" label="token变动" align="right" width="150px">
           <template slot-scope="scope">
             {{ scope.row.function_name === '充值'? '+ ' : '- ' }}{{ Math.round(scope.row.cost) }}
