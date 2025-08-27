@@ -305,6 +305,7 @@ export default {
 .imageToVideo {
   height: 100%;
   min-height: 800px;
+  overflow-x: hidden;
 }
 
 .imageToVideo-header {

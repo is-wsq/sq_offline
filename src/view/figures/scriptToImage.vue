@@ -255,6 +255,7 @@ export default {
 .scriptToImage {
   height: 100%;
   min-height: 800px;
+  overflow-x: hidden;
 }
 
 .scriptToImage-header {
