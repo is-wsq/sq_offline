@@ -1088,24 +1088,35 @@ export default {
       if (this.material_list.length > 0) { // 素材尺寸、店铺筛选
         let size = this.materials.find(item => item.id === this.material_list[0]).size
         let store_id = this.materials.find(item => item.id === this.material_list[0]).store_id
+        // filtered = filtered.filter(item => item.size === size)
         filtered = filtered.filter(item => item.size === size && item.store_id === store_id)
       }
 
-      if (this.filter_active_tags.length > 0) {
-        filtered = filtered.filter(item => {
-          if (!item.tag) return false;
-          const itemTags = item.tag.split(/[,，]/).map(tag => tag.trim());
-          return itemTags.some(tag => this.filter_active_tags.includes(tag));
-        })
-      }
-      if (this.filter_active_store.length > 0) {
-        filtered = filtered.filter(item => {
-          if (!item.store_id) return false;
-          return this.filter_active_store.includes(item.store_id)
-        })
+      if (!this.filter_active_tags.length && !this.filter_active_store.length) {
+        this.filter_materials = filtered;
+        return
       }
 
-      this.filter_materials = filtered;
+      const tag_filter = item => {
+        if (!item.tag) return false;
+        const item_tags = item.tag.split(/[,，]/).map(tag => tag.trim());
+        return item_tags.some(tag => this.filter_active_tags.includes(tag));
+      };
+
+      const store_filter = item => item.store_id && this.filter_active_store.includes(item.store_id);
+
+      this.filter_materials = filtered.filter(item => {
+        const has_tag_filter = this.filter_active_tags.length > 0;
+        const has_store_filter = this.filter_active_store.length > 0;
+
+        if (has_tag_filter && has_store_filter) {
+          return tag_filter(item) || store_filter(item);
+        }
+        if (has_tag_filter)
+          return tag_filter(item);
+
+        return store_filter(item);
+      });
     },
     selectMaterial(item, event) {
       if (this.isSelecting || !this.isVideoItemClick) {
