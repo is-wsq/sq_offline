@@ -444,21 +444,33 @@ export default {
       return this.figureTasks.filter((item) => item.status === "success" && item.video_type === 'material');
     },
     filteredMaterials() {
-      let filteredMaterials = this.figureTasks.filter((item) => item.status === "success" && item.video_type === 'material')
-      if (this.filter_active_tags.length > 0) {
-        filteredMaterials = filteredMaterials.filter(item => {
-          if (!item.tag) return false;
-          const itemTags = item.tag.split(/[,，]/).map(tag => tag.trim());
-          return itemTags.some(tag => this.filter_active_tags.includes(tag));
-        })
+      const base_filter = item => item.status === "success" && item.video_type === 'material';
+      const filtered = this.figureTasks.filter(base_filter);
+
+      if (!this.filter_active_tags.length && !this.filter_active_store.length) {
+        return filtered;
       }
-      if (this.filter_active_store.length > 0) {
-        filteredMaterials = filteredMaterials.filter(item => {
-          if (!item.store_id) return false;
-          return this.filter_active_store.includes(item.store_id)
-        })
-      }
-      return filteredMaterials;
+
+      const tag_filter = item => {
+        if (!item.tag) return false;
+        const item_tags = item.tag.split(/[,，]/).map(tag => tag.trim());
+        return item_tags.some(tag => this.filter_active_tags.includes(tag));
+      };
+
+      const store_filter = item => item.store_id && this.filter_active_store.includes(item.store_id);
+
+      return  filtered.filter(item => {
+        const has_tag_filter = this.filter_active_tags.length > 0;
+        const has_store_filter = this.filter_active_store.length > 0;
+
+        if (has_tag_filter && has_store_filter) {
+          return tag_filter(item) || store_filter(item);
+        }
+        if (has_tag_filter)
+          return tag_filter(item);
+
+        return store_filter(item);
+      });
     },
     storeIds() {
       let data = this.figureTasks.filter((item) => item.status === "success" && item.video_type === 'material');
