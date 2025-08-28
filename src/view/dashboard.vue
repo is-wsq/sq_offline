@@ -22,7 +22,7 @@
       </el-aside>
       <el-main class="main" :class="{'padding0': $route.path === '/material'}">
         <keep-alive>
-          <router-view/>
+          <router-view></router-view>
         </keep-alive>
       </el-main>
     </el-container>

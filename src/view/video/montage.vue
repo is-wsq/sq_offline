@@ -673,16 +673,38 @@ export default {
       this.$nextTick(() => {
         this.scrollToBottom()
       })
-      setTimeout(() => {
+      postAction('/figure/re_video_mix_edit',params, 3600000).then(res => {
+        if (res.data.status === "success") {
+          this.isGenerating = false
+          this.montage_data = res.data.data.data
+          this.lastGeneratedMixins = res.data.data.data
+          sessionStorage.setItem('last_generated_mixins', JSON.stringify(this.lastGeneratedScripts))
+          this.mix_chats.push({
+            role: 'system',
+            content: {
+              thinking: res.data.data.thinking,
+              data: res.data.data.data
+            }
+          })
+          this.$nextTick(() => {
+            this.scrollToBottom()
+          })
+        } else {
+          this.isGenerating = false
+          this.mix_chats.push({ role: 'update_error' })
+          this.$nextTick(() => {
+            this.scrollToBottom()
+          })
+          this.$alert(res.data.message,'生成失败')
+        }
+      }).catch(error => {
         this.isGenerating = false
-        this.mix_chats.push({
-          role: 'system',
-          content: {
-            thinking: 'AI生成回答完成',
-            data: []
-          }
-        });
-      },10000)
+        this.mix_chats.push({ role: 'update_error' })
+        this.$nextTick(() => {
+          this.scrollToBottom()
+        })
+        this.$alert(error,'生成错误')
+      })
     },
     scrollToBottom() {
       if (this.$refs.mixChatRef) {
@@ -1112,6 +1134,7 @@ export default {
         this.mix_chats = JSON.parse(sessionStorage.getItem('mix_chats')) || []
         this.isGenerating = sessionStorage.getItem('mix_is_generating') === 'true'
         this.isNewChat = sessionStorage.getItem('mix_is_newChat') === 'true'
+        this.lastGeneratedMixins = JSON.parse(sessionStorage.getItem('last_generated_mixins')) || []
 
         let smart_generate_setting = JSON.parse(sessionStorage.getItem("smart_generate_setting")) || {}
         this.copy_request = smart_generate_setting.copy_require || ''
@@ -1223,7 +1246,9 @@ export default {
       }
       postAction('/figure/video_mix_edit', params, 3600000).then(res => {
         if (res.data.status === 'success') {
-          this.montage_data = res.data.data
+          this.montage_data = res.data.data.data
+          this.lastGeneratedMixins = res.data.data.data
+          sessionStorage.setItem('last_generated_mixins', JSON.stringify(this.lastGeneratedMixins))
           this.isGenerating = false
           this.mix_chats.push({
             role: 'system',
