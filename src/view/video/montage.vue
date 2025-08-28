@@ -8,16 +8,15 @@
       <div style="width: 36px"></div>
     </div>
     <div class="montage-container">
-      <div class="settings-panel" v-if="show_settings">
-        <el-tooltip class="item" effect="dark" content="收起设置" placement="right">
-          <div class="toggle-btn-open" @click="show_settings = false">
-            <i class="el-icon-arrow-left" style="font-size: 16px;font-weight: bold;color: #ffffff"></i>
-          </div>
-        </el-tooltip>
-
+      <el-tooltip class="item" effect="dark" content="收起设置" placement="right" v-if="show_settings">
+        <div class="toggle-btn-open" @click="closeSettings">
+          <i class="el-icon-arrow-left" style="font-size: 16px;font-weight: bold;color: #ffffff"></i>
+        </div>
+      </el-tooltip>
+      <div class="settings-panel" v-if="show_settings && mix_chats.length === 0">
         <div class="settings-content-area">
           <div class="panel-title">混剪设置</div>
-          <div class="setting-require">自定义要求（选填）</div>
+          <div class="setting-require margin-t-8">自定义要求（选填）</div>
           <div style="position: relative">
             <div class="highlight-content"
                  v-html="highlightedText"
@@ -61,11 +60,10 @@
             </div>
           </template>
         </div>
-
         <div class="settings-button-section">
           <div class="generate-btn">
             <el-button @click="generate" :loading="!!loading"><i class="el-icon-bianjiqi btn-icon" v-if="!loading"></i>
-              {{ !!loading ? '生成中...' : already_generated ? '重新生成' : '一键混剪' }}
+              {{ !!loading ? '生成中...' : montage_data.length > 0 ? '重新生成' : '一键混剪' }}
             </el-button>
           </div>
           <div class="batch-download">
@@ -74,27 +72,69 @@
           </div>
         </div>
       </div>
+      <div class="mix-chat-area" v-if="show_settings && mix_chats.length > 0">
+        <div class="mix-chat-frame" ref="mixChatRef">
+          <div v-for="(item, index) in mix_chats" :key="index">
+            <div v-if="item.role === 'user'" style="display: flex;justify-content: end;">
+              <div class="mix-chat-user">
+                {{ item.content }}
+              </div>
+            </div>
+            <div v-if="item.role === 'system'" style="max-width: 85%">
+              <div class="mix-chat-system">
+                <div class="mix-avatar-area">奇</div>
+                <div style="flex: 1">
+                  <el-collapse>
+                    <el-collapse-item>
+                      <template slot="title">
+                        <div class="mix-chat-system-label">AI思考过程</div>
+                      </template>
+                      <div class="ai-thinking-content">{{ item.content.thinking }}</div>
+                    </el-collapse-item>
+                  </el-collapse>
+                  <div class="mix-chat-system-label margin-t-12">混剪结果</div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="mix-loading-content" v-if="isGenerating">
+            <div class="mix-avatar-area">奇</div>
+            <div class="mix-loading-area flex-center"><i class="el-icon-loading"></i></div>
+          </div>
+        </div>
+        <div class="mix-chat-input">
+          <div class="flex-center">
+            <el-input type="textarea" placeholder="请输入您的修改意见..." resize="none" v-model="mix_chatInput"
+                      @keydown.native="enterSendChat"></el-input>
+            <el-button type="primary" style="padding: 0 20px" @click="sendChat" :disabled="isGenerating">
+              <i class="el-icon-s-promotion" style="font-size: 18px;line-height: 35px"></i>
+            </el-button>
+          </div>
+          <div class="mix-send-placeholder">按Enter或发送按钮发送，Shift+Enter换行</div>
+        </div>
+      </div>
       <div style="width: 1px" v-if="!show_settings">
         <el-tooltip class="item" effect="dark" content="展开设置 " placement="right-end">
-          <div class="toggle-btn-close" @click="show_settings = true">
+          <div class="toggle-btn-close" @click="expandSettings">
             <i class="el-icon-arrow-right" style="font-size: 16px;font-weight: bold;color: #ffffff"></i>
           </div>
         </el-tooltip>
       </div>
-      <div class="script-panel" :style="{ width: show_settings? 'calc(100% - 648px)' : 'calc(100% - 370px)' }">
+      <div class="script-panel" :style="{ width: show_settings? 'calc(100% - 420px)' : 'calc(100% - 370px)' }">
         <div class="script-selection-area">
           <div class="flex-center" style="line-height: 50px">
             <div class="panel-title" style="flex: 1">AI选用文案</div>
-            <div v-if="already_generated">
+            <div v-if="montage_data.length > 0 && !isGenerating">
               <template v-if="showChecked">
                 <el-button type="primary" size="mini" class="delete-group-btn" @click="sureRemove">确认删除</el-button>
                 <el-button class="delete-group-btn" size="mini" @click="showChecked = false">取消</el-button>
               </template>
-              <el-button type="primary" size="mini" class="delete-group-btn" v-else @click="batchRemoveCopy">批量删除</el-button>
+              <el-button type="primary" size="mini" class="delete-group-btn" v-else @click="batchRemoveCopy">批量删除
+              </el-button>
             </div>
           </div>
           <div class="script-list">
-            <template v-if="!already_generated" style="width: 100%">
+            <template v-if="montage_data.length === 0" style="width: 100%">
               <div v-for="(item, index) in copy_list" :key="index" class="script-item"
                    :class="{ 'script-item-active': selected_index === index}" @click="selectItem(index)">
                 <div class="flex-center margin-b-8" style="width: 100%">
@@ -172,7 +212,7 @@
                 <div class="flex-center" @click="itemClick(index)">
                   <div class="script-item-title" :title="item.title">{{ item.title }}</div>
                   <div style="width: 16px">
-                    <i class="el-icon-close close-icon" @click="removeCopy(index)" v-if="!showChecked"></i>
+                    <i class="el-icon-close close-icon" @click="removeCopy(index)" v-if="!showChecked && !isGenerating"></i>
                     <div @click.stop="">
                       <el-checkbox v-model="deleteCheckeds[index]" v-if="showChecked"></el-checkbox>
                     </div>
@@ -196,13 +236,13 @@
                 </div>
                 <div class="groups" v-if="activeIndex === index">
                   <div class="group" v-for="(group,group_index) in item.segment_group" :key="group_index">
-                    <div class="group-title" v-if="group.groupType !== 'digital_human'"
-                         :style="{ width: (group.materials.length * 100 + 80) + 'px' }"
+                    <div class="group-title" v-if="group.groupType === 'digital_human' || isGenerating"
+                         :style="{ width: ((group.materials.length - 1) * 100 + 80) + 'px' }"
                          :title="group.contentSummary">
                       {{ group.contentSummary }}
                     </div>
-                    <div class="group-title" v-if="group.groupType === 'digital_human'"
-                         :style="{ width: ((group.materials.length - 1) * 100 + 80) + 'px' }"
+                    <div class="group-title" v-if="group.groupType !== 'digital_human' && !isGenerating"
+                         :style="{ width: (group.materials.length * 100 + 80) + 'px' }"
                          :title="group.contentSummary">
                       {{ group.contentSummary }}
                     </div>
@@ -210,10 +250,12 @@
                       <div class="material-item" v-for="(material,material_index) in group.materials"
                            :key="material_index">
                         <el-popover placement="bottom" :ref="'popoverRef_' + material_index" trigger="click"
-                                    v-if="group.groupType !== 'digital_human'" @show="popoverShow(index,group_index,material_index)" @hide="popoverHide">
+                                    v-if="group.groupType !== 'digital_human'"
+                                    @show="popoverShow(index,group_index,material_index)" @hide="popoverHide">
                           <div class="shot-list" :ref="'shotRef_'+index+'_'+group_index+'_'+material_index">
                             <div v-for="(shot, shot_index) in mention_list" :key="shot_index"
-                                 class="shot-name" :title="shot.name" :class="{'shot-name-active': activeShotIndex === shot_index}"
+                                 class="shot-name" :title="shot.name"
+                                 :class="{'shot-name-active': activeShotIndex === shot_index}"
                                  @click="addShot(index,group_index,material_index,shot)"
                                  @mouseover="shotEnter(shot_index)" @mouseleave="shotLeave">
                               {{ shot.name }}
@@ -223,24 +265,27 @@
                                      loop muted autoplay></video>
                             </div>
                           </div>
-                          <div slot="reference" class="insert-shot-btn">
+                          <div slot="reference" class="insert-shot-btn" v-if="!isGenerating">
                             <div class="fa-plus">
                               <i class="el-icon-plus" style="font-weight: bold"></i>
                             </div>
                           </div>
                         </el-popover>
-                        <div class="delete-shot-btn" v-if="group.groupType !== 'digital_human' && group.materials.length > 1">
+                        <div class="delete-shot-btn"
+                             v-if="group.groupType !== 'digital_human' && group.materials.length > 1 && !isGenerating">
                           <i class="el-icon-close" style="font-weight: bold"
                              @click="removeShot(index,group_index,material_index)"></i>
                         </div>
                         <el-image class="material-item-img" :src="material.picture"></el-image>
                         <div class="material-item-title" :title="material.name">{{ material.name }}</div>
                       </div>
-                      <div class="material-item" v-if="group.groupType !== 'digital_human'">
-                        <el-popover :ref="'pushRef_' + index" placement="bottom" trigger="click" @show="pushShow(index,group_index)" @hide="pushHide">
+                      <div class="material-item" v-if="group.groupType !== 'digital_human' && !isGenerating">
+                        <el-popover :ref="'pushRef_' + index" placement="bottom" trigger="click"
+                                    @show="pushShow(index,group_index)" @hide="pushHide">
                           <div class="shot-list" :ref="'materialRef_' + index + '_' + group_index">
                             <div v-for="(val, val_index) in mention_list" :key="val.id"
-                                 class="shot-name" :title="val.name"  :class="{'shot-name-active': activeShotIndex === val_index}"
+                                 class="shot-name" :title="val.name"
+                                 :class="{'shot-name-active': activeShotIndex === val_index}"
                                  @click="pushShot(index,group_index,val)"
                                  @mouseover="shotEnter(val_index)" @mouseleave="shotLeave">
                               {{ val.name }}
@@ -261,14 +306,15 @@
               </div>
             </template>
           </div>
-          <div class="export-section" v-if="already_generated">
-            <el-button @click="export_video(false)"><i class="el-icon-fa-download" style="margin-right: 10px;"></i>
+          <div class="export-section" v-if="montage_data.length > 0 && !isGenerating">
+            <el-button @click="export_video(false)">
+              <i class="el-icon-fa-download" style="margin-right: 10px;"></i>
               导出视频
             </el-button>
           </div>
         </div>
       </div>
-      <div class="preview-area">
+      <div class="preview-area" v-if="!show_settings">
         <div class="video-placeholder" v-if="activeIndex < 0">
           <i class="el-icon-film-c" style="font-size: 48px"></i>
           <div>视频预览区</div>
@@ -326,11 +372,14 @@ export default {
   name: 'Montage',
   data() {
     return {
+      mix_chats: [],
+      mix_chatInput: '',
+      lastGeneratedMixins: [],
+      isGenerating: false,
       requirement: '',
       figure_ratio: 30,
       copy_list: [],
       selected_index: {},
-      already_generated: false,
       show_settings: true,
       showChecked: false,
       deleteCheckeds: [],
@@ -412,7 +461,19 @@ export default {
       if (!this.isComposing) {
         this.updateDisplayText();
       }
-    }
+    },
+    mix_chats: {
+      handler(newValue, oldValue) {
+        sessionStorage.setItem('mix_chats', JSON.stringify(newValue))
+      },
+      deep: true
+    },
+    isGenerating: {
+      handler(newValue, oldValue) {
+        sessionStorage.setItem('mix_is_generating', newValue)
+      },
+      deep: true
+    },
   },
   computed: {
     audio_file_duration() {
@@ -447,7 +508,72 @@ export default {
     inputEl.addEventListener('scroll', this.handleScroll);
   },
   methods: {
-    popoverShow(index,g_index,m_index) {
+    closeSettings() {
+      if (this.montage_data.length === 0) {
+        this.show_settings = false
+        return
+      }
+      this.itemClick(0)
+    },
+    expandSettings() {
+      this.activeIndex = -1
+      if (this.isPlaying) {
+        this.$refs.videoRef.pause()
+        this.$refs.audioRef.pause()
+        this.isPlaying = false
+      }
+      this.show_settings = true
+    },
+    enterSendChat(event) {
+      if (event.key === 'Enter' && !event.shiftKey) {
+        event.preventDefault();
+        if (this.isGenerating) {
+          return;
+        }
+        this.sendChat();
+      }
+    },
+    sendChat() {
+      if (!this.mix_chatInput) {
+        this.$alert('请先输入修改意见', '提示')
+        return
+      }
+      let history_chat = this.mix_chats
+      for (let i = this.mix_chats.length - 1; i >= 0; i--) {
+        if (this.mix_chats[i].role === 'new_chat') {
+          history_chat = this.mix_chats.slice(i + 1);
+          break;
+        }
+      }
+      this.mix_chats.push({ role: 'user', content: this.mix_chatInput });
+      let params = {
+        data: this.lastGeneratedMixins,
+        history_chat: history_chat,
+        user_feedback: this.mix_chatInput,
+        material_list: this.material_list,
+      }
+      this.mix_chatInput = '';
+      this.isGenerating = true
+      this.$nextTick(() => {
+        this.scrollToBottom()
+      })
+      setTimeout(() => {
+        this.isGenerating = false
+        this.mix_chats.push({
+          role: 'system',
+          content: {
+            thinking: 'AI生成回答完成',
+            data: []
+          }
+        });
+      },10000)
+    },
+    scrollToBottom() {
+      if (this.$refs.mixChatRef) {
+        this.$refs.mixChatRef.scrollTop = this.$refs.mixChatRef.scrollHeight
+      }
+    },
+    popoverShow(index, g_index, m_index) {
       this.add_shot_popover = true
       this.v_index = index
       this.g_index = g_index
@@ -457,7 +583,7 @@ export default {
       this.activeShotIndex = -1
       this.add_shot_popover = false
     },
-    pushShow(index,g_index) {
+    pushShow(index, g_index) {
       this.push_shot_popover = true
       this.v_index = index
       this.g_index = g_index
@@ -508,7 +634,7 @@ export default {
           }
         } else if (event.key === 'Enter' && this.activeShotIndex !== -1) {
           event.preventDefault();
-          this.addShot(this.v_index,this.g_index,this.m_index,this.selectShot)
+          this.addShot(this.v_index, this.g_index, this.m_index, this.selectShot)
         }
       }
       if (this.push_shot_popover) {
@@ -516,7 +642,7 @@ export default {
           event.preventDefault();
           this.activeShotIndex--;
           this.selectShot = this.mention_list[this.activeShotIndex]
-          if (this.activeShotIndex > 4){
+          if (this.activeShotIndex > 4) {
             this.$refs[`materialRef_${this.v_index}_${this.g_index}`][0].scrollTop = (this.activeShotIndex - 4) * 40;
           } else {
             this.$refs[`materialRef_${this.v_index}_${this.g_index}`][0].scrollTop = 0
@@ -530,7 +656,7 @@ export default {
           }
         } else if (event.key === 'Enter' && this.activeShotIndex !== -1) {
           event.preventDefault();
-          this.pushShot(this.v_index,this.g_index,this.selectShot)
+          this.pushShot(this.v_index, this.g_index, this.selectShot)
         }
       }
     },
@@ -559,7 +685,7 @@ export default {
             this.loadVideo();
             this.loadAudio()
           })
-        }else {
+        } else {
           this.loading.close();
           this.loading = null;
           this.$message.error("视频拼接失败。");
@@ -867,21 +993,11 @@ export default {
           ...item, isHover: false,
         }))
         this.montage_data = JSON.parse(sessionStorage.getItem("montage_data")) || []
+        this.mix_chats = JSON.parse(sessionStorage.getItem('mix_chats')) || []
+        this.isGenerating = sessionStorage.getItem('mix_is_generating') === 'true'
 
         let smart_generate_setting = JSON.parse(sessionStorage.getItem("smart_generate_setting")) || {}
         this.copy_request = smart_generate_setting.copy_require || ''
-      }
-
-      this.already_generated = this.montage_data.length > 0
-      if (this.montage_data.length > 0) {
-        this.already_generated = true
-        this.activeIndex = 0
-        this.preview_video_url = this.montage_data[0].video_file_path
-        this.preview_audio_url = this.montage_data[0].audio_file_path
-        this.$nextTick(() => {
-          this.loadVideo();
-          this.loadAudio()
-        })
       }
 
       this.selected_figure = JSON.parse(sessionStorage.getItem('material_figure')) || {}
@@ -954,12 +1070,6 @@ export default {
         this.$alert('混剪失败，请给无文案任务添加背景音乐后重试', '提示')
         return
       }
-      this.loading = this.$loading({
-        lock: true,
-        text: '一键混剪，请耐心等待...',
-        spinner: 'el-icon-loading',
-        background: 'rgba(0, 0, 0, 0.7)'
-      });
       let actualRequest = this.requirement
       let names = this.mention_list.map(item => '@' + item.name);
       names.forEach((item, index) => {
@@ -971,6 +1081,15 @@ export default {
         // reference_segments = hots.segments.map(item => item.description)
         reference_segments = hots.grouped_analysis_result.segmentGroups
       }
+      this.isNewChat = false
+      this.mix_chats.push({
+        role: 'user',
+        content: this.requirement || '挑选合适的视频素材即可',
+      });
+      this.isGenerating = true
+      this.$nextTick(() => {
+        this.scrollToBottom()
+      })
       let params = {
         user_request: actualRequest,
         copy_request: this.copy_request,
@@ -988,21 +1107,22 @@ export default {
       postAction('/figure/video_mix_edit', params, 3600000).then(res => {
         if (res.data.status === 'success') {
           this.montage_data = res.data.data
-          this.already_generated = true
+          this.isGenerating = false
+          this.mix_chats.push({
+            role: 'system',
+            content: {
+              thinking: res.data.data.thinking,
+              data: res.data.data.data
+            }
+          })
+          this.$nextTick(() => {
+            this.scrollToBottom()
+          })
           if (this.nextType === 'hot_montage') {
             sessionStorage.setItem("hot_montage_data", JSON.stringify(this.montage_data))
           } else {
             sessionStorage.setItem("montage_data", JSON.stringify(this.montage_data))
           }
-          this.activeIndex = 0
-          this.loading.close();
-          this.loading = null;
-          this.preview_video_url = this.montage_data[0].video_file_path
-          this.preview_audio_url = this.montage_data[0].audio_file_path
-          this.$nextTick(() => {
-            this.loadVideo();
-            this.loadAudio()
-          })
         } else {
           this.$alert(res.data.message, "混剪失败");
           this.loading.close();
@@ -1011,7 +1131,7 @@ export default {
       }).catch(error => {
         this.loading.close();
         this.loading = null;
-        console.log(error)
+        this.$alert(error, "混剪错误");
       })
     },
     export_video(with_out_route) {
@@ -1193,6 +1313,7 @@ export default {
         this.$forceUpdate()
         return
       }
+      this.show_settings = false
       if (this.activeIndex !== index) {
         this.activeIndex = index
         if (this.isPlaying) {
@@ -1212,7 +1333,7 @@ export default {
       this.$confirm('确认删除该文案吗？', '提示', {
         type: 'warning'
       }).then(() => {
-        if (this.already_generated) {
+        if (this.montage_data.length > 0) {
           this.montage_data.splice(index, 1)
           if (this.nextType === 'hot_montage') {
             sessionStorage.setItem("hot_montage_data", JSON.stringify(this.montage_data))
@@ -1225,7 +1346,6 @@ export default {
             this.isPlaying = false
           }
           if (this.montage_data.length > 0) {
-            this.already_generated = true
             this.activeIndex = 0
             this.preview_video_url = this.montage_data[0].video_file_path
             this.preview_audio_url = this.montage_data[0].audio_file_path
@@ -1233,8 +1353,7 @@ export default {
               this.loadVideo();
               this.loadAudio()
             })
-          }else {
-            this.already_generated = false
+          } else {
             this.activeIndex = -1
           }
           return
@@ -1258,7 +1377,7 @@ export default {
       this.$confirm('确认删除选择的文案吗？', '提示', {
         type: 'warning'
       }).then(() => {
-        if (this.already_generated) {
+        if (this.montage_data.length > 0) {
           this.montage_data = this.montage_data.filter((item, i) => !this.deleteCheckeds[i]);
           this.deleteCheckeds = []
           this.showChecked = false
@@ -1274,7 +1393,6 @@ export default {
             this.isPlaying = false
           }
           if (this.montage_data.length > 0) {
-            this.already_generated = true
             this.activeIndex = 0
             this.preview_video_url = this.montage_data[0].video_file_path
             this.preview_audio_url = this.montage_data[0].audio_file_path
@@ -1282,8 +1400,7 @@ export default {
               this.loadVideo();
               this.loadAudio()
             })
-          }else {
-            this.already_generated = false
+          } else {
             this.activeIndex = -1
           }
           return
@@ -1340,6 +1457,10 @@ export default {
       }
     },
     back() {
+      if (this.isGenerating) {
+        this.$message.warning('请等待当前混剪完成之后返回')
+        return
+      }
       let path = this.nextType === 'hot_montage' ? '/duplicate' : '/smartGenerate'
       sessionStorage.setItem('video_path', path)
       this.$router.push({path: path})
@@ -1369,18 +1490,19 @@ export default {
 }
 
 .settings-panel {
-  width: 280px;
+  width: 400px;
   padding: 19px;
   box-sizing: border-box;
   border-radius: 12px;
   background-color: #ffffff;
+  box-shadow: 0 1px 3px 0 #0000001a, 0 1px 2px -1px #0000001a;
   height: 100%;
 }
 
 .toggle-btn-open {
   position: fixed;
   top: 50%;
-  left: calc(500px);
+  left: calc(616px);
   transform: translateY(-50%);
   width: 20px;
   height: 80px;
@@ -1402,7 +1524,7 @@ export default {
 }
 
 .toggle-btn-open:hover {
-  left: calc(504px);
+  left: calc(620px);
 }
 
 .toggle-btn-close {
@@ -2142,5 +2264,130 @@ export default {
   font-weight: bold;
   line-height: 25px;
   text-align: end;
+}
+
+.mix-chat-area {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  width: 400px;
+  box-shadow: 0 1px 3px 0 #0000001a, 0 1px 2px -1px #0000001a;
+  background-color: #FFFFFF;
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.mix-chat-frame {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 12px;
+  overflow-y: auto;
+}
+
+.mix-chat-user {
+  max-width: 85%;
+  background-color: #dbeafe;
+  padding: 10px;
+  box-shadow: 0 0 #0000, 0 0 #0000, 0 1px 2px 0 rgb(0 0 0 / 0.05);
+  border-radius: 8px;
+  border-top-left-radius: 0 !important;
+  color: #4B5563;
+  font-size: 14px;
+}
+
+.mix-chat-system {
+  background-color: #eff6ff;
+  padding: 10px;
+  box-shadow: 0 0 #0000, 0 0 #0000, 0 1px 2px 0 rgb(0 0 0 / 0.05);
+  border-radius: 8px;
+  border-top-right-radius: 0 !important;
+  display: flex;
+  gap: 8px;
+}
+
+.mix-avatar-area {
+  width: 32px;
+  height: 32px;
+  background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #ec4899 100%);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-weight: bold;
+  font-size: 18px;
+  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+  position: relative;
+  overflow: hidden;
+}
+
+.mix-chat-system >>> .el-collapse {
+  border: none;
+}
+
+.mix-chat-system >>> .el-collapse-item__wrap {
+  background-color: transparent;
+  border: none;
+}
+
+.mix-chat-system >>> .el-collapse-item__header {
+  height: 32px;
+  line-height: 32px;
+  background-color: transparent;
+  border: none;
+}
+
+.mix-chat-system >>> .el-collapse-item__arrow {
+  margin: 0 10px;
+  font-weight: bold;
+}
+
+.mix-chat-system >>> .el-collapse-item__content {
+  padding-bottom: 0;
+}
+
+.mix-chat-system-label {
+  color: #3b82f6;
+  font-weight: bold;
+  font-size: 12px;
+  line-height: 16px;
+}
+
+.ai-thinking-content {
+  color: #4b5563;
+  font-size: 13px;
+  line-height: 20px;
+  font-style: italic;
+}
+
+.mix-loading-content {
+  width: 65px;
+  background-color: #eff6ff;
+  padding: 10px;
+  box-shadow: 0 0 #0000, 0 0 #0000, 0 1px 2px 0 rgb(0 0 0 / 0.05);
+  border-radius: 8px;
+  border-top-right-radius: 0 !important;
+  display: flex;
+  gap: 8px;
+}
+
+.mix-loading-area {
+  font-size: 20px;
+  color: #4B5563;
+}
+
+.mix-chat-input {
+  padding: 12px;
+  background-color: #f3f4f6;
+  border-top: 1px solid #e5e7eb;
+}
+
+.mix-send-placeholder {
+  color: #6b7280;
+  font-size: 12px;
+  line-height: 16px;
+  margin-top: 8px;
 }
 </style>

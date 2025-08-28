@@ -21,7 +21,9 @@
         </div>
       </el-aside>
       <el-main class="main" :class="{'padding0': $route.path === '/material'}">
-        <router-view/>
+        <keep-alive>
+          <router-view/>
+        </keep-alive>
       </el-main>
     </el-container>
   </div>
