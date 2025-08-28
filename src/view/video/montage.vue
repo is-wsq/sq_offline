@@ -74,7 +74,8 @@
       </div>
       <div class="mix-chat-area" v-if="show_settings && mix_chats.length > 0">
         <div class="mix-chat-frame" ref="mixChatRef">
-          <div v-for="(item, index) in mix_chats" :key="index">
+          <div v-for="(item, index) in mix_chats" :key="index"
+               :class="{'historical-chat': lastNewChatIndex !== -1 && index < lastNewChatIndex}">
             <div v-if="item.role === 'user'" style="display: flex;justify-content: end;">
               <div class="mix-chat-user">
                 {{ item.content }}
@@ -96,6 +97,21 @@
                 </div>
               </div>
             </div>
+            <div v-if="item.role === 'new_chat'">
+              <el-divider>新会话</el-divider>
+            </div>
+            <div v-if="item.role === 'mix_error'" class="error-content">
+              <div class="avatar-area">奇</div>
+              <div class="error-message">混剪失败</div>
+            </div>
+            <div v-if="item.role === 'update_error'" class="error-content">
+              <div class="avatar-area">奇</div>
+              <div class="error-message">
+                修改失败，
+                <span style="color: #3b82f6;font-size: 14px;cursor: pointer;" @click="reUpdate">
+                      点击重新生成
+                </span></div>
+            </div>
           </div>
           <div class="mix-loading-content" v-if="isGenerating">
             <div class="mix-avatar-area">奇</div>
@@ -103,14 +119,78 @@
           </div>
         </div>
         <div class="mix-chat-input">
-          <div class="flex-center">
-            <el-input type="textarea" placeholder="请输入您的修改意见..." resize="none" v-model="mix_chatInput"
-                      @keydown.native="enterSendChat"></el-input>
-            <el-button type="primary" style="padding: 0 20px" @click="sendChat" :disabled="isGenerating">
-              <i class="el-icon-s-promotion" style="font-size: 18px;line-height: 35px"></i>
-            </el-button>
-          </div>
-          <div class="mix-send-placeholder">按Enter或发送按钮发送，Shift+Enter换行</div>
+          <template v-if="!isNewChat">
+            <div class="create-chat-btn" @click="createNewChat">
+              <i class="el-icon-edit-outline" style="margin-right: 5px"></i>
+              发起新会话
+            </div>
+            <div class="flex-center">
+              <el-input type="textarea" placeholder="请输入您的修改意见..." resize="none" v-model="mix_chatInput"
+                        @keydown.native="enterSendChat"></el-input>
+              <el-button type="primary" style="padding: 0 20px" @click="sendChat" :disabled="isGenerating">
+                <i class="el-icon-s-promotion" style="font-size: 18px;line-height: 35px"></i>
+              </el-button>
+            </div>
+            <div class="mix-send-placeholder">按Enter或发送按钮发送，Shift+Enter换行</div>
+          </template>
+          <template v-else>
+            <div class="mix-chat-input-new">
+              <div class="setting-require margin-t-8">自定义要求（选填）</div>
+              <div style="position: relative">
+                <div class="highlight-content"
+                     v-html="highlightedText"
+                     :style="{height: replaceDivHeight + 'px'}"
+                     ref="highlightDiv">
+                </div>
+                <el-input type="textarea"
+                          :rows="4"
+                          placeholder="例如：素材拼接要紧凑，色调统一偏暖"
+                          v-model="requirement"
+                          @input="onInput"
+                          @compositionstart="onCompositionStart"
+                          @compositionupdate="onCompositionUpdate"
+                          @compositionend="onCompositionEnd"
+                          spellcheck="false"
+                          ref="inputRef"
+                          class="input-layer"
+                          @change="saveSetting"
+                          @scroll="handleScroll">
+                </el-input>
+                <div v-if="showDropdown" class="dropdown" :style="dropdownStyle">
+                  <ul ref="urRef">
+                    <li v-for="(item, index) in filtered_mention_list" :key="index" @click="selectMention(item)"
+                        @mouseenter="liEnter(item)" :title="item.name" @mouseleave="liLeave"
+                        @mouseover="liMouseover(index)" :class="{'li-active': selectedShotIndex === index}">
+                      {{ item.name }}
+                    </li>
+                  </ul>
+                  <div class="li-video" v-if="hover_li">
+                    <video :src="hover_li.filepath" style="width: 100%; height: 100%;border-radius: 4px;"
+                           loop muted autoplay></video>
+                  </div>
+                </div>
+              </div>
+              <template v-if="selected_figure.id">
+                <div class="setting-require margin-t-12">人物形象出镜比例</div>
+                <div class="figure-ratio-slider">
+                  <el-slider v-model="figure_ratio" style="flex: 1" @change="saveFigureRatio"
+                             :step="10" :format-tooltip="formatTooltip"></el-slider>
+                  <div class="figure-ratio-label">{{ figure_ratio + '%' }}</div>
+                </div>
+              </template>
+            </div>
+            <div class="settings-button-section">
+              <div class="generate-btn">
+                <el-button @click="generate" :loading="!!loading"><i class="el-icon-bianjiqi btn-icon" v-if="!loading"></i>
+                  {{ !!loading ? '生成中...' : montage_data.length > 0 ? '重新生成' : '一键混剪' }}
+                </el-button>
+              </div>
+              <div class="batch-download">
+                <el-button @click="centerDialogVisible = true"><i class="el-icon-arrow-down" style="font-size: 16px"></i>
+                </el-button>
+              </div>
+            </div>
+          </template>
         </div>
       </div>
       <div style="width: 1px" v-if="!show_settings">
@@ -376,6 +456,7 @@ export default {
       mix_chatInput: '',
       lastGeneratedMixins: [],
       isGenerating: false,
+      isNewChat: false,
       requirement: '',
       figure_ratio: 30,
       copy_list: [],
@@ -474,6 +555,12 @@ export default {
       },
       deep: true
     },
+    isNewChat: {
+      handler(newValue, oldValue) {
+        sessionStorage.setItem('mix_is_newChat', JSON.stringify(newValue))
+      },
+      deep: true
+    }
   },
   computed: {
     audio_file_duration() {
@@ -491,6 +578,14 @@ export default {
       }
       return []
     },
+    lastNewChatIndex() {
+      for (let i = this.mix_chats.length - 1; i >= 0; i--) {
+        if (this.mix_chats[i].role === 'new_chat') {
+          return i;
+        }
+      }
+      return -1;
+    }
   },
   beforeDestroy() {
     document.removeEventListener('click', this.handleClickOutside);
@@ -523,6 +618,27 @@ export default {
         this.isPlaying = false
       }
       this.show_settings = true
+    },
+    createNewChat() {
+      if (this.isGenerating) {
+        this.$alert('请等待生成结束后再发起新会话','提示')
+        return
+      }
+      this.isNewChat = true
+      this.mix_chats.push({ role: 'new_chat' })
+      this.$nextTick(() => {
+        this.scrollToBottom()
+      })
+    },
+    reUpdate() {
+      this.mix_chats = this.mix_chats.filter(item => item.role !== 'update_error')
+      let history_chats = this.mix_chats
+      for (let i = this.mix_chats.length - 1; i >= 0; i--) {
+        if (this.mix_chats[i].role === 'new_chat') {
+          history_chats = this.mix_chats.slice(i + 1);
+          break;
+        }
+      }
     },
     enterSendChat(event) {
       if (event.key === 'Enter' && !event.shiftKey) {
@@ -802,7 +918,7 @@ export default {
             offsetTop = Math.min(offsetTop, 4);
             let remainder = (paddingLeft + textWidth + 5) % inputWidth;
 
-            this.dropdownStyle.top = `${window.scrollY + offsetTop * lineHeight}px`;
+            this.dropdownStyle.top = `${window.scrollY + offsetTop * lineHeight - 105}px`;
             this.dropdownStyle.left = `${remainder}px`;
           });
         } else {
@@ -995,6 +1111,7 @@ export default {
         this.montage_data = JSON.parse(sessionStorage.getItem("montage_data")) || []
         this.mix_chats = JSON.parse(sessionStorage.getItem('mix_chats')) || []
         this.isGenerating = sessionStorage.getItem('mix_is_generating') === 'true'
+        this.isNewChat = sessionStorage.getItem('mix_is_newChat') === 'true'
 
         let smart_generate_setting = JSON.parse(sessionStorage.getItem("smart_generate_setting")) || {}
         this.copy_request = smart_generate_setting.copy_require || ''
@@ -1124,13 +1241,16 @@ export default {
             sessionStorage.setItem("montage_data", JSON.stringify(this.montage_data))
           }
         } else {
+          this.isGenerating = false
+          this.mix_chats.push({ role: 'mix_error' })
+          this.$nextTick(() => {
+            this.scrollToBottom()
+          })
           this.$alert(res.data.message, "混剪失败");
-          this.loading.close();
-          this.loading = null;
         }
       }).catch(error => {
-        this.loading.close();
-        this.loading = null;
+        this.isGenerating = false
+        this.mix_chats.push({ role: 'mix_error' })
         this.$alert(error, "混剪错误");
       })
     },
@@ -1559,7 +1679,8 @@ export default {
   height: calc(100% - 60px);
 }
 
-.settings-content-area >>> .el-textarea__inner {
+.settings-content-area >>> .el-textarea__inner,
+.mix-chat-input-new >>> .el-textarea__inner {
   padding: 8px;
   font-size: 14px;
   font-family: "Helvetica Neue", Arial, sans-serif;
@@ -2286,6 +2407,20 @@ export default {
   overflow-y: auto;
 }
 
+.mix-chat-frame >>> .el-divider--horizontal {
+  margin: 10px 0 !important;
+}
+
+.mix-chat-frame >>> .el-divider__text {
+  color: #9ca3af;
+}
+
+.historical-chat {
+  opacity: 0.5;
+  /* pointer-events: none; */
+  transition: opacity 0.3s ease-in-out;
+}
+
 .mix-chat-user {
   max-width: 85%;
   background-color: #dbeafe;
@@ -2362,6 +2497,23 @@ export default {
   font-style: italic;
 }
 
+.error-content {
+  width: 200px;
+  background-color: #eff6ff;
+  padding: 10px;
+  box-shadow: 0 0  #0000, 0 0 #0000, 0 1px 2px 0 rgb(0 0 0 / 0.05);
+  border-radius: 8px;
+  border-top-right-radius: 0 !important;
+  display: flex;
+  gap: 8px;
+}
+
+.error-message {
+  color: #4B5563;
+  font-size: 14px;
+  line-height: 32px;
+}
+
 .mix-loading-content {
   width: 65px;
   background-color: #eff6ff;
@@ -2382,6 +2534,14 @@ export default {
   padding: 12px;
   background-color: #f3f4f6;
   border-top: 1px solid #e5e7eb;
+}
+
+.create-chat-btn {
+  color: #4b5563;
+  font-size: 14px;
+  line-height: 20px;
+  margin-bottom: 8px;
+  cursor: pointer;
 }
 
 .mix-send-placeholder {
