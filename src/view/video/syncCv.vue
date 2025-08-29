@@ -13,7 +13,7 @@
           <i class="el-icon-arrow-left" style="font-size: 16px;font-weight: bold;color: #ffffff"></i>
         </div>
       </el-tooltip>
-      <div class="left-panel" v-if="show_left_panel && mix_chats.length === 0">
+      <div class="left-panel" v-if="show_left_panel && (sync_mix_chats.length === 0 || isNewChat)">
         <div class="left-content-area">
           <div class="panel-title">分镜设置</div>
           <div class="panel-label margin-t-8">自定义要求（选填）</div>
@@ -110,16 +110,16 @@
           </el-button>
         </div>
       </div>
-      <div class="mix-chat-area" v-if="show_left_panel && mix_chats.length > 0">
+      <div class="mix-chat-area" v-if="show_left_panel && sync_mix_chats.length > 0 && !isNewChat">
         <div class="mix-chat-frame" ref="mixChatRef">
-          <div v-for="(item, index) in mix_chats" :key="index"
+          <div v-for="(item, index) in sync_mix_chats" :key="index"
                :class="{'historical-chat': lastNewChatIndex !== -1 && index < lastNewChatIndex}">
             <div v-if="item.role === 'user'" style="display: flex;justify-content: end;">
               <div class="mix-chat-user">
                 {{ item.content }}
               </div>
             </div>
-            <div v-if="item.role === 'system'" style="max-width: 85%">
+            <div v-if="item.role === 'system'" class="mix-chat-system-area">
               <div class="mix-chat-system">
                 <div class="mix-avatar-area">奇</div>
                 <div style="flex: 1">
@@ -134,21 +134,24 @@
                   <div class="mix-chat-system-label margin-t-12">混剪结果</div>
                 </div>
               </div>
+              <div class="select-result-btn" @click="selectMixResult(item.content.data)">
+                <i class="el-icon-copy-document font-weight"></i>
+                选择本次混剪结果
+              </div>
             </div>
             <div v-if="item.role === 'new_chat'">
               <el-divider>新会话</el-divider>
             </div>
             <div v-if="item.role === 'mix_error'" class="error-content">
-              <div class="avatar-area">奇</div>
-              <div class="error-message">混剪失败</div>
+              <div class="mix-avatar-area">奇</div>
+              <div class="error-message">混剪失败，{{ item.content }}</div>
             </div>
             <div v-if="item.role === 'update_error'" class="error-content">
-              <div class="avatar-area">奇</div>
+              <div class="mix-avatar-area">奇</div>
               <div class="error-message">
-                修改失败，
-                <span style="color: #3b82f6;font-size: 14px;cursor: pointer;" @click="reUpdate">
-                      点击重新生成
-                </span></div>
+                修改失败，{{ item.content }}
+                <!--<span style="color: #3b82f6;font-size: 14px;cursor: pointer;" @click="reUpdate">点击重新生成</span>-->
+              </div>
             </div>
           </div>
           <div class="mix-loading-content" v-if="isGenerating">
@@ -157,78 +160,18 @@
           </div>
         </div>
         <div class="mix-chat-input">
-          <template v-if="!isNewChat">
-            <div class="create-chat-btn" @click="createNewChat">
-              <i class="el-icon-edit-outline" style="margin-right: 5px"></i>
-              发起新会话
-            </div>
-            <div class="flex-center">
-              <el-input type="textarea" placeholder="请输入您的修改意见..." resize="none" v-model="mix_chatInput"
-                        @keydown.native="enterSendChat"></el-input>
-              <el-button type="primary" style="padding: 0 20px" @click="sendChat" :disabled="isGenerating">
-                <i class="el-icon-s-promotion" style="font-size: 18px;line-height: 35px"></i>
-              </el-button>
-            </div>
-            <div class="mix-send-placeholder">按Enter或发送按钮发送，Shift+Enter换行</div>
-          </template>
-          <template v-else>
-            <div class="mix-chat-input-new">
-              <div class="setting-require margin-t-8">自定义要求（选填）</div>
-              <div style="position: relative">
-                <div class="highlight-content"
-                     v-html="highlightedText"
-                     :style="{height: replaceDivHeight + 'px'}"
-                     ref="highlightDiv">
-                </div>
-                <el-input type="textarea"
-                          :rows="4"
-                          placeholder="例如：素材拼接要紧凑，色调统一偏暖"
-                          v-model="requirement"
-                          @input="onInput"
-                          @compositionstart="onCompositionStart"
-                          @compositionupdate="onCompositionUpdate"
-                          @compositionend="onCompositionEnd"
-                          spellcheck="false"
-                          ref="inputRef"
-                          class="input-layer"
-                          @change="saveSetting"
-                          @scroll="handleScroll">
-                </el-input>
-                <div v-if="showDropdown" class="dropdown" :style="dropdownStyle">
-                  <ul ref="urRef">
-                    <li v-for="(item, index) in filtered_mention_list" :key="index" @click="selectMention(item)"
-                        @mouseenter="liEnter(item)" :title="item.name" @mouseleave="liLeave"
-                        @mouseover="liMouseover(index)" :class="{'li-active': selectedShotIndex === index}">
-                      {{ item.name }}
-                    </li>
-                  </ul>
-                  <div class="li-video" v-if="hover_li">
-                    <video :src="hover_li.filepath" style="width: 100%; height: 100%;border-radius: 4px;"
-                           loop muted autoplay></video>
-                  </div>
-                </div>
-              </div>
-              <template v-if="selected_figure.id">
-                <div class="setting-require margin-t-12">人物形象出镜比例</div>
-                <div class="figure-ratio-slider">
-                  <el-slider v-model="figure_ratio" style="flex: 1" @change="saveFigureRatio"
-                             :step="10" :format-tooltip="formatTooltip"></el-slider>
-                  <div class="figure-ratio-label">{{ figure_ratio + '%' }}</div>
-                </div>
-              </template>
-            </div>
-            <div class="settings-button-section">
-              <div class="generate-btn">
-                <el-button @click="generate" :loading="!!loading"><i class="el-icon-bianjiqi btn-icon" v-if="!loading"></i>
-                  {{ !!loading ? '生成中...' : montage_data.length > 0 ? '重新生成' : '一键混剪' }}
-                </el-button>
-              </div>
-              <div class="batch-download">
-                <el-button @click="centerDialogVisible = true"><i class="el-icon-arrow-down" style="font-size: 16px"></i>
-                </el-button>
-              </div>
-            </div>
-          </template>
+          <div class="create-chat-btn" @click="createNewChat">
+            <i class="el-icon-edit-outline" style="margin-right: 5px"></i>
+            发起新会话
+          </div>
+          <div class="flex-center">
+            <el-input type="textarea" placeholder="请输入您的修改意见..." resize="none" v-model="mix_chatInput"
+                      @keydown.native="enterSendChat"></el-input>
+            <el-button type="primary" style="padding: 0 20px" @click="sendChat" :disabled="isGenerating">
+              <i class="el-icon-s-promotion" style="font-size: 18px;line-height: 35px"></i>
+            </el-button>
+          </div>
+          <div class="mix-send-placeholder">按Enter或发送按钮发送，Shift+Enter换行</div>
         </div>
       </div>
 
@@ -410,7 +353,7 @@ export default {
   name: 'SyncCv',
   data() {
     return {
-      mix_chats: [],
+      sync_mix_chats: [],
       mix_chatInput: '',
       lastGeneratedMixins: [],
       isGenerating: false,
@@ -511,7 +454,7 @@ export default {
         this.updateDisplayText();
       }
     },
-    mix_chats: {
+    sync_mix_chats: {
       handler(newValue, oldValue) {
         sessionStorage.setItem('sync_mix_chats', JSON.stringify(newValue))
       },
@@ -547,8 +490,8 @@ export default {
       return []
     },
     lastNewChatIndex() {
-      for (let i = this.mix_chats.length - 1; i >= 0; i--) {
-        if (this.mix_chats[i].role === 'new_chat') {
+      for (let i = this.sync_mix_chats.length - 1; i >= 0; i--) {
+        if (this.sync_mix_chats[i].role === 'new_chat') {
           return i;
         }
       }
@@ -572,23 +515,27 @@ export default {
       }
       this.show_left_panel = true
     },
+    selectMixResult(result) {
+      this.copy_list = result
+      sessionStorage.setItem("sync_cv_copy_list", JSON.stringify(this.copy_list))
+    },
     createNewChat() {
       if (this.isGenerating) {
         this.$alert('请等待生成结束后再发起新会话','提示')
         return
       }
       this.isNewChat = true
-      this.mix_chats.push({ role: 'new_chat' })
+      this.sync_mix_chats.push({ role: 'new_chat' })
       this.$nextTick(() => {
         this.scrollToBottom()
       })
     },
     reUpdate() {
-      this.mix_chats = this.mix_chats.filter(item => item.role !== 'update_error')
-      let history_chats = this.mix_chats
-      for (let i = this.mix_chats.length - 1; i >= 0; i--) {
-        if (this.mix_chats[i].role === 'new_chat') {
-          history_chats = this.mix_chats.slice(i + 1);
+      this.sync_mix_chats = this.sync_mix_chats.filter(item => item.role !== 'update_error')
+      let history_chats = this.sync_mix_chats
+      for (let i = this.sync_mix_chats.length - 1; i >= 0; i--) {
+        if (this.sync_mix_chats[i].role === 'new_chat') {
+          history_chats = this.sync_mix_chats.slice(i + 1);
           break;
         }
       }
@@ -607,35 +554,66 @@ export default {
         this.$alert('请先输入修改意见', '提示')
         return
       }
-      let history_chat = this.mix_chats
-      for (let i = this.mix_chats.length - 1; i >= 0; i--) {
-        if (this.mix_chats[i].role === 'new_chat') {
-          history_chat = this.mix_chats.slice(i + 1);
+      let history_chat = this.sync_mix_chats
+      for (let i = this.sync_mix_chats.length - 1; i >= 0; i--) {
+        if (this.sync_mix_chats[i].role === 'new_chat') {
+          history_chat = this.sync_mix_chats.slice(i + 1);
           break;
         }
       }
-      this.mix_chats.push({ role: 'user', content: this.mix_chatInput });
+      this.sync_mix_chats.push({ role: 'user', content: this.mix_chatInput });
+      let bool_list = this.material_list.map(item => this.mute_materials.includes(item))
       let params = {
         data: this.lastGeneratedMixins,
         history_chat: history_chat,
         user_feedback: this.mix_chatInput,
         material_list: this.material_list,
+        bool_list: bool_list
       }
       this.mix_chatInput = '';
       this.isGenerating = true
       this.$nextTick(() => {
         this.scrollToBottom()
       })
-      setTimeout(() => {
+      postAction('/figure/re_video_mix_edit',params, 3600000).then(res => {
+        if (res.data.status === "success") {
+          this.isGenerating = false
+          this.sync_mix_chats.push({
+            role: 'system',
+            content: {
+              thinking: res.data.data.thinking,
+              data: res.data.data.data
+            }
+          })
+          this.$nextTick(() => {
+            this.scrollToBottom()
+          })
+          this.copy_list = res.data.data.data
+          this.lastGeneratedMixins = res.data.data.data
+          sessionStorage.setItem('sync_last_generated_mixins', JSON.stringify(this.lastGeneratedMixins))
+          sessionStorage.setItem("sync_cv_copy_list", JSON.stringify(this.copy_list))
+        } else {
+          this.isGenerating = false
+          this.sync_mix_chats.push({
+            role: 'update_error',
+            content: res.data.message
+          })
+          this.$nextTick(() => {
+            this.scrollToBottom()
+          })
+          this.$alert(res.data.message,'生成失败')
+        }
+      }).catch(error => {
         this.isGenerating = false
-        this.mix_chats.push({
-          role: 'system',
-          content: {
-            thinking: 'AI生成回答完成',
-            data: []
-          }
-        });
-      },10000)
+        this.sync_mix_chats.push({
+          role: 'update_error',
+          content: error
+        })
+        this.$nextTick(() => {
+          this.scrollToBottom()
+        })
+        this.$alert(error,'生成错误')
+      })
     },
     scrollToBottom() {
       if (this.$refs.mixChatRef) {
@@ -1022,9 +1000,13 @@ export default {
 
       this.copy_list = JSON.parse(sessionStorage.getItem("sync_cv_copy_list")) || []
 
-      this.mix_chats = JSON.parse(sessionStorage.getItem('sync_mix_chats')) || []
+      this.sync_mix_chats = JSON.parse(sessionStorage.getItem('sync_mix_chats')) || []
       this.isGenerating = sessionStorage.getItem('sync_mix_is_generating') === 'true'
       this.isNewChat = sessionStorage.getItem('sync_mix_is_newChat') === 'true'
+      this.lastGeneratedMixins = JSON.parse(sessionStorage.getItem('sync_last_generated_mixins')) || []
+      this.$nextTick(() => {
+        this.scrollToBottom()
+      })
 
       let sync_setting = JSON.parse(sessionStorage.getItem("sync_setting")) || {}
       this.language = sync_setting.language || '中文'
@@ -1128,7 +1110,7 @@ export default {
       const cleanTexts = this.exampleTexts.map(text => text.trim()).filter(text => text !== '');
 
       this.isNewChat = false
-      this.mix_chats.push({
+      this.sync_mix_chats.push({
         role: 'user',
         content: this.requirement || '挑选合适的视频素材即可',
       });
@@ -1157,7 +1139,7 @@ export default {
       postAction('/figure/video_mix_edit_sync', params, 3600000).then(res => {
         if (res.data.status === 'success') {
           this.isGenerating = false
-          this.mix_chats.push({
+          this.sync_mix_chats.push({
             role: 'system',
             content: {
               thinking: res.data.data.thinking,
@@ -1167,12 +1149,27 @@ export default {
           this.$nextTick(() => {
             this.scrollToBottom()
           })
-          this.copy_list = res.data.data
+          this.copy_list = res.data.data.data
+          this.lastGeneratedMixins = res.data.data.data
+          sessionStorage.setItem('sync_last_generated_mixins', JSON.stringify(this.lastGeneratedMixins))
           sessionStorage.setItem("sync_cv_copy_list", JSON.stringify(this.copy_list))
         } else {
+          this.isGenerating = false
+          this.mix_chats.push({
+            role: 'mix_error',
+            content: res.data.message
+          })
+          this.$nextTick(() => {
+            this.scrollToBottom()
+          })
           this.$alert(res.data.message, "混剪失败");
         }
       }).catch(error => {
+        this.isGenerating = false
+        this.mix_chats.push({
+          role: 'mix_error',
+          content: error
+        })
         this.$alert(error, "混剪错误");
       })
     },
@@ -2175,6 +2172,20 @@ export default {
   overflow-y: auto;
 }
 
+.mix-chat-frame >>> .el-divider--horizontal {
+  margin: 10px 0 !important;
+}
+
+.mix-chat-frame >>> .el-divider__text {
+  color: #9ca3af;
+}
+
+.historical-chat {
+  opacity: 0.5;
+  /* pointer-events: none; */
+  transition: opacity 0.3s ease-in-out;
+}
+
 .mix-chat-user {
   max-width: 85%;
   background-color: #dbeafe;
@@ -2184,6 +2195,23 @@ export default {
   border-top-left-radius: 0 !important;
   color: #4B5563;
   font-size: 14px;
+}
+
+.mix-chat-system-area {
+  max-width: 85%
+}
+
+.select-result-btn {
+  width: 120px;
+  font-size: 12px;
+  color: #4B5563;
+  margin-top: 4px;
+  cursor: pointer;
+  opacity: 0;
+}
+
+.mix-chat-system-area:hover .select-result-btn {
+  opacity: 1;
 }
 
 .mix-chat-system {
@@ -2245,10 +2273,33 @@ export default {
 }
 
 .ai-thinking-content {
+  width: 255px;
+  max-height: 300px;
+  overflow-y: auto;
+  overflow-x: hidden;
   color: #4b5563;
   font-size: 13px;
   line-height: 20px;
   font-style: italic;
+}
+
+.error-content {
+  max-width: 85%;
+  width: fit-content;
+  background-color: #eff6ff;
+  padding: 10px;
+  box-shadow: 0 0  #0000, 0 0 #0000, 0 1px 2px 0 rgb(0 0 0 / 0.05);
+  border-radius: 8px;
+  border-top-right-radius: 0 !important;
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.error-message {
+  flex: 1;
+  color: #4B5563;
+  font-size: 14px;
 }
 
 .mix-loading-content {

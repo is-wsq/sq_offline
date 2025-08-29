@@ -8,15 +8,15 @@
       <div style="width: 36px"></div>
     </div>
     <div class="sync-cv-container">
-      <div class="left-panel" v-if="show_left_panel">
-        <el-tooltip class="item" effect="dark" content="收起设置" placement="right">
-          <div class="setting-close" @click="show_left_panel = false">
-            <i class="el-icon-arrow-left" style="font-size: 16px;font-weight: bold;color: #ffffff"></i>
-          </div>
-        </el-tooltip>
+      <el-tooltip class="item" effect="dark" content="收起设置" placement="right" v-if="show_left_panel">
+        <div class="setting-close" @click="closeSettings">
+          <i class="el-icon-arrow-left" style="font-size: 16px;font-weight: bold;color: #ffffff"></i>
+        </div>
+      </el-tooltip>
+      <div class="left-panel" v-if="show_left_panel && (segments_chats.length === 0 || isNewChat)">
         <div class="left-content-area">
           <div class="panel-title">分镜设置</div>
-          <div class="panel-label">自定义要求（选填）</div>
+          <div class="panel-label margin-t-8">自定义要求（选填）</div>
           <div style="position: relative">
             <div class="highlight-content"
                  v-html="highlightedText"
@@ -100,30 +100,95 @@
         </div>
         <div class="settings-button-section">
           <el-button @click="generate"><i class="el-icon-bianjiqi btn-icon"></i>
-            {{ already_generated ? '重新生成' : '一键混剪并同步' }}
+            {{ copy_list.length > 0 ? '重新生成' : '一键混剪并同步' }}
           </el-button>
+        </div>
+      </div>
+
+      <div class="mix-chat-area" v-if="show_left_panel && segments_chats.length > 0 && !isNewChat">
+        <div class="mix-chat-frame" ref="mixChatRef">
+          <div v-for="(item, index) in segments_chats" :key="index"
+               :class="{'historical-chat': lastNewChatIndex !== -1 && index < lastNewChatIndex}">
+            <div v-if="item.role === 'user'" style="display: flex;justify-content: end;">
+              <div class="mix-chat-user">
+                {{ item.content }}
+              </div>
+            </div>
+            <div v-if="item.role === 'system'" class="mix-chat-system-area">
+              <div class="mix-chat-system">
+                <div class="mix-avatar-area">奇</div>
+                <div style="flex: 1">
+                  <el-collapse>
+                    <el-collapse-item>
+                      <template slot="title">
+                        <div class="mix-chat-system-label">AI思考过程</div>
+                      </template>
+                      <div class="ai-thinking-content">{{ item.content.thinking }}</div>
+                    </el-collapse-item>
+                  </el-collapse>
+                  <div class="mix-chat-system-label margin-t-12">混剪结果</div>
+                </div>
+              </div>
+              <div class="select-result-btn" @click="selectMixResult(item.content.data)">
+                <i class="el-icon-copy-document font-weight"></i>
+                选择本次混剪结果
+              </div>
+            </div>
+            <div v-if="item.role === 'new_chat'">
+              <el-divider>新会话</el-divider>
+            </div>
+            <div v-if="item.role === 'mix_error'" class="error-content">
+              <div class="mix-avatar-area">奇</div>
+              <div class="error-message">混剪失败，{{ item.content }}</div>
+            </div>
+            <div v-if="item.role === 'update_error'" class="error-content">
+              <div class="mix-avatar-area">奇</div>
+              <div class="error-message">
+                修改失败，{{ item.content }}
+                <!--<span style="color: #3b82f6;font-size: 14px;cursor: pointer;" @click="reUpdate">点击重新生成</span>-->
+              </div>
+            </div>
+          </div>
+          <div class="mix-loading-content" v-if="isGenerating">
+            <div class="mix-avatar-area">奇</div>
+            <div class="mix-loading-area flex-center"><i class="el-icon-loading"></i></div>
+          </div>
+        </div>
+        <div class="mix-chat-input">
+          <div class="create-chat-btn" @click="createNewChat">
+            <i class="el-icon-edit-outline" style="margin-right: 5px"></i>
+            发起新会话
+          </div>
+          <div class="flex-center">
+            <el-input type="textarea" placeholder="请输入您的修改意见..." resize="none" v-model="mix_chatInput"
+                      @keydown.native="enterSendChat"></el-input>
+            <el-button type="primary" style="padding: 0 20px" @click="sendChat" :disabled="isGenerating">
+              <i class="el-icon-s-promotion" style="font-size: 18px;line-height: 35px"></i>
+            </el-button>
+          </div>
+          <div class="mix-send-placeholder">按Enter或发送按钮发送，Shift+Enter换行</div>
         </div>
       </div>
 
       <div class="left-panel-close" v-if="!show_left_panel">
         <el-tooltip class="item" effect="dark" content="展开设置 " placement="right-end">
-          <div class="setting-open" @click="show_left_panel = true">
+          <div class="setting-open" @click="expandSettings">
             <i class="el-icon-arrow-right" style="font-size: 16px;font-weight: bold;color: #ffffff"></i>
           </div>
         </el-tooltip>
       </div>
 
-      <div class="center-panel"
-           :style="{width: show_left_panel? 'calc(100% - 648px)' :  activeIndex !== -1? 'calc(100% - 733px)' : 'calc(100% - 370px)'}">
+      <div class="center-panel" :style="{ width: show_left_panel? 'calc(100% - 420px)' : 'calc(100% - 733px)'}">
         <div class="script-selection-area">
           <div class="flex-center" style="line-height: 50px">
             <div class="panel-title" style="flex: 1">AI选用文案</div>
-            <div v-if="copy_list.length > 0">
+            <div v-if="copy_list.length > 0 && !isGenerating">
               <template v-if="showChecked">
                 <el-button type="primary" size="mini" class="delete-group-btn" @click="sureRemove">确认删除</el-button>
                 <el-button class="delete-group-btn" size="mini" @click="showChecked = false">取消</el-button>
               </template>
-              <el-button type="primary" size="mini" class="delete-group-btn" v-else @click="batchRemoveCopy">批量删除</el-button>
+              <el-button type="primary" size="mini" class="delete-group-btn" v-else @click="batchRemoveCopy">批量删除
+              </el-button>
             </div>
           </div>
           <div class="copy-list" v-if="copy_list.length > 0">
@@ -136,7 +201,7 @@
                       <div class="flex-center">
                         <div class="copy-item-title" :title="item.title">{{ item.title }}</div>
                         <div style="width: 16px">
-                          <i class="el-icon-close close-icon" @click.stop="removeCopy(index)" v-if="!showChecked"></i>
+                          <i class="el-icon-close close-icon" @click.stop="removeCopy(index)" v-if="!showChecked && !isGenerating"></i>
                           <div @click.stop="">
                             <el-checkbox v-model="deleteCheckeds[index]" v-if="showChecked"></el-checkbox>
                           </div>
@@ -148,12 +213,12 @@
                   <div class="segment-groups">
                     <div class="segment-group-item" v-for="(group,group_index) in item.segment_group"
                          :key="group_index">
-                      <div class="group-title" v-if="group.groupType !== 'digital_human'"
+                      <div class="group-title" v-if="group.groupType !== 'digital_human' && !isGenerating"
                            :style="{ width: (group.materials.length * 100 + 80) + 'px' }"
                            :title="group.contentSummary">
                         {{ group.contentSummary }}
                       </div>
-                      <div class="group-title" v-if="group.groupType === 'digital_human'"
+                      <div class="group-title" v-if="group.groupType === 'digital_human' || isGenerating"
                            :style="{ width: ((group.materials.length - 1) * 100 + 80) + 'px' }"
                            :title="group.contentSummary">
                         {{ group.contentSummary }}
@@ -176,20 +241,21 @@
                                        loop muted autoplay></video>
                               </div>
                             </div>
-                            <div slot="reference" class="insert-shot-btn">
+                            <div slot="reference" class="insert-shot-btn" v-if="!isGenerating">
                               <div class="fa-plus">
                                 <i class="el-icon-plus" style="font-weight: bold"></i>
                               </div>
                             </div>
                           </el-popover>
-                          <div class="delete-shot-btn" v-if="group.groupType !== 'digital_human' && group.materials.length > 1">
+                          <div class="delete-shot-btn"
+                               v-if="group.groupType !== 'digital_human' && group.materials.length > 1 && !isGenerating">
                             <i class="el-icon-close" style="font-weight: bold"
                                @click="removeShot(index,group_index,material_index)"></i>
                           </div>
                           <el-image class="material-item-img" :src="material.picture"></el-image>
                           <div class="material-item-title" :title="material.name">{{ material.name }}</div>
                         </div>
-                        <div class="material-item" v-if="group.groupType !== 'digital_human'">
+                        <div class="material-item" v-if="group.groupType !== 'digital_human' && !isGenerating">
                           <el-popover :ref="'pushRef_' + index" placement="bottom" trigger="click"
                                       @show="pushShow(index,group_index)" @hide="pushHide">
                             <div class="shot-list" :ref="'materialRef_' + index + '_' + group_index">
@@ -221,7 +287,7 @@
             <div class="copy-list-none-title">暂无文案</div>
             <div class="copy-list-none-desc">请使用左侧工具生成您的第一条文案</div>
           </div>
-          <div class="export-section" v-if="already_generated">
+          <div class="export-section" v-if="copy_list.length > 0 && !isGenerating">
             <el-button @click="export_video"><i class="el-icon-fa-download" style="margin-right: 10px;"></i>导出视频
             </el-button>
           </div>
@@ -245,7 +311,7 @@
         </div>
       </div>
 
-      <div class="right-panel">
+      <div class="right-panel" v-if="!show_left_panel">
         <div class="video-placeholder" v-if="activeIndex < 0">
           <i class="el-icon-film-c" style="font-size: 48px"></i>
           <div>视频预览区</div>
@@ -279,8 +345,15 @@
 import {postAction} from "@/api/api";
 
 export default {
+  name: 'Segments',
   data() {
     return {
+      segments_chats: [],
+      mix_chatInput: '',
+      lastGeneratedMixins: [],
+      isGenerating: false,
+      isNewChat: false,
+
       show_left_panel: true,
       requirement: '',
       figure_ratio: 30,
@@ -327,7 +400,6 @@ export default {
       },
       mentionRanges: [],
 
-      already_generated: false,
       language: '中文',
       copy_require: '',
       exampleTexts: '',
@@ -378,6 +450,24 @@ export default {
       if (!this.isComposing) {
         this.updateDisplayText();
       }
+    },
+    segments_chats: {
+      handler(newValue, oldValue) {
+        sessionStorage.setItem('segments_chats', JSON.stringify(newValue))
+      },
+      deep: true
+    },
+    isGenerating: {
+      handler(newValue, oldValue) {
+        sessionStorage.setItem('segments_mix_is_generating', newValue)
+      },
+      deep: true
+    },
+    isNewChat: {
+      handler(newValue, oldValue) {
+        sessionStorage.setItem('segments_mix_is_newChat', JSON.stringify(newValue))
+      },
+      deep: true
     }
   },
   computed: {
@@ -396,8 +486,140 @@ export default {
       }
       return []
     },
+    lastNewChatIndex() {
+      for (let i = this.segments_chats.length - 1; i >= 0; i--) {
+        if (this.segments_chats[i].role === 'new_chat') {
+          return i;
+        }
+      }
+      return -1;
+    }
   },
   methods: {
+    closeSettings() {
+      if (this.copy_list.length === 0) {
+        this.show_left_panel = false
+        return
+      }
+      this.itemClick(0)
+    },
+    expandSettings() {
+      this.activeIndex = -1
+      if (this.isPlaying) {
+        this.$refs.videoRef.pause()
+        this.$refs.audioRef.pause()
+        this.isPlaying = false
+      }
+      this.show_left_panel = true
+    },
+    selectMixResult(result) {
+      this.copy_list = result
+      sessionStorage.setItem("segments_copy_list", JSON.stringify(this.copy_list))
+    },
+    createNewChat() {
+      if (this.isGenerating) {
+        this.$alert('请等待生成结束后再发起新会话','提示')
+        return
+      }
+      this.isNewChat = true
+      this.segments_chats.push({ role: 'new_chat' })
+      this.$nextTick(() => {
+        this.scrollToBottom()
+      })
+    },
+    reUpdate() {
+      this.segments_chats = this.segments_chats.filter(item => item.role !== 'update_error')
+      let history_chats = this.segments_chats
+      for (let i = this.segments_chats.length - 1; i >= 0; i--) {
+        if (this.segments_chats[i].role === 'new_chat') {
+          history_chats = this.segments_chats.slice(i + 1);
+          break;
+        }
+      }
+    },
+    enterSendChat(event) {
+      if (event.key === 'Enter' && !event.shiftKey) {
+        event.preventDefault();
+        if (this.isGenerating) {
+          return;
+        }
+        this.sendChat();
+      }
+    },
+    sendChat() {
+      if (!this.mix_chatInput) {
+        this.$alert('请先输入修改意见', '提示')
+        return
+      }
+      let history_chat = this.segments_chats
+      for (let i = this.segments_chats.length - 1; i >= 0; i--) {
+        if (this.segments_chats[i].role === 'new_chat') {
+          history_chat = this.segments_chats.slice(i + 1);
+          break;
+        }
+      }
+      this.segments_chats.push({ role: 'user', content: this.mix_chatInput });
+      let bool_list = this.material_list.map(item => this.mute_materials.includes(item))
+      let hots = JSON.parse(sessionStorage.getItem("select_hots"))
+      let reference_segments = hots.grouped_analysis_result.segmentGroups
+      let params = {
+        reference_segments: reference_segments,
+        data: this.lastGeneratedMixins,
+        history_chat: history_chat,
+        user_feedback: this.mix_chatInput,
+        material_list: this.material_list,
+        bool_list: bool_list
+      }
+      this.mix_chatInput = '';
+      this.isGenerating = true
+      this.$nextTick(() => {
+        this.scrollToBottom()
+      })
+      postAction('/figure/re_video_mix_edit',params, 3600000).then(res => {
+        if (res.data.status === "success") {
+          this.isGenerating = false
+          this.segments_chats.push({
+            role: 'system',
+            content: {
+              thinking: res.data.data.thinking,
+              data: res.data.data.data
+            }
+          })
+          this.$nextTick(() => {
+            this.scrollToBottom()
+          })
+          this.copy_list = res.data.data.data
+          this.lastGeneratedMixins = res.data.data.data
+          sessionStorage.setItem('segments_last_generated_mixins', JSON.stringify(this.lastGeneratedMixins))
+          sessionStorage.setItem("segments_copy_list", JSON.stringify(this.copy_list))
+        } else {
+          this.isGenerating = false
+          this.segments_chats.push({
+            role: 'update_error',
+            content: res.data.message
+          })
+          this.$nextTick(() => {
+            this.scrollToBottom()
+          })
+          this.$alert(res.data.message,'生成失败')
+        }
+      }).catch(error => {
+        this.isGenerating = false
+        this.segments_chats.push({
+          role: 'update_error',
+          content: error
+        })
+        this.$nextTick(() => {
+          this.scrollToBottom()
+        })
+        this.$alert(error,'生成错误')
+      })
+    },
+    scrollToBottom() {
+      if (this.$refs.mixChatRef) {
+        this.$refs.mixChatRef.scrollTop = this.$refs.mixChatRef.scrollHeight
+      }
+    },
     popoverShow(index,g_index,m_index) {
       this.add_shot_popover = true
       this.v_index = index
@@ -768,19 +990,14 @@ export default {
       this.selected_figure = JSON.parse(sessionStorage.getItem('material_figure')) || {}
 
       this.copy_list = JSON.parse(sessionStorage.getItem("segments_copy_list")) || []
-      if (this.copy_list.length > 0) {
-        this.show_left_panel = false;
-        this.already_generated = true;
-        this.openIndex = 0;
-        this.activeIndex = 0;
-        this.selectedCopy = this.copy_list[0]
-        this.preview_video_url = this.copy_list[0].video_file_path
-        this.preview_audio_url = this.copy_list[0].audio_file_path
-        this.$nextTick(() => {
-          this.loadVideo();
-          this.loadAudio()
-        })
-      }
+
+      this.segments_chats = JSON.parse(sessionStorage.getItem('segments_chats')) || []
+      this.isGenerating = sessionStorage.getItem('segments_mix_is_generating') === 'true'
+      this.isNewChat = sessionStorage.getItem('segments_mix_is_newChat') === 'true'
+      this.lastGeneratedMixins = JSON.parse(sessionStorage.getItem('segments_last_generated_mixins')) || []
+      this.$nextTick(() => {
+        this.scrollToBottom()
+      })
 
       let segments_setting = JSON.parse(sessionStorage.getItem("segments_setting")) || {}
       this.language = segments_setting.language || '中文'
@@ -885,12 +1102,6 @@ export default {
         this.$alert('文案要求不能为空，请先填写文案要求', '提示')
         return
       }
-      this.loading = this.$loading({
-        lock: true,
-        text: '一键混剪，请耐心等待...',
-        spinner: 'el-icon-loading',
-        background: 'rgba(0, 0, 0, 0.7)'
-      });
       let actualRequest = this.requirement
       let names = this.mention_list.map(item => '@' + item.name);
       names.forEach((item, index) => {
@@ -898,6 +1109,17 @@ export default {
       })
       let example = []
       example[0] = this.exampleTexts
+
+      this.isNewChat = false
+      this.segments_chats.push({
+        role: 'user',
+        content: this.requirement || '挑选合适的视频素材即可',
+      });
+      this.isGenerating = true
+      this.$nextTick(() => {
+        this.scrollToBottom()
+      })
+
       let params = {
         language: this.language,
         requirements: this.copy_require,
@@ -918,29 +1140,38 @@ export default {
       }
       postAction('/figure/video_mix_edit_sync', params, 3600000).then(res => {
         if (res.data.status === 'success') {
-          this.show_left_panel = false;
-          this.already_generated = true;
-          this.copy_list = res.data.data
-          sessionStorage.setItem("segments_copy_list", JSON.stringify(this.copy_list))
-          this.openIndex = 0;
-          this.activeIndex = 0;
-          this.selectedCopy = this.copy_list[0]
-          this.loading.close();
-          this.loading = null;
-          this.preview_video_url = this.copy_list[0].video_file_path
-          this.preview_audio_url = this.copy_list[0].audio_file_path
-          this.$nextTick(() => {
-            this.loadVideo();
-            this.loadAudio()
+          this.isGenerating = false
+          this.segments_chats.push({
+            role: 'system',
+            content: {
+              thinking: res.data.data.thinking,
+              data: res.data.data.data
+            }
           })
+          this.$nextTick(() => {
+            this.scrollToBottom()
+          })
+          this.copy_list = res.data.data.data
+          this.lastGeneratedMixins = res.data.data.data
+          sessionStorage.setItem('segments_last_generated_mixins', JSON.stringify(this.lastGeneratedMixins))
+          sessionStorage.setItem("segments_copy_list", JSON.stringify(this.copy_list))
         } else {
+          this.isGenerating = false
+          this.mix_chats.push({
+            role: 'mix_error',
+            content: res.data.message
+          })
+          this.$nextTick(() => {
+            this.scrollToBottom()
+          })
           this.$alert(res.data.message, "混剪失败");
-          this.loading.close();
-          this.loading = null;
         }
       }).catch(error => {
-        this.loading.close();
-        this.loading = null;
+        this.isGenerating = false
+        this.mix_chats.push({
+          role: 'mix_error',
+          content: error
+        })
         this.$alert(error, "混剪错误");
       })
     },
@@ -950,6 +1181,7 @@ export default {
         this.$forceUpdate()
         return
       }
+      this.show_left_panel = false
       if (this.activeIndex !== index) {
         this.activeIndex = index
         this.selectedCopy = this.copy_list[index]
@@ -977,7 +1209,6 @@ export default {
           this.isPlaying = false
         }
         if (this.copy_list.length > 0) {
-          this.already_generated = true;
           this.openIndex = 0;
           this.activeIndex = 0;
           this.selectedCopy = this.copy_list[0]
@@ -988,7 +1219,6 @@ export default {
             this.loadAudio()
           })
         } else {
-          this.already_generated = false;
           this.selectedCopy = null;
           this.openIndex = null
           this.activeIndex = -1
@@ -998,7 +1228,6 @@ export default {
         this.$message({type: 'info', message: '已取消删除'});
       });
     },
-
 
     batchRemoveCopy() {
       this.showChecked = true
@@ -1024,7 +1253,6 @@ export default {
           this.isPlaying = false
         }
         if (this.copy_list.length > 0) {
-          this.already_generated = true;
           this.openIndex = 0;
           this.activeIndex = 0;
           this.selectedCopy = this.copy_list[0]
@@ -1035,7 +1263,6 @@ export default {
             this.loadAudio()
           })
         } else {
-          this.already_generated = false;
           this.selectedCopy = null;
           this.openIndex = null
           this.activeIndex = -1
@@ -1162,6 +1389,10 @@ export default {
       }
     },
     back() {
+      if (this.isGenerating) {
+        this.$message.warning('请等待当前混剪完成之后返回')
+        return
+      }
       sessionStorage.setItem('video_path', '/material')
       this.$router.push({path: '/material'})
     }
@@ -1194,11 +1425,12 @@ export default {
 }
 
 .left-panel {
-  width: 280px;
+  width: 400px;
   padding: 20px 10px;
   box-sizing: border-box;
   border-radius: 12px;
   background-color: #ffffff;
+  box-shadow: 0 1px 3px 0 #0000001a, 0 1px 2px -1px #0000001a;
   height: 100%;
 }
 
@@ -1231,11 +1463,11 @@ export default {
 .setting-close {
   box-shadow: rgba(102, 126, 234, 0.3) 0 4px 20px;
   background: linear-gradient(135deg, rgb(102, 126, 234) 0%, rgb(118, 75, 162) 100%);
-  left: calc(500px);
+  left: 620px;
 }
 
 .setting-close:hover {
-  left: calc(504px);
+  left: 624px;
 }
 
 .setting-open {
@@ -1889,5 +2121,192 @@ export default {
 .delete-group-btn {
   padding: 8px !important;
   font-family: "Helvetica Neue", Arial, sans-serif;
+}
+
+.mix-chat-area {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  width: 400px;
+  box-shadow: 0 1px 3px 0 #0000001a, 0 1px 2px -1px #0000001a;
+  background-color: #FFFFFF;
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.mix-chat-frame {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 12px;
+  overflow-y: auto;
+}
+
+.mix-chat-frame >>> .el-divider--horizontal {
+  margin: 10px 0 !important;
+}
+
+.mix-chat-frame >>> .el-divider__text {
+  color: #9ca3af;
+}
+
+.historical-chat {
+  opacity: 0.5;
+  /* pointer-events: none; */
+  transition: opacity 0.3s ease-in-out;
+}
+
+.mix-chat-user {
+  max-width: 85%;
+  background-color: #dbeafe;
+  padding: 10px;
+  box-shadow: 0 0 #0000, 0 0 #0000, 0 1px 2px 0 rgb(0 0 0 / 0.05);
+  border-radius: 8px;
+  border-top-left-radius: 0 !important;
+  color: #4B5563;
+  font-size: 14px;
+}
+
+.mix-chat-system-area {
+  max-width: 85%
+}
+
+.select-result-btn {
+  width: 120px;
+  font-size: 12px;
+  color: #4B5563;
+  margin-top: 4px;
+  cursor: pointer;
+  opacity: 0;
+}
+
+.mix-chat-system-area:hover .select-result-btn {
+  opacity: 1;
+}
+
+.mix-chat-system {
+  background-color: #eff6ff;
+  padding: 10px;
+  box-shadow: 0 0 #0000, 0 0 #0000, 0 1px 2px 0 rgb(0 0 0 / 0.05);
+  border-radius: 8px;
+  border-top-right-radius: 0 !important;
+  display: flex;
+  gap: 8px;
+}
+
+.mix-avatar-area {
+  width: 32px;
+  height: 32px;
+  background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #ec4899 100%);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-weight: bold;
+  font-size: 18px;
+  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+  position: relative;
+  overflow: hidden;
+}
+
+.mix-chat-system >>> .el-collapse {
+  border: none;
+}
+
+.mix-chat-system >>> .el-collapse-item__wrap {
+  background-color: transparent;
+  border: none;
+}
+
+.mix-chat-system >>> .el-collapse-item__header {
+  height: 32px;
+  line-height: 32px;
+  background-color: transparent;
+  border: none;
+}
+
+.mix-chat-system >>> .el-collapse-item__arrow {
+  margin: 0 10px;
+  font-weight: bold;
+}
+
+.mix-chat-system >>> .el-collapse-item__content {
+  padding-bottom: 0;
+}
+
+.mix-chat-system-label {
+  color: #3b82f6;
+  font-weight: bold;
+  font-size: 12px;
+  line-height: 16px;
+}
+
+.ai-thinking-content {
+  width: 255px;
+  max-height: 300px;
+  overflow-y: auto;
+  overflow-x: hidden;
+  color: #4b5563;
+  font-size: 13px;
+  line-height: 20px;
+  font-style: italic;
+}
+
+.error-content {
+  max-width: 85%;
+  width: fit-content;
+  background-color: #eff6ff;
+  padding: 10px;
+  box-shadow: 0 0  #0000, 0 0 #0000, 0 1px 2px 0 rgb(0 0 0 / 0.05);
+  border-radius: 8px;
+  border-top-right-radius: 0 !important;
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.error-message {
+  flex: 1;
+  color: #4B5563;
+  font-size: 14px;
+}
+
+.mix-loading-content {
+  width: 65px;
+  background-color: #eff6ff;
+  padding: 10px;
+  box-shadow: 0 0 #0000, 0 0 #0000, 0 1px 2px 0 rgb(0 0 0 / 0.05);
+  border-radius: 8px;
+  border-top-right-radius: 0 !important;
+  display: flex;
+  gap: 8px;
+}
+
+.mix-loading-area {
+  font-size: 20px;
+  color: #4B5563;
+}
+
+.mix-chat-input {
+  padding: 12px;
+  background-color: #f3f4f6;
+  border-top: 1px solid #e5e7eb;
+}
+
+.create-chat-btn {
+  color: #4b5563;
+  font-size: 14px;
+  line-height: 20px;
+  margin-bottom: 8px;
+  cursor: pointer;
+}
+
+.mix-send-placeholder {
+  color: #6b7280;
+  font-size: 12px;
+  line-height: 16px;
+  margin-top: 8px;
 }
 </style>

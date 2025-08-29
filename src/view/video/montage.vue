@@ -668,11 +668,13 @@ export default {
         }
       }
       this.mix_chats.push({ role: 'user', content: this.mix_chatInput });
+      let bool_list = this.material_list.map(item => this.mute_materials.includes(item))
       let params = {
         data: this.lastGeneratedMixins,
         history_chat: history_chat,
         user_feedback: this.mix_chatInput,
         material_list: this.material_list,
+        bool_list: bool_list,
       }
       this.mix_chatInput = '';
       this.isGenerating = true
@@ -684,7 +686,7 @@ export default {
           this.isGenerating = false
           this.montage_data = res.data.data.data
           this.lastGeneratedMixins = res.data.data.data
-          sessionStorage.setItem('last_generated_mixins', JSON.stringify(this.lastGeneratedScripts))
+          sessionStorage.setItem('last_generated_mixins', JSON.stringify(this.lastGeneratedMixins))
           sessionStorage.setItem("montage_data", JSON.stringify(this.montage_data))
           this.mix_chats.push({
             role: 'system',
