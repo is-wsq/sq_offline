@@ -25,6 +25,7 @@
           <router-view v-if="alive_routers.includes($route.path)"></router-view>
         </keep-alive>
         <router-view v-if="!alive_routers.includes($route.path)"></router-view>
+<!--        <router-view></router-view>-->
       </el-main>
     </el-container>
   </div>
@@ -51,7 +52,7 @@ export default {
         {name: "品牌店铺", path: "/shop", class: 'el-icon-s-shop'},
         {name: "设置", path: "/system", class: 'el-icon-setting'},
       ],
-      alive_routers: ['/syncCv','/montage']
+      alive_routers: ['/syncCv','/montage','/remix','/segments']
     };
   },
   async mounted() {
@@ -91,7 +92,7 @@ export default {
       this.$router.push({path: path})
     },
     updateActiveFromRoute() {
-      let paths = ['/human', '/material', '/smartGenerate', '/syncCv', '/duplicate', '/segments', '/montage', '/hot']
+      let paths = ['/human', '/material', '/smartGenerate', '/syncCv', '/duplicate', '/segments', '/montage', '/hot', '/remix']
       let first_paths = ['/imageToScript', '/scriptToImage', '/imageToVideo']
       if (first_paths.includes(this.$route.path)) {
         this.active = 1;
