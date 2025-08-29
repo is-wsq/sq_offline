@@ -22,8 +22,9 @@
       </el-aside>
       <el-main class="main" :class="{'padding0': $route.path === '/material'}">
         <keep-alive>
-          <router-view></router-view>
+          <router-view v-if="alive_routers.includes($route.path)"></router-view>
         </keep-alive>
+        <router-view v-if="!alive_routers.includes($route.path)"></router-view>
       </el-main>
     </el-container>
   </div>
@@ -50,6 +51,7 @@ export default {
         {name: "品牌店铺", path: "/shop", class: 'el-icon-s-shop'},
         {name: "设置", path: "/system", class: 'el-icon-setting'},
       ],
+      alive_routers: ['/syncCv','/montage']
     };
   },
   async mounted() {
