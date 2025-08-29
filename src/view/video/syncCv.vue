@@ -568,7 +568,7 @@ export default {
         history_chat: history_chat,
         user_feedback: this.mix_chatInput,
         material_list: this.material_list,
-        bool_list: bool_list
+        bool_list: this.mute_materials,
       }
       this.mix_chatInput = '';
       this.isGenerating = true
