@@ -83,6 +83,7 @@
                 <el-image :src="image" style="width: 100%;height: 100%;border-radius: 8px" fit="cover"></el-image>
                 <i class="el-icon-zoom-in zoom-in"></i>
                 <i class="el-icon-close close-btn" @click.stop="deleteImage(index,image_index)"></i>
+                <i class="el-icon-download download-btn" @click.stop="downloadImage(image)"></i>
               </div>
             </template>
             <template v-else>
@@ -191,6 +192,22 @@ export default {
       }).catch(() => {
         this.$message.info('已取消删除')
       })
+    },
+    downloadImage(image) {
+      fetch(image).then(response => response.blob()).then(blob => {
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'image.png';
+        document.body.appendChild(a);
+        a.click();
+        window.URL.revokeObjectURL(url);
+        document.body.removeChild(a);
+      })
+      .catch(error => {
+        console.error('下载图片失败:', error);
+        this.$message.error('下载图片失败');
+      });
     },
     initData() {
       this.operateProductInfo = JSON.parse(sessionStorage.getItem('operate_product'))
@@ -431,7 +448,7 @@ export default {
   transform: scale(1.05);
 }
 
-.zoom-in, .close-btn {
+.zoom-in, .close-btn, .download-btn {
   color: #ffffff;
   position: absolute;
   opacity: 0;
@@ -451,8 +468,16 @@ export default {
   font-weight: bold;
 }
 
+.download-btn {
+  bottom: 5px;
+  right: 5px;
+  font-size: 16px;
+  font-weight: bold;
+}
+
 .storyboard-item-image:hover .zoom-in,
-.storyboard-item-image:hover .close-btn {
+.storyboard-item-image:hover .close-btn,
+.storyboard-item-image:hover .download-btn {
   opacity: 1;
 }
 
