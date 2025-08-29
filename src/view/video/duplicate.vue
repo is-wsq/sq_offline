@@ -111,7 +111,7 @@
       </el-row>
     </div>
     <div class="flex-center">
-      <el-button type="primary" style="width: 176px" @click="nextStep">下一步：智能成片</el-button>
+      <el-button type="primary" style="width: 176px" @click="nextStep">下一步：混剪复刻</el-button>
     </div>
   </div>
 </template>
@@ -325,8 +325,8 @@ export default {
         this.$alert('请添加文案，您至少需要一条文案才能开始制作。', "提示")
         return;
       }
-      this.$router.push({path: '/montage'})
-      sessionStorage.setItem('video_path', '/montage')
+      this.$router.push({path: '/remix'})
+      sessionStorage.setItem('video_path', '/remix')
     },
     back() {
       this.$router.push({path: '/material'})

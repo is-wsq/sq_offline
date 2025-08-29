@@ -16,6 +16,7 @@ import smartGenerate from '../view/video/smartGenerate.vue';
 import syncCv from '../view/video/syncCv.vue';
 import duplicate from '../view/video/duplicate.vue';
 import segments from '../view/video/segments.vue';
+import remix from '../view/video/remix.vue';
 import montage from '../view/video/montage.vue';
 import hot from '../view/video/hot.vue';
 import videoList from '../view/video/list.vue';
@@ -84,6 +85,11 @@ const routes = [
         path: '/duplicate',
         name: 'duplicate',
         component: duplicate
+    },
+    {
+        path: '/remix',
+        name: 'remix',
+        component: remix
     },
     {
         path: '/segments',

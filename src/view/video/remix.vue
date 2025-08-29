@@ -4,7 +4,7 @@
       <el-button type="text" class="back-btn" @click="back">
         <i class="el-icon-arrow-left" style="font-size: 20px;"></i>
       </el-button>
-      <div class="montage-h-t">智能成片</div>
+      <div class="montage-h-t">混剪复刻</div>
       <div style="width: 36px"></div>
     </div>
     <div class="montage-container">
@@ -215,7 +215,7 @@
           </div>
           <div class="script-list">
             <template v-if="montage_data.length === 0" style="width: 100%">
-              <div v-for="(item, index) in copy_list" :key="index" class="script-item"
+              <div v-for="(item, index) in hot_copy_list" :key="index" class="script-item"
                    :class="{ 'script-item-active': selected_index === index}" @click="selectItem(index)">
                 <div class="flex-center margin-b-8" style="width: 100%">
                   <div class="script-item-title" :title="item.title">{{ item.title }}</div>
@@ -459,7 +459,7 @@ export default {
       isNewChat: false,
       requirement: '',
       figure_ratio: 30,
-      copy_list: [],
+      hot_copy_list: [],
       selected_index: {},
       show_settings: true,
       showChecked: false,
@@ -966,8 +966,7 @@ export default {
       this.$nextTick(() => {
         this.concatVideo()
       })
-
-      sessionStorage.setItem("montage_data", JSON.stringify(this.montage_data))
+      sessionStorage.setItem("hot_montage_data", JSON.stringify(this.montage_data))
     },
     pushShot(index, group_index, val) {
       this.$nextTick(() => {
@@ -983,8 +982,7 @@ export default {
       this.$nextTick(() => {
         this.concatVideo()
       })
-
-      sessionStorage.setItem("montage_data", JSON.stringify(this.montage_data))
+      sessionStorage.setItem("hot_montage_data", JSON.stringify(this.montage_data))
     },
     removeShot(index, group_index, shot_index) {
       this.$confirm('确认删除该分镜吗？', '提示', {
@@ -996,7 +994,7 @@ export default {
             this.concatVideo()
           })
         }
-        sessionStorage.setItem("montage_data", JSON.stringify(this.montage_data))
+        sessionStorage.setItem("hot_montage_data", JSON.stringify(this.montage_data))
       }).catch((err) => {
         this.$message({type: 'info', message: '已取消删除'});
       });
@@ -1105,17 +1103,13 @@ export default {
     },
 
     initData() {
-      this.copy_list = JSON.parse(sessionStorage.getItem("copy_list")).map(item => ({
+      this.hot_copy_list = JSON.parse(sessionStorage.getItem("hot_copy_list")).map(item => ({
         ...item, isHover: false,
       }))
-      this.montage_data = JSON.parse(sessionStorage.getItem("montage_data")) || []
-      this.mix_chats = JSON.parse(sessionStorage.getItem('mix_chats')) || []
-      this.isGenerating = sessionStorage.getItem('mix_is_generating') === 'true'
-      this.isNewChat = sessionStorage.getItem('mix_is_newChat') === 'true'
-      this.lastGeneratedMixins = JSON.parse(sessionStorage.getItem('last_generated_mixins')) || []
+      this.montage_data = JSON.parse(sessionStorage.getItem("hot_montage_data")) || []
 
-      let smart_generate_setting = JSON.parse(sessionStorage.getItem("smart_generate_setting")) || {}
-      this.copy_request = smart_generate_setting.copy_require || ''
+      let duplicate_setting = JSON.parse(sessionStorage.getItem("duplicate_setting")) || {}
+      this.copy_request = duplicate_setting.copy_require || ''
 
       this.selected_figure = JSON.parse(sessionStorage.getItem('material_figure')) || {}
 
@@ -1176,14 +1170,14 @@ export default {
       let base = month + '-' + day + '_' + hours + '-' + minutes + '-' + seconds
 
       let result = [];
-      for (let i = 1; i <= this.copy_list.length; i++) {
+      for (let i = 1; i <= this.hot_copy_list.length; i++) {
         result.push(base + '_' + i);
       }
 
       return result;
     },
     generate() {
-      if (this.copy_list.some(item => item.duration && !item.bgm.id)) {
+      if (this.hot_copy_list.some(item => item.duration && !item.bgm.id)) {
         this.$alert('混剪失败，请给无文案任务添加背景音乐后重试', '提示')
         return
       }
@@ -1192,8 +1186,8 @@ export default {
       names.forEach((item, index) => {
         actualRequest = actualRequest.replace(item, `@{${this.material_list[index]}}`)
       })
-      let reference_segments = null
-
+      let hots = JSON.parse(sessionStorage.getItem("select_hots"))
+      let reference_segments = hots.grouped_analysis_result.segmentGroups
       this.isNewChat = false
       this.mix_chats.push({
         role: 'user',
@@ -1208,7 +1202,7 @@ export default {
         copy_request: this.copy_request,
         material_list: this.material_list,
         mute_materials: this.mute_materials,
-        copy_list: this.copy_list,
+        copy_list: this.hot_copy_list,
         bg_volume: this.bg_volume,
         timbre_id: this.sound.voice_id,
         voice_mode: this.voice_mode,
@@ -1233,8 +1227,7 @@ export default {
           this.$nextTick(() => {
             this.scrollToBottom()
           })
-
-          sessionStorage.setItem("montage_data", JSON.stringify(this.montage_data))
+          sessionStorage.setItem("hot_montage_data", JSON.stringify(this.montage_data))
         } else {
           this.isGenerating = false
           this.mix_chats.push({ role: 'mix_error' })
@@ -1303,7 +1296,7 @@ export default {
       });
     },
     batchExport() {
-      if (this.copy_list.some(item => item.duration && !item.bgm.id)) {
+      if (this.hot_copy_list.some(item => item.duration && !item.bgm.id)) {
         this.$alert('请给无文案任务添加背景音乐后重试', '提示')
         return
       }
@@ -1313,7 +1306,9 @@ export default {
       names.forEach((item, index) => {
         actualRequest = actualRequest.replace(item, `@{${this.material_list[index]}}`)
       })
-      let reference_segments = null
+
+      let hots = JSON.parse(sessionStorage.getItem("select_hots"))
+      let reference_segments = hots.grouped_analysis_result.segmentGroups
 
       let bool_list = this.material_list.map(item => this.mute_materials.includes(item))
       let name = this.setName()
@@ -1321,7 +1316,7 @@ export default {
         user_request: actualRequest,
         material_list: this.material_list,
         mute_materials: this.mute_materials,
-        copy_list: this.copy_list,
+        copy_list: this.hot_copy_list,
         bg_volume: this.bg_volume,
         timbre_id: this.sound.voice_id,
         voice_mode: this.voice_mode,
@@ -1375,7 +1370,7 @@ export default {
     },
     selectBgm(item, index) {
       this.stopAudio()
-      this.copy_list[index].bgm = item
+      this.hot_copy_list[index].bgm = item
       this.$nextTick(() => {
         const popoverRefs = this.$refs[`popover_${index}`];
         if (popoverRefs && popoverRefs.length > 0) {
@@ -1387,7 +1382,7 @@ export default {
       });
       this.$forceUpdate()
 
-      sessionStorage.setItem('copy_list', JSON.stringify(this.copy_list))
+      sessionStorage.setItem('hot_copy_list', JSON.stringify(this.hot_copy_list))
     },
     previewAudio(voice, index) {
       if (voice.id === '') {
@@ -1443,7 +1438,8 @@ export default {
         if (this.montage_data.length > 0) {
           this.montage_data.splice(index, 1)
 
-          sessionStorage.setItem("montage_data", JSON.stringify(this.montage_data))
+          sessionStorage.setItem("hot_montage_data", JSON.stringify(this.montage_data))
+
           if (this.$refs.videoRef) {
             this.$refs.videoRef.pause()
             this.$refs.audioRef.pause()
@@ -1462,8 +1458,8 @@ export default {
           }
           return
         }
-        this.copy_list.splice(index, 1)
-        sessionStorage.setItem("copy_list", JSON.stringify(this.copy_list))
+        this.hot_copy_list.splice(index, 1)
+        sessionStorage.setItem("hot_copy_list", JSON.stringify(this.hot_copy_list))
       }).catch((err) => {
         this.$message({type: 'info', message: '已取消删除'});
       });
@@ -1486,7 +1482,9 @@ export default {
           this.deleteCheckeds = []
           this.showChecked = false
           this.$forceUpdate()
-          sessionStorage.setItem("montage_data", JSON.stringify(this.montage_data))
+
+          sessionStorage.setItem("hot_montage_data", JSON.stringify(this.montage_data))
+
           if (this.$refs.videoRef) {
             this.$refs.videoRef.pause()
             this.$refs.audioRef.pause()
@@ -1505,8 +1503,8 @@ export default {
           }
           return
         }
-        this.copy_list = this.copy_list.filter((item, i) => !this.deleteCheckeds[i]);
-        sessionStorage.setItem("copy_list", JSON.stringify(this.copy_list))
+        this.hot_copy_list = this.hot_copy_list.filter((item, i) => !this.deleteCheckeds[i]);
+        sessionStorage.setItem("hot_copy_list", JSON.stringify(this.hot_copy_list))
       }).catch((err) => {
         this.$message({type: 'info', message: '已取消删除'});
       });
@@ -1561,8 +1559,8 @@ export default {
         this.$message.warning('请等待当前混剪完成之后返回')
         return
       }
-      sessionStorage.setItem('video_path', '/smartGenerate')
-      this.$router.push({path: '/smartGenerate'})
+      sessionStorage.setItem('video_path', '/duplicate')
+      this.$router.push({path: '/duplicate'})
     }
   }
 }
