@@ -81,7 +81,7 @@
                 {{ item.content }}
               </div>
             </div>
-            <div v-if="item.role === 'system'" style="max-width: 85%">
+            <div v-if="item.role === 'system'" class="mix-chat-system-area">
               <div class="mix-chat-system">
                 <div class="mix-avatar-area">奇</div>
                 <div style="flex: 1">
@@ -96,21 +96,24 @@
                   <div class="mix-chat-system-label margin-t-12">混剪结果</div>
                 </div>
               </div>
+              <div class="select-result-btn" @click="selectMixResult(item.content.data)">
+                <i class="el-icon-copy-document font-weight"></i>
+                选择本次混剪结果
+              </div>
             </div>
             <div v-if="item.role === 'new_chat'">
               <el-divider>新会话</el-divider>
             </div>
             <div v-if="item.role === 'mix_error'" class="error-content">
-              <div class="avatar-area">奇</div>
-              <div class="error-message">混剪失败</div>
+              <div class="mix-avatar-area">奇</div>
+              <div class="error-message">混剪失败，{{ item.content }}</div>
             </div>
             <div v-if="item.role === 'update_error'" class="error-content">
-              <div class="avatar-area">奇</div>
+              <div class="mix-avatar-area">奇</div>
               <div class="error-message">
-                修改失败，
-                <span style="color: #3b82f6;font-size: 14px;cursor: pointer;" @click="reUpdate">
-                      点击重新生成
-                </span></div>
+                修改失败，{{ item.content }}
+<!--                <span style="color: #3b82f6;font-size: 14px;cursor: pointer;" @click="reUpdate">点击重新生成</span>-->
+              </div>
             </div>
           </div>
           <div class="mix-loading-content" v-if="isGenerating">
@@ -618,6 +621,10 @@ export default {
       }
       this.show_settings = true
     },
+    selectMixResult(result) {
+      this.montage_data = result
+      sessionStorage.setItem("montage_data", JSON.stringify(this.montage_data))
+    },
     createNewChat() {
       if (this.isGenerating) {
         this.$alert('请等待生成结束后再发起新会话','提示')
@@ -678,6 +685,7 @@ export default {
           this.montage_data = res.data.data.data
           this.lastGeneratedMixins = res.data.data.data
           sessionStorage.setItem('last_generated_mixins', JSON.stringify(this.lastGeneratedScripts))
+          sessionStorage.setItem("montage_data", JSON.stringify(this.montage_data))
           this.mix_chats.push({
             role: 'system',
             content: {
@@ -690,7 +698,10 @@ export default {
           })
         } else {
           this.isGenerating = false
-          this.mix_chats.push({ role: 'update_error' })
+          this.mix_chats.push({
+            role: 'update_error',
+            content: res.data.message
+          })
           this.$nextTick(() => {
             this.scrollToBottom()
           })
@@ -698,7 +709,10 @@ export default {
         }
       }).catch(error => {
         this.isGenerating = false
-        this.mix_chats.push({ role: 'update_error' })
+        this.mix_chats.push({
+          role: 'update_error',
+          content: error
+        })
         this.$nextTick(() => {
           this.scrollToBottom()
         })
@@ -1113,6 +1127,9 @@ export default {
       this.isGenerating = sessionStorage.getItem('mix_is_generating') === 'true'
       this.isNewChat = sessionStorage.getItem('mix_is_newChat') === 'true'
       this.lastGeneratedMixins = JSON.parse(sessionStorage.getItem('last_generated_mixins')) || []
+      this.$nextTick(() => {
+        this.scrollToBottom()
+      })
 
       let smart_generate_setting = JSON.parse(sessionStorage.getItem("smart_generate_setting")) || {}
       this.copy_request = smart_generate_setting.copy_require || ''
@@ -1237,7 +1254,10 @@ export default {
           sessionStorage.setItem("montage_data", JSON.stringify(this.montage_data))
         } else {
           this.isGenerating = false
-          this.mix_chats.push({ role: 'mix_error' })
+          this.mix_chats.push({
+            role: 'mix_error',
+            content: res.data.message
+          })
           this.$nextTick(() => {
             this.scrollToBottom()
           })
@@ -1245,7 +1265,10 @@ export default {
         }
       }).catch(error => {
         this.isGenerating = false
-        this.mix_chats.push({ role: 'mix_error' })
+        this.mix_chats.push({
+          role: 'mix_error',
+          content: error
+        })
         this.$alert(error, "混剪错误");
       })
     },
@@ -2411,6 +2434,23 @@ export default {
   font-size: 14px;
 }
 
+.mix-chat-system-area {
+  max-width: 85%
+}
+
+.select-result-btn {
+  width: 120px;
+  font-size: 12px;
+  color: #4B5563;
+  margin-top: 4px;
+  cursor: pointer;
+  opacity: 0;
+}
+
+.mix-chat-system-area:hover .select-result-btn {
+  opacity: 1;
+}
+
 .mix-chat-system {
   background-color: #eff6ff;
   padding: 10px;
@@ -2470,6 +2510,10 @@ export default {
 }
 
 .ai-thinking-content {
+  width: 255px;
+  max-height: 300px;
+  overflow-y: auto;
+  overflow-x: hidden;
   color: #4b5563;
   font-size: 13px;
   line-height: 20px;
@@ -2477,7 +2521,8 @@ export default {
 }
 
 .error-content {
-  width: 200px;
+  max-width: 85%;
+  width: fit-content;
   background-color: #eff6ff;
   padding: 10px;
   box-shadow: 0 0  #0000, 0 0 #0000, 0 1px 2px 0 rgb(0 0 0 / 0.05);
@@ -2485,12 +2530,13 @@ export default {
   border-top-right-radius: 0 !important;
   display: flex;
   gap: 8px;
+  align-items: center;
 }
 
 .error-message {
+  flex: 1;
   color: #4B5563;
   font-size: 14px;
-  line-height: 32px;
 }
 
 .mix-loading-content {
