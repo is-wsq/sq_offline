@@ -501,7 +501,7 @@ export default {
         this.show_left_panel = false
         return
       }
-      this.itemClick(0)
+      this.collapseChange(0)
     },
     expandSettings() {
       this.activeIndex = -1
@@ -1422,6 +1422,7 @@ export default {
   display: flex;
   gap: 24px;
   height: calc(100% - 50px);
+  position: relative;
 }
 
 .left-panel {
@@ -1440,7 +1441,6 @@ export default {
 }
 
 .setting-close, .setting-open {
-  position: fixed;
   top: 50%;
   transform: translateY(-50%);
   width: 20px;
@@ -1461,16 +1461,18 @@ export default {
 }
 
 .setting-close {
+  position: absolute;
   box-shadow: rgba(102, 126, 234, 0.3) 0 4px 20px;
   background: linear-gradient(135deg, rgb(102, 126, 234) 0%, rgb(118, 75, 162) 100%);
-  left: 620px;
+  left: 400px;
 }
 
 .setting-close:hover {
-  left: 624px;
+  left: 404px;
 }
 
 .setting-open {
+  position: fixed;
   box-shadow: rgba(16, 185, 129, 0.3) 0 4px 20px;
   background: linear-gradient(135deg, rgb(16, 185, 129) 0%, rgb(5, 150, 105) 100%);
   left: calc(200px);
@@ -1515,8 +1517,16 @@ export default {
 }
 
 
-.settings-button-section, .export-section {
-  margin-top: 16px;
+.settings-button-section {
+  margin: 16px auto 0;
+  display: flex;
+  width: 280px;
+}
+
+.export-section {
+  margin: 16px auto 0;
+  width: 100%;
+  max-width: 400px;
 }
 
 .settings-button-section >>> .el-button,

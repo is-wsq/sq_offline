@@ -1611,10 +1611,11 @@ export default {
   display: flex;
   gap: 24px;
   height: calc(100% - 50px);
+  position: relative;
 }
 
 .settings-panel {
-  width: 400px;
+  width: 396px;
   padding: 19px;
   box-sizing: border-box;
   border-radius: 12px;
@@ -1624,9 +1625,9 @@ export default {
 }
 
 .toggle-btn-open {
-  position: fixed;
+  position: absolute;
   top: 50%;
-  left: calc(616px);
+  left: 396px;
   transform: translateY(-50%);
   width: 20px;
   height: 80px;
@@ -1648,7 +1649,7 @@ export default {
 }
 
 .toggle-btn-open:hover {
-  left: calc(620px);
+  left: 400px;
 }
 
 .toggle-btn-close {
@@ -1695,13 +1696,15 @@ export default {
 }
 
 .settings-button-section {
-  margin-top: 16px;
+  margin: 16px auto 0;
   display: flex;
-  width: 100%;
+  width: 280px;
 }
 
 .export-section {
-  margin-top: 16px;
+  margin: 16px auto 0;
+  width: 100%;
+  max-width: 400px;
 }
 
 .generate-btn {
