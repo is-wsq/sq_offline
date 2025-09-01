@@ -195,8 +195,7 @@
                           placeholder="文案内容..." v-model="sell_point"></el-input>
                 <div class="design-label">营销亮点</div>
                 <div class="marketing-highlights">
-                  <el-tag v-for="tag in highlights" :key="tag" class="marketing-highlights-tag"
-                          :style="{backgroundColor: '#ffffff !important',border: '1px solid #DCDFE6 !important'}"
+                  <el-tag v-for="tag in highlights" :key="tag" class="new-marketing-highlights-tag"
                           :class="{'active-highlights-tag': active_highlights.includes(tag)}" @click="selectHighlight(tag)">
                     {{ tag }}</el-tag>
                 </div>
@@ -862,16 +861,24 @@ export default {
   gap: 4px;
 }
 
-.marketing-highlights-tag {
-  background-color: #F5F5F5;
+.marketing-highlights-tag,.new-marketing-highlights-tag {
   color: #525252;
   border-radius: 14px;
-  border: 1px solid #F5F5F5;
   cursor: pointer;
   height: 28px;
   line-height: 28px;
-  padding-left: 12px;
-  padding-right: 12px;
+  padding-left: 11px;
+  padding-right: 11px;
+}
+
+.marketing-highlights-tag {
+  background-color: #F5F5F5;
+  border: 1px solid #DCDFE6
+}
+
+.new-marketing-highlights-tag {
+  background-color: #ffffff;
+  border: 1px solid #DCDFE6
 }
 
 .active-highlights-tag {
