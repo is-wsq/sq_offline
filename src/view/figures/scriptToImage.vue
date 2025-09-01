@@ -104,6 +104,7 @@
 
 <script>
 import {postAction} from "@/api/api";
+const { ipcRenderer } = require('electron');
 
 export default {
   name: "scriptToImage",
@@ -193,8 +194,9 @@ export default {
         this.$message.info('已取消删除')
       })
     },
-    async downloadImage(image) {
-      const result = await window.electronAPI.downloadFile(image)
+    async downloadImage(imageUrl) {
+      console.log(imageUrl)
+      const result = await ipcRenderer.invoke('download-image', imageUrl)
 
       console.log(result)
 
