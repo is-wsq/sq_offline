@@ -5,5 +5,5 @@ contextBridge.exposeInMainWorld('electronAPI', {
     closeWindow: () => ipcRenderer.send('close-window'),
     selectFolder: () => ipcRenderer.invoke('dialog:selectFolder'),
     downloadFile: (url, path, fileName) => ipcRenderer.send('download-video', { url, path, fileName }),
-    downloadImage: (url) => ipcRenderer.send('download-image', url),
+    downloadImage: url => ipcRenderer.send('download-image', url),
 });

@@ -104,7 +104,6 @@
 
 <script>
 import {postAction} from "@/api/api";
-const { ipcRenderer } = require('electron');
 
 export default {
   name: "scriptToImage",
@@ -194,9 +193,8 @@ export default {
         this.$message.info('已取消删除')
       })
     },
-    async downloadImage(imageUrl) {
-      console.log(imageUrl)
-      const result = await ipcRenderer.invoke('download-image', imageUrl)
+    async downloadImage(image) {
+      const result = await window.electronAPI.downloadFile(image)
 
       console.log(result)
 
@@ -243,28 +241,28 @@ export default {
         duration: 4,
       }
       postAction('/picture/generate_video', params, 600000).then(res => {
-        if (res.data.status ==='success') {
+        if (res.data.status === 'success') {
           this.loading.close();
           this.loading = null;
           sessionStorage.setItem('video_scripts', JSON.stringify(res.data.data))
           sessionStorage.setItem('params_scripts', JSON.stringify(res.data.data))
 
           sessionStorage.setItem('figure_path', '/imageToVideo')
-          this.$router.push({ path: '/imageToVideo' })
+          this.$router.push({path: '/imageToVideo'})
         } else {
           this.loading.close();
           this.loading = null;
-          this.$alert(res.data.message,'生成素材失败')
+          this.$alert(res.data.message, '生成素材失败')
         }
       }).catch(err => {
         this.loading.close();
         this.loading = null;
-        this.$alert(err,'生成素材错误')
+        this.$alert(err, '生成素材错误')
       })
     },
     backToImage() {
       sessionStorage.setItem('figure_path', '/imageToScript')
-      this.$router.push({ path: '/imageToScript' })
+      this.$router.push({path: '/imageToScript'})
     },
     toVideo() {
       let video_scripts = sessionStorage.getItem('video_scripts') ? JSON.parse(sessionStorage.getItem('video_scripts')) : []
@@ -273,7 +271,7 @@ export default {
         return
       }
       sessionStorage.setItem('figure_path', '/imageToVideo')
-      this.$router.push({ path: '/imageToVideo' })
+      this.$router.push({path: '/imageToVideo'})
     }
   },
 }

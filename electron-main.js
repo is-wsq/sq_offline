@@ -173,7 +173,7 @@ ipcMain.handle('download-image', async (event, imageUrl) => {
         if (!filePath) {
             return { success: false, error: '用户取消下载' }
         }
-        console.log('开始下载图片:', imageUrl, '->', filePath)
+
         // 下载并保存图片
         await downloadFile(imageUrl, filePath)
 
@@ -185,7 +185,6 @@ ipcMain.handle('download-image', async (event, imageUrl) => {
 });
 
 function downloadFile(url, filePath) {
-    console.warn('开始下载文件:', url, '->', filePath)
     return new Promise((resolve, reject) => {
         const request = http.get(url, (response) => {
             if (response.statusCode !== 200) {
