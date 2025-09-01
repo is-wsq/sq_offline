@@ -94,11 +94,19 @@
                     </el-collapse-item>
                   </el-collapse>
                   <div class="mix-chat-system-label margin-t-12">混剪结果</div>
+                  <div class="mix-chat-system-content" @click="selectMixResult(item.content.data)">
+                    <div class="mix-chat-system-content-icon">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" fill="none" viewBox="0 0 24 24">
+                        <path fill="currentColor" fill-rule="evenodd"
+                              d="M13.113 2.266a.936.936 0 0 1 .797 1.057l-2.476 17.614a.936.936 0 0 1-1.854-.26l2.476-17.615a.936.936 0 0 1 1.057-.796M6.811 6.744a.936.936 0 0 1 0 1.324l-3.55 3.55 3.55 3.551a.936.936 0 1 1-1.324 1.324l-4.213-4.212a.936.936 0 0 1 0-1.325l4.213-4.212a.936.936 0 0 1 1.324 0m15.447 4.213c.357.356.365.93.025 1.297a6.05 6.05 0 0 0-2.377-1.001l-3.185-3.185a.936.936 0 1 1 1.324-1.324zm-3.47 10.491a.48.48 0 0 0 .48-.425c.225-1.341.423-2.03.849-2.457.425-.426 1.11-.624 2.445-.849a.485.485 0 0 0 .438-.48.48.48 0 0 0-.44-.48c-1.332-.227-2.018-.425-2.443-.851-.426-.427-.624-1.115-.849-2.455a.48.48 0 0 0-.48-.428.49.49 0 0 0-.481.426c-.226 1.341-.423 2.03-.85 2.457-.424.426-1.108.624-2.44.85a.48.48 0 0 0-.442.481c0 .26.199.448.439.48 1.335.225 2.02.418 2.444.842.426.425.623 1.114.849 2.466.04.24.23.423.482.423" clip-rule="evenodd">
+                        </path>
+                      </svg>
+                    </div>
+                    <div class="mix-chat-system-content-name">
+                      {{ item.content.title }}
+                    </div>
+                  </div>
                 </div>
-              </div>
-              <div class="select-result-btn" @click="selectMixResult(item.content.data)">
-                <i class="el-icon-copy-document font-weight"></i>
-                选择本次混剪结果
               </div>
             </div>
             <div v-if="item.role === 'new_chat'">
@@ -317,7 +325,7 @@
                   <i class="el-icon-time" style="line-height: 21px"></i>
                   <div style="line-height: 21px">{{ item.duration + 's' }}</div>
                 </div>
-                <div class="groups" v-if="activeIndex === index">
+                <div class="groups" v-if="expandedIndex.includes(index)">
                   <div class="group" v-for="(group,group_index) in item.segment_group" :key="group_index">
                     <div class="group-title" v-if="group.groupType === 'digital_human' || isGenerating"
                          :style="{ width: ((group.materials.length - 1) * 100 + 80) + 'px' }"
@@ -565,6 +573,16 @@ export default {
     }
   },
   computed: {
+    expandedIndex() {
+      if (!this.show_settings) {
+        return [0]
+      }
+      let result = []
+      for (let i = 0; i < this.montage_data.length; i++) {
+        result.push(i)
+      }
+      return result
+    },
     audio_file_duration() {
       if (this.montage_data.length > 0) {
         return this.montage_data[this.activeIndex].audio_file_duration
@@ -669,6 +687,7 @@ export default {
       }
       this.mix_chats.push({ role: 'user', content: this.mix_chatInput });
       let bool_list = this.material_list.map(item => this.mute_materials.includes(item))
+      let version = history_chat.filter(item => item.role === 'user').length - 1
       let hots = JSON.parse(sessionStorage.getItem("select_hots"))
       let reference_segments = hots.grouped_analysis_result.segmentGroups
       let params = {
@@ -695,7 +714,8 @@ export default {
             role: 'system',
             content: {
               thinking: res.data.data.thinking,
-              data: res.data.data.data
+              data: res.data.data.data,
+              title: `修改版本 V${version}`
             }
           })
           this.$nextTick(() => {
@@ -1247,7 +1267,8 @@ export default {
             role: 'system',
             content: {
               thinking: res.data.data.thinking,
-              data: res.data.data.data
+              data: res.data.data.data,
+              title: '混剪结果'
             }
           })
           this.$nextTick(() => {
@@ -2517,6 +2538,38 @@ export default {
   font-weight: bold;
   font-size: 12px;
   line-height: 16px;
+}
+
+.mix-chat-system-content {
+  margin-top: 8px;
+  background: linear-gradient(to right, #f7f3ff, #fff 45.34%);
+  width: 100%;
+  border: 1px solid #0003;
+  cursor: pointer;
+  border-radius: 8px;
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+  align-items: center;
+  padding: 10px;
+  box-sizing: border-box;
+}
+
+.mix-chat-system-content:hover {
+  box-shadow: 0 0 4px 0 #00000005, 0 6px 10px 0 #2f35401a;
+}
+
+.mix-chat-system-content-icon {
+  font-size: 18px;
+  color: #9952e1;
+  padding: 9px;
+  margin-bottom: -8px;
+}
+
+.mix-chat-system-content-name {
+  flex: 1;
+  font-size: 14px;
+  color: #000000d9;
 }
 
 .ai-thinking-content {
