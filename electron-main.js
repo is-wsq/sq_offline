@@ -156,3 +156,63 @@ ipcMain.handle('save-file', async (event, fileInfo) => {
         return {success: false, error: error.message};
     }
 });
+
+ipcMain.handle('download-image', async (event, imageUrl) => {
+    try {
+        // 让用户选择保存位置
+        const { filePath } = await dialog.showSaveDialog({
+            title: '保存图片',
+            defaultPath: path.join(app.getPath('downloads'), 'image.png'),
+            filters: [
+                { name: '图片文件', extensions: ['png', 'jpg', 'jpeg', 'gif', 'bmp', 'webp'] },
+                { name: '所有文件', extensions: ['*'] }
+            ]
+        })
+
+        // 如果用户取消选择，返回取消信息
+        if (!filePath) {
+            return { success: false, error: '用户取消下载' }
+        }
+
+        // 下载并保存图片
+        await downloadFile(imageUrl, filePath)
+
+        return { success: true, path: filePath }
+    } catch (error) {
+        console.error('下载图片时出错:', error)
+        return { success: false, error: error.message }
+    }
+});
+
+function downloadFile(url, filePath) {
+    return new Promise((resolve, reject) => {
+        const request = http.get(url, (response) => {
+            if (response.statusCode !== 200) {
+                reject(new Error(`请求失败，状态码: ${response.statusCode}`))
+                return
+            }
+
+            const fileStream = fs.createWriteStream(filePath)
+
+            response.pipe(fileStream)
+
+            fileStream.on('finish', () => {
+                fileStream.close(resolve)
+            })
+
+            fileStream.on('error', (error) => {
+                fs.unlink(filePath, () => {})
+                reject(new Error(`写入文件失败: ${error.message}`))
+            })
+        })
+
+        request.on('error', (error) => {
+            reject(new Error(`请求URL失败: ${error.message}`))
+        })
+
+        request.setTimeout(30000, () => {
+            request.abort()
+            reject(new Error('请求超时'))
+        })
+    })
+}
