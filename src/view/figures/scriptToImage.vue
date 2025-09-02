@@ -194,29 +194,21 @@ export default {
       })
     },
     async downloadImage(image) {
-      const result = await window.electronAPI.downloadFile(image)
-
-      console.log(result)
-
-      if (result.success) {
-        this.$message.success(`图片已成功下载到: ${result.path}`);
-      } else {
-        this.$message.error(`下载失败: ${result.error}`);
-      }
-      // fetch(image).then(response => response.blob()).then(blob => {
-      //   const url = window.URL.createObjectURL(blob);
-      //   const a = document.createElement('a');
-      //   a.href = url;
-      //   a.download = 'image.png';
-      //   document.body.appendChild(a);
-      //   a.click();
-      //   window.URL.revokeObjectURL(url);
-      //   document.body.removeChild(a);
-      // })
-      // .catch(error => {
-      //   console.error('下载图片失败:', error);
-      //   this.$message.error('下载图片失败');
-      // });
+      fetch(image).then(response => response.blob()).then(blob => {
+        const url = window.URL.createObjectURL(blob);
+        const filename = image.split('/').pop();
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+        window.URL.revokeObjectURL(url);
+        document.body.removeChild(a);
+      })
+      .catch(error => {
+        console.error('下载图片失败:', error);
+        this.$message.error('下载图片失败');
+      });
     },
     initData() {
       this.operateProductInfo = JSON.parse(sessionStorage.getItem('operate_product'))
