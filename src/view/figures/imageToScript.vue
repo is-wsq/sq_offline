@@ -171,7 +171,14 @@
               </div>
               <div class="loading-content" v-if="isGenerating">
                 <div class="avatar-area">奇</div>
-                <div class="loading-area flex-center"><i class="el-icon-loading"></i></div>
+                <div class="loading-area">
+                  <div class="flex-center" style="line-height: 32px;height: 32px;">
+                    <div class="answer-message-label">AI思考过程</div>
+                    <i class="el-icon-arrow-down loading-area-icon"></i>
+                    <div style="flex: 1"></div>
+                  </div>
+                  <div class="loading-area-text">{{ thinking_text }}</div>
+                </div>
               </div>
             </div>
             <div class="chat-input">
@@ -183,7 +190,7 @@
                 <div class="flex-center">
                   <el-input type="textarea" placeholder="请输入您的修改意见..." resize="none" v-model="chat_input"
                             @keydown.native="enterSendChat"></el-input>
-                  <el-button type="primary" style="padding: 0 20px" @click="sendChat" :disabled="isGenerating">
+                  <el-button type="primary" style="padding: 0 20px" @click="sendChat_stream" :disabled="isGenerating">
                     <i class="el-icon-s-promotion" style="font-size: 18px;line-height: 35px"></i>
                   </el-button>
                 </div>
@@ -236,6 +243,7 @@ export default {
       new_copy: '',
       isAlreadyGenerated: false,
       chats: [],
+      thinking_text: '',
       chat_input: '',
       isGenerating: false,
       isNewChat: false,
@@ -422,7 +430,116 @@ export default {
         if (this.isGenerating) {
           return;
         }
-        this.sendChat();
+        this.sendChat_stream();
+      }
+    },
+    async sendChat_stream() {
+      if (!this.chat_input) {
+        this.$alert('请先输入修改意见', '提示')
+        return
+      }
+      this.chats = this.chats.filter(item => item.type !== 'errorMessage')
+      let history_chats = this.chats
+      for (let i = this.chats.length - 1; i >= 0; i--) {
+        if (this.chats[i].type === 'newChat') {
+          history_chats = this.chats.slice(i + 1);
+          break;
+        }
+      }
+      this.chats.push({
+        type: 'userMessage',
+        content: this.chat_input,
+      });
+      let params = {
+        scripts: this.lastGeneratedScripts,
+        history_chats: history_chats,
+        user_feedback: this.chat_input,
+      }
+      this.chat_input = '';
+      this.isGenerating = true
+      this.$nextTick(() => {
+        this.scrollToBottom()
+      })
+      this.thinking_text = '';
+
+      this.controller = new AbortController();
+      try {
+        const response = await fetch('http://127.0.0.1:6006/picture/refine_scripts_batch_stream', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(params),
+          signal: this.controller.signal
+        });
+
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        if (!response.body) {
+          throw new Error('浏览器不支持ReadableStream');
+        }
+
+        const reader = response.body.getReader();
+        const decoder = new TextDecoder();
+        let deltaAccumulator = '';
+        let buffer = '';
+
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) {
+            break;
+          }
+
+          buffer += decoder.decode(value, { stream: true });
+          const lines = buffer.split('\n');
+          buffer = lines.pop() || '';
+
+          for (const line of lines) {
+            if (line.trim() === '') {
+              continue;
+            }
+
+            const jsonString = line.slice(6).trim();
+
+            if (jsonString === '[DONE]') {
+              continue;
+            }
+
+            try {
+              const data = JSON.parse(jsonString);
+              if (data.type === 'reasoning' && typeof data.delta === 'string') {
+                deltaAccumulator += data.delta;
+                this.thinking_text = deltaAccumulator;
+                this.$nextTick(() => {
+                  this.scrollToBottom()
+                })
+              } else if (data.type === 'final') {
+                this.isGenerating = false
+                this.lastGeneratedScripts = data.data.scripts
+                sessionStorage.setItem('last_generated_scripts', JSON.stringify(this.lastGeneratedScripts))
+                this.chats.push({
+                  type: 'answerMessage',
+                  scripts: data.data.scripts,
+                  thinking: data.data.thinking,
+                })
+                this.$nextTick(() => {
+                  this.scrollToBottom()
+                })
+              }
+            } catch (parseError) {
+              console.error('解析 JSON 数据时出错:', parseError, '数据:', line);
+            }
+          }
+        }
+      } catch (error) {
+        if (error.name !== 'AbortError') {
+          console.error('流式请求错误:', error);
+          this.thinking_text += `<br><span style="color: red;">请求出错: ${error.message}</span>`;
+        }
+      } finally {
+        this.controller = null;
       }
     },
     sendChat() {
@@ -986,7 +1103,7 @@ export default {
 }
 
 .loading-content {
-  width: 65px;
+  width: 300px;
   background-color: #eff6ff;
   padding: 10px;
   box-shadow: 0 0  #0000, 0 0 #0000, 0 1px 2px 0 rgb(0 0 0 / 0.05);
@@ -997,8 +1114,21 @@ export default {
 }
 
 .loading-area {
-  font-size: 20px;
-  color: #4B5563;
+  width: 260px;
+}
+
+.loading-area-icon {
+  font-size: 13px;
+  color: #303133;
+  font-weight: bold;
+  margin-left: 5px;
+}
+
+.loading-area-text {
+  color: #4b5563;
+  font-size: 13px;
+  line-height: 20px;
+  font-style: italic;
 }
 
 .select-script-btn {
