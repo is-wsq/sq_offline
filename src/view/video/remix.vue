@@ -458,9 +458,11 @@
 
 <script>
 import {getAction, postAction} from "@/api/api";
+import {ClearCacheMixin} from "@/mixins/ClearCacheMixin";
 
 export default {
   name: 'Remix',
+  mixins: [ClearCacheMixin],
   data() {
     return {
       mix_chats: [],
@@ -1612,6 +1614,7 @@ export default {
         this.$message.warning('请等待当前混剪完成之后返回')
         return
       }
+      this.clearCache()
       sessionStorage.setItem('video_path', '/duplicate')
       this.$router.push({path: '/duplicate'})
     }

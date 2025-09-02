@@ -351,9 +351,11 @@
 
 <script>
 import {postAction} from "@/api/api";
+import {ClearCacheMixin} from "@/mixins/ClearCacheMixin";
 
 export default {
   name: 'Segments',
+  mixins: [ClearCacheMixin],
   data() {
     return {
       segments_chats: [],
@@ -1404,6 +1406,7 @@ export default {
         this.$message.warning('请等待当前混剪完成之后返回')
         return
       }
+      this.clearCache()
       sessionStorage.setItem('video_path', '/material')
       this.$router.push({path: '/material'})
     }
