@@ -47,8 +47,8 @@
               </el-image>
               <div class="shine-layer"></div>
               <div class="figure-progress">
-                <div>形象克隆中</div>
-                <div style="width: 10px;text-align: left;margin-left: 5px;font-size: 22px">{{ dot }}</div>
+                <div style="font-size: 14px">形象克隆中</div>
+                <div style="width: 10px;text-align: left;margin-left: 5px;font-size: 20px">{{ dot }}</div>
               </div>
             </div>
             <div class="source-title" :title="item.name">{{ item.name }}</div>

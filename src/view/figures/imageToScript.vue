@@ -32,7 +32,9 @@
           <template v-if="operateProductInfo.images">
             <div class="flex-center" style="flex: 1;">
               <div class="last-btn">
-                <i v-if="imageIndex > 0" class="el-icon-arrow-left font-weight cursor-pointer" @click="imageIndex--"></i>
+                <i class="el-icon-arrow-left font-weight cursor-pointer"
+                   @click="imageIndex--" v-if="imageIndex > 0">
+                </i>
               </div>
               <div class="image-area flex-center">
                 <el-image style="width: 300px;" :src="operateProductInfo.images[imageIndex].filepath"></el-image>
@@ -70,7 +72,9 @@
               <div v-if="editIndex !== index">
                 {{ item.copy }}
               </div>
-              <el-input type="textarea" :autosize="{ minRows: 3, maxRows: 6 }" resize="none" v-model="new_copy" v-else></el-input>
+              <el-input type="textarea" :autosize="{ minRows: 3, maxRows: 6 }" resize="none"
+                        v-model="new_copy" v-else>
+              </el-input>
             </div>
           </div>
         </div>
@@ -101,8 +105,11 @@
                         placeholder="文案内容..." v-model="sell_point"></el-input>
               <div class="design-label">营销亮点</div>
               <div class="marketing-highlights">
-                <el-tag v-for="tag in highlights" :key="tag" class="marketing-highlights-tag" @click="selectHighlight(tag)"
-                        :class="{'active-highlights-tag': active_highlights.includes(tag)}">{{ tag }}</el-tag>
+                <el-tag v-for="tag in highlights" :key="tag" class="marketing-highlights-tag"
+                        @click="selectHighlight(tag)"
+                        :class="{'active-highlights-tag': active_highlights.includes(tag)}">
+                  {{ tag }}
+                </el-tag>
               </div>
               <div class="design-label margin-t-12">生成脚本数量</div>
               <div class="flex-center">
@@ -159,10 +166,10 @@
                 <div v-if="item.type === 'errorMessage'" class="error-content">
                   <div class="avatar-area">奇</div>
                   <div class="error-message">
-                    生成失败，
-                    <span style="color: #3b82f6;font-size: 14px;cursor: pointer;" @click="regenerate">
-                      点击重新生成
-                    </span>
+                    {{ item.content }}
+<!--                    <span style="color: #3b82f6;font-size: 14px;cursor: pointer;" @click="regenerate">-->
+<!--                      点击重新生成-->
+<!--                    </span>-->
                   </div>
                 </div>
                 <div v-if="item.type === 'newChat'">
@@ -190,7 +197,7 @@
                 <div class="flex-center">
                   <el-input type="textarea" placeholder="请输入您的修改意见..." resize="none" v-model="chat_input"
                             @keydown.native="enterSendChat"></el-input>
-                  <el-button type="primary" style="padding: 0 20px" @click="sendChat_stream" :disabled="isGenerating">
+                  <el-button type="primary" style="padding: 0 20px" @click="sendChat" :disabled="isGenerating">
                     <i class="el-icon-s-promotion" style="font-size: 18px;line-height: 35px"></i>
                   </el-button>
                 </div>
@@ -203,8 +210,10 @@
                 <div class="design-label">营销亮点</div>
                 <div class="marketing-highlights">
                   <el-tag v-for="tag in highlights" :key="tag" class="new-marketing-highlights-tag"
-                          :class="{'active-highlights-tag': active_highlights.includes(tag)}" @click="selectHighlight(tag)">
-                    {{ tag }}</el-tag>
+                          :class="{'active-highlights-tag': active_highlights.includes(tag)}"
+                          @click="selectHighlight(tag)">
+                    {{ tag }}
+                  </el-tag>
                 </div>
                 <div class="design-label margin-t-12">生成脚本数量</div>
                 <div class="flex-center">
@@ -248,6 +257,7 @@ export default {
       isGenerating: false,
       isNewChat: false,
       loading: null,
+      controller: null,
     };
   },
   watch: {
@@ -297,46 +307,87 @@ export default {
         this.active_highlights.push(tag);
       }
     },
+    async stream_query(params, url) {
+      this.controller = new AbortController();
+      try {
+        const response = await fetch(url, {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json',},
+          body: JSON.stringify(params),
+          signal: this.controller.signal
+        });
+
+        if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+        if (!response.body) throw new Error('浏览器不支持ReadableStream');
+
+        const reader = response.body.getReader();
+        const decoder = new TextDecoder();
+        let deltaAccumulator = '';
+        let buffer = '';
+
+        while (true) {
+          const {done, value} = await reader.read();
+          if (done) break;
+
+          buffer += decoder.decode(value, {stream: true});
+          const lines = buffer.split('\n');
+          buffer = lines.pop() || '';
+
+          for (const line of lines) {
+            if (line.trim() === '') continue;
+            const jsonString = line.slice(6).trim();
+            if (jsonString === '[DONE]') continue;
+
+            try {
+              const data = JSON.parse(jsonString);
+
+              if (data.type === 'reasoning' && typeof data.delta === 'string') {
+                deltaAccumulator += data.delta;
+                this.thinking_text = deltaAccumulator;
+                this.$nextTick(() => { this.scrollToBottom() })
+              }
+              if (data.type === 'final') {
+                this.isGenerating = false
+                this.lastGeneratedScripts = data.data.scripts
+                sessionStorage.setItem('last_generated_scripts', JSON.stringify(this.lastGeneratedScripts))
+                this.chats.push({
+                  type: 'answerMessage',
+                  scripts: data.data.scripts,
+                  thinking: data.data.thinking,
+                })
+                this.$nextTick(() => { this.scrollToBottom() })
+              }
+            } catch (parseError) {
+              console.error('解析 JSON 数据时出错:', parseError, '数据:', line);
+            }
+          }
+        }
+      } catch (error) {
+        if (error.name !== 'AbortError') {
+          console.error('流式请求错误:', error);
+          this.thinking_text += `<br><span style="color: red;">请求出错: ${error.message}</span>`;
+        }
+      } finally {
+        this.controller = null;
+      }
+    },
     generateScriptsByImage() {
       if (!this.sell_point) {
-        this.$alert('请先输入产品核心卖点','提示')
+        this.$alert('请先输入产品核心卖点', '提示')
         return
       }
       this.isAlreadyGenerated = true
       this.isNewChat = false
-      this.chats.push({
-        type: 'userMessage',
-        content: this.sell_point,
-      });
+      this.chats.push({ type: 'userMessage', content: this.sell_point });
       this.isGenerating = true
-      this.$nextTick(() => {
-        this.scrollToBottom()
-      })
+      this.$nextTick(() => { this.scrollToBottom() })
       let params = {
         selling_points: this.sell_point,
         marketing_highlights: this.active_highlights,
         product_id: this.operateProductInfo.id,
         num_scripts: this.script_num,
       }
-      postAction('/picture/generate_script', params, 600000).then(res => {
-        if (res.data.status === 'success') {
-          this.isGenerating = false
-          this.lastGeneratedScripts = res.data.data.scripts
-          sessionStorage.setItem('last_generated_scripts', JSON.stringify(this.lastGeneratedScripts))
-          this.chats.push({
-            type: 'answerMessage',
-            scripts: res.data.data.scripts,
-            thinking: res.data.data.thinking,
-          })
-          this.$nextTick(() => {
-            this.scrollToBottom()
-          })
-        }else {
-          this.$alert(res.data.message,'生成失败')
-        }
-      }).catch(err => {
-        this.$alert(err,'生成错误')
-      })
+      this.stream_query(params, 'http://127.0.0.1:6006/picture/generate_script_stream')
     },
     editCopy(index) {
       this.new_copy = this.scripts[index].copy;
@@ -366,11 +417,11 @@ export default {
     },
     createNewChat() {
       if (this.isGenerating) {
-        this.$alert('请等待生成结束后再发起新会话','提示')
+        this.$alert('请等待生成结束后再发起新会话', '提示')
         return
       }
       this.isNewChat = true
-      this.chats.push({ type: 'newChat' })
+      this.chats.push({type: 'newChat'})
       this.$nextTick(() => {
         this.scrollToBottom()
       })
@@ -395,7 +446,7 @@ export default {
         this.scrollToBottom()
       })
       postAction('/picture/refine_scripts_batch', params, 600000).then(res => {
-        if (res.data.status ==='success') {
+        if (res.data.status === 'success') {
           this.isGenerating = false
           this.lastGeneratedScripts = res.data.data.scripts
           sessionStorage.setItem('last_generated_scripts', JSON.stringify(this.lastGeneratedScripts))
@@ -409,19 +460,19 @@ export default {
           })
         } else {
           this.isGenerating = false
-          this.chats.push({ type: 'errorMessage' })
+          this.chats.push({type: 'errorMessage', content: `生成失败，${res.data.message}`})
           this.$nextTick(() => {
             this.scrollToBottom()
           })
-          this.$alert(res.data.message,'生成失败')
+          this.$alert(res.data.message, '生成失败')
         }
       }).catch(err => {
         this.isGenerating = false
-        this.chats.push({ type: 'errorMessage' })
+        this.chats.push({type: 'errorMessage', content: `生成错误，${err}`})
         this.$nextTick(() => {
           this.scrollToBottom()
         })
-        this.$alert(err,'生成错误')
+        this.$alert(err, '生成错误')
       })
     },
     enterSendChat(event) {
@@ -430,174 +481,34 @@ export default {
         if (this.isGenerating) {
           return;
         }
-        this.sendChat_stream();
-      }
-    },
-    async sendChat_stream() {
-      if (!this.chat_input) {
-        this.$alert('请先输入修改意见', '提示')
-        return
-      }
-      this.chats = this.chats.filter(item => item.type !== 'errorMessage')
-      let history_chats = this.chats
-      for (let i = this.chats.length - 1; i >= 0; i--) {
-        if (this.chats[i].type === 'newChat') {
-          history_chats = this.chats.slice(i + 1);
-          break;
-        }
-      }
-      this.chats.push({
-        type: 'userMessage',
-        content: this.chat_input,
-      });
-      let params = {
-        scripts: this.lastGeneratedScripts,
-        history_chats: history_chats,
-        user_feedback: this.chat_input,
-      }
-      this.chat_input = '';
-      this.isGenerating = true
-      this.$nextTick(() => {
-        this.scrollToBottom()
-      })
-      this.thinking_text = '';
-
-      this.controller = new AbortController();
-      try {
-        const response = await fetch('http://127.0.0.1:6006/picture/refine_scripts_batch_stream', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(params),
-          signal: this.controller.signal
-        });
-
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
-
-        if (!response.body) {
-          throw new Error('浏览器不支持ReadableStream');
-        }
-
-        const reader = response.body.getReader();
-        const decoder = new TextDecoder();
-        let deltaAccumulator = '';
-        let buffer = '';
-
-        while (true) {
-          const { done, value } = await reader.read();
-          if (done) {
-            break;
-          }
-
-          buffer += decoder.decode(value, { stream: true });
-          const lines = buffer.split('\n');
-          buffer = lines.pop() || '';
-
-          for (const line of lines) {
-            if (line.trim() === '') {
-              continue;
-            }
-
-            const jsonString = line.slice(6).trim();
-
-            if (jsonString === '[DONE]') {
-              continue;
-            }
-
-            try {
-              const data = JSON.parse(jsonString);
-              if (data.type === 'reasoning' && typeof data.delta === 'string') {
-                deltaAccumulator += data.delta;
-                this.thinking_text = deltaAccumulator;
-                this.$nextTick(() => {
-                  this.scrollToBottom()
-                })
-              } else if (data.type === 'final') {
-                this.isGenerating = false
-                this.lastGeneratedScripts = data.data.scripts
-                sessionStorage.setItem('last_generated_scripts', JSON.stringify(this.lastGeneratedScripts))
-                this.chats.push({
-                  type: 'answerMessage',
-                  scripts: data.data.scripts,
-                  thinking: data.data.thinking,
-                })
-                this.$nextTick(() => {
-                  this.scrollToBottom()
-                })
-              }
-            } catch (parseError) {
-              console.error('解析 JSON 数据时出错:', parseError, '数据:', line);
-            }
-          }
-        }
-      } catch (error) {
-        if (error.name !== 'AbortError') {
-          console.error('流式请求错误:', error);
-          this.thinking_text += `<br><span style="color: red;">请求出错: ${error.message}</span>`;
-        }
-      } finally {
-        this.controller = null;
+        this.sendChat();
       }
     },
     sendChat() {
       if (!this.chat_input) {
-        this.$alert('请先输入修改意见','提示')
+        this.$alert('请先输入修改意见', '提示')
         return
       }
+
       this.chats = this.chats.filter(item => item.type !== 'errorMessage')
-      let history_chats = this.chats
-      for (let i = this.chats.length - 1; i >= 0; i--) {
-        if (this.chats[i].type === 'newChat') {
-          history_chats = this.chats.slice(i + 1);
-          break;
-        }
+      this.chats.push({ type: 'userMessage', content: this.chat_input });
+      this.$nextTick(() => { this.scrollToBottom() })
+
+      let history_chats = this.chats;
+      const lastNewChatIndex = this.chats.map(c => c.type).lastIndexOf('newChat');
+      if (lastNewChatIndex > -1) {
+        history_chats = this.chats.slice(lastNewChatIndex + 1);
       }
-      this.chats.push({
-        type: 'userMessage',
-        content: this.chat_input,
-      });
-      let params = {
+      const params = {
         scripts: this.lastGeneratedScripts,
         history_chats: history_chats,
         user_feedback: this.chat_input,
-      }
-      this.chat_input = '';
-      this.isGenerating = true
-      this.$nextTick(() => {
-        this.scrollToBottom()
-      })
-      postAction('/picture/refine_scripts_batch', params, 600000).then(res => {
-        if (res.data.status ==='success') {
-          this.isGenerating = false
-          this.lastGeneratedScripts = res.data.data.scripts
-          sessionStorage.setItem('last_generated_scripts', JSON.stringify(this.lastGeneratedScripts))
-          this.chats.push({
-            type: 'answerMessage',
-            scripts: res.data.data.scripts,
-            thinking: res.data.data.thinking,
-          })
-          this.$nextTick(() => {
-            this.scrollToBottom()
-          })
-        } else {
-          this.isGenerating = false
-          this.chats.push({ type: 'errorMessage' })
-          this.$nextTick(() => {
-            this.scrollToBottom()
-          })
-          this.$alert(res.data.message,'生成失败')
-        }
-      }).catch(err => {
-        this.isGenerating = false
-        this.chats.push({ type: 'errorMessage' })
-        this.$nextTick(() => {
-          this.scrollToBottom()
-        })
-        this.$alert(err,'生成错误')
-      })
+      };
+      this.chat_input = ''
+
+      this.isGenerating = true;
+      this.thinking_text = '';
+      this.stream_query(params, 'http://127.0.0.1:6006/picture/refine_scripts_batch_stream')
     },
     selectScript(script) {
       if (this.scripts.some(item => item.original_copy === script.copy)) {
@@ -628,7 +539,7 @@ export default {
         this.$message.success('脚本添加成功，已自动忽略重复脚本');
       }
     },
-    deleteScript(index,script_index) {
+    deleteScript(index, script_index) {
       let copy = this.chats[index].scripts[script_index].copy
       this.$confirm('确认删除该生成脚本吗？', '提示', {
         type: 'warning'
@@ -671,7 +582,7 @@ export default {
         scripts: this.scripts,
         size: "portrait"
       }
-      postAction('/picture/generate_images_parallel',params, 600000).then(res => {
+      postAction('/picture/generate_images_parallel', params, 600000).then(res => {
         if (res.data.status === 'success') {
           this.loading.close();
           this.loading = null;
@@ -682,12 +593,12 @@ export default {
         } else {
           this.loading.close();
           this.loading = null;
-          this.$alert(res.data.message,'提示')
+          this.$alert(res.data.message, '提示')
         }
       }).catch(err => {
         this.loading.close();
         this.loading = null;
-        this.$alert(err,'提示')
+        this.$alert(err, '提示')
       })
     },
     toScript() {
@@ -706,7 +617,7 @@ export default {
         return
       }
       sessionStorage.setItem('figure_path', '/imageToVideo')
-      this.$router.push({ path: '/imageToVideo' })
+      this.$router.push({path: '/imageToVideo'})
     }
   }
 }
@@ -837,7 +748,7 @@ export default {
   overflow-y: auto;
 }
 
-.last-btn,.next-btn {
+.last-btn, .next-btn {
   width: 45px;
   text-align: center;
   color: #475569;
@@ -978,7 +889,7 @@ export default {
   gap: 4px;
 }
 
-.marketing-highlights-tag,.new-marketing-highlights-tag {
+.marketing-highlights-tag, .new-marketing-highlights-tag {
   color: #525252;
   border-radius: 14px;
   cursor: pointer;
@@ -1049,7 +960,7 @@ export default {
   max-width: 85%;
   background-color: #dbeafe;
   padding: 10px;
-  box-shadow: 0 0  #0000, 0 0 #0000, 0 1px 2px 0 rgb(0 0 0 / 0.05);
+  box-shadow: 0 0 #0000, 0 0 #0000, 0 1px 2px 0 rgb(0 0 0 / 0.05);
   border-radius: 8px;
   border-top-left-radius: 0 !important;
   color: #4B5563;
@@ -1059,14 +970,14 @@ export default {
 .answer-message {
   background-color: #eff6ff;
   padding: 10px;
-  box-shadow: 0 0  #0000, 0 0 #0000, 0 1px 2px 0 rgb(0 0 0 / 0.05);
+  box-shadow: 0 0 #0000, 0 0 #0000, 0 1px 2px 0 rgb(0 0 0 / 0.05);
   border-radius: 8px;
   border-top-right-radius: 0 !important;
   display: flex;
   gap: 8px;
 }
 
-.answer-message >>> .el-collapse  {
+.answer-message >>> .el-collapse {
   border: none;
 }
 
@@ -1095,7 +1006,7 @@ export default {
   width: 200px;
   background-color: #eff6ff;
   padding: 10px;
-  box-shadow: 0 0  #0000, 0 0 #0000, 0 1px 2px 0 rgb(0 0 0 / 0.05);
+  box-shadow: 0 0 #0000, 0 0 #0000, 0 1px 2px 0 rgb(0 0 0 / 0.05);
   border-radius: 8px;
   border-top-right-radius: 0 !important;
   display: flex;
@@ -1106,7 +1017,7 @@ export default {
   width: 300px;
   background-color: #eff6ff;
   padding: 10px;
-  box-shadow: 0 0  #0000, 0 0 #0000, 0 1px 2px 0 rgb(0 0 0 / 0.05);
+  box-shadow: 0 0 #0000, 0 0 #0000, 0 1px 2px 0 rgb(0 0 0 / 0.05);
   border-radius: 8px;
   border-top-right-radius: 0 !important;
   display: flex;
