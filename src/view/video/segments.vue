@@ -188,7 +188,7 @@
 
       <div class="center-panel" :style="{ width: show_left_panel? 'calc(100% - 420px)' : 'calc(100% - 733px)'}">
         <div class="script-selection-area">
-          <div class="flex-center" style="line-height: 50px">
+          <div class="flex-center" style="line-height: 40px;margin-bottom: 8px;">
             <div class="panel-title" style="flex: 1">AI选用文案</div>
             <div v-if="copy_list.length > 0 && !isGenerating">
               <template v-if="showChecked">
@@ -202,92 +202,92 @@
           <div class="copy-list" v-if="copy_list.length > 0">
             <div class="copy-item" v-for="(item, index) in copy_list" :key="index"
                  :class="{'active-item': index === activeIndex}">
-              <el-collapse v-model="openIndex" accordion @change="collapseChange(index)">
-                <el-collapse-item :name="index">
-                  <template slot="title">
-                    <div style="padding-left: 12px">
-                      <div class="flex-center">
-                        <div class="copy-item-title" :title="item.title">{{ item.title }}</div>
-                        <div style="width: 16px">
-                          <i class="el-icon-close close-icon" @click.stop="removeCopy(index)" v-if="!showChecked && !isGenerating"></i>
-                          <div @click.stop="">
-                            <el-checkbox v-model="deleteCheckeds[index]" v-if="showChecked"></el-checkbox>
+              <div class="flex-center cursor-pointer" @click="collapseChange(index)">
+                <div class="copy-item-title" :title="item.title">{{ item.title }}</div>
+                <div style="width: 16px">
+                  <i class="el-icon-close close-icon" @click.stop="removeCopy(index)" v-if="!showChecked && !isGenerating"></i>
+                  <div @click.stop="">
+                    <el-checkbox v-model="deleteCheckeds[index]" v-if="showChecked"></el-checkbox>
+                  </div>
+                </div>
+                <template v-if="!showChecked">
+                  <i class="el-icon-arrow-right" style="color: #9ca3af;font-size: 15px;font-weight: bold;"
+                     v-if="!expandedIndex.includes(index)"></i>
+                  <i class="el-icon-arrow-down" style="color: #9ca3af;font-size: 15px;font-weight: bold;"
+                     v-else></i>
+                </template>
+              </div>
+              <div class="copy-item-desc cursor-pointer" @click="collapseChange(index)">
+                {{ item.content }}
+              </div>
+              <div class="segment-groups" v-if="expandedIndex.includes(index)">
+                <div class="segment-group-item" v-for="(group,group_index) in item.segment_group"
+                     :key="group_index">
+                  <div class="group-title" v-if="group.groupType !== 'digital_human' && !isGenerating"
+                       :style="{ width: (group.materials.length * 100 + 80) + 'px' }"
+                       :title="group.contentSummary">
+                    {{ group.contentSummary }}
+                  </div>
+                  <div class="group-title" v-if="group.groupType === 'digital_human' || isGenerating"
+                       :style="{ width: ((group.materials.length - 1) * 100 + 80) + 'px' }"
+                       :title="group.contentSummary">
+                    {{ group.contentSummary }}
+                  </div>
+                  <div class="material-list" ref="materialListRef">
+                    <div class="material-item" v-for="(material,material_index) in group.materials"
+                         :key="material_index">
+                      <el-popover placement="bottom" :ref="'popoverRef_' + material_index" trigger="click"
+                                  @show="popoverShow(index,group_index,material_index)" @hide="popoverHide"
+                                  v-if="group.groupType !== 'digital_human'">
+                        <div class="shot-list" :ref="'shotRef_'+index+'_'+group_index+'_'+material_index">
+                          <div v-for="(shot, shot_index) in mention_list" :key="shot_index"
+                               class="shot-name" :title="shot.name" :class="{'shot-name-active': activeShotIndex === shot_index}"
+                               @click="addShot(index,group_index,material_index,shot)"
+                               @mouseover="shotEnter(shot_index)" @mouseleave="shotLeave">
+                            {{ shot.name }}
+                          </div>
+                          <div class="li-video" style="position: absolute; top: 0; right: -132px" v-if="selectShot">
+                            <video :src="selectShot.filepath" style="width: 100%; height: 100%;border-radius: 4px;"
+                                   loop muted autoplay></video>
                           </div>
                         </div>
+                        <div slot="reference" class="insert-shot-btn" v-if="!isGenerating">
+                          <div class="fa-plus">
+                            <i class="el-icon-plus" style="font-weight: bold"></i>
+                          </div>
+                        </div>
+                      </el-popover>
+                      <div class="delete-shot-btn"
+                           v-if="group.groupType !== 'digital_human' && group.materials.length > 1 && !isGenerating">
+                        <i class="el-icon-close" style="font-weight: bold"
+                           @click="removeShot(index,group_index,material_index)"></i>
                       </div>
-                      <div class="copy-item-desc">{{ item.content }}</div>
+                      <el-image class="material-item-img" :src="material.picture"></el-image>
+                      <div class="material-item-title" :title="material.name">{{ material.name }}</div>
                     </div>
-                  </template>
-                  <div class="segment-groups">
-                    <div class="segment-group-item" v-for="(group,group_index) in item.segment_group"
-                         :key="group_index">
-                      <div class="group-title" v-if="group.groupType !== 'digital_human' && !isGenerating"
-                           :style="{ width: (group.materials.length * 100 + 80) + 'px' }"
-                           :title="group.contentSummary">
-                        {{ group.contentSummary }}
-                      </div>
-                      <div class="group-title" v-if="group.groupType === 'digital_human' || isGenerating"
-                           :style="{ width: ((group.materials.length - 1) * 100 + 80) + 'px' }"
-                           :title="group.contentSummary">
-                        {{ group.contentSummary }}
-                      </div>
-                      <div class="material-list" ref="materialListRef">
-                        <div class="material-item" v-for="(material,material_index) in group.materials"
-                             :key="material_index">
-                          <el-popover placement="bottom" :ref="'popoverRef_' + material_index" trigger="click"
-                                      @show="popoverShow(index,group_index,material_index)" @hide="popoverHide"
-                                      v-if="group.groupType !== 'digital_human'">
-                            <div class="shot-list" :ref="'shotRef_'+index+'_'+group_index+'_'+material_index">
-                              <div v-for="(shot, shot_index) in mention_list" :key="shot_index"
-                                   class="shot-name" :title="shot.name" :class="{'shot-name-active': activeShotIndex === shot_index}"
-                                   @click="addShot(index,group_index,material_index,shot)"
-                                   @mouseover="shotEnter(shot_index)" @mouseleave="shotLeave">
-                                {{ shot.name }}
-                              </div>
-                              <div class="li-video" style="position: absolute; top: 0; right: -132px" v-if="selectShot">
-                                <video :src="selectShot.filepath" style="width: 100%; height: 100%;border-radius: 4px;"
-                                       loop muted autoplay></video>
-                              </div>
-                            </div>
-                            <div slot="reference" class="insert-shot-btn" v-if="!isGenerating">
-                              <div class="fa-plus">
-                                <i class="el-icon-plus" style="font-weight: bold"></i>
-                              </div>
-                            </div>
-                          </el-popover>
-                          <div class="delete-shot-btn"
-                               v-if="group.groupType !== 'digital_human' && group.materials.length > 1 && !isGenerating">
-                            <i class="el-icon-close" style="font-weight: bold"
-                               @click="removeShot(index,group_index,material_index)"></i>
+                    <div class="material-item" v-if="group.groupType !== 'digital_human' && !isGenerating">
+                      <el-popover :ref="'pushRef_' + index" placement="bottom" trigger="click"
+                                  @show="pushShow(index,group_index)" @hide="pushHide">
+                        <div class="shot-list" :ref="'materialRef_' + index + '_' + group_index">
+                          <div v-for="(val, val_index) in mention_list" :key="val.id"
+                               class="shot-name" :title="val.name" :class="{'shot-name-active': activeShotIndex === val_index}"
+                               @click="pushShot(index,group_index,val)"
+                               @mouseover="shotEnter(val_index)" @mouseleave="shotLeave">
+                            {{ val.name }}
                           </div>
-                          <el-image class="material-item-img" :src="material.picture"></el-image>
-                          <div class="material-item-title" :title="material.name">{{ material.name }}</div>
+                          <div class="li-video" style="position: absolute; top: 0; right: -145px" v-if="selectShot">
+                            <video :src="selectShot.filepath" style="width: 100%; height: 100%;border-radius: 4px;"
+                                   loop muted autoplay></video>
+                          </div>
                         </div>
-                        <div class="material-item" v-if="group.groupType !== 'digital_human' && !isGenerating">
-                          <el-popover :ref="'pushRef_' + index" placement="bottom" trigger="click"
-                                      @show="pushShow(index,group_index)" @hide="pushHide">
-                            <div class="shot-list" :ref="'materialRef_' + index + '_' + group_index">
-                              <div v-for="(val, val_index) in mention_list" :key="val.id"
-                                   class="shot-name" :title="val.name" :class="{'shot-name-active': activeShotIndex === val_index}"
-                                   @click="pushShot(index,group_index,val)"
-                                   @mouseover="shotEnter(val_index)" @mouseleave="shotLeave">
-                                {{ val.name }}
-                              </div>
-                              <div class="li-video" style="position: absolute; top: 0; right: -145px" v-if="selectShot">
-                                <video :src="selectShot.filepath" style="width: 100%; height: 100%;border-radius: 4px;"
-                                       loop muted autoplay></video>
-                              </div>
-                            </div>
-                            <div slot="reference" class="add-shot-btn">
-                              <i class="el-icon-plus" style="font-weight: bold"></i>
-                            </div>
-                          </el-popover>
+                        <div slot="reference" class="add-shot-btn">
+                          <i class="el-icon-plus" style="font-weight: bold"></i>
                         </div>
-                      </div>
+                      </el-popover>
                     </div>
                   </div>
-                </el-collapse-item>
-              </el-collapse>
+                </div>
+              </div>
             </div>
           </div>
           <div class="copy-list-none" v-if="copy_list.length === 0">
@@ -481,6 +481,16 @@ export default {
     }
   },
   computed: {
+    expandedIndex() {
+      if (!this.show_left_panel) {
+        return [this.activeIndex]
+      }
+      let result = []
+      for (let i = 0; i < this.copy_list.length; i++) {
+        result.push(i)
+      }
+      return result
+    },
     audio_file_duration() {
       if (this.copy_list.length > 0) {
         return this.copy_list[this.activeIndex].audio_file_duration
@@ -1348,6 +1358,7 @@ export default {
           this.$alert('已创建视频生成任务，视频生成成功后会自动下载到本地', "任务创建提醒");
           sessionStorage.clear()
           setTimeout(() => {
+            this.clearCache()
             this.$router.push({path: '/videoList'})
           }, 500)
         } else {
@@ -1440,7 +1451,7 @@ export default {
 }
 
 .left-panel {
-  width: 400px;
+  width: 396px;
   padding: 20px 10px;
   box-sizing: border-box;
   border-radius: 12px;
@@ -1478,11 +1489,11 @@ export default {
   position: absolute;
   box-shadow: rgba(102, 126, 234, 0.3) 0 4px 20px;
   background: linear-gradient(135deg, rgb(102, 126, 234) 0%, rgb(118, 75, 162) 100%);
-  left: 400px;
+  left: 396px;
 }
 
 .setting-close:hover {
-  left: 404px;
+  left: 400px;
 }
 
 .setting-open {
@@ -1563,7 +1574,7 @@ export default {
 }
 
 .center-panel {
-  padding: 20px;
+  padding: 12px 20px;
   box-sizing: border-box;
   border-radius: 12px;
   background-color: #ffffff;
@@ -1640,23 +1651,25 @@ export default {
 .copy-item {
   background-color: #f9fafb;
   border-radius: 8px;
-  padding: 12px 0;
+  padding: 12px;
   box-sizing: border-box;
   border: 1px solid #d1d5db;
 }
 
 .copy-item-title {
-  font-weight: bold;
-  font-size: 15px;
-  color: #1f2937;
-  width: 100%;
+  flex: 1;
+  line-height: 28px;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  font-weight: bold;
+  font-size: 15px;
+  color: #1f2937;
 }
 
 .copy-item-desc {
   font-size: 13px;
+  line-height: 24px;
   color: #1f2937;
   max-height: 100px;
   overflow-y: auto;
@@ -1668,7 +1681,7 @@ export default {
   flex-direction: row;
   gap: 8px;
   overflow-x: auto;
-  padding: 0 12px 12px 12px;
+  padding-bottom: 12px;
 }
 
 .segment-group-item {
@@ -1836,7 +1849,6 @@ export default {
   font-size: 15px;
   font-weight: bold;
   color: #111827;
-  margin-bottom: 8px;
 }
 
 .panel-label {
@@ -2153,6 +2165,7 @@ export default {
   height: 100%;
   width: 400px;
   box-shadow: 0 1px 3px 0 #0000001a, 0 1px 2px -1px #0000001a;
+  box-sizing: border-box;
   background-color: #FFFFFF;
   border-radius: 12px;
   overflow: hidden;

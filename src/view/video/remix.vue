@@ -310,7 +310,7 @@
                   </div>
                   <template v-if="!showChecked">
                     <i class="el-icon-arrow-right" style="color: #9ca3af;font-size: 15px;font-weight: bold;"
-                       v-if="activeIndex !== index"></i>
+                       v-if="!expandedIndex.includes(index)"></i>
                     <i class="el-icon-arrow-down" style="color: #9ca3af;font-size: 15px;font-weight: bold;"
                        v-else></i>
                   </template>
@@ -577,7 +577,7 @@ export default {
   computed: {
     expandedIndex() {
       if (!this.show_settings) {
-        return [0]
+        return [this.activeIndex]
       }
       let result = []
       for (let i = 0; i < this.montage_data.length; i++) {
@@ -1341,6 +1341,7 @@ export default {
           }
           sessionStorage.clear()
           setTimeout(() => {
+            this.clearCache()
             this.$router.push({path: '/videoList'})
           }, 500)
         } else {
@@ -1411,6 +1412,7 @@ export default {
           this.$alert('已创建视频生成任务，视频生成成功后会自动下载到本地', "任务创建提醒");
           sessionStorage.clear()
           setTimeout(() => {
+            this.clearCache()
             this.$router.push({path: '/videoList'})
           }, 500)
         } else {
