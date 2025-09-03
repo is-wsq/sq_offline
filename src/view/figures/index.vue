@@ -1217,11 +1217,12 @@ export default {
   border-radius: 12px;
   padding: 16px;
   overflow: hidden;
-  box-shadow: 0 0 #0000, 0 0 #0000, 0 1px 2px 0 rgb(0 0 0 / 0.05);
+  box-shadow: 0 1px 3px 0 #0000001a, 0 1px 2px -1px #0000001a;
   transition-property: all;
   transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
   transition-duration: 300ms;
   box-sizing: border-box;
+  margin-bottom: 2px;
 }
 
 .product-item:hover {

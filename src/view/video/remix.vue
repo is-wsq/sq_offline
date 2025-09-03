@@ -112,21 +112,17 @@
             <div v-if="item.role === 'new_chat'">
               <el-divider>新会话</el-divider>
             </div>
-            <div v-if="item.role === 'mix_error'" class="error-content">
-              <div class="mix-avatar-area">奇</div>
-              <div class="error-message">混剪失败，{{ item.content }}</div>
-            </div>
-            <div v-if="item.role === 'update_error'" class="error-content">
-              <div class="mix-avatar-area">奇</div>
-              <div class="error-message">
-                修改失败，{{ item.content }}
-                <!--<span style="color: #3b82f6;font-size: 14px;cursor: pointer;" @click="reUpdate">点击重新生成</span>-->
-              </div>
-            </div>
           </div>
           <div class="mix-loading-content" v-if="isGenerating">
             <div class="mix-avatar-area">奇</div>
-            <div class="mix-loading-area flex-center"><i class="el-icon-loading"></i></div>
+            <div class="mix-loading-area">
+              <div class="flex-center" style="line-height: 32px;height: 32px;">
+                <div class="mix-chat-system-label">AI思考过程</div>
+                <i class="el-icon-arrow-down loading-area-icon"></i>
+                <div style="flex: 1"></div>
+              </div>
+              <div class="loading-area-text">{{ thinking_text }}</div>
+            </div>
           </div>
         </div>
         <div class="mix-chat-input">
@@ -547,6 +543,9 @@ export default {
       selected_figure: {},
       filtered_mention_list: [],
       isSelecting: false,
+
+      thinking_text: '',
+      controller: null,
     }
   },
   watch: {
@@ -656,14 +655,74 @@ export default {
         this.scrollToBottom()
       })
     },
-    reUpdate() {
-      this.mix_chats = this.mix_chats.filter(item => item.role !== 'update_error')
-      let history_chats = this.mix_chats
-      for (let i = this.mix_chats.length - 1; i >= 0; i--) {
-        if (this.mix_chats[i].role === 'new_chat') {
-          history_chats = this.mix_chats.slice(i + 1);
-          break;
+    async stream_query(params, url, version) {
+      this.thinking_text = '';
+      this.controller = new AbortController();
+      try {
+        const response = await fetch(url, {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json',},
+          body: JSON.stringify(params),
+          signal: this.controller.signal
+        });
+
+        if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+        if (!response.body) throw new Error('浏览器不支持ReadableStream');
+
+        const reader = response.body.getReader();
+        const decoder = new TextDecoder();
+        let deltaAccumulator = '';
+        let buffer = '';
+
+        while (true) {
+          const {done, value} = await reader.read();
+          if (done) break;
+
+          buffer += decoder.decode(value, {stream: true});
+          const lines = buffer.split('\n');
+          buffer = lines.pop() || '';
+
+          for (const line of lines) {
+            if (line.trim() === '') continue;
+            const jsonString = line.slice(6).trim();
+            if (jsonString === '[DONE]') continue;
+
+            try {
+              const data = JSON.parse(jsonString);
+
+              if (data.type === 'reasoning' && typeof data.delta === 'string') {
+                deltaAccumulator += data.delta;
+                this.thinking_text = deltaAccumulator;
+                this.$nextTick(() => { this.scrollToBottom() })
+              }
+              if (data.type === 'final') {
+                this.isGenerating = false
+                this.montage_data = data.data.data
+                this.lastGeneratedMixins = data.data.data
+                sessionStorage.setItem("hot_montage_data", JSON.stringify(this.montage_data))
+                sessionStorage.setItem('hot_last_generated_mixins', JSON.stringify(this.lastGeneratedMixins))
+                this.mix_chats.push({
+                  role: 'system',
+                  content: {
+                    thinking: data.data.thinking,
+                    data: data.data.data,
+                    title: version ? `修改版本 V${version}`: '混剪结果'
+                  }
+                })
+                this.$nextTick(() => { this.scrollToBottom() })
+              }
+            } catch (parseError) {
+              console.error('解析 JSON 数据时出错:', parseError, '数据:', line);
+            }
+          }
         }
+      } catch (error) {
+        if (error.name !== 'AbortError') {
+          console.error('流式请求错误:', error);
+          this.thinking_text += `<br><span style="color: red;">请求出错: ${error.message}</span>`;
+        }
+      } finally {
+        this.controller = null;
       }
     },
     enterSendChat(event) {
@@ -688,7 +747,6 @@ export default {
         }
       }
       this.mix_chats.push({ role: 'user', content: this.mix_chatInput });
-      let bool_list = this.material_list.map(item => this.mute_materials.includes(item))
       let version = history_chat.filter(item => item.role === 'user').length - 1
       let hots = JSON.parse(sessionStorage.getItem("select_hots"))
       let reference_segments = hots.grouped_analysis_result.segmentGroups
@@ -702,49 +760,8 @@ export default {
       }
       this.mix_chatInput = '';
       this.isGenerating = true
-      this.$nextTick(() => {
-        this.scrollToBottom()
-      })
-      postAction('/figure/re_video_mix_edit',params, 3600000).then(res => {
-        if (res.data.status === "success") {
-          this.isGenerating = false
-          this.montage_data = res.data.data.data
-          this.lastGeneratedMixins = res.data.data.data
-          sessionStorage.setItem("hot_montage_data", JSON.stringify(this.montage_data))
-          sessionStorage.setItem('hot_last_generated_mixins', JSON.stringify(this.lastGeneratedMixins))
-          this.mix_chats.push({
-            role: 'system',
-            content: {
-              thinking: res.data.data.thinking,
-              data: res.data.data.data,
-              title: `修改版本 V${version}`
-            }
-          })
-          this.$nextTick(() => {
-            this.scrollToBottom()
-          })
-        } else {
-          this.isGenerating = false
-          this.mix_chats.push({
-            role: 'update_error',
-            content: res.data.message
-          })
-          this.$nextTick(() => {
-            this.scrollToBottom()
-          })
-          this.$alert(res.data.message,'生成失败')
-        }
-      }).catch(error => {
-        this.isGenerating = false
-        this.mix_chats.push({
-          role: 'update_error',
-          content: error
-        })
-        this.$nextTick(() => {
-          this.scrollToBottom()
-        })
-        this.$alert(error,'生成错误')
-      })
+      this.$nextTick(() => { this.scrollToBottom() })
+      this.stream_query(params, 'http://127.0.0.1:6006/figure/re_video_mix_edit_stream', version)
     },
     scrollToBottom() {
       if (this.$refs.mixChatRef) {
@@ -1259,43 +1276,7 @@ export default {
         figure_ratio: this.figure_ratio + '%',
         reference_segments: reference_segments
       }
-      postAction('/figure/video_mix_edit', params, 3600000).then(res => {
-        if (res.data.status === 'success') {
-          this.montage_data = res.data.data.data
-          this.lastGeneratedMixins = res.data.data.data
-          sessionStorage.setItem('hot_last_generated_mixins', JSON.stringify(this.lastGeneratedMixins))
-          this.isGenerating = false
-          this.mix_chats.push({
-            role: 'system',
-            content: {
-              thinking: res.data.data.thinking,
-              data: res.data.data.data,
-              title: '混剪结果'
-            }
-          })
-          this.$nextTick(() => {
-            this.scrollToBottom()
-          })
-          sessionStorage.setItem("hot_montage_data", JSON.stringify(this.montage_data))
-        } else {
-          this.isGenerating = false
-          this.mix_chats.push({
-            role: 'mix_error',
-            content: res.data.message
-          })
-          this.$nextTick(() => {
-            this.scrollToBottom()
-          })
-          this.$alert(res.data.message, "混剪失败");
-        }
-      }).catch(error => {
-        this.isGenerating = false
-        this.mix_chats.push({
-          role: 'mix_error',
-          content: error
-        })
-        this.$alert(error, "混剪错误");
-      })
+      this.stream_query(params, 'http://127.0.0.1:6006/figure/video_mix_edit_stream')
     },
     export_video(with_out_route) {
       let bool_list = this.material_list.map(item => this.mute_materials.includes(item))
@@ -2547,16 +2528,16 @@ export default {
 
 .mix-chat-system-content {
   margin-top: 8px;
-  background: linear-gradient(to right, #f7f3ff, #fff 45.34%);
-  width: 100%;
+  background: linear-gradient(to right, #f1eaff, #fff 45.34%);
+  width: 225px;
   border: 1px solid #0003;
   cursor: pointer;
-  border-radius: 8px;
+  border-radius: 6px;
   display: flex;
   gap: 8px;
   justify-content: center;
   align-items: center;
-  padding: 10px;
+  padding: 8px 10px;
   box-sizing: border-box;
 }
 
@@ -2588,27 +2569,8 @@ export default {
   font-style: italic;
 }
 
-.error-content {
-  max-width: 85%;
-  width: fit-content;
-  background-color: #eff6ff;
-  padding: 10px;
-  box-shadow: 0 0  #0000, 0 0 #0000, 0 1px 2px 0 rgb(0 0 0 / 0.05);
-  border-radius: 8px;
-  border-top-right-radius: 0 !important;
-  display: flex;
-  gap: 8px;
-  align-items: center;
-}
-
-.error-message {
-  flex: 1;
-  color: #4B5563;
-  font-size: 14px;
-}
-
 .mix-loading-content {
-  width: 65px;
+  width: 300px;
   background-color: #eff6ff;
   padding: 10px;
   box-shadow: 0 0 #0000, 0 0 #0000, 0 1px 2px 0 rgb(0 0 0 / 0.05);
@@ -2619,8 +2581,21 @@ export default {
 }
 
 .mix-loading-area {
-  font-size: 20px;
-  color: #4B5563;
+  width: 260px;
+}
+
+.loading-area-icon {
+  font-size: 13px;
+  color: #303133;
+  font-weight: bold;
+  margin-left: 5px;
+}
+
+.loading-area-text {
+  color: #4b5563;
+  font-size: 13px;
+  line-height: 20px;
+  font-style: italic;
 }
 
 .mix-chat-input {
