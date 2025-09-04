@@ -361,6 +361,7 @@ export default {
     return {
       sync_mix_chats: [],
       mix_chatInput: '',
+      conversation_id: null,
       lastGeneratedMixins: [],
       isGenerating: false,
       isNewChat: false,
@@ -544,6 +545,8 @@ export default {
         return
       }
       this.isNewChat = true
+      this.conversation_id = null
+      sessionStorage.removeItem('sync_mix_conversation_id')
       this.sync_mix_chats.push({ role: 'new_chat' })
       this.$nextTick(() => {
         this.scrollToBottom()
@@ -583,7 +586,10 @@ export default {
 
             try {
               const data = JSON.parse(jsonString);
-
+              if (data.type === 'conversation_info') {
+                this.conversation_id = data.conversation_id;
+                sessionStorage.setItem('sync_mix_conversation_id', this.conversation_id)
+              }
               if (data.type === 'reasoning' && typeof data.delta === 'string') {
                 deltaAccumulator += data.delta;
                 this.thinking_text = deltaAccumulator;
@@ -648,6 +654,7 @@ export default {
         user_feedback: this.mix_chatInput,
         material_list: this.material_list,
         bool_list: this.mute_materials,
+        conversation_id: this.conversation_id,
       }
       this.mix_chatInput = '';
       this.isGenerating = true
@@ -1042,6 +1049,7 @@ export default {
       this.sync_mix_chats = JSON.parse(sessionStorage.getItem('sync_mix_chats')) || []
       this.isGenerating = sessionStorage.getItem('sync_mix_is_generating') === 'true'
       this.isNewChat = sessionStorage.getItem('sync_mix_is_newChat') === 'true'
+      this.conversation_id = sessionStorage.getItem('sync_mix_conversation_id')
       this.lastGeneratedMixins = JSON.parse(sessionStorage.getItem('sync_last_generated_mixins')) || []
       this.$nextTick(() => {
         this.scrollToBottom()
