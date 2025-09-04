@@ -105,7 +105,7 @@
                :key="index"
                class="source-item"
                @contextmenu.stop="handleContextMenu(item, $event)"
-               @click="selectMaterial(item)"
+               @click="e => selectMaterial(item, e)"
                ref="materialItems">
             <el-image class="figures-img" :class="{'figure-img-active': selected_materials.includes(item.id)}"
                       :src="item.picture" fit="cover" lazy :scroll-container="$refs.materialsRef"></el-image>
@@ -596,8 +596,16 @@ export default {
     selectAllMaterials() {
       this.selected_materials = this.filteredMaterials.map(item => item.id)
     },
-    selectMaterial(item) {
-      this.selected_materials = [item.id]
+    selectMaterial(item, event) {
+      const isSelected = this.selected_materials.includes(item.id);
+
+      if (event.ctrlKey) {
+        this.selected_materials = isSelected
+            ? this.selected_materials.filter(selectedId => selectedId !== item.id)
+            : [...this.selected_materials, item.id];
+      } else {
+        this.selected_materials = [item.id];
+      }
     },
     beforeUploadClose() {
       this.materialList = []
