@@ -25,7 +25,7 @@ export const RightMenuMixin = {
             this.selectedId = item.id
             this.downloadFilePath = item.video_path || ''
             this.downloadFileName = item.filename || ''
-            this.menuStyle.left = e.clientX + 'px'
+            this.menuStyle.left = Math.min(window.innerWidth - 173, e.clientX) + 'px'
             this.menuStyle.top = e.clientY + 'px'
             document.body.addEventListener("click", this.bodyClick);
         },

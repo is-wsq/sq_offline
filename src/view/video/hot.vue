@@ -286,7 +286,7 @@ export default {
       event.preventDefault();
       this.rightItem = item
       this.rightMenuVisible = true;
-      this.menuStyle.left = event.clientX + 'px'
+      this.menuStyle.left = Math.min(window.innerWidth - 173, event.clientX) + 'px'
       this.menuStyle.top = event.clientY + 'px'
       document.body.addEventListener("click", this.bodyClick);
     },
