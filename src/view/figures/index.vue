@@ -183,7 +183,7 @@
                 :file-list.sync="materialList"
                 :data="uploadData"
                 :auto-upload="false"
-                :limit="20"
+                :limit="100"
                 :on-exceed="handleExceed"
                 multiple>
               <i class="el-icon-upload"></i>
@@ -265,7 +265,7 @@
                 :file-list.sync="imagesList"
                 :data="uploadImageData"
                 :auto-upload="false"
-                :limit="20"
+                :limit="100"
                 :on-exceed="handleExceed"
                 :disabled="loading"
                 multiple>
@@ -876,7 +876,7 @@ export default {
       this.materialList = fileList;
     },
     handleExceed(files, fileList) {
-      this.$alert(`当前限制选择 20 个文件，本次选择了 ${files.length} 个文件，共选择了 ${files.length + fileList.length} 个文件`,'批量上传限制提醒');
+      this.$alert(`当前限制选择 100 个文件，本次选择了 ${files.length} 个文件，共选择了 ${files.length + fileList.length} 个文件`,'批量上传限制提醒');
     },
     uploadMaterialsError(file) {
       this.response_list.push({
