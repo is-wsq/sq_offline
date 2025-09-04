@@ -753,6 +753,7 @@ export default {
       sessionStorage.setItem('operate_scripts', JSON.stringify([]))
       sessionStorage.removeItem('operate_isAlreadyGenerated')
       sessionStorage.removeItem('is_newChat')
+      sessionStorage.removeItem('operate_conversation_id')
       sessionStorage.setItem('chats', JSON.stringify([]))
 
       sessionStorage.setItem('figure_path', '/imageToScript')

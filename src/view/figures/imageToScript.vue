@@ -163,15 +163,6 @@
                     选择本次生成脚本
                   </div>
                 </div>
-                <div v-if="item.type === 'errorMessage'" class="error-content">
-                  <div class="avatar-area">奇</div>
-                  <div class="error-message">
-                    {{ item.content }}
-<!--                    <span style="color: #3b82f6;font-size: 14px;cursor: pointer;" @click="regenerate">-->
-<!--                      点击重新生成-->
-<!--                    </span>-->
-                  </div>
-                </div>
                 <div v-if="item.type === 'newChat'">
                   <el-divider>新会话</el-divider>
                 </div>
@@ -254,6 +245,7 @@ export default {
       chats: [],
       thinking_text: '',
       chat_input: '',
+      conversation_id: null,
       isGenerating: false,
       isNewChat: false,
       loading: null,
@@ -340,7 +332,10 @@ export default {
 
             try {
               const data = JSON.parse(jsonString);
-
+              if (data.type === 'conversation_info') {
+                this.conversation_id = data.conversation_id;
+                sessionStorage.setItem('operate_conversation_id', this.conversation_id)
+              }
               if (data.type === 'reasoning' && typeof data.delta === 'string') {
                 deltaAccumulator += data.delta;
                 this.thinking_text = deltaAccumulator;
@@ -421,58 +416,11 @@ export default {
         return
       }
       this.isNewChat = true
+      this.conversation_id = null
+      sessionStorage.removeItem('operate_conversation_id')
       this.chats.push({type: 'newChat'})
       this.$nextTick(() => {
         this.scrollToBottom()
-      })
-    },
-    regenerate() {
-      this.chats = this.chats.filter(item => item.type !== 'errorMessage')
-      let history_chats = this.chats
-      for (let i = this.chats.length - 1; i >= 0; i--) {
-        if (this.chats[i].type === 'newChat') {
-          history_chats = this.chats.slice(i + 1);
-          break;
-        }
-      }
-      let params = {
-        scripts: this.lastGeneratedScripts,
-        history_chats: history_chats,
-        user_feedback: this.chat_input,
-      }
-      this.chat_input = '';
-      this.isGenerating = true
-      this.$nextTick(() => {
-        this.scrollToBottom()
-      })
-      postAction('/picture/refine_scripts_batch', params, 600000).then(res => {
-        if (res.data.status === 'success') {
-          this.isGenerating = false
-          this.lastGeneratedScripts = res.data.data.scripts
-          sessionStorage.setItem('last_generated_scripts', JSON.stringify(this.lastGeneratedScripts))
-          this.chats.push({
-            type: 'answerMessage',
-            scripts: res.data.data.scripts,
-            thinking: res.data.data.thinking,
-          })
-          this.$nextTick(() => {
-            this.scrollToBottom()
-          })
-        } else {
-          this.isGenerating = false
-          this.chats.push({type: 'errorMessage', content: `生成失败，${res.data.message}`})
-          this.$nextTick(() => {
-            this.scrollToBottom()
-          })
-          this.$alert(res.data.message, '生成失败')
-        }
-      }).catch(err => {
-        this.isGenerating = false
-        this.chats.push({type: 'errorMessage', content: `生成错误，${err}`})
-        this.$nextTick(() => {
-          this.scrollToBottom()
-        })
-        this.$alert(err, '生成错误')
       })
     },
     enterSendChat(event) {
@@ -490,7 +438,6 @@ export default {
         return
       }
 
-      this.chats = this.chats.filter(item => item.type !== 'errorMessage')
       this.chats.push({ type: 'userMessage', content: this.chat_input });
       this.$nextTick(() => { this.scrollToBottom() })
 
@@ -503,6 +450,7 @@ export default {
         scripts: this.lastGeneratedScripts,
         history_chats: history_chats,
         user_feedback: this.chat_input,
+        conversation_id: this.conversation_id,
       };
       this.chat_input = ''
 
@@ -559,6 +507,7 @@ export default {
       this.imageIndex = parseInt(sessionStorage.getItem('operate_img_index'))
       this.scripts = JSON.parse(sessionStorage.getItem('operate_scripts'))
       this.lastGeneratedScripts = JSON.parse(sessionStorage.getItem('last_generated_scripts'))
+      this.conversation_id = sessionStorage.getItem('operate_conversation_id')
       this.isAlreadyGenerated = sessionStorage.getItem('operate_isAlreadyGenerated') === 'true'
       this.isNewChat = sessionStorage.getItem('is_newChat') === 'true'
       this.chats = JSON.parse(sessionStorage.getItem('chats'))
