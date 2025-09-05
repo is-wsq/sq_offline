@@ -115,14 +115,48 @@
           </div>
           <div class="mix-loading-content" v-if="isGenerating">
             <div class="mix-avatar-area">奇</div>
-            <div class="mix-loading-area">
-              <div class="flex-center" style="line-height: 32px;height: 32px;">
-                <div class="mix-chat-system-label">AI思考过程</div>
-                <i class="el-icon-arrow-down loading-area-icon"></i>
-                <div style="flex: 1"></div>
+            <template v-if="is_thinking">
+              <div class="mix-chat-system-label" style="line-height: 32px">
+                AI思考中
+                <i class="el-icon-loading" style="font-size: 16px;margin-left: 4px"></i>
               </div>
-              <div class="loading-area-text">{{ thinking_text }}</div>
-            </div>
+            </template>
+            <template v-else>
+              <div class="mix-loading-area">
+                <template v-if="is_pending">
+                  <el-collapse>
+                    <el-collapse-item>
+                      <template slot="title">
+                        <div class="mix-chat-system-label">AI思考过程</div>
+                      </template>
+                      <div class="ai-thinking-content">{{ thinking_text }}</div>
+                    </el-collapse-item>
+                  </el-collapse>
+                  <div class="mix-chat-system-label margin-t-12">混剪结果</div>
+                  <div class="mix-chat-system-content" :style="progressStyle">
+                    <div class="mix-chat-system-content-icon">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" fill="none" viewBox="0 0 24 24">
+                        <path fill="currentColor" fill-rule="evenodd"
+                              d="M13.113 2.266a.936.936 0 0 1 .797 1.057l-2.476 17.614a.936.936 0 0 1-1.854-.26l2.476-17.615a.936.936 0 0 1 1.057-.796M6.811 6.744a.936.936 0 0 1 0 1.324l-3.55 3.55 3.55 3.551a.936.936 0 1 1-1.324 1.324l-4.213-4.212a.936.936 0 0 1 0-1.325l4.213-4.212a.936.936 0 0 1 1.324 0m15.447 4.213c.357.356.365.93.025 1.297a6.05 6.05 0 0 0-2.377-1.001l-3.185-3.185a.936.936 0 1 1 1.324-1.324zm-3.47 10.491a.48.48 0 0 0 .48-.425c.225-1.341.423-2.03.849-2.457.425-.426 1.11-.624 2.445-.849a.485.485 0 0 0 .438-.48.48.48 0 0 0-.44-.48c-1.332-.227-2.018-.425-2.443-.851-.426-.427-.624-1.115-.849-2.455a.48.48 0 0 0-.48-.428.49.49 0 0 0-.481.426c-.226 1.341-.423 2.03-.85 2.457-.424.426-1.108.624-2.44.85a.48.48 0 0 0-.442.481c0 .26.199.448.439.48 1.335.225 2.02.418 2.444.842.426.425.623 1.114.849 2.466.04.24.23.423.482.423" clip-rule="evenodd">
+                        </path>
+                      </svg>
+                    </div>
+                    <div class="mix-chat-system-content-name">
+                      素材混剪中
+                      <i class="el-icon-loading" style="font-size: 16px;margin-left: 4px"></i>
+                    </div>
+                  </div>
+                </template>
+                <template v-else>
+                  <div class="flex-center" style="line-height: 32px;height: 32px;">
+                    <div class="mix-chat-system-label">AI思考过程</div>
+                    <i class="el-icon-arrow-down loading-area-icon"></i>
+                    <div style="flex: 1"></div>
+                  </div>
+                  <div class="loading-area-text">{{ thinking_text }}</div>
+                </template>
+              </div>
+            </template>
           </div>
         </div>
         <div class="mix-chat-input">
@@ -545,8 +579,12 @@ export default {
       filtered_mention_list: [],
       isSelecting: false,
 
+      is_thinking: false,
+      is_pending: false,
       thinking_text: '',
       controller: null,
+      delayTimer: null,
+      percent: 0,
     }
   },
   watch: {
@@ -567,6 +605,18 @@ export default {
       },
       deep: true
     },
+    is_pending: {
+      handler(newValue, oldValue) {
+        sessionStorage.setItem('mix_is_pending', newValue)
+      },
+      deep: true
+    },
+    percent: {
+      handler(newValue, oldValue) {
+        sessionStorage.setItem('mix_percent', newValue)
+      },
+      deep: true
+    },
     isNewChat: {
       handler(newValue, oldValue) {
         sessionStorage.setItem('mix_is_newChat', JSON.stringify(newValue))
@@ -575,6 +625,11 @@ export default {
     }
   },
   computed: {
+    progressStyle() {
+      return {
+        background: `linear-gradient(90deg, #6fd7a8, transparent ${this.percent}%)`
+      };
+    },
     expandedIndex() {
       if (!this.show_settings) {
         return [this.activeIndex]
@@ -614,6 +669,7 @@ export default {
     document.removeEventListener('keydown', this.handleKeyDown);
     const inputEl = this.$refs.inputRef.$el.querySelector('textarea')
     inputEl.removeEventListener('scroll', this.handleScroll);
+    this.clearDelayTimer();
   },
   mounted() {
     this.initData()
@@ -658,6 +714,12 @@ export default {
         this.scrollToBottom()
       })
     },
+    clearDelayTimer() {
+      if (this.delayTimer) {
+        clearTimeout(this.delayTimer);
+        this.delayTimer = null;
+      }
+    },
     async stream_query(params, url, version) {
       this.thinking_text = '';
       this.controller = new AbortController();
@@ -671,6 +733,8 @@ export default {
 
         if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
         if (!response.body) throw new Error('浏览器不支持ReadableStream');
+
+        this.is_thinking = true
 
         const reader = response.body.getReader();
         const decoder = new TextDecoder();
@@ -698,10 +762,20 @@ export default {
               }
               if (data.type === 'reasoning' && typeof data.delta === 'string') {
                 deltaAccumulator += data.delta;
+                this.is_thinking = false
                 this.thinking_text = deltaAccumulator;
                 this.$nextTick(() => { this.scrollToBottom() })
+                this.clearDelayTimer();
+                this.delayTimer = setTimeout(() => {
+                  this.is_pending = true;
+                }, 2000);
+              }
+              if (data.type === 'progress') {
+                this.percent = data.percent
               }
               if (data.type === 'final') {
+                this.is_pending = false
+                this.clearDelayTimer();
                 this.isGenerating = false
                 this.montage_data = data.data.data
                 this.lastGeneratedMixins = data.data.data
@@ -1173,6 +1247,8 @@ export default {
       this.montage_data = JSON.parse(sessionStorage.getItem("montage_data")) || []
       this.mix_chats = JSON.parse(sessionStorage.getItem('mix_chats')) || []
       this.isGenerating = sessionStorage.getItem('mix_is_generating') === 'true'
+      this.is_pending = sessionStorage.getItem('mix_is_pending') === 'true'
+      this.percent = parseInt(sessionStorage.getItem('mix_percent')) || 0
       this.isNewChat = sessionStorage.getItem('mix_is_newChat') === 'true'
       this.conversation_id = sessionStorage.getItem('mix_conversation_id')
       this.lastGeneratedMixins = JSON.parse(sessionStorage.getItem('last_generated_mixins')) || []
@@ -2496,28 +2572,33 @@ export default {
   overflow: hidden;
 }
 
-.mix-chat-system >>> .el-collapse {
+.mix-chat-system >>> .el-collapse,
+.mix-loading-area >>> .el-collapse {
   border: none;
 }
 
-.mix-chat-system >>> .el-collapse-item__wrap {
+.mix-chat-system >>> .el-collapse-item__wrap,
+.mix-loading-area >>> .el-collapse-item__wrap {
   background-color: transparent;
   border: none;
 }
 
-.mix-chat-system >>> .el-collapse-item__header {
+.mix-chat-system >>> .el-collapse-item__header,
+.mix-loading-area >>> .el-collapse-item__header {
   height: 32px;
   line-height: 32px;
   background-color: transparent;
   border: none;
 }
 
-.mix-chat-system >>> .el-collapse-item__arrow {
+.mix-chat-system >>> .el-collapse-item__arrow,
+.mix-loading-area >>> .el-collapse-item__arrow {
   margin: 0 10px;
   font-weight: bold;
 }
 
-.mix-chat-system >>> .el-collapse-item__content {
+.mix-chat-system >>> .el-collapse-item__content,
+.mix-loading-area >>> .el-collapse-item__content {
   padding-bottom: 0;
 }
 
@@ -2569,6 +2650,8 @@ export default {
   font-size: 13px;
   line-height: 20px;
   font-style: italic;
+  word-break: break-word;
+  overflow-wrap: break-word;
 }
 
 .mix-loading-content {
