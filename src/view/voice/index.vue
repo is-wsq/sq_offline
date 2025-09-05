@@ -3,7 +3,16 @@
     <div class="timbre-header">音色库</div>
     <div class="timbre-content">
       <div class="timbre-card">
-        <div class="timbre-card-title">系统音色</div>
+        <div class="timbre-card-title flex-center">
+          <div style="flex: 1">系统音色</div>
+          <div class="flex-center">
+            <div style="flex: 1"></div>
+            <div class="guide" style="margin-right: 15px" @click="guideVisible = true">
+              <i class="el-icon-s-opportunity" style="margin-right: 4px;"></i>
+              使用指南
+            </div>
+          </div>
+        </div>
         <div class="timbre-card-content">
           <el-row :gutter="16">
             <el-col :span="6" v-for="(item, index) in systemVoice" :key="index">
@@ -122,6 +131,23 @@
         <el-button type="primary" @click="sureRename" size="small">确认</el-button>
       </div>
     </el-dialog>
+    <el-dialog class="guide-dialog" :visible.sync="guideVisible" width="700px">
+      <div slot="title" class="guide-dialog-title">使用指南</div>
+      <div class="guide-dialog-body">
+        <div class="guide-item">
+          <div class="guide-index">1</div>
+          <div style="flex: 1">系统音色：点击播放图标按钮、右键可试听系统音色</div>
+        </div>
+        <div class="guide-item">
+          <div class="guide-index">2</div>
+          <div style="flex: 1">点击"上传音频克隆"按钮、选择音频文件，上传成功后进行后台处理，克隆对应的声音</div>
+        </div>
+        <div class="guide-item">
+          <div class="guide-index">3</div>
+          <div style="flex: 1">右键声音选择对应的功能项，如重命名、删除、试听，也可通过播放图标按钮进行试听</div>
+        </div>
+      </div>
+    </el-dialog>
   </div>
 </template>
 
@@ -148,6 +174,7 @@ export default {
         original: '',
         name: ''
       },
+      guideVisible: false,
     }
   },
   computed: {
@@ -475,6 +502,59 @@ export default {
 }
 
 .rename-dialog >>> .el-dialog__footer {
+  padding: 0;
+}
+
+.guide-dialog >>> .el-dialog {
+  border-radius: 10px;
+}
+
+.guide-dialog-title {
+  padding: 20px 20px 10px;
+  line-height: 24px;
+  font-size: 18px;
+  color: #303133;
+  font-weight: 700;
+}
+
+.guide-dialog-body {
+  padding: 10px 20px;
+  max-height: calc(70vh - 120px);
+  overflow-y: auto;
+}
+
+.guide-item {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.guide-index {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: #e5e7eb;
+  line-height: 24px;
+  text-align: center;
+  font-size: 12px;
+}
+
+.guide-dialog >>> .el-dialog__header {
+  padding: 0;
+}
+
+.guide-dialog >>> .el-dialog__close {
+  color: #9ca3af;
+  font-size: 24px;
+}
+
+.guide-dialog >>> .el-dialog__body {
+  padding: 0;
+}
+
+.guide-dialog >>> .el-dialog__footer {
   padding: 0;
 }
 </style>

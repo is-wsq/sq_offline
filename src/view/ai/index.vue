@@ -1,6 +1,13 @@
 <template>
   <div class="ai">
     <div class="ai-content">
+      <div class="flex-center" style="position: absolute;top: 20px;right: 20px">
+        <div style="flex: 1"></div>
+        <div class="guide" style="margin-right: 15px" @click="guideVisible = true">
+          <i class="el-icon-s-opportunity" style="margin-right: 4px;"></i>
+          使用指南
+        </div>
+      </div>
       <div style="display: flex; height: 40px; align-items: center;width: 60%">
         <span style="margin-right: 20px; font-size: 16px; color: #6d7177">模型选择</span>
         <el-select v-model="model" placeholder="请选择">
@@ -30,6 +37,23 @@
     <div style="color: #6d7177; font-size: 16px; line-height: 27px">
       注意，模型服务与数字人形象无法同时使用，关闭模型开关即可正常使用数字人服务。
     </div>
+    <el-dialog class="guide-dialog" :visible.sync="guideVisible" width="600px">
+      <div slot="title" class="guide-dialog-title">使用指南</div>
+      <div class="guide-dialog-body">
+        <div class="guide-item">
+          <div class="guide-index">1</div>
+          <div style="flex: 1">选择模型</div>
+        </div>
+        <div class="guide-item">
+          <div class="guide-index">2</div>
+          <div style="flex: 1">开启模型</div>
+        </div>
+        <div class="guide-item">
+          <div class="guide-index">3</div>
+          <div style="flex: 1">点击"进入服务"，进入WebUI服务页面</div>
+        </div>
+      </div>
+    </el-dialog>
   </div>
 </template>
 
@@ -46,6 +70,7 @@ export default {
       ],
       modelOpen: false,
       loading: false,
+      guideVisible: false,
     };
   },
   async mounted() {
@@ -190,6 +215,7 @@ export default {
   flex-direction: column;
   justify-content: center;
   align-items: center;
+  position: relative;
 }
 
 .ai >>> .el-input__inner {
@@ -209,5 +235,58 @@ export default {
 .enter-service:hover {
   background-color: #6286ed;
   color: #ffffff;
+}
+
+.guide-dialog >>> .el-dialog {
+  border-radius: 10px;
+}
+
+.guide-dialog-title {
+  padding: 20px 20px 10px;
+  line-height: 24px;
+  font-size: 18px;
+  color: #303133;
+  font-weight: 700;
+}
+
+.guide-dialog-body {
+  padding: 10px 20px;
+  max-height: calc(70vh - 120px);
+  overflow-y: auto;
+}
+
+.guide-item {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.guide-index {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: #e5e7eb;
+  line-height: 24px;
+  text-align: center;
+  font-size: 12px;
+}
+
+.guide-dialog >>> .el-dialog__header {
+  padding: 0;
+}
+
+.guide-dialog >>> .el-dialog__close {
+  color: #9ca3af;
+  font-size: 24px;
+}
+
+.guide-dialog >>> .el-dialog__body {
+  padding: 0;
+}
+
+.guide-dialog >>> .el-dialog__footer {
+  padding: 0;
 }
 </style>

@@ -27,7 +27,13 @@
     </div>
     <div class="imageToScript-content">
       <div class="operation-content left">
-        <div class="title">{{ scripts.length === 0 ? '展示区' : '选定脚本' }}</div>
+        <div class="title flex-center">
+          <div style="flex: 1;">{{ scripts.length === 0 ? '展示区' : '选定脚本' }}</div>
+          <div class="guide" @click="guideVisible = true">
+            <i class="el-icon-s-opportunity" style="margin-right: 4px;"></i>
+            使用指南
+          </div>
+        </div>
         <div class="view-area" v-if="scripts.length === 0">
           <template v-if="operateProductInfo.images">
             <div class="flex-center" style="flex: 1;">
@@ -220,6 +226,39 @@
           </div>
         </template>
       </div>
+      <el-dialog class="guide-dialog" :visible.sync="guideVisible" width="600px">
+        <div slot="title" class="guide-dialog-title">使用指南</div>
+        <div class="guide-dialog-body">
+          <div class="guide-item">
+            <div class="guide-index">1</div>
+            <div style="flex: 1">在图生脚本页面输入产品的核心卖点、选择营销亮点</div>
+          </div>
+          <div class="guide-item">
+            <div class="guide-index">2</div>
+            <div style="flex: 1">选择需要生成的脚本数量（1-4条）并生成视觉脚本</div>
+          </div>
+          <div class="guide-item">
+            <div class="guide-index">3</div>
+            <div style="flex: 1">点击"下一步：脚本生图"，基于脚本生成图片组，并进入脚本生图页面</div>
+          </div>
+          <div class="guide-item">
+            <div class="guide-index">4</div>
+            <div style="flex: 1">对生成的图片进行删除或编辑脚本后重新生成图片</div>
+          </div>
+          <div class="guide-item">
+            <div class="guide-index">5</div>
+            <div style="flex: 1">点击"生成素材分镜"，基于脚本、图片组生成素材分镜，并进入图生视频页面</div>
+          </div>
+          <div class="guide-item">
+            <div class="guide-index">6</div>
+            <div style="flex: 1">对生成的素材分镜进行删除、重新生成素材分镜</div>
+          </div>
+          <div class="guide-item">
+            <div class="guide-index">7</div>
+            <div style="flex: 1">点击"保存至素材列表"，将素材分镜保存至素材列表</div>
+          </div>
+        </div>
+      </el-dialog>
     </div>
   </div>
 </template>
@@ -250,6 +289,7 @@ export default {
       isNewChat: false,
       loading: null,
       controller: null,
+      guideVisible: false,
     };
   },
   watch: {
@@ -1098,5 +1138,58 @@ export default {
   font-size: 12px;
   line-height: 16px;
   margin-top: 8px;
+}
+
+.guide-dialog >>> .el-dialog {
+  border-radius: 10px;
+}
+
+.guide-dialog-title {
+  padding: 20px 20px 10px;
+  line-height: 24px;
+  font-size: 18px;
+  color: #303133;
+  font-weight: 700;
+}
+
+.guide-dialog-body {
+  padding: 10px 20px;
+  max-height: calc(70vh - 120px);
+  overflow-y: auto;
+}
+
+.guide-item {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.guide-index {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: #e5e7eb;
+  line-height: 24px;
+  text-align: center;
+  font-size: 12px;
+}
+
+.guide-dialog >>> .el-dialog__header {
+  padding: 0;
+}
+
+.guide-dialog >>> .el-dialog__close {
+  color: #9ca3af;
+  font-size: 24px;
+}
+
+.guide-dialog >>> .el-dialog__body {
+  padding: 0;
+}
+
+.guide-dialog >>> .el-dialog__footer {
+  padding: 0;
 }
 </style>

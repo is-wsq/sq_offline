@@ -48,6 +48,13 @@
         </div>
       </div>
       <div style="flex: 1">
+        <div class="flex-center">
+          <div style="flex: 1"></div>
+          <div class="guide" style="margin-right: 15px" @click="guideVisible = true">
+            <i class="el-icon-s-opportunity" style="margin-right: 4px;"></i>
+            使用指南
+          </div>
+        </div>
         <div class="figure-preview">
           <div class="figure-preview-content">
             <div class="figure-preview-setting"
@@ -450,6 +457,43 @@
         </div>
       </div>
     </div>
+    <el-dialog class="guide-dialog" :visible.sync="guideVisible" width="800px">
+      <div slot="title" class="guide-dialog-title">使用指南</div>
+      <div class="guide-dialog-body">
+        <div class="guide-item">
+          <div class="guide-index">1</div>
+          <div style="flex: 1">选择数字人形象，设置视频播放完后拼接规则</div>
+        </div>
+        <div class="guide-item">
+          <div class="guide-index">2</div>
+          <div style="flex: 1">设置音色、背景音乐</div>
+        </div>
+        <div class="guide-item">
+          <div class="guide-index">3</div>
+          <div style="flex: 1">设置口播标题、口播内容字幕样式(可选择不生成字幕)</div>
+        </div>
+        <div class="guide-item">
+          <div class="guide-index">4</div>
+          <div style="flex: 1">点击"下一步：编辑文案"，进入文案编辑页面</div>
+        </div>
+        <div class="guide-item">
+          <div class="guide-index">5</div>
+          <div style="flex: 1">AI批量生成：填写文案要求、示例文案(可不填)，设置文案数量、生成个数(最多10)，选择AI模型，点击批量生成按钮</div>
+        </div>
+        <div class="guide-item">
+          <div class="guide-index">6</div>
+          <div style="flex: 1">手动添加文案：输入文案标题、文案内容，点击添加文案按钮</div>
+        </div>
+        <div class="guide-item">
+          <div class="guide-index">7</div>
+          <div style="flex: 1">AI批量生成、手动添加的文案会在文案列表中显示，可删除文案，也可点击文案修改</div>
+        </div>
+        <div class="guide-item">
+          <div class="guide-index">8</div>
+          <div style="flex: 1">生成视频，点击生成按钮后会创建视频生成任务，后台会自动生成视频，在任务列表中会显示生成视频成功</div>
+        </div>
+      </div>
+    </el-dialog>
   </div>
 </template>
 
@@ -601,6 +645,8 @@ export default {
       contentHeight: 640,
       topRatio: 0.25,
       bottomRatio: 0.75,
+
+      guideVisible: false,
     }
   },
   mounted() {
@@ -1210,7 +1256,7 @@ export default {
 }
 
 .figure-preview {
-  height: calc(100% - 60px);
+  height: calc(100% - 90px);
   display: flex;
   justify-content: center;
   align-items: center;
@@ -1624,5 +1670,58 @@ export default {
   justify-content: center;
   align-items: end;
   cursor: pointer;
+}
+
+.guide-dialog >>> .el-dialog {
+  border-radius: 10px;
+}
+
+.guide-dialog-title {
+  padding: 20px 20px 10px;
+  line-height: 24px;
+  font-size: 18px;
+  color: #303133;
+  font-weight: 700;
+}
+
+.guide-dialog-body {
+  padding: 10px 20px;
+  max-height: calc(70vh - 120px);
+  overflow-y: auto;
+}
+
+.guide-item {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.guide-index {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: #e5e7eb;
+  line-height: 24px;
+  text-align: center;
+  font-size: 12px;
+}
+
+.guide-dialog >>> .el-dialog__header {
+  padding: 0;
+}
+
+.guide-dialog >>> .el-dialog__close {
+  color: #9ca3af;
+  font-size: 24px;
+}
+
+.guide-dialog >>> .el-dialog__body {
+  padding: 0;
+}
+
+.guide-dialog >>> .el-dialog__footer {
+  padding: 0;
 }
 </style>

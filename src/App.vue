@@ -102,6 +102,19 @@ body {
   color: #1F2937 !important;
 }
 
+.guide {
+  font-size: 12px;
+  font-weight: normal;
+  line-height: 30px;
+  color: #676666bd;
+  cursor: pointer;
+  font-family: Arial, sans-serif;
+}
+
+.guide:hover {
+  color: #606266;
+}
+
 .material-function {
   width: 130px;
   padding: 8px;

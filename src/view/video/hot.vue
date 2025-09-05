@@ -4,6 +4,13 @@
       <i class="el-icon-arrow-left" style="font-size: 20px;"></i>
     </el-button>
     <div class="box-card">
+      <div class="flex-center" style="position: absolute;top: 0;right: 20px">
+        <div style="flex: 1"></div>
+        <div class="guide" style="margin-right: 15px" @click="guideVisible = true">
+          <i class="el-icon-s-opportunity" style="margin-right: 4px;"></i>
+          使用指南
+        </div>
+      </div>
       <div class="search-content">
         <el-input prefix-icon="el-icon-search" placeholder="一句话搜模板，例如：科技感转场" clearable
                   class="search-input" v-model="searchText"></el-input>
@@ -163,6 +170,107 @@
         </div>
       </div>
     </el-dialog>
+    <el-dialog class="guide-dialog" :visible.sync="guideVisible" width="800px">
+      <div slot="title" class="guide-dialog-title">
+        {{ nextType === 'hot_montage' ? '音画不同步爆款复刻' : '音画同步爆款复刻' }} - 使用指南
+      </div>
+      <div class="guide-dialog-body" v-if="nextType === 'hot_montage'">
+        <div class="guide-item">
+          <div class="guide-index">1</div>
+          <div style="flex: 1">上传爆款视频：可选择视频文件上传、也可通过抖音分享链接上传</div>
+        </div>
+        <div class="guide-item">
+          <div class="guide-index">2</div>
+          <div style="flex: 1">选择爆款视频后点击一键复刻按钮</div>
+        </div>
+        <div class="guide-item">
+          <div class="guide-index">3</div>
+          <div style="flex: 1">选择素材、选择数字人并设置视频播放完后拼接规则(可不选)</div>
+        </div>
+        <div class="guide-item">
+          <div class="guide-index">4</div>
+          <div style="flex: 1">设置音色、背景音乐，设置口播标题、口播内容字幕样式(可选择不生成字幕)</div>
+        </div>
+        <div class="guide-item">
+          <div class="guide-index">5</div>
+          <div style="flex: 1">点击"下一步：编辑文案"，进入爆款复刻页面</div>
+        </div>
+        <div class="guide-item">
+          <div class="guide-index">6</div>
+          <div style="flex: 1">AI批量生成：填写文案要求，设置文案数量、生成个数(最多10)，选择AI模型，点击批量生成按钮</div>
+        </div>
+        <div class="guide-item">
+          <div class="guide-index">7</div>
+          <div style="flex: 1">AI批量生成的文案会在文案列表中显示，可删除文案，也可点击文案修改</div>
+        </div>
+        <div class="guide-item">
+          <div class="guide-index">8</div>
+          <div style="flex: 1">混剪视频，输入混剪要求(可不填)、设置人物形象出镜比例、选择语言</div>
+        </div>
+        <div class="guide-item">
+          <div class="guide-index">9</div>
+          <div style="flex: 1">设置背景音乐(默认背景音乐是前面步骤所选，可修改，可移除，无文案内容的文案必须设置背景音乐)</div>
+        </div>
+        <div class="guide-item">
+          <div class="guide-index">10</div>
+          <div style="flex: 1">点击一键混剪按钮，生成AI聊天区域，并开始混剪，混剪完成后会在右侧生成预览视频</div>
+        </div>
+        <div class="guide-item">
+          <div class="guide-index">11</div>
+          <div style="flex: 1">可通过增删分镜重新调整分镜效果，亦可通过聊天区域输入修改要求重新混剪</div>
+        </div>
+        <div class="guide-item">
+          <div class="guide-index">12</div>
+          <div style="flex: 1">导出视频：混剪完成后会出现导出视频按钮，点击按钮导出视频</div>
+        </div>
+        <div class="guide-item">
+          <div class="guide-index">13</div>
+          <div style="flex: 1">批量导出视频：不生成预览视频，混剪完成后自动导出视频，无需等待混剪完成</div>
+        </div>
+      </div>
+      <div class="guide-dialog-body" v-else>
+        <div class="guide-item">
+          <div class="guide-index">1</div>
+          <div style="flex: 1">上传爆款视频：可选择视频文件上传、也可通过抖音分享链接上传</div>
+        </div>
+        <div class="guide-item">
+          <div class="guide-index">2</div>
+          <div style="flex: 1">选择爆款视频后点击一键复刻按钮</div>
+        </div>
+        <div class="guide-item">
+          <div class="guide-index">3</div>
+          <div style="flex: 1">选择素材、选择数字人并设置视频播放完后拼接规则(可不选)</div>
+        </div>
+        <div class="guide-item">
+          <div class="guide-index">4</div>
+          <div style="flex: 1">设置音色、背景音乐，设置口播标题、口播内容字幕样式(可选择不生成字幕)</div>
+        </div>
+        <div class="guide-item">
+          <div class="guide-index">5</div>
+          <div style="flex: 1">点击"下一步：一键混剪"，进入音画同步混剪页面</div>
+        </div>
+        <div class="guide-item">
+          <div class="guide-index">6</div>
+          <div style="flex: 1">混剪视频，输入混剪要求(可不填)、设置人物形象出镜比例、选择语言</div>
+        </div>
+        <div class="guide-item">
+          <div class="guide-index">7</div>
+          <div style="flex: 1">填写文案要求，设置视频时长、文案生成个数(最多10)，选择AI模型</div>
+        </div>
+        <div class="guide-item">
+          <div class="guide-index">8</div>
+          <div style="flex: 1">点击一键混剪按钮，生成AI聊天区域，并开始混剪，混剪完成后会在右侧生成预览视频</div>
+        </div>
+        <div class="guide-item">
+          <div class="guide-index">9</div>
+          <div style="flex: 1">可通过增删分镜重新调整分镜效果，可删除效果不佳的混剪视频，亦可通过聊天区域输入修改要求重新混剪</div>
+        </div>
+        <div class="guide-item">
+          <div class="guide-index">10</div>
+          <div style="flex: 1">导出视频：混剪完成后会出现导出视频按钮，点击按钮导出视频</div>
+        </div>
+      </div>
+    </el-dialog>
   </div>
 </template>
 
@@ -223,7 +331,10 @@ export default {
       },
       renameId: '',
       detailDialogVisible: false,
-      segments: []
+      segments: [],
+
+      guideVisible: false,
+      nextType: 'hot_montage',
     }
   },
   computed: {
@@ -360,6 +471,7 @@ export default {
     },
     initData() {
       this.select_hots = JSON.parse(sessionStorage.getItem('select_hots')) || {}
+      this.nextType = sessionStorage.getItem('next_type') || 'hot_montage'
     },
     beforeUploadClose() {
       this.uploadFile = null
@@ -462,6 +574,7 @@ export default {
   box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
   background-color: #FFFFFF;
   padding: 20px;
+  position: relative;
 }
 
 .search-content {
@@ -734,5 +847,58 @@ export default {
   background-color: #f5f5f5;
   padding: 0 10px;
   border-radius: 8px;
+}
+
+.guide-dialog >>> .el-dialog {
+  border-radius: 10px;
+}
+
+.guide-dialog-title {
+  padding: 20px 20px 10px;
+  line-height: 24px;
+  font-size: 18px;
+  color: #303133;
+  font-weight: 700;
+}
+
+.guide-dialog-body {
+  padding: 10px 20px;
+  max-height: calc(70vh - 120px);
+  overflow-y: auto;
+}
+
+.guide-item {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.guide-index {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: #e5e7eb;
+  line-height: 24px;
+  text-align: center;
+  font-size: 12px;
+}
+
+.guide-dialog >>> .el-dialog__header {
+  padding: 0;
+}
+
+.guide-dialog >>> .el-dialog__close {
+  color: #9ca3af;
+  font-size: 24px;
+}
+
+.guide-dialog >>> .el-dialog__body {
+  padding: 0;
+}
+
+.guide-dialog >>> .el-dialog__footer {
+  padding: 0;
 }
 </style>
