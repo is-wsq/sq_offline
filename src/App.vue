@@ -106,13 +106,13 @@ body {
   font-size: 12px;
   font-weight: normal;
   line-height: 30px;
-  color: #676666bd;
+  color: #6286ed;
   cursor: pointer;
   font-family: Arial, sans-serif;
 }
 
 .guide:hover {
-  color: #606266;
+  color: #3e6beb;
 }
 
 .material-function {
