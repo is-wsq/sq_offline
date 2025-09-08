@@ -881,9 +881,16 @@ export default {
       sessionStorage.setItem('material_list', JSON.stringify(this.material_list))
     },
     selectAllMaterials() {
-      if (this.material_list.length === 0) {
-        this.$alert('全选操作只针对于同尺寸、同店铺的素材，请先选择至少一个素材后使用', 'Ctrl + A 全选')
+      if (this.filter_materials.length === 0) {
         return;
+      }
+      const size = this.filter_materials[0].size
+      const store = this.filter_materials[0].store_id
+      const sizeEqual = this.filter_materials.every(item => item.size === size)
+      const storeEqual = this.filter_materials.every(item => item.store_id === store)
+      if (!sizeEqual || !storeEqual) {
+        this.$alert('检测当前素材列表尺寸或所属店铺不一致，请点击素材筛选后重试','提示')
+        return
       }
       this.material_list = this.filter_materials.map(item => item.id)
       sessionStorage.setItem('material_list', JSON.stringify(this.material_list))
