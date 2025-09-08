@@ -231,31 +231,23 @@
         <div class="guide-dialog-body">
           <div class="guide-item">
             <div class="guide-index">1</div>
-            <div style="flex: 1">在图生脚本页面输入产品的核心卖点、选择营销亮点</div>
+            <div style="flex: 1">输入产品卖点、选择营销亮点、脚本数量，生成视觉脚本</div>
           </div>
           <div class="guide-item">
             <div class="guide-index">2</div>
-            <div style="flex: 1">选择需要生成的脚本数量（1-4条）并生成视觉脚本</div>
+            <div style="flex: 1">点击"下一步：脚本生图"，基于脚本生成图片组</div>
           </div>
           <div class="guide-item">
             <div class="guide-index">3</div>
-            <div style="flex: 1">点击"下一步：脚本生图"，基于脚本生成图片组，并进入脚本生图页面</div>
+            <div style="flex: 1">对生成的图片进行修改</div>
           </div>
           <div class="guide-item">
             <div class="guide-index">4</div>
-            <div style="flex: 1">对生成的图片进行删除或编辑脚本后重新生成图片</div>
+            <div style="flex: 1">点击"生成素材分镜"，基于脚本、图片组生成素材分镜</div>
           </div>
           <div class="guide-item">
             <div class="guide-index">5</div>
-            <div style="flex: 1">点击"生成素材分镜"，基于脚本、图片组生成素材分镜，并进入图生视频页面</div>
-          </div>
-          <div class="guide-item">
-            <div class="guide-index">6</div>
-            <div style="flex: 1">对生成的素材分镜进行删除、重新生成素材分镜</div>
-          </div>
-          <div class="guide-item">
-            <div class="guide-index">7</div>
-            <div style="flex: 1">点击"保存至素材列表"，将素材分镜保存至素材列表</div>
+            <div style="flex: 1">对生成的素材分镜进行调整，保存至素材列表</div>
           </div>
         </div>
       </el-dialog>

@@ -457,40 +457,24 @@
         </div>
       </div>
     </div>
-    <el-dialog class="guide-dialog" :visible.sync="guideVisible" width="800px">
+    <el-dialog class="guide-dialog" :visible.sync="guideVisible" width="600px">
       <div slot="title" class="guide-dialog-title">使用指南</div>
       <div class="guide-dialog-body">
         <div class="guide-item">
           <div class="guide-index">1</div>
-          <div style="flex: 1">选择数字人形象，设置视频播放完后拼接规则</div>
+          <div style="flex: 1">选择数字人形象，并设置声音、音乐和字幕样式</div>
         </div>
         <div class="guide-item">
           <div class="guide-index">2</div>
-          <div style="flex: 1">设置音色、背景音乐</div>
+          <div style="flex: 1">进入文案编辑页，可选择 AI 批量生成或手动添加文案</div>
         </div>
         <div class="guide-item">
           <div class="guide-index">3</div>
-          <div style="flex: 1">设置口播标题、口播内容字幕样式(可选择不生成字幕)</div>
+          <div style="flex: 1">在文案列表中，可以修改或删除已生成的文案。</div>
         </div>
         <div class="guide-item">
           <div class="guide-index">4</div>
-          <div style="flex: 1">点击"下一步：编辑文案"，进入文案编辑页面</div>
-        </div>
-        <div class="guide-item">
-          <div class="guide-index">5</div>
-          <div style="flex: 1">AI批量生成：填写文案要求、示例文案(可不填)，设置文案数量、生成个数(最多10)，选择AI模型，点击批量生成按钮</div>
-        </div>
-        <div class="guide-item">
-          <div class="guide-index">6</div>
-          <div style="flex: 1">手动添加文案：输入文案标题、文案内容，点击添加文案按钮</div>
-        </div>
-        <div class="guide-item">
-          <div class="guide-index">7</div>
-          <div style="flex: 1">AI批量生成、手动添加的文案会在文案列表中显示，可删除文案，也可点击文案修改</div>
-        </div>
-        <div class="guide-item">
-          <div class="guide-index">8</div>
-          <div style="flex: 1">生成视频，点击生成按钮后会创建视频生成任务，后台会自动生成视频，在任务列表中会显示生成视频成功</div>
+          <div style="flex: 1">点击生成按钮，后台将自动完成视频制作。</div>
         </div>
       </div>
     </el-dialog>

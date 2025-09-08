@@ -185,46 +185,26 @@
         </div>
         <div class="guide-item">
           <div class="guide-index">3</div>
-          <div style="flex: 1">选择素材、选择数字人并设置视频播放完后拼接规则(可不选)</div>
+          <div style="flex: 1">选择素材、数字人形象，并设置声音、音乐和字幕样式</div>
         </div>
         <div class="guide-item">
           <div class="guide-index">4</div>
-          <div style="flex: 1">设置音色、背景音乐，设置口播标题、口播内容字幕样式(可选择不生成字幕)</div>
+          <div style="flex: 1">进入文案编辑页，可选择 AI 批量生成或手动添加文案</div>
         </div>
         <div class="guide-item">
           <div class="guide-index">5</div>
-          <div style="flex: 1">点击"下一步：编辑文案"，进入爆款复刻页面</div>
+          <div style="flex: 1">在文案列表中，可以修改或删除已生成的文案。</div>
         </div>
         <div class="guide-item">
           <div class="guide-index">6</div>
-          <div style="flex: 1">AI批量生成：填写文案要求，设置文案数量、生成个数(最多10)，选择AI模型，点击批量生成按钮</div>
+          <div style="flex: 1">输入混剪要求(可不填)、设置人物形象出镜比例、选择语言、设置背景音乐</div>
         </div>
         <div class="guide-item">
           <div class="guide-index">7</div>
-          <div style="flex: 1">AI批量生成的文案会在文案列表中显示，可删除文案，也可点击文案修改</div>
+          <div style="flex: 1">混剪后可预览，通过增删分镜或与AI聊天来修改</div>
         </div>
         <div class="guide-item">
           <div class="guide-index">8</div>
-          <div style="flex: 1">混剪视频，输入混剪要求(可不填)、设置人物形象出镜比例、选择语言</div>
-        </div>
-        <div class="guide-item">
-          <div class="guide-index">9</div>
-          <div style="flex: 1">设置背景音乐(默认背景音乐是前面步骤所选，可修改，可移除，无文案内容的文案必须设置背景音乐)</div>
-        </div>
-        <div class="guide-item">
-          <div class="guide-index">10</div>
-          <div style="flex: 1">点击一键混剪按钮，生成AI聊天区域，并开始混剪，混剪完成后会在右侧生成预览视频</div>
-        </div>
-        <div class="guide-item">
-          <div class="guide-index">11</div>
-          <div style="flex: 1">可通过增删分镜重新调整分镜效果，亦可通过聊天区域输入修改要求重新混剪</div>
-        </div>
-        <div class="guide-item">
-          <div class="guide-index">12</div>
-          <div style="flex: 1">导出视频：混剪完成后会出现导出视频按钮，点击按钮导出视频</div>
-        </div>
-        <div class="guide-item">
-          <div class="guide-index">13</div>
           <div style="flex: 1">批量导出视频：不生成预览视频，混剪完成后自动导出视频，无需等待混剪完成</div>
         </div>
       </div>
@@ -239,35 +219,19 @@
         </div>
         <div class="guide-item">
           <div class="guide-index">3</div>
-          <div style="flex: 1">选择素材、选择数字人并设置视频播放完后拼接规则(可不选)</div>
+          <div style="flex: 1">选择数字人形象，并设置声音、音乐和字幕样式</div>
         </div>
         <div class="guide-item">
           <div class="guide-index">4</div>
-          <div style="flex: 1">设置音色、背景音乐，设置口播标题、口播内容字幕样式(可选择不生成字幕)</div>
+          <div style="flex: 1">进入文案编辑页，可选择 AI 批量生成或手动添加文案</div>
         </div>
         <div class="guide-item">
           <div class="guide-index">5</div>
-          <div style="flex: 1">点击"下一步：一键混剪"，进入音画同步混剪页面</div>
+          <div style="flex: 1">在文案列表中，可以修改或删除已生成的文案。</div>
         </div>
         <div class="guide-item">
           <div class="guide-index">6</div>
-          <div style="flex: 1">混剪视频，输入混剪要求(可不填)、设置人物形象出镜比例、选择语言</div>
-        </div>
-        <div class="guide-item">
-          <div class="guide-index">7</div>
-          <div style="flex: 1">填写文案要求，设置视频时长、文案生成个数(最多10)，选择AI模型</div>
-        </div>
-        <div class="guide-item">
-          <div class="guide-index">8</div>
-          <div style="flex: 1">点击一键混剪按钮，生成AI聊天区域，并开始混剪，混剪完成后会在右侧生成预览视频</div>
-        </div>
-        <div class="guide-item">
-          <div class="guide-index">9</div>
-          <div style="flex: 1">可通过增删分镜重新调整分镜效果，可删除效果不佳的混剪视频，亦可通过聊天区域输入修改要求重新混剪</div>
-        </div>
-        <div class="guide-item">
-          <div class="guide-index">10</div>
-          <div style="flex: 1">导出视频：混剪完成后会出现导出视频按钮，点击按钮导出视频</div>
+          <div style="flex: 1">点击生成按钮，后台将自动完成视频制作。</div>
         </div>
       </div>
     </el-dialog>
