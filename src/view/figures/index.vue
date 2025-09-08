@@ -119,9 +119,9 @@
         <div class="product-list">
           <div v-for="(item, index) in product_list" :key="index" class="product-item">
             <div class="product-item-name" @dblclick="renameProduct(item)">{{ item.name }}</div>
-            <div class="product-item-img">
+            <div class="product-item-img" @click="operateProductImage(item, 0)">
               <div class="img-content" v-for="(img, img_index) in item.images" :key="img_index"
-                   @click="operateProductImage(item, img_index)">
+                   @click.stop="operateProductImage(item, img_index)">
                 <el-image :src="img.filepath" class="product-item-img-item" fit="cover"></el-image>
                 <div class="delete-img-icon">
                   <i class="el-icon-delete" @click.stop="deleteProductImage(img)"></i>
@@ -1255,6 +1255,7 @@ export default {
   flex-grow: 1;
   gap: 8px;
   margin-bottom: 12px;
+  cursor: pointer;
   overflow: hidden;
 }
 
