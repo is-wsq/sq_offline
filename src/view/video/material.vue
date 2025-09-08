@@ -1394,10 +1394,10 @@ export default {
       sessionStorage.setItem('title_font_opacity', '1')
       this.subtitleNameParams.name_color = item.color
       sessionStorage.setItem('name_color', item.color)
-      this.subtitleNameParams.name_font = item.fontFamily
-      sessionStorage.setItem('name_font', item.fontFamily)
-      this.subtitleNameParams.name_fontsize = 10
-      sessionStorage.setItem('name_fontsize', '10')
+      // this.subtitleNameParams.name_font = item.fontFamily
+      // sessionStorage.setItem('name_font', item.fontFamily)
+      // this.subtitleNameParams.name_fontsize = 10
+      // sessionStorage.setItem('name_fontsize', '10')
       this.subtitleNameParams.name_stroke_color = item.stroke
       sessionStorage.setItem('name_stroke_color', item.stroke)
 
@@ -1485,10 +1485,10 @@ export default {
       sessionStorage.setItem('content_font_opacity', '1')
       this.subtitleParams.color = item.color
       sessionStorage.setItem('color', item.color)
-      this.subtitleParams.font = item.fontFamily
-      sessionStorage.setItem('font', item.fontFamily)
-      this.subtitleParams['fontsize'] = 5
-      sessionStorage.setItem('fontsize', '5')
+      // this.subtitleParams.font = item.fontFamily
+      // sessionStorage.setItem('font', item.fontFamily)
+      // this.subtitleParams['fontsize'] = 5
+      // sessionStorage.setItem('fontsize', '5')
       this.subtitleParams.stroke_color = item.stroke
       sessionStorage.setItem('stroke_color', item.stroke)
 
