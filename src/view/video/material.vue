@@ -212,10 +212,10 @@
                   <el-row>
                     <el-col :span="12" v-for="(voice, index) in mode === 'common'? voices : minimax_voices" :key="voice.id">
                       <div class="voice-item" :class="{ active: voice.id === sound.id }" @click="selectVoice(voice)">
-                        <div class="voice-icon" @click="previewAudio(voice, index)" v-if="audioIndex !== index">
+                        <div class="voice-icon" @click.stop="previewAudio(voice, index)" v-if="audioIndex !== index">
                           <i class="el-icon-play" style="font-size: 13px; color: #6286ed"></i>
                         </div>
-                        <div class="voice-icon" @click="stopAudio" v-else>
+                        <div class="voice-icon" @click.stop="stopAudio" v-else>
                           <i class="el-icon-pause" style="font-size: 13px; color: #6286ed"></i>
                         </div>
                         <div class="voice-name" :title="voice.name">{{ voice.name }}</div>
@@ -254,13 +254,13 @@
                     <el-col :span="12" v-for="(item, index) in bgmList" :key="item.id">
                       <div class="voice-item" :class="{ active: item.id === bgm.id }" @click="selectBgm(item)">
                         <div class="voice-icon"
-                             @click="previewAudio(item, 10000 + index)"
+                             @click.stop="previewAudio(item, 10000 + index)"
                              v-if="audioIndex !== (10000 + index)">
                           <i :class="item.isPlay ? 'el-icon-pause' : 'el-icon-play'"
                              style="font-size: 13px; color: #6286ed">
                           </i>
                         </div>
-                        <div class="voice-icon" @click="stopAudio" v-else>
+                        <div class="voice-icon" @click.stop="stopAudio" v-else>
                           <i class="el-icon-pause" style="font-size: 13px; color: #6286ed"></i>
                         </div>
                         <div class="voice-name" :title="item.name">{{ item.name }}</div>
