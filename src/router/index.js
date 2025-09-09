@@ -4,6 +4,7 @@ Vue.use(Router);
 import LogIn from '../view/login/Login.vue';
 import Register from '../view/login/Register.vue';
 import ai from '../view/ai/index.vue';
+import chest from '../view/chest/index.vue';
 import figures from '../view/figures/index.vue';
 import imageToScript from '../view/figures/imageToScript.vue';
 import scriptToImage from '../view/figures/scriptToImage.vue';
@@ -30,6 +31,11 @@ const routes = [
         path: '/',
         name: 'ai',
         component: ai
+    },
+    {
+        path: '/chest',
+        name: 'chest',
+        component: chest
     },
     {
         path: '/figures',

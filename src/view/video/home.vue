@@ -111,12 +111,6 @@ export default {
   letter-spacing: -0.02em;
 }
 
-.desc {
-  font-size: 18px;
-  color: #6B7280;
-  margin: 0;
-}
-
 .figure-card {
   width: 800px;
   display: flex;

@@ -6,6 +6,13 @@
   "description": "",
   "glyphs": [
     {
+      "icon_id": "41062472",
+      "name": "百宝箱",
+      "font_class": "treasure-chest",
+      "unicode": "e7c3d",
+      "unicode_decimal": 949309
+    },
+    {
       "icon_id": "45250085",
       "name": "暂无视频",
       "font_class": "empty-video",
