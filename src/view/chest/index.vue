@@ -33,7 +33,7 @@ export default {
         {
           id: 1,
           title: '新闻热榜',
-          desc: '基于热门新闻榜单，一键生成口播文案与视频，支持自定义内容创作',
+          desc: '基于热门新闻，生成口播文案、视频，支持自定义创作',
           icon: 'el-icon-baokuan',
           background: '#FEF3C7',
           iconColor: '#D97706',
