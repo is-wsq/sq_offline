@@ -58,11 +58,11 @@
       <el-dialog class="preview-dialog" :visible.sync="dialogVisible" :before-close="beforeClose" width="390px">
         <div style="width: 100%;text-align: center;position: relative">
           <video style="border-radius: 10px;width: calc(100% - 40px);object-fit: cover"
-                 ref="video" :src="src" @ended="isPlaying = false">
+                 ref="video" :src="src" @ended="isPlaying = false" controls>
           </video>
-          <div style="position: absolute;top: 50%;left: 50%;transform: translate(-50%, -50%);">
-            <i class="el-icon-play control-icon" @click="controlVideo" v-if="!isPlaying"></i>
-          </div>
+<!--          <div style="position: absolute;top: 50%;left: 50%;transform: translate(-50%, -50%);">-->
+<!--            <i class="el-icon-play control-icon" @click="controlVideo" v-if="!isPlaying"></i>-->
+<!--          </div>-->
         </div>
       </el-dialog>
       <el-dialog class="log-dialog" :visible.sync="logDialogVisible" top="10vh" width="900px" :before-close="logClose">
@@ -361,6 +361,9 @@ export default {
     preview(item) {
       this.src = item.video_path;
       this.dialogVisible = true;
+      this.$nextTick(() => {
+        this.$refs.video.currentTime = 0;
+      })
     },
     previewMaterial(material) {
       this.src = material.filepath;
