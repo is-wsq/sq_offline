@@ -81,12 +81,12 @@ export default {
       }
       this.active = type;
       let figure_path = sessionStorage.getItem("figure_path");
-      if (type === 1 && figure_path) {
+      if (type === 2 && figure_path) {
         this.$router.push({path: figure_path})
         return;
       }
       let video_path = sessionStorage.getItem("video_path");
-      if (type === 3 && video_path) {
+      if (type === 4 && video_path) {
         this.$router.push({path: video_path})
         return;
       }
@@ -96,11 +96,11 @@ export default {
       let paths = ['/human', '/material', '/smartGenerate', '/syncCv', '/duplicate', '/segments', '/montage', '/hot', '/remix']
       let first_paths = ['/imageToScript', '/scriptToImage', '/imageToVideo']
       if (first_paths.includes(this.$route.path)) {
-        this.active = 1;
+        this.active = 2;
         return;
       }
       if (paths.includes(this.$route.path)) {
-        this.active = 3;
+        this.active = 4;
         return;
       }
       for (let i = 0; i < this.menus.length; i++) {
