@@ -37,14 +37,15 @@ export default {
           icon: 'el-icon-baokuan',
           background: '#FEF3C7',
           iconColor: '#D97706',
-          path: 'http://live.tellai.tech:5000/#/'
+          path: '/hotNews'
         },
       ],
     };
   },
   methods: {
     gotoTool(path) {
-      window.open(path);
+      // window.open(path);
+      this.$router.push({path: path});
     },
   }
 };
