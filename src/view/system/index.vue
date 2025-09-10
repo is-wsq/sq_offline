@@ -48,8 +48,9 @@
         </div>
         <div class="about-title">法律条款</div>
         <div class="links-list">
-          <a href="#" class="link" @click="goto('/agreement')">用户协议</a>
-          <a href="#" class="link">隐私政策</a>
+          <a href="#/system" class="link" @click="timbre_html_visible = true">声音复刻协议</a>
+          <a href="#/system" class="link" @click="figure_html_visible = true">形象克隆协议</a>
+          <a href="#/system" class="link" @click="privacy_policy_html_visible = true">隐私政策</a>
         </div>
       </div>
     </div>
@@ -134,12 +135,25 @@
         </el-form-item>
       </el-form>
     </el-dialog>
+    <el-dialog class="bill-dialog" title="奇点未来声音复刻协议" :visible.sync="timbre_html_visible" width="800px">
+      <div v-html="timbre_html" class="agree-html">
+      </div>
+    </el-dialog>
+    <el-dialog class="bill-dialog" title="奇点未来形象克隆协议" :visible.sync="figure_html_visible" width="800px">
+      <div v-html="figure_html" class="agree-html">
+      </div>
+    </el-dialog>
+    <el-dialog class="bill-dialog" title="奇点未来隐私政策" :visible.sync="privacy_policy_html_visible" width="800px">
+      <div v-html="privacy_policy_html" class="agree-html">
+      </div>
+    </el-dialog>
   </div>
 </template>
 
 <script>
 import axios from "axios";
 import {IPaginationMixin} from "@/mixins/IPaginationMixin";
+import {marked} from "marked";
 
 export default {
   name: 'system',
@@ -172,12 +186,40 @@ export default {
         ]
       },
       quickAmounts: [10, 50, 100, 200, 500, 1000],
-      timer: null
+      timer: null,
+      timbre_agreement: '',
+      figure_agreement: '',
+      privacy_policy: '',
+      timbre_html_visible: false,
+      figure_html_visible: false,
+      privacy_policy_html_visible: false,
     }
+  },
+  created() {
+    fetch('/agreement/timbre.txt').then(res => res.text()).then(text => {
+      this.timbre_agreement = text
+    })
+    fetch('/agreement/figure.txt').then(res => res.text()).then(text => {
+      this.figure_agreement = text
+    })
+    fetch('/agreement/privacy_policy.txt').then(res => res.text()).then(text => {
+      this.privacy_policy = text
+    })
   },
   mounted() {
     this.downloadPath = localStorage.getItem('downloadPath') || 'C:\\offline'
     this.getInfo()
+  },
+  computed: {
+    timbre_html() {
+      return marked(this.timbre_agreement);
+    },
+    figure_html() {
+      return marked(this.figure_agreement);
+    },
+    privacy_policy_html() {
+      return marked(this.privacy_policy);
+    },
   },
   methods: {
     getInfo(payer_total) {
@@ -560,5 +602,11 @@ export default {
 ::v-deep .el-icon-loading {
   font-size: 30px;
   color: #8e8f93;
+}
+
+.agree-html {
+  max-height: calc(70vh - 100px);
+  overflow-y: auto;
+  will-change: transform;
 }
 </style>
