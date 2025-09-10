@@ -22,7 +22,6 @@ import montage from '../view/video/montage.vue';
 import hot from '../view/video/hot.vue';
 import videoList from '../view/video/list.vue';
 import system from '../view/system/index.vue';
-import agreement from '../view/system/agreement.vue';
 import videoPlayer from "../view/system/videoPlayer.vue";
 import ShopManagement from '../view/shop/index.vue';
 
@@ -121,11 +120,6 @@ const routes = [
         path: '/system',
         name: 'system',
         component: system
-    },
-    {
-        path: '/agreement',
-        name: 'agreement',
-        component: agreement
     },
     {
         path: '/videoPlayer',
