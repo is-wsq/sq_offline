@@ -2,7 +2,7 @@
   <div class="hot-news">
     <div class="hot-news-search">
       <el-input prefix-icon="el-icon-search" placeholder="输入关键字搜索新闻" clearable
-                class="hot-news-search-input" v-model="search_text"></el-input>
+                class="hot-news-search-input" v-model="search_text" @change="searchNews"></el-input>
     </div>
     <div class="hot-news-body">
       <div style="flex: 1">
@@ -130,6 +130,7 @@ export default {
         get_styles: "https://live.tellai.tech/api/news_assistant/copywriting/styles/query/all",
         extract_product_info: 'https://live.tellai.tech/api/news_assistant/extract_product_info',
         generate: 'https://live.tellai.tech/api/news_assistant/copywriting/voice',
+        search_news: 'https://live.tellai.tech/api/news_assistant/news/online_search'
       },
       script_params: {
         words: 200,
@@ -148,7 +149,7 @@ export default {
       image_base64_list: [],
       imageDialogVisible: false,
       extract_loading: false,
-      show_script: true,
+      show_script: false,
     }
   },
   mounted() {
@@ -179,6 +180,21 @@ export default {
       axios.get(this.urls.get_styles).then(res => {
         if (res.data.status === 'success') {
           this.styles = res.data.data
+        } else {
+          this.$alert(res.data.message, '提示')
+        }
+      }).catch(err => {
+        this.$alert(err, '提示')
+      })
+    },
+    searchNews() {
+      let params = {
+        user_id: this.userId,
+        keyword: this.search_text
+      }
+      axios.get(this.urls.search_news, { params: params, timeout: 1800000 }).then(res => {
+        if (res.data.status === 'success') {
+          console.log(res.data.data)
         } else {
           this.$alert(res.data.message, '提示')
         }
