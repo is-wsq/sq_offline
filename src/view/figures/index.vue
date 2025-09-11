@@ -23,20 +23,10 @@
       <template v-if="classify_type === 'character'">
         <div style="margin-bottom: 10px;font-weight: bold">形象</div>
         <div class="figures-list">
-          <el-upload
-              class="avatar-uploader"
-              action="http://127.0.0.1:6006/figure/clone"
-              :show-file-list="false"
-              accept=".mp4, .mov"
-              :on-success="uploadSuccess"
-              :on-error="uploadError"
-              :before-upload="beforeUpload"
-              :data="{ lip_sync: true }">
-            <div class="source-item upload-item">
-              <i class="el-icon-upload" style="font-size: 30px"></i>
-              <span style="font-size: 14px;margin-top: 8px">上传形象</span>
-            </div>
-          </el-upload>
+          <div class="source-item upload-item" @click="uploadFigureVisible = true">
+            <i class="el-icon-upload" style="font-size: 30px"></i>
+            <span style="font-size: 14px;margin-top: 8px">上传形象</span>
+          </div>
           <div v-for="item in processTasks" :key="item.id" class="source-item">
             <div class="figure-image-wrapper shining">
               <el-image
@@ -159,6 +149,31 @@
         </div>
       </div>
     </div>
+    <el-dialog class="upload-dialog" :visible.sync="uploadFigureVisible" width="600px" :before-close="beforeFigureClose">
+      <div slot="title" class="upload-dialog-title" @mousedown.stop="">上传形象</div>
+      <div class="upload-dialog-body" @mousedown.stop="">
+        <el-upload
+            drag
+            class="material-uploader"
+            ref="figureUpload"
+            action="http://127.0.0.1:6006/figure/clone"
+            :auto-upload="false"
+            accept=".mp4, .mov"
+            :on-success="uploadSuccess"
+            :on-error="uploadError"
+            :on-change="handleProgress"
+            :file-list.sync="uploadFigureList"
+            :data="{ lip_sync: true }">
+          <i class="el-icon-upload"></i>
+          <div class="el-upload__text">将文件拖到此处，或<em>点击上传</em></div>
+        </el-upload>
+      </div>
+      <div slot="footer" class="upload-dialog-footer" @mousedown.stop="">
+        <el-button :disabled="loading" @click="beforeFigureClose" size="small">取消</el-button>
+        <el-button type="primary" @click="handleFigureSubmit" size="small" :loading="loading">
+          {{ loading? '上传中': '确认上传' }}</el-button>
+      </div>
+    </el-dialog>
     <el-dialog class="detail-dialog" title="素材分析结果" :visible.sync="detailDialogVisible" width="640px">
       <div style="max-height: calc(70vh - 100px);overflow-y: auto">
         <div v-html="htmlContent" class="markdown-content" @mousedown.stop=""></div>
@@ -178,7 +193,6 @@
                 accept=".mp4, .mov"
                 :on-success="uploadMaterialsSuccess"
                 :on-error="uploadMaterialsError"
-                :before-upload="beforeUpload"
                 :on-progress="handleFileChange"
                 :file-list.sync="materialList"
                 :data="uploadData"
@@ -215,18 +229,19 @@
         </el-form>
       </div>
       <div slot="footer" class="upload-dialog-footer" @mousedown.stop="">
-        <el-button @click="uploadDialogVisible = false" size="small">取消</el-button>
-        <el-button type="primary" @click="handleSubmit" size="small">确认上传</el-button>
+        <el-button @click="beforeUploadClose" size="small">取消</el-button>
+        <el-button type="primary" @click="handleSubmit" size="small" :loading="loading">
+          {{ loading? '上传中': '确认上传' }}
+        </el-button>
       </div>
     </el-dialog>
     <el-dialog class="preview-dialog" :visible.sync="dialogVisible" :before-close="beforeClose"
-               :width="aspectRatio > 1? '640px' : '390px'">
+               :width="aspectRatio < 1? '720px' : '420px'" top="10vh">
       <div style="width: 100%;text-align: center;position: relative">
         <video style="border-radius: 10px;width: calc(100% - 40px)"
                ref="video"
                :src="src"
-               @ended="isPlaying = false"
-               @loadedmetadata="checkAspectRatio">
+               @ended="isPlaying = false">
         </video>
         <div style="position: absolute;top: 50%;left: 50%;transform: translate(-50%, -50%);">
           <i class="el-icon-play control-icon" @click="controlVideo" v-if="!isPlaying"></i>
@@ -259,7 +274,6 @@
                 action="#"
                 accept=".png, .jpg, .jpeg"
                 :http-request="handleUploadImage"
-                :before-upload="beforeUpload"
                 :on-change="handleImagesChange"
                 :on-remove="handleImagesRemove"
                 :file-list.sync="imagesList"
@@ -407,7 +421,9 @@ export default {
       },
       imagesList: [],
       readonly: false,
-      loading: false
+      loading: false,
+      uploadFigureVisible: false,
+      uploadFigureList: []
     };
   },
   watch: {
@@ -519,6 +535,27 @@ export default {
     }
   },
   methods: {
+    handleProgress(file, fileList) {
+      this.$refs.figureUpload.clearFiles();
+      this.uploadFigureList = [file];
+    },
+    beforeFigureClose() {
+      if (this.loading) {
+        this.$alert('请等待上传完成后再关闭窗口！', '上传中')
+        return false;
+      }
+      this.$refs.figureUpload.clearFiles();
+      this.uploadFigureVisible = false;
+    },
+    handleFigureSubmit() {
+      let files = this.$refs.figureUpload.uploadFiles || []
+      if (files.length === 0) {
+        this.$alert('请选择一个视频文件作为数字人形象。','上传形象')
+        return;
+      }
+      this.loading = true;
+      this.$refs.figureUpload.submit()
+    },
     storeFilter(id) {
       if (this.filter_active_store.includes(id)) {
         this.filter_active_store = this.filter_active_store.filter(item => item !== id)
@@ -608,7 +645,12 @@ export default {
       }
     },
     beforeUploadClose() {
+      if (this.loading) {
+        this.$alert('请等待上传完成后再关闭窗口！', '上传中')
+        return false;
+      }
       this.materialList = []
+      this.$refs.materialUpload.clearFiles()
       this.uploadData.store_id = ''
       this.uploadData.tag = ''
       this.uploadDialogVisible = false
@@ -623,6 +665,7 @@ export default {
         this.$alert('请必须选择一个关联店铺！','上传素材')
         return;
       }
+      this.loading = true
       this.$refs.materialUpload.submit()
     },
     startDotAnimation() {
@@ -637,6 +680,7 @@ export default {
     },
     preview() {
       this.src = this.selectedItem.filepath;
+      this.aspectRatio = this.selectedItem.height / this.selectedItem.width;
       this.dialogVisible = true;
     },
     rename() {
@@ -785,12 +829,6 @@ export default {
         this.$message.info('已取消删除');
       })
     },
-    checkAspectRatio() {
-      const video = this.$refs.video;
-      const width = video.videoWidth;
-      const height = video.videoHeight;
-      this.aspectRatio = width / height
-    },
     controlVideo() {
       const video = this.$refs.video;
       if (this.isPlaying) {
@@ -808,16 +846,6 @@ export default {
         this.src = ''
       }
       this.dialogVisible = false;
-    },
-    async beforeUpload(file) {
-      return getAction('/verify/activation').then(res => {
-        if (res.data.status === 'success') {
-          return true;
-        } else {
-          this.$alert(res.data.message, "验证失败");
-          return Promise.reject('验证失败，停止上传');
-        }
-      })
     },
     handleSubmitUpload() {
       if (this.imagesList.length === 0) {
@@ -928,6 +956,8 @@ export default {
       });
 
       if (this.response_list.length === this.materialList.length) {
+        this.loading = false
+        this.uploadDialogVisible = false
         this.beforeUploadClose()
 
         const successFiles = this.response_list.filter(item => item.status === "success").map(res => res.name);
@@ -957,10 +987,14 @@ export default {
       }
     },
     uploadError(file) {
+      this.loading = false
+      this.uploadFigureVisible = false
       let content = `创建${file.name}形象克隆任务失败`;
       this.$alert(content, "任务创建提醒");
     },
     uploadSuccess(res, file) {
+      this.loading = false
+      this.uploadFigureVisible = false
       if (res.status === "success") {
         let content = `已创建${file.name}形象克隆任务，形象克隆成功后会自动更新形象列表`;
         this.$alert(content, "任务创建提醒");
@@ -1335,11 +1369,10 @@ export default {
   background-color: #79777700 !important;
   box-shadow: none !important;
   margin: 0 auto;
-  aspect-ratio: 9 / 16;
 }
 
 .preview-dialog >>> .el-dialog__body {
-  padding: 10px 35px;
+  padding: 10px 20px;
 }
 
 .preview-dialog >>> .el-dialog__headerbtn .el-dialog__close {

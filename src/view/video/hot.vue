@@ -107,7 +107,6 @@
           :data="{ title: title, withAsr: withAsr, category: classify, tag: uploadTag }"
           :on-success="uploadSuccess"
           :on-error="uploadError"
-          :before-upload="beforeUpload"
           accept=".mp4, .mov"
           :auto-upload="false"
           :limit="6"
@@ -138,12 +137,13 @@
       <div style="margin: 10px 0 5px 0;font-size: 15px;font-weight: bold">标签</div>
       <el-input v-model="uploadTag" placeholder="多标签使用逗号(，)分隔，用于匹配搜索"></el-input>
       <span slot="footer" class="dialog-footer">
-        <el-button @click="uploadDialogVisible = false" size="small">取消</el-button>
-        <el-button type="primary" @click="handleSubmit" size="small">确认上传</el-button>
+        <el-button @click="beforeUploadClose" size="small">取消</el-button>
+        <el-button type="primary" @click="handleSubmit" size="small" :loading="loading">
+          {{ loading? '上传中': '确认上传' }}</el-button>
       </span>
     </el-dialog>
     <el-dialog class="preview-dialog" :visible.sync="previewDialogVisible" :before-close="beforePreviewClose"
-               width="390px">
+               :width="aspectRatio < 1? '720px' : '420px'" top="10vh">
       <div style="width: 100%;text-align: center;position: relative">
         <video style="border-radius: 10px;width: calc(100% - 40px);object-fit: cover"
                ref="video" :src="preview_src" @ended="isPlaying = false">
@@ -299,6 +299,7 @@ export default {
 
       guideVisible: false,
       nextType: 'hot_montage',
+      aspectRatio: 0,
     }
   },
   computed: {
@@ -308,6 +309,7 @@ export default {
     },
     hots() {
       let data = this.figureTasks.filter((item) => item.status === 'success' && item.video_type === 'hot_video');
+      console.log(data)
       return data.map(item => ({...item, isHover: false}))
     },
     filter_hots() {
@@ -372,6 +374,7 @@ export default {
     },
     preview() {
       this.preview_src = this.rightItem.filepath
+      this.aspectRatio = this.rightItem.height / this.rightItem.width;
       this.previewDialogVisible = true
     },
     controlVideo() {
@@ -438,6 +441,10 @@ export default {
       this.nextType = sessionStorage.getItem('next_type') || 'hot_montage'
     },
     beforeUploadClose() {
+      if (this.loading) {
+        this.$alert('请等待上传完成后再关闭窗口','上传提示')
+        return false;
+      }
       this.uploadFile = null
       this.title = ''
       this.withAsr = true
@@ -451,6 +458,7 @@ export default {
           this.$alert('请至少选择一个爆款视频文件上传。','上传提示')
           return;
         }
+        this.loading = true
         this.$refs.hotUpload.submit()
         return;
       }
@@ -459,7 +467,7 @@ export default {
         this.$alert('请在输入框内粘贴抖音视频链接。','上传提示')
         return;
       }
-      this.uploadDialogVisible = false
+      this.loading = true
       let params = {
         url: this.dy_link,
         tag: this.uploadTag,
@@ -482,6 +490,8 @@ export default {
             type: "error",
           });
         }
+        this.loading = false
+        this.uploadDialogVisible = false
         this.$store.dispatch("task/pollFigureTasks");
       })
     },
@@ -501,16 +511,15 @@ export default {
           type: "error",
         });
       }
+      this.loading = false
+      this.uploadFigureVisible = false
       this.$store.dispatch("task/pollFigureTasks");
     },
-    uploadError() {
-      if (this.loading) {
-        this.loading.close();
-        this.loading = null;
-      }
-    },
-    beforeUpload(file) {
-      this.uploadDialogVisible = false
+    uploadError(file) {
+      this.loading = false
+      this.uploadFigureVisible = false
+      let content = `创建${file.name}爆款视频上传任务失败`;
+      this.$alert(content, "任务创建提醒");
     },
     duplicate() {
       if (!this.select_hots.id) {
@@ -758,11 +767,10 @@ export default {
   background-color: #79777700 !important;
   box-shadow: none !important;
   margin: 0 auto;
-  aspect-ratio: 9 / 16;
 }
 
 .preview-dialog >>> .el-dialog__body {
-  padding: 10px 35px;
+  padding: 10px 20px;
 }
 
 .preview-dialog >>> .el-dialog__headerbtn .el-dialog__close {

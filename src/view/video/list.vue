@@ -55,7 +55,7 @@
           </div>
         </div>
       </div>
-      <el-dialog class="preview-dialog" :visible.sync="dialogVisible" :before-close="beforeClose" width="390px">
+      <el-dialog class="preview-dialog" :visible.sync="dialogVisible" :before-close="beforeClose" width="420px" top="10vh">
         <div style="width: 100%;text-align: center;position: relative">
           <video style="border-radius: 10px;width: calc(100% - 40px);object-fit: cover"
                  ref="video" :src="src" @ended="isPlaying = false" controls>
@@ -574,11 +574,10 @@ export default {
   background-color: #79777700 !important;
   box-shadow: none !important;
   margin: 0 auto;
-  aspect-ratio: 9 / 16;
 }
 
 .preview-dialog >>> .el-dialog__body {
-  padding: 10px 35px;
+  padding: 10px 20px;
 }
 
 .preview-dialog >>> .el-dialog__headerbtn .el-dialog__close {
