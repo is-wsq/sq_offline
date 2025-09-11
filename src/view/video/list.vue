@@ -55,14 +55,13 @@
           </div>
         </div>
       </div>
-      <el-dialog class="preview-dialog" :visible.sync="dialogVisible" :before-close="beforeClose" width="420px" top="10vh">
+      <el-dialog class="preview-dialog" :visible.sync="dialogVisible" :before-close="beforeClose"
+                 :width="aspectRatio < 1? '720px' : '420px'" top="10vh">
         <div style="width: 100%;text-align: center;position: relative">
           <video style="border-radius: 10px;width: calc(100% - 40px);object-fit: cover"
-                 ref="video" :src="src" @ended="isPlaying = false" controls>
+                 ref="video" :src="src" @ended="isPlaying = false" controls
+                 @loadedmetadata="checkAspectRatio">
           </video>
-<!--          <div style="position: absolute;top: 50%;left: 50%;transform: translate(-50%, -50%);">-->
-<!--            <i class="el-icon-play control-icon" @click="controlVideo" v-if="!isPlaying"></i>-->
-<!--          </div>-->
         </div>
       </el-dialog>
       <el-dialog class="log-dialog" :visible.sync="logDialogVisible" top="10vh" width="900px" :before-close="logClose">
@@ -138,35 +137,6 @@
               </div>
             </div>
           </div>
-
-          <!--          <el-table :data="logInfo.video_data.segment_group" row-key="groupId" style="width: 100%"-->
-          <!--                    border v-if="logInfo.video_data" :expanded-row-keys="expandedRowKeys">-->
-          <!--            <el-table-column type="expand">-->
-          <!--              <template slot-scope="props">-->
-          <!--                <div style="padding: 10px 20px;">-->
-          <!--                  <p><strong>分镜组描述:</strong> {{ props.row.contentSummary }}</p>-->
-          <!--                  <p><strong>素材匹配:</strong></p>-->
-          <!--                  <ul>-->
-          <!--                    <li v-for="material in props.row.materials" :key="material.id" style="height: 30px;line-height: 30px">-->
-          <!--                      <div style="display: flex">-->
-          <!--                        <div class="material-name" @click="previewMaterial(material)">{{ material.name }}</div>-->
-          <!--                        <div>- 时长: {{ material.duration }}s</div>-->
-          <!--                      </div>-->
-          <!--                    </li>-->
-          <!--                  </ul>-->
-          <!--                </div>-->
-          <!--              </template>-->
-          <!--            </el-table-column>-->
-          <!--            <el-table-column label="分镜组类型">-->
-          <!--              <template slot-scope="scope">-->
-          <!--                {{ scope.row.groupType === 'material_clips' ? '素材':'数字人' }}-->
-          <!--              </template>-->
-          <!--            </el-table-column>-->
-          <!--            <el-table-column label="匹配素材数">-->
-          <!--              <template slot-scope="scope">{{ scope.row.materials.length }}</template>-->
-          <!--            </el-table-column>-->
-          <!--            <el-table-column label="分镜组时长(s)" prop="groupDuration"></el-table-column>-->
-          <!--          </el-table>-->
           <el-divider content-position="left" v-if="logInfo.reason">分镜组混剪信息</el-divider>
           <el-collapse v-model="activeCollapse" v-if="logInfo.reason">
             <el-collapse-item title="LLM 分析" name="1">
@@ -356,7 +326,7 @@ export default {
       const video = this.$refs.video;
       const width = video.videoWidth;
       const height = video.videoHeight;
-      this.aspectRatio = width / height
+      this.aspectRatio = height / width
     },
     preview(item) {
       this.src = item.video_path;
