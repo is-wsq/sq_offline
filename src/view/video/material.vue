@@ -823,6 +823,7 @@ export default {
       this.resizeObserver.unobserve(this.$refs.videoGrid);
       this.resizeObserver.disconnect();
     }
+    this.stopAudio()
   },
   methods: {
     handleKeyDown(event) {

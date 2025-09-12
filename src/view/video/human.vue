@@ -642,6 +642,9 @@ export default {
     this.queryFontFamily();
     this.initParams()
   },
+  beforeDestroy() {
+    this.stopAudio()
+  },
   methods: {
     filterFigure() {
       let filteredItems = this.figures;

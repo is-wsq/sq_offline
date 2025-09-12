@@ -309,6 +309,9 @@ export default {
       return ""
     }
   },
+  beforeDestroy() {
+    this.stopAudio()
+  },
   methods: {
     convert(copy) {
       return marked(copy)
