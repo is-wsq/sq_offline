@@ -177,6 +177,38 @@
     <el-dialog class="detail-dialog" title="素材分析结果" :visible.sync="detailDialogVisible" width="640px">
       <div style="max-height: calc(70vh - 100px);overflow-y: auto">
         <div v-html="htmlContent" class="markdown-content" @mousedown.stop=""></div>
+        <div class="total-score-card">
+          <div class="total-score-header">
+            <div class="left-title">素材质量评估结果</div>
+            <div class="right-score-box">{{ video_score.total }}</div>
+          </div>
+
+          <div class="total-reason-section">{{ video_score.reason }}</div>
+        </div>
+
+        <div class="detail-score-card">
+          <div class="card-title">各维度评分概览</div>
+          <el-collapse v-model="activeCollapseNames" accordion>
+            <el-collapse-item
+                v-for="(dimension, dimIndex) in video_score.mark"
+                :key="dimIndex"
+                :title="`${dimension.name}（${dimension.dimension_score}分）`"
+                :name="dimIndex.toString()"
+                class="dimension-collapse-item"
+            >
+              <div class="dimension-reason">
+                <div>维度评估说明：</div>
+                <p class="reason-content">{{ dimension.reason }}</p>
+              </div>
+
+              <el-table :data="dimension.details" border size="small" style="width: 100%;margin-bottom: 8px">
+                <el-table-column prop="name" label="评分项" width="120" align="center"></el-table-column>
+                <el-table-column prop="detail_score" label="得分" width="60" align="center"></el-table-column>
+                <el-table-column prop="reason" label="评分理由" align="center"></el-table-column>
+              </el-table>
+            </el-collapse-item>
+          </el-collapse>
+        </div>
       </div>
     </el-dialog>
     <el-dialog class="upload-dialog" :visible.sync="uploadDialogVisible" width="600px" :before-close="beforeUploadClose">
@@ -328,6 +360,7 @@ export default {
   mixins: [RightMenuMixin],
   data() {
     return {
+      activeCollapseNames: ['0'],
       filter_active_store: [],
       filter_active_tags: [],
       classify_type: 'character',
@@ -1492,39 +1525,6 @@ export default {
   padding: 5px;
 }
 
-.score-card__divider {
-  margin: 15px 0;
-  font-weight: bold;
-  font-size: 16px;
-}
-
-.score-item {
-  margin-top: 10px;
-}
-
-.score-item:first-child {
-  margin-top: 0;
-}
-
-.score-item__title {
-  font-weight: bold;
-  line-height: 24px;
-  margin: 0;
-}
-
-.score-item__detail {
-  line-height: 24px;
-  margin-left: 20px;
-}
-
-.score-item__label {
-  font-weight: bold;
-}
-
-.score-item__value {
-  margin-left: 5px;
-}
-
 .filter-tags {
   display: flex;
   flex-wrap: wrap;
@@ -1546,5 +1546,80 @@ export default {
 .filter-tag-active {
   background-color: #3b82f6 !important;
   color: #FFFFFF !important;
+}
+
+.total-score-card {
+  border-radius: 12px;
+  overflow: hidden;
+}
+.total-score-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px;
+  background-color: #f9fbfd;
+  border-bottom: 1px solid #eee;
+}
+.left-title {
+  font-size: 15px;
+  font-weight: 600;
+  color: #333;
+}
+
+.right-score-box {
+  font-weight: bold;
+  text-align: right;
+}
+
+.total-reason-section {
+  padding: 8px;
+  background-color: #f9fbfd;
+  border-left: 4px solid #2196F3;
+}
+
+.card-title {
+  font-size: 15px;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 8px;
+}
+
+.detail-score-card {
+  border-radius: 12px;
+  overflow: hidden;
+  padding: 12px;
+}
+
+.dimension-collapse-item {
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.detail-score-card >>> .el-collapse-item__header {
+  font-size: 14px;
+  font-weight: 600;
+  height: 40px;
+  line-height: 40px;
+}
+.detail-score-card >>> .el-collapse-item__content {
+  padding: 0 12px;
+}
+
+.dimension-reason {
+  margin-bottom: 8px;
+}
+.reason-content {
+  margin: 8px 0 0;
+  font-size: 14px;
+  color: #666;
+  line-height: 1.6;
+}
+
+.reason-text {
+  font-size: 13px;
+  color: #666;
+  line-height: 1.5;
+  white-space: normal;
+  word-break: break-all;
 }
 </style>
