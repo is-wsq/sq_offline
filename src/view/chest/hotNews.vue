@@ -589,7 +589,7 @@ export default {
       let params = {
         user_id: this.userId,
         voice_id: this.timbres.voice_id,
-        video_id: this.select_figure.id,
+        video_id: this.select_figure.video_id,
         voice_mode: this.mode,
         filename_list: [this.oral_title],
         text_list: [this.oral_copy],
