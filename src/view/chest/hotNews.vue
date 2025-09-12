@@ -57,7 +57,8 @@
             <div class="hot-news-container">
               <div class="flex-center">
                 <div style="font-weight: bold;flex: 1">{{ show_script ? '口播文案' : '新闻详情' }}</div>
-                <div v-if="hot_news_info" style="font-size: 14px;color: #6e7572" @click="queryCopyHistory">历史文案</div>
+                <div v-if="copy_history.length > 0" style="font-size: 14px;color: #6e7572;cursor: pointer"
+                     @click="viewCopyHistory">历史文案</div>
               </div>
               <div class="hot-news-info" v-if="!show_script">
                 <template v-if="hot_news_info">
@@ -181,6 +182,19 @@
         </div>
       </div>
     </div>
+    <el-dialog class="upload-dialog" :visible.sync="dialogVisible" width="600px">
+      <div slot="title" class="upload-dialog-title">历史文案</div>
+      <div class="upload-dialog-body" style="display: flex;gap: 12px;flex-direction: column" >
+        <div v-for="(item,index) in copy_history" :key="index" class="copy-history-item"
+             :class="{ 'copy-active': select_history_copy === item }"
+             v-html="convert(item.copywriting)" @click="select_history_copy = item">
+        </div>
+      </div>
+      <div slot="footer" class="upload-dialog-footer">
+        <el-button @click="dialogVisible = false" size="small">取消</el-button>
+        <el-button type="primary" size="small" @click="sureSelect">确认选择</el-button>
+      </div>
+    </el-dialog>
     <el-dialog class="upload-dialog" :visible.sync="imageDialogVisible" width="600px" :before-close="beforeUploadClose">
       <div slot="title" class="upload-dialog-title">提取商品信息</div>
       <div class="upload-dialog-body">
@@ -212,7 +226,7 @@
 <script>
 import axios from "axios";
 import {marked} from "marked";
-import {getAction} from "@/api/api";
+import {getAction, postAction} from "@/api/api";
 
 export default {
   name: 'hotNews',
@@ -227,14 +241,26 @@ export default {
       hot_news_info: null,
       userId: '272f4122-ab74-4bc1-9cd6-c29a41fb508f',
       copy_history: [],
+      dialogVisible: false,
+      select_history_copy: null,
+      // urls: {
+      //   get_hot_news: "https://live.tellai.tech/api/news_assistant/news/rank",
+      //   get_styles: "https://live.tellai.tech/api/news_assistant/copywriting/styles/query/all",
+      //   extract_product_info: 'https://live.tellai.tech/api/news_assistant/extract_product_info',
+      //   generate: 'https://live.tellai.tech/api/news_assistant/copywriting/voice',
+      //   search_news: 'https://live.tellai.tech/api/news_assistant/news/online_search',
+      //   get_search_history: 'https://live.tellai.tech/api/news_assistant/news/query/user',
+      //   get_copy_history: 'https://live.tellai.tech/api/news_assistant/copywriting_history/query',
+      //   generate_video: 'https://live.tellai.tech/api/news_assistant/figure/generate_video',
+      // },
       urls: {
-        get_hot_news: "https://live.tellai.tech/api/news_assistant/news/rank",
-        get_styles: "https://live.tellai.tech/api/news_assistant/copywriting/styles/query/all",
-        extract_product_info: 'https://live.tellai.tech/api/news_assistant/extract_product_info',
-        generate: 'https://live.tellai.tech/api/news_assistant/copywriting/voice',
-        search_news: 'https://live.tellai.tech/api/news_assistant/news/online_search',
-        get_search_history: 'https://live.tellai.tech/api/news_assistant/news/query/user',
-        get_copy_history: 'https://live.tellai.tech/api/news_assistant/copywriting_history/query',
+        get_hot_news: "http://192.168.1.25:5008/news/rank",
+        get_styles: "http://192.168.1.25:5008/copywriting/styles/query/all",
+        extract_product_info: 'http://192.168.1.25:5008/extract_product_info',
+        generate: 'http://192.168.1.25:5008/copywriting/voice',
+        search_news: 'http://192.168.1.25:5008/news/online_search',
+        get_search_history: 'http://192.168.1.25:5008/news/query/user',
+        get_copy_history: 'http://192.168.1.25:5008/copywriting_history/query',
         generate_video: 'https://live.tellai.tech/api/news_assistant/figure/generate_video',
       },
       script_params: {
@@ -284,6 +310,19 @@ export default {
     }
   },
   methods: {
+    convert(copy) {
+      return marked(copy)
+    },
+    sureSelect() {
+      if (!this.select_history_copy) {
+        this.$alert('请选择历史文案后重试', '提示');
+        return;
+      }
+      this.oral_title = this.select_history_copy.title
+      this.oral_copy = this.select_history_copy.copywriting
+      this.dialogVisible = false
+      this.show_script = true
+    },
     selectVoice(voice) {
       this.timbres = voice
       this.$nextTick(() => {
@@ -343,6 +382,11 @@ export default {
       this.oral_copy = ''
       this.show_script = false
       this.resultVisible = false
+      this.queryCopyHistory()
+    },
+    viewCopyHistory() {
+      this.dialogVisible = true;
+      this.select_history_copy = null
     },
     queryFigures() {
       getAction("/figure/query_success", {video_type: 'figure'}).then((res) => {
@@ -410,6 +454,10 @@ export default {
       })
     },
     searchNews() {
+      if (this.search_text.trim() === '') {
+        this.$alert('请输入关键字后重试', '提示');
+        return;
+      }
       this.resultVisible = true;
       this.search_loading = true;
       let params = {
@@ -476,7 +524,7 @@ export default {
     },
     async handleSubmitUpload() {
       if (this.img_list.length === 0) {
-        this.$alert('请选择图片', '提示');
+        this.$alert('请选择图片后重试', '提示');
         return;
       }
       let params = {
@@ -493,6 +541,10 @@ export default {
       })
     },
     generateScript() {
+      if (!this.hot_news_info) {
+        this.$alert('请选择热榜新闻后重试', '提示');
+        return;
+      }
       let params = {
         ...this.script_params,
         user_id: this.userId,
@@ -518,14 +570,31 @@ export default {
       })
     },
     generateVideo() {
+      if (!this.oral_title) {
+        this.$alert('请输入口播视频标题后重试', '提示');
+        return;
+      }
+      if (!this.oral_copy) {
+        this.$alert('请输入口播视频文案后重试', '提示');
+        return;
+      }
+      if (!this.select_figure.id) {
+        this.$alert('请选择数字人形象后重试', '提示');
+        return;
+      }
+      if (!this.timbres.id) {
+        this.$alert('请选择音色后重试', '提示');
+        return;
+      }
       let params = {
         user_id: this.userId,
-        voice_id: this.timbres.id,
+        voice_id: this.timbres.voice_id,
         video_id: this.select_figure.id,
-        text: this.oral_copy,
-        filename: this.oral_title,
+        voice_mode: this.mode,
+        filename_list: [this.oral_title],
+        text_list: [this.oral_copy],
       }
-      axios.post(this.urls.generate_video, params).then(res => {
+      postAction("/figure/generate_video_v2", params).then(res => {
         if (res.data.status === 'success') {
           this.$alert('已创建口播视频生成任务，视频生成成功后会自动下载到本地', "任务创建提醒");
           setTimeout(() => {
@@ -919,6 +988,7 @@ export default {
 .copy-script >>> .el-textarea__inner {
   height: 100%;
   background-color: #f8fafc;
+  font-size: 13px !important;
   border: none;
 }
 
@@ -1044,5 +1114,26 @@ export default {
   overflow: hidden;
   text-overflow: ellipsis;
   cursor: pointer;
+}
+
+.copy-history-item {
+  max-height: 140px;
+  overflow: auto;
+  background-color: #f3f4f6;
+  padding: 0 10px;
+  border-radius: 8px;
+  font-size: 12px;
+  line-height: 20px;
+  cursor: pointer;
+}
+
+.copy-history-item:hover {
+  background-color: #e0edff;
+}
+
+.copy-active {
+  border: 1px solid #6286ed;
+  box-sizing: border-box;
+  background-color: #e7edff;
 }
 </style>
