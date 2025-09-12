@@ -1,8 +1,37 @@
 <template>
-  <div class="hot-news">
-    <div class="hot-news-search">
-      <el-input prefix-icon="el-icon-search" placeholder="输入关键字搜索新闻" clearable
-                class="hot-news-search-input" v-model="search_text" @change="searchNews"></el-input>
+  <div class="hot-news" @click="searchBlur">
+    <div class="flex-center">
+      <el-button type="text" class="back-btn" @click="back">
+        <i class="el-icon-arrow-left" style="font-size: 20px;"></i>
+      </el-button>
+      <div class="hot-news-search flex-center" @click.stop="">
+        <el-input prefix-icon="el-icon-search" placeholder="输入关键字，按回车搜索新闻" clearable
+                  v-model="search_text" class="hot-news-search-input" @input="searchInput"
+                  @keyup.enter.native="searchNews" @focus="searchFocus">
+        </el-input>
+        <div class="search-result-container" v-if="resultVisible">
+          <div class="card-arrow"></div>
+          <el-card class="search-result-card" shadow="hover">
+            <div class="font-weight">搜索历史</div>
+            <div class="search-history">
+              <el-tag v-for="(item, index) in search_history" :key="index" type="info"
+                      size="small" @click="selectNews(item)">
+                {{ item.keyword }}
+              </el-tag>
+            </div>
+            <div class="search-loading flex-center" v-if="search_loading">
+              联网搜索中<i class="el-icon-loading" style="margin-left: 5px;"></i>
+            </div>
+            <div class="search-result-content" v-else-if="!search_loading && search_result"
+                 @click="selectNews(search_result)">
+              <div class="result-title">{{ search_result.title }}</div>
+              <div class="result-details">{{ search_result.details }}</div>
+            </div>
+<!--            <div class="search-loading flex-center" v-else></div>-->
+          </el-card>
+        </div>
+      </div>
+      <div style="width: 36px"></div>
     </div>
     <div class="hot-news-body">
       <div style="flex: 1">
@@ -12,7 +41,7 @@
               <div style="font-weight: bold">热门新闻榜单</div>
               <div class="hot-news-list">
                 <div v-for="(item, index) in hot_news" :key="index" class="hot-news-item"
-                     :class="{'active-hot': item === hot_news_info}" @click="hot_news_info = item">
+                     :class="{'active-hot': item === hot_news_info}" @click="selectNews(item)">
                   <div style="width: 40px;text-align: center" class="flex-center">
                     <el-image v-if="index === 0" :src="require('/public/images/hot1.png')" style="width: 25px;height: 25px;"></el-image>
                     <el-image v-if="index === 1" :src="require('/public/images/hot2.png')" style="width: 25px;height: 25px;"></el-image>
@@ -28,7 +57,7 @@
             <div class="hot-news-container">
               <div class="flex-center">
                 <div style="font-weight: bold;flex: 1">{{ show_script ? '口播文案' : '新闻详情' }}</div>
-                <div v-if="hot_news_info" style="font-size: 14px;color: #6e7572">历史文案</div>
+                <div v-if="hot_news_info" style="font-size: 14px;color: #6e7572" @click="queryCopyHistory">历史文案</div>
               </div>
               <div class="hot-news-info" v-if="!show_script">
                 <template v-if="hot_news_info">
@@ -38,12 +67,17 @@
                 <template v-else>
                   <div class="none-container">
                     <i class="el-icon-document-list none-icon"></i>
-                    <div class="none-desc">请点击左侧榜单选择新闻或<span class="custom-btn">自定义文案生成</span></div>
+                    <div class="none-desc">请先选择新闻或
+                      <span class="custom-btn" @click="custom">自定义文案生成</span>
+                    </div>
                   </div>
                 </template>
               </div>
-              <div class="hot-news-info" v-else>
-
+              <div class="copy-script" v-else>
+                <el-input placeholder="文案标题..." v-model="oral_title"></el-input>
+                <el-input type="textarea" resize="none" v-model="oral_copy"
+                          style="height: calc(100% - 24px) !important;">
+                </el-input>
               </div>
               <div style="font-size: 14px;margin-top: 5px;color: #6e7572">
                 {{  show_script ? '内容由DeepSeek R1生成，禁止从事违法活动' : '内容来源网络' }}
@@ -54,9 +88,9 @@
       </div>
       <div class="hot-news-right" style="width: 400px;">
         <div style="font-weight: bold">生成设置</div>
-        <div class="script-setting">
+        <div class="script-setting" v-if="!show_script">
           <div class="script-setting-title">字数设置</div>
-          <el-select v-model="script_params.words" style="width: 100%" class="margin-b-12">
+          <el-select v-model="script_params.count" style="width: 100%" class="margin-b-12">
             <el-option
                 v-for="item in words"
                 :key="item.value"
@@ -68,7 +102,7 @@
           <div class="style-container margin-b-12">
             <div class="style-item" v-for="item in styles" :key="item.id" @click="script_params.style_id = item.id">
               <el-image :class="{'style-selected': script_params.style_id === item.id }"
-                        :src="item.avatar" class="style-item-img"></el-image>
+                        :src="item.avatar" class="style-item-img" fit="cover"></el-image>
               <div class="flex-center">
                 <div :class="{'style-title-selected': script_params.style_id === item.id }"
                      :title="item.name" class="style-item-title">
@@ -81,8 +115,69 @@
           <el-button icon="el-icon-upload" @click="imageDialogVisible = true">提取商品信息</el-button>
           <div class="script-setting-product_info">{{ script_params.productInfo }}</div>
         </div>
+        <div class="script-setting" v-else>
+          <div class="script-setting-title">形象选择</div>
+          <div class="style-container margin-b-12" style="max-height: calc(100% - 120px)">
+            <div class="style-item" v-for="item in figures" :key="item.id" @click="select_figure = item">
+              <el-image :class="{'style-selected': select_figure.id === item.id }"
+                        :src="item.picture" class="style-item-img" fit="cover"></el-image>
+              <div class="flex-center">
+                <div :class="{'style-title-selected': select_figure.id === item.id }"
+                     :title="item.name" class="style-item-title">
+                  {{ item.name }}
+                </div>
+              </div>
+            </div>
+          </div>
+          <div style="display: flex" @mousedown.stop="">
+            <div class="s-voice-title" style="margin-top: 5px">主播声音</div>
+            <el-popover ref="modePopoverRef" placement="bottom-start" trigger="click">
+              <div class="mode-popover-item" @click="saveMode('common')">
+                普通模式
+                <i class="el-icon-check mode-select" v-if="mode === 'common'"></i>
+              </div>
+              <div class="mode-popover-item" @click="saveMode('advanced')">
+                高级模式
+                <i class="el-icon-check mode-select" v-if="mode === 'advanced'"></i>
+              </div>
+              <div slot="reference" class="mode-switch">
+                {{ mode === 'common' ? '普通模式' : '高级模式' }}
+                <i class="el-icon-arrow-down"></i>
+              </div>
+            </el-popover>
+            <div class="mode-info" v-if="mode === 'advanced'">
+              <i class="el-icon-info" style="font-size: 16px;margin-right: 5px"></i>
+              高级模式将调用云端接口并计费
+            </div>
+          </div>
+          <div class="s-voice-content margin-b-16">
+            <div class="s-voice-btn">
+              <i class="el-icon-play" @click="previewAudio(timbres, -1)" v-if="audioIndex !== -1"></i>
+              <i class="el-icon-pause" @click="stopAudio" v-else></i>
+            </div>
+            <el-popover ref="voiceRef" placement="bottom" trigger="click" @hide="stopAudio" style="flex: 1">
+              <div class="popover-content">
+                <el-row>
+                  <el-col :span="12" v-for="(voice, index) in mode === 'common'? voices : minimax_voices" :key="voice.id">
+                    <div class="voice-item" :class="{ active: voice.id === timbres.id }" @click="selectVoice(voice)">
+                      <div class="voice-icon" @click.stop="previewAudio(voice, index)" v-if="audioIndex !== index">
+                        <i class="el-icon-play" style="font-size: 13px; color: #6286ed"></i>
+                      </div>
+                      <div class="voice-icon" @click.stop="stopAudio" v-else>
+                        <i class="el-icon-pause" style="font-size: 13px; color: #6286ed"></i>
+                      </div>
+                      <div class="voice-name" :title="voice.name">{{ voice.name }}</div>
+                    </div>
+                  </el-col>
+                </el-row>
+              </div>
+              <div class="s-voice-name" slot="reference" :title="timbres.name">{{ timbres.name }}</div>
+            </el-popover>
+          </div>
+        </div>
         <div style="text-align: center">
-          <el-button type="primary" style="width: 250px" @click="generateScript">口播文案生成</el-button>
+          <el-button type="primary" style="width: 250px" @click="generateScript" v-if="!show_script">口播文案生成</el-button>
+          <el-button type="primary" style="width: 250px" @click="generateVideo" v-else>口播视频生成</el-button>
         </div>
       </div>
     </div>
@@ -117,24 +212,34 @@
 <script>
 import axios from "axios";
 import {marked} from "marked";
+import {getAction} from "@/api/api";
 
 export default {
   name: 'hotNews',
   data() {
     return {
       search_text: "",
+      search_result: null,
+      resultVisible: false,
+      search_loading: false,
       hot_news: [],
+      search_history: [],
       hot_news_info: null,
+      userId: '272f4122-ab74-4bc1-9cd6-c29a41fb508f',
+      copy_history: [],
       urls: {
         get_hot_news: "https://live.tellai.tech/api/news_assistant/news/rank",
         get_styles: "https://live.tellai.tech/api/news_assistant/copywriting/styles/query/all",
         extract_product_info: 'https://live.tellai.tech/api/news_assistant/extract_product_info',
         generate: 'https://live.tellai.tech/api/news_assistant/copywriting/voice',
-        search_news: 'https://live.tellai.tech/api/news_assistant/news/online_search'
+        search_news: 'https://live.tellai.tech/api/news_assistant/news/online_search',
+        get_search_history: 'https://live.tellai.tech/api/news_assistant/news/query/user',
+        get_copy_history: 'https://live.tellai.tech/api/news_assistant/copywriting_history/query',
+        generate_video: 'https://live.tellai.tech/api/news_assistant/figure/generate_video',
       },
       script_params: {
-        words: 200,
-        style_id: '',
+        count: 200,
+        style_id: 'default',
         productInfo: ''
       },
       words: [
@@ -150,11 +255,25 @@ export default {
       imageDialogVisible: false,
       extract_loading: false,
       show_script: false,
+      oral_title: '',
+      oral_copy: '',
+      mode: 'common',
+      audio: null,
+      audioIndex: null,
+      voices: [],
+      minimax_voices: [],
+      timbres: {},
+      figures: [],
+      select_figure: {}
     }
   },
   mounted() {
     this.queryHotNews()
     this.queryStyles()
+    this.querySearchHistory()
+    this.queryFigures()
+    this.querySounds();
+    this.queryMiniMaxVoices()
   },
   computed: {
     detailHTML() {
@@ -165,6 +284,152 @@ export default {
     }
   },
   methods: {
+    selectVoice(voice) {
+      this.timbres = voice
+      this.$nextTick(() => {
+        this.$refs.voiceRef.showPopper = false
+      })
+    },
+    previewAudio(voice, index) {
+      if (voice.id === '') {
+        this.$message.warning("无音频预览");
+        return;
+      }
+      this.stopAudio();
+
+      setTimeout(() => {
+        this.audio = new Audio(voice.filepath);
+        this.audio.play();
+        this.audioIndex = index;
+        this.audio.onended = () => {
+          this.audio = null;
+          this.audioIndex = null;
+        };
+      }, 100);
+    },
+    stopAudio() {
+      if (this.audio) {
+        this.audio.pause();
+        this.audio = null;
+        this.audioIndex = null;
+      }
+    },
+    saveMode(mode) {
+      if (this.mode === mode) {
+        return
+      }
+      this.mode = mode
+      this.timbres = mode === 'common' ? this.voices[0] : this.minimax_voices[0]
+      this.$refs.modePopoverRef.showPopper = false
+    },
+    custom() {
+      this.show_script = true
+    },
+    searchFocus() {
+      this.resultVisible = true;
+    },
+    searchBlur() {
+      this.resultVisible = false;
+    },
+    searchInput() {
+      this.search_result = null;
+    },
+    selectNews(item) {
+      if (this.hot_news_info && item.id === this.hot_news_info.id) {
+        return;
+      }
+      this.hot_news_info = item
+      this.oral_title = item.title
+      this.oral_copy = ''
+      this.show_script = false
+      this.resultVisible = false
+    },
+    queryFigures() {
+      getAction("/figure/query_success", {video_type: 'figure'}).then((res) => {
+        if (res.data.status === "success") {
+          this.figures = res.data.data.filter(item => item.status === "success")
+        }
+      }).catch((error) => {
+        console.error("获取形象列表失败:", error);
+      });
+    },
+    querySounds() {
+      getAction("/timbres/get_all_common_timbre").then((res) => {
+        if (res.data.status === "success") {
+          this.voices = res.data.data;
+          if (this.voices.length > 0) {
+            this.timbres = this.voices[0];
+          }
+        } else {
+          this.$message.error("获取声音列表失败。");
+        }
+      }).catch((error) => {
+        console.error("获取声音列表失败:", error);
+      });
+    },
+    queryMiniMaxVoices() {
+      getAction("/timbres/get_all_system_timbres",{voice_mode: 'advanced'}).then((res) => {
+        if (res.data.status === "success") {
+          this.minimax_voices = res.data.data
+        } else {
+          this.$message.error("获取高级声音列表失败。");
+        }
+      }).catch((error) => {
+        console.error("获取高级声音列表失败:", error);
+      });
+    },
+    querySearchHistory() {
+      let params = {
+        user_id: this.userId,
+      }
+      axios.get(this.urls.get_search_history, { params: params }).then(res => {
+        if (res.data.status === 'success') {
+          this.search_history = res.data.data
+        } else {
+          this.$message.error(res.data.message)
+        }
+      }).catch(err => {
+        console.log(err)
+        this.$message.error(err)
+      })
+    },
+    queryCopyHistory() {
+      let params = {
+        user_id: this.userId,
+        news_id: this.hot_news_info.id
+      }
+      axios.get(this.urls.get_copy_history, {params: params}).then(res => {
+        if (res.data.status === 'success') {
+          this.copy_history = res.data.data
+        } else {
+          this.$message.error(res.data.message)
+        }
+      }).catch(err => {
+        console.log(err)
+        this.$message.error(err)
+      })
+    },
+    searchNews() {
+      this.resultVisible = true;
+      this.search_loading = true;
+      let params = {
+        user_id: this.userId,
+        keyword: this.search_text
+      }
+      axios.get(this.urls.search_news, { params: params, timeout: 1800000 }).then(res => {
+        if (res.data.status === 'success') {
+          this.search_loading = false;
+          this.search_result = res.data.data
+          this.querySearchHistory()
+        } else {
+          this.search_loading = false;
+          this.$alert(res.data.message, '提示')
+        }
+      }).catch(err => {
+        this.search_loading = false;
+        this.$alert(err, '提示')
+      })
+    },
     queryHotNews() {
       axios.get(this.urls.get_hot_news).then(res => {
         if (res.data.status === 'success') {
@@ -180,21 +445,6 @@ export default {
       axios.get(this.urls.get_styles).then(res => {
         if (res.data.status === 'success') {
           this.styles = res.data.data
-        } else {
-          this.$alert(res.data.message, '提示')
-        }
-      }).catch(err => {
-        this.$alert(err, '提示')
-      })
-    },
-    searchNews() {
-      let params = {
-        user_id: this.userId,
-        keyword: this.search_text
-      }
-      axios.get(this.urls.search_news, { params: params, timeout: 1800000 }).then(res => {
-        if (res.data.status === 'success') {
-          console.log(res.data.data)
         } else {
           this.$alert(res.data.message, '提示')
         }
@@ -245,18 +495,51 @@ export default {
     generateScript() {
       let params = {
         ...this.script_params,
+        user_id: this.userId,
         news_id: this.hot_news_info.id,
         news_details: this.hot_news_info.details,
       }
+      const loading = this.$loading({
+        lock: true,
+        text: '口播文案生成中...',
+        spinner: 'el-icon-loading',
+        background: 'rgba(0, 0, 0, 0.7)'
+      });
       axios.post(this.urls.generate, params, {timeout: 300000}).then(res => {
         if (res.data.status === 'success') {
-          console.log(res.data)
+          loading.close()
+          this.oral_copy = res.data.data.script
+          this.show_script = true
         } else {
           this.$alert('生成失败' + res.data.message, '提示')
         }
       }).catch(err => {
         this.$alert('生成失败' + err, '提示')
       })
+    },
+    generateVideo() {
+      let params = {
+        user_id: this.userId,
+        voice_id: this.timbres.id,
+        video_id: this.select_figure.id,
+        text: this.oral_copy,
+        filename: this.oral_title,
+      }
+      axios.post(this.urls.generate_video, params).then(res => {
+        if (res.data.status === 'success') {
+          this.$alert('已创建口播视频生成任务，视频生成成功后会自动下载到本地', "任务创建提醒");
+          setTimeout(() => {
+            this.$router.push({path: '/videoList'})
+          }, 500)
+        } else {
+          this.$alert(res.data.message, "生成视频任务创建失败")
+        }
+      }).catch(err => {
+        this.$alert(err, "生成视频任务创建错误")
+      })
+    },
+    back() {
+      this.$router.push({ path: '/chest'})
     }
   }
 }
@@ -271,8 +554,8 @@ export default {
 .hot-news-search {
   height: 40px;
   width: 100%;
-  text-align: center;
   margin-bottom: 16px;
+  position: relative;
 }
 
 .hot-news-search-input {
@@ -289,6 +572,88 @@ export default {
   border-radius: 20px;
   background-color: #F5F5F5;
   font-size: 14px;
+}
+
+.search-result-container {
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 500px;
+  margin-top: 10px;
+  z-index: 1000;
+}
+
+.search-result-container >>> .el-card__body {
+  padding: 16px !important;
+}
+
+.card-arrow {
+  position: absolute;
+  top: -5px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 0;
+  height: 0;
+  border-left: 6px solid transparent;
+  border-right: 6px solid transparent;
+  border-bottom: 6px solid #fff;
+  z-index: 1;
+}
+
+.search-result-card {
+  margin: 0;
+  border-radius: 6px;
+  box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.1);
+}
+
+.search-history {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  max-height: 60px;
+  overflow-y: auto;
+  margin: 8px 0;
+}
+
+::v-deep .el-tag {
+  cursor: pointer;
+  font-size: 11px;
+}
+
+.search-result-content {
+  cursor: pointer;
+  padding: 5px;
+  border-top: 1px solid #f3f4f6;
+}
+
+.search-result-content:hover {
+  background: #f3f4f6;
+  color: #374151;
+}
+
+.search-loading {
+  height: 60px;
+  font-size: 15px;
+  border-top: 1px solid #f3f4f6;
+}
+
+.result-title {
+  font-size: 15px;
+  height: 30px;
+  line-height: 30px;
+  font-weight: bold;
+}
+
+.result-details {
+  font-size: 14px;
+  height: 20px;
+  line-height: 20px;
+  color: #333333;
+  font-weight: normal;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .hot-news-body {
@@ -322,6 +687,12 @@ export default {
   cursor: pointer;
   font-size: 14px;
   color: #333333;
+}
+
+.hot-news-item:hover {
+  background: #f3f4f6;
+  color: #000000;
+  transform: translateX(2px);
 }
 
 .active-hot {
@@ -405,6 +776,7 @@ export default {
   position: relative;
   cursor: pointer;
   margin-top: 5px;
+  overflow-y: auto;
 }
 
 .style-item {
@@ -523,6 +895,154 @@ export default {
 
 .custom-btn {
   color: #409eff !important;
+  cursor: pointer;
+}
+
+.copy-script {
+  height: calc(100% - 55px);
+  overflow-y: auto;
+  overflow-x: hidden;
+  width: 100%;
+  margin-top: 10px;
+  box-sizing: border-box;
+}
+
+.copy-script >>> .el-input__inner {
+  border: none;
+  text-align: center;
+  height: 24px;
+  line-height: 24px;
+  font-size: 15px;
+  font-weight: bold;
+}
+
+.copy-script >>> .el-textarea__inner {
+  height: 100%;
+  background-color: #f8fafc;
+  border: none;
+}
+
+.copy-script >>> .el-textarea__inner:focus {
+  outline: none;
+  box-shadow: none;
+}
+
+.s-voice-title {
+  font-size: 12px;
+  color: #374151;
+}
+
+.mode-switch {
+  background-color: #f3f4f6;
+  padding: 4px 8px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 12px;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  margin-left: 16px;
+}
+
+.mode-popover-item {
+  padding: 8px 12px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  height: 20px;
+  line-height: 20px;
+}
+
+.mode-popover-item:hover {
+  background-color: #f5f7fa;
+}
+
+.mode-select {
+  color: #409EFF;
+  font-weight: bold;
+  font-size: 14px;
+  margin-left: auto;
+}
+
+.mode-info {
+  margin-left: 10px;
+  font-size: 12px;
+  display: flex;
+  align-items: center;
+  color: #909399;
+}
+
+.s-voice-content {
+  padding: 8px;
+  border-radius: 6px;
+  margin-top: 4px;
+  background-color: #ffffff;
+  border: 1px solid #e5e7eb;
+  display: flex;
+  gap: 8px;
+}
+
+.s-voice-btn {
+  aspect-ratio: 1 / 1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 13px;
+  color: #6286ed;
+  cursor: pointer;
+}
+
+.popover-content {
+  width: 350px;
+  height: 250px;
+  border-radius: 10px;
+  overflow: auto;
+}
+
+.voice-item {
+  height: 80px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.active {
+  background-color: #e0e7fb;
+}
+
+.voice-icon {
+  width: 42px;
+  height: 37px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  cursor: pointer;
+  background-color: #c7d4f8;
+  border-radius: 10px;
+}
+
+.voice-name {
+  width: 100px;
+  margin-left: 10px;
+  font-size: 14px;
+  color: #101010;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.s-voice-name {
+  background-color: #f3f4f6;
+  padding: 4px 4px 4px 8px;
+  box-sizing: border-box;
+  font-size: 12px;
+  height: 22px;
+  border-radius: 6px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
   cursor: pointer;
 }
 </style>
