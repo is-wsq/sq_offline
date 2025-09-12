@@ -50,6 +50,11 @@ body {
   font-family: Arial, sans-serif;
 }
 
+.el-message-box__content {
+  max-height: 300px !important;
+  overflow-y: auto;
+}
+
 .el-message-box__headerbtn {
   display: none;
 }
