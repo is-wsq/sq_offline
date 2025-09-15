@@ -537,7 +537,7 @@ export default {
   computed: {
     progressStyle() {
       return {
-        background: `linear-gradient(90deg, #6fd7a8, transparent ${this.percent}%)`
+        background: `linear-gradient(90deg, #697afd, transparent ${this.percent}%)`
       };
     },
     expandedIndex() {
