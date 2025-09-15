@@ -1021,6 +1021,8 @@ export default {
   font-size: 13px;
   line-height: 20px;
   font-style: italic;
+  word-break: break-word;
+  overflow-wrap: break-word;
 }
 
 .select-script-btn {
@@ -1068,6 +1070,8 @@ export default {
   font-size: 13px;
   line-height: 20px;
   font-style: italic;
+  word-break: break-word;
+  overflow-wrap: break-word;
 }
 
 .error-message {

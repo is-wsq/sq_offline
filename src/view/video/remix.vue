@@ -133,15 +133,16 @@
                     </el-collapse-item>
                   </el-collapse>
                   <div class="mix-chat-system-label margin-t-12">混剪结果</div>
-                  <div class="mix-chat-system-content" :style="progressStyle">
-                    <div class="mix-chat-system-content-icon">
+                  <div class="mix-chat-system-content">
+                    <div :style="progressStyle"></div>
+                    <div class="mix-chat-system-content-icon" style="z-index: 10">
                       <svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" fill="none" viewBox="0 0 24 24">
                         <path fill="currentColor" fill-rule="evenodd"
                               d="M13.113 2.266a.936.936 0 0 1 .797 1.057l-2.476 17.614a.936.936 0 0 1-1.854-.26l2.476-17.615a.936.936 0 0 1 1.057-.796M6.811 6.744a.936.936 0 0 1 0 1.324l-3.55 3.55 3.55 3.551a.936.936 0 1 1-1.324 1.324l-4.213-4.212a.936.936 0 0 1 0-1.325l4.213-4.212a.936.936 0 0 1 1.324 0m15.447 4.213c.357.356.365.93.025 1.297a6.05 6.05 0 0 0-2.377-1.001l-3.185-3.185a.936.936 0 1 1 1.324-1.324zm-3.47 10.491a.48.48 0 0 0 .48-.425c.225-1.341.423-2.03.849-2.457.425-.426 1.11-.624 2.445-.849a.485.485 0 0 0 .438-.48.48.48 0 0 0-.44-.48c-1.332-.227-2.018-.425-2.443-.851-.426-.427-.624-1.115-.849-2.455a.48.48 0 0 0-.48-.428.49.49 0 0 0-.481.426c-.226 1.341-.423 2.03-.85 2.457-.424.426-1.108.624-2.44.85a.48.48 0 0 0-.442.481c0 .26.199.448.439.48 1.335.225 2.02.418 2.444.842.426.425.623 1.114.849 2.466.04.24.23.423.482.423" clip-rule="evenodd">
                         </path>
                       </svg>
                     </div>
-                    <div class="mix-chat-system-content-name">
+                    <div class="mix-chat-system-content-name" style="z-index: 10">
                       素材混剪中
                       <i class="el-icon-loading" style="font-size: 16px;margin-left: 4px"></i>
                     </div>
@@ -627,7 +628,14 @@ export default {
   computed: {
     progressStyle() {
       return {
-        background: `linear-gradient(90deg, #697afd, transparent ${this.percent}%)`
+        position: 'absolute',
+        left: 0,
+        top: 0,
+        width: `${this.percent}%`,
+        height: '100%',
+        zIndex: 9,
+        background: `#dbdfff`,
+        opacity: 0.5,
       };
     },
     expandedIndex() {
@@ -2628,6 +2636,7 @@ export default {
   align-items: center;
   padding: 8px 10px;
   box-sizing: border-box;
+  position: relative;
 }
 
 .mix-chat-system-content:hover {
