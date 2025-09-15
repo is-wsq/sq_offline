@@ -4,16 +4,16 @@
       <i class="el-icon-arrow-left" style="font-size: 20px;"></i>
     </el-button>
     <div class="box-card">
-      <div class="flex-center" style="position: absolute;top: 0;right: 20px">
-        <div style="flex: 1"></div>
+      <div class="search-content flex-center">
+        <div style="width: 80px"></div>
+        <div style="flex: 1;text-align: center">
+          <el-input prefix-icon="el-icon-search" placeholder="一句话搜模板，例如：科技感转场" clearable
+                    class="search-input" v-model="searchText"></el-input>
+        </div>
         <div class="guide" style="margin-right: 15px" @click="guideVisible = true">
           <i class="el-icon-s-opportunity" style="margin-right: 4px;"></i>
           使用指南
         </div>
-      </div>
-      <div class="search-content">
-        <el-input prefix-icon="el-icon-search" placeholder="一句话搜模板，例如：科技感转场" clearable
-                  class="search-input" v-model="searchText"></el-input>
       </div>
       <div class="tags">
         <el-tag size="small" class="tag" :class="{ 'tag-active': activeTag === '全部推荐' }"
@@ -309,7 +309,6 @@ export default {
     },
     hots() {
       let data = this.figureTasks.filter((item) => item.status === 'success' && item.video_type === 'hot_video');
-      console.log(data)
       return data.map(item => ({...item, isHover: false}))
     },
     filter_hots() {
@@ -551,7 +550,6 @@ export default {
 }
 
 .search-content {
-  text-align: center;
   margin-bottom: 16px;
 }
 
