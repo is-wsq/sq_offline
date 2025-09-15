@@ -180,32 +180,22 @@
         <div class="total-score-card">
           <div class="total-score-header">
             <div class="left-title">素材质量评估结果</div>
-            <div class="right-score-box">{{ video_score.total }}</div>
+            <div class="right-score-box">{{ video_score.total }}&nbsp;/&nbsp;30</div>
           </div>
-
-          <div class="total-reason-section">{{ video_score.reason }}</div>
         </div>
 
         <div class="detail-score-card">
-          <div class="card-title">各维度评分概览</div>
           <el-collapse v-model="activeCollapseNames" accordion>
             <el-collapse-item
-                v-for="(dimension, dimIndex) in video_score.mark"
+                v-for="(dimension, dimIndex) in video_score.dimensionality"
                 :key="dimIndex"
-                :title="`${dimension.name}（${dimension.dimension_score}分）`"
+                :title="`${dimension.name}（${dimension.score}分）`"
                 :name="dimIndex.toString()"
                 class="dimension-collapse-item"
             >
               <div class="dimension-reason">
-                <div>维度评估说明：</div>
                 <p class="reason-content">{{ dimension.reason }}</p>
               </div>
-
-              <el-table :data="dimension.details" border size="small" style="width: 100%;margin-bottom: 8px">
-                <el-table-column prop="name" label="评分项" width="120" align="center"></el-table-column>
-                <el-table-column prop="detail_score" label="得分" width="60" align="center"></el-table-column>
-                <el-table-column prop="reason" label="评分理由" align="center"></el-table-column>
-              </el-table>
             </el-collapse-item>
           </el-collapse>
         </div>
@@ -1558,8 +1548,8 @@ export default {
   align-items: center;
   padding: 12px;
   background-color: #f9fbfd;
-  border-bottom: 1px solid #eee;
 }
+
 .left-title {
   font-size: 15px;
   font-weight: 600;
@@ -1569,19 +1559,6 @@ export default {
 .right-score-box {
   font-weight: bold;
   text-align: right;
-}
-
-.total-reason-section {
-  padding: 8px;
-  background-color: #f9fbfd;
-  border-left: 4px solid #2196F3;
-}
-
-.card-title {
-  font-size: 15px;
-  font-weight: 600;
-  color: #333;
-  margin-bottom: 8px;
 }
 
 .detail-score-card {
@@ -1609,17 +1586,9 @@ export default {
   margin-bottom: 8px;
 }
 .reason-content {
-  margin: 8px 0 0;
+  margin: 0 !important;
   font-size: 14px;
   color: #666;
   line-height: 1.6;
-}
-
-.reason-text {
-  font-size: 13px;
-  color: #666;
-  line-height: 1.5;
-  white-space: normal;
-  word-break: break-all;
 }
 </style>
