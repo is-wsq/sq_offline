@@ -190,6 +190,12 @@ export default {
     this.$store.dispatch("task/pollVoiceTasks");
     this.querySystemVoice()
   },
+  beforeDestroy() {
+    if (this.audio) {
+      this.audio.pause();
+      this.audio = null
+    }
+  },
   methods: {
     advancedClone() {
       this.$refs.timbreRef.showPopper = false
