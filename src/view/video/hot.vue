@@ -144,13 +144,10 @@
     </el-dialog>
     <el-dialog class="preview-dialog" :visible.sync="previewDialogVisible" :before-close="beforePreviewClose"
                :width="aspectRatio < 1? '720px' : '420px'" top="10vh">
-      <div style="width: 100%;text-align: center;position: relative">
+      <div style="width: 100%;text-align: center">
         <video style="border-radius: 10px;width: calc(100% - 40px);object-fit: cover"
-               ref="video" :src="preview_src" @ended="isPlaying = false">
+               ref="video" :src="preview_src" @ended="isPlaying = false" controls>
         </video>
-        <div style="position: absolute;top: 50%;left: 50%;transform: translate(-50%, -50%);">
-          <i class="el-icon-play control-icon" @click="controlVideo" v-if="!isPlaying"></i>
-        </div>
       </div>
     </el-dialog>
     <el-dialog class="upload-dialog" :visible.sync="renameDialogVisible" width="600px" title="重命名视频名称">
