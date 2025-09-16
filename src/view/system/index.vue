@@ -51,6 +51,7 @@
           <a href="#/system" class="link" @click="timbre_html_visible = true">声音复刻协议</a>
           <a href="#/system" class="link" @click="figure_html_visible = true">形象克隆协议</a>
           <a href="#/system" class="link" @click="privacy_policy_html_visible = true">隐私政策</a>
+          <a href="#/system" class="link" @click="paid_service_html_visible = true">付费服务协议</a>
         </div>
       </div>
     </div>
@@ -147,6 +148,10 @@
       <div v-html="privacy_policy_html" class="agree-html">
       </div>
     </el-dialog>
+    <el-dialog class="bill-dialog" title="奇点未来付费服务协议" :visible.sync="paid_service_html_visible" width="800px">
+      <div v-html="paid_service_html" class="agree-html">
+      </div>
+    </el-dialog>
   </div>
 </template>
 
@@ -154,10 +159,11 @@
 import axios from "axios";
 import {IPaginationMixin} from "@/mixins/IPaginationMixin";
 import {marked} from "marked";
+import {AgreementMixin} from "@/mixins/AgreementMixin";
 
 export default {
   name: 'system',
-  mixins: [IPaginationMixin],
+  mixins: [IPaginationMixin,AgreementMixin],
   data() {
     return {
       dialogVisible: false,
@@ -187,24 +193,11 @@ export default {
       },
       quickAmounts: [10, 50, 100, 200, 500, 1000],
       timer: null,
-      timbre_agreement: '',
-      figure_agreement: '',
-      privacy_policy: '',
       timbre_html_visible: false,
       figure_html_visible: false,
       privacy_policy_html_visible: false,
+      paid_service_html_visible: false,
     }
-  },
-  created() {
-    fetch('/agreement/timbre.txt').then(res => res.text()).then(text => {
-      this.timbre_agreement = text
-    })
-    fetch('/agreement/figure.txt').then(res => res.text()).then(text => {
-      this.figure_agreement = text
-    })
-    fetch('/agreement/privacy_policy.txt').then(res => res.text()).then(text => {
-      this.privacy_policy = text
-    })
   },
   mounted() {
     this.downloadPath = localStorage.getItem('downloadPath') || 'C:\\offline'
@@ -220,6 +213,9 @@ export default {
     privacy_policy_html() {
       return marked(this.privacy_policy);
     },
+    paid_service_html() {
+      return marked(this.paid_service);
+    },
   },
   methods: {
     getInfo(payer_total) {
@@ -229,7 +225,8 @@ export default {
       axios.get("http://127.0.0.1:9669/get_remaining_tokens", {params: params}).then((res) => {
         if (res.data.status === 'success') {
           this.info = res.data.data
-          this.percentage = (this.info.remaining_tokens / this.info.total_tokens) * 100
+          const remainingTokensRatio = this.info.remaining_tokens / this.info.total_tokens;
+          this.percentage = Math.min(Math.max(remainingTokensRatio * 100, 0), 100);
         } else {
           this.$message.error(res.data.message)
         }
@@ -341,7 +338,6 @@ export default {
       })
     },
     beforeClosePay() {
-      console.log(111)
       if (this.timer) {
         clearInterval(this.timer)
         this.timer = null
@@ -368,9 +364,6 @@ export default {
         }
       })
     },
-    goto(path) {
-      this.$router.push(path)
-    }
   }
 }
 </script>
