@@ -50,6 +50,16 @@ body {
   font-family: Arial, sans-serif;
 }
 
+.el-dialog__wrapper {
+  height: 100%;
+  display: flex;
+  align-items: center;
+}
+
+.el-dialog__wrapper .el-dialog {
+  margin: 0 auto !important;
+}
+
 .el-message-box__content {
   max-height: 300px !important;
   overflow-y: auto;
