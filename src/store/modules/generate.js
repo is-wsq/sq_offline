@@ -7,6 +7,7 @@ const state = {
     processVoices: [],
 
     figureTaskIds: [],
+    figureTasks: [],
 
     videoTaskIds: [],
     videoTasks: [],
@@ -24,8 +25,11 @@ const mutations = {
         state.processVoices = voices.processVoices
     },
 
-    ADD_FIGURE_TASK(state, task) {
-        state.figureTaskIds.push(task)
+    SET_FIGURE_TASK(state, list) {
+        state.figureTaskIds = list
+    },
+    SET_FIGURES(state, list) {
+        state.figureTasks = list
     },
 
     ADD_VIDEO_TASK(state, tasks) {
@@ -51,6 +55,7 @@ const actions = {
                     processVoices: res.data.data.filter(item => item.status === 'pending')
                 }
                 commit('SET_VOICES', voices)
+                commit('SET_VOICE_TASKS', res.data.data.filter(task => task.status === 'pending').map(item => item.id))
             }else {
                 Vue.prototype.$message.error(res.data.message);
             }
@@ -96,6 +101,58 @@ const actions = {
         })
     },
 
+    getFigureTasks({ state, commit }) {
+        getAction("/figure/query_success").then(res => {
+            if (res.data.status ==='success') {
+                commit("SET_FIGURES", res.data.data);
+                commit('SET_FIGURE_TASK',
+                    res.data.data.filter(figure => figure.status === 'ready' || figure.status === 'pending')
+                        .map(item => item.id))
+            }else {
+                Vue.prototype.$message.error(res.data.message);
+            }
+        }).catch(err => {
+            console.log(err)
+        })
+    },
+    async pollFigureTasks({ state, commit }) {
+        const pendingTasks = state.figureTaskIds
+
+        await getAction("/figure/query_success").then(res => {
+            if (res.data.status ==='success') {
+                let result = res.data.data
+
+                commit("SET_FIGURES", res.data.data);
+                commit('SET_FIGURE_TASK',
+                    result.filter(figure => figure.status === 'ready' || figure.status === 'pending')
+                        .map(item => item.id))
+                let figure_in_pending = result.filter(task => pendingTasks.includes(task.id))
+                figure_in_pending.forEach(task => {
+                    let taskName = task.video_type === 'figure' ? '形象克隆' : task.video_type === 'material' ? '素材上传' : '爆款视频上传'
+                    if (task.status === 'success') {
+                        Vue.prototype.$notify({
+                            title: taskName + "成功",
+                            message: "《" + task.name + "》" + taskName + "任务已完成",
+                            type: "success",
+                            duration: 5000
+                        });
+                    } else if (task.status === 'failed') {
+                        Vue.prototype.$notify({
+                            title: taskName + "失败",
+                            message: "《" + task.name + "》" + taskName + "任务失败," + task.message,
+                            duration: 0,
+                            type: "error",
+                        })
+                    }
+                })
+            }else {
+                Vue.prototype.$message.error(res.data.message);
+            }
+        }).catch(err => {
+            console.log(err)
+        })
+    },
+
     addVideoTask({ commit }, tasks) {
         commit('ADD_VIDEO_TASK', tasks)
     },
@@ -103,6 +160,7 @@ const actions = {
         getAction("/video_record/query").then(res => {
             if (res.data.status === 'success') {
                 commit("SET_VIDEOS", res.data.data);
+                commit('SET_VIDEO_TASK', res.data.data.filter(video => video.status === 'pending').map(item => item.id))
             }else {
                 Vue.prototype.$message.error(res.data.message);
             }
@@ -159,9 +217,14 @@ const getters = {
     pendingVoiceTaskIds: state => {
         return state.voiceTaskIds
     },
+
+    figureTasks: state => {
+        return state.figureTasks
+    },
     pendingFigureTaskIds: state => {
         return state.figureTaskIds
     },
+
     videoTasks: state => {
         return state.videoTasks
     },

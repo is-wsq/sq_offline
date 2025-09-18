@@ -103,13 +103,16 @@
           ref="hotUpload"
           class="video-uploader"
           style="width: 100%"
-          action="http://127.0.0.1:6006/figure/add_hot_video"
-          :data="{ title: title, withAsr: withAsr, category: classify, tag: uploadTag }"
-          :on-success="uploadSuccess"
-          :on-error="uploadError"
+          action="#"
+          :http-request="handleUploadHot"
+          :on-change="handleHotChange"
+          :on-remove="handleHotRemove"
+          :file-list.sync="hotFileList"
           accept=".mp4, .mov"
           :auto-upload="false"
           :limit="6"
+          :on-exceed="handleExceed"
+          :disabled="loading"
           multiple>
         <i class="el-icon-upload"></i>
         <div class="el-upload__text">将文件拖到此处，或<em>点击上传</em></div>
@@ -237,9 +240,9 @@
 
 <script>
 import {delAction, getAction, postAction} from "@/api/api";
-import {v4 as uuidv4} from 'uuid';
 import {marked} from "marked";
 import {mapGetters} from "vuex";
+import axios from "axios";
 
 export default {
   data() {
@@ -250,9 +253,9 @@ export default {
       uploadDialogVisible: false,
       uploadFile: null,
       use_link: false,
+      hotFileList: [],
       dy_link: '',
       withAsr: true,
-      title: '',
       uploadTag: '',
       classifies: [
         {name: '行业热点', color: '#f97316'},
@@ -300,7 +303,7 @@ export default {
     }
   },
   computed: {
-    ...mapGetters("task", ["figureTasks"]),
+    ...mapGetters("generate", ["figureTasks"]),
     processFile() {
       return this.figureTasks.filter((item) => item.status === 'pending' && item.video_type === 'hot_video');
     },
@@ -328,7 +331,7 @@ export default {
   mounted() {
     this.initData()
     this.startDotAnimation();
-    this.$store.dispatch("task/pollFigureTasks");
+    this.$store.dispatch("generate/getFigureTasks");
   },
   beforeDestroy() {
     clearInterval(this.dotTimer);
@@ -373,11 +376,6 @@ export default {
       this.aspectRatio = this.rightItem.height / this.rightItem.width;
       this.previewDialogVisible = true
     },
-    controlVideo() {
-      const video = this.$refs.video;
-      this.isPlaying ? video.pause() : video.play();
-      this.isPlaying = !this.isPlaying;
-    },
     beforePreviewClose() {
       this.isPlaying = false;
       if (this.$refs.video) {
@@ -400,7 +398,7 @@ export default {
       postAction("/figure/update_name", params).then((res) => {
         if (res.data.status === "success") {
           this.$message.success("重命名成功");
-          this.$store.dispatch("task/pollFigureTasks");
+          this.$store.dispatch("generate/getFigureTasks");
         } else {
           this.$alert(res.data.message,'重命名失败')
         }
@@ -417,7 +415,7 @@ export default {
         delAction("/figure/delete", {ids: this.deleteId}).then((res) => {
           if (res.data.status === "success") {
             this.$message.success("删除成功");
-            this.$store.dispatch("task/pollFigureTasks");
+            this.$store.dispatch("generate/getFigureTasks");
           } else {
             this.$alert(res.data.message, "删除失败")
           }
@@ -442,20 +440,30 @@ export default {
         return false;
       }
       this.uploadFile = null
-      this.title = ''
       this.withAsr = true
       this.tag = ''
       this.uploadDialogVisible = false
     },
+    handleUploadHot({ file }) {
+      console.log(file)
+    },
+    handleHotChange(file, fileList) {
+      this.hotFileList = fileList
+    },
+    handleHotRemove(file, fileList) {
+      this.hotFileList = fileList
+    },
+    handleExceed(files, fileList) {
+      this.$alert(`当前限制选择 6 个文件，本次选择了 ${files.length} 个文件，共选择了 ${files.length + fileList.length} 个文件`,'批量上传限制提醒');
+    },
     handleSubmit() {
       if (!this.use_link) {
-        let files = this.$refs.hotUpload.uploadFiles || []
-        if (files.length === 0) {
-          this.$alert('请至少选择一个爆款视频文件上传。','上传提示')
+        if (this.hotFileList.length === 0) {
+          this.$message.warning("请至少选择一个爆款视频文件上传！");
           return;
         }
         this.loading = true
-        this.$refs.hotUpload.submit()
+        this.uploadByFile()
         return;
       }
 
@@ -464,6 +472,37 @@ export default {
         return;
       }
       this.loading = true
+      this.uploadByDyLink()
+    },
+    uploadByFile() {
+      const formData = new FormData();
+      this.hotFileList.forEach((file) => {
+        formData.append("file", file.raw); // 将文件添加到 FormData 中
+      });
+      formData.append('withAsr', this.withAsr);
+      formData.append('category', this.classify);
+      formData.append('tag', this.uploadTag);
+
+      axios.post("http://127.0.0.1:6006/figure/add_hot_video", formData,{
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      }).then((res) => {
+        if (res.data.status === "success") {
+          this.loading = false
+          this.$store.dispatch("generate/getFigureTasks");
+          this.$message.success("上传成功");
+          this.beforeUploadClose();
+        }else {
+          this.loading = false
+          this.$alert(res.data.message, "上传失败");
+        }
+      }).catch((err) => {
+        this.loading = false
+        this.$alert(err, "上传错误");
+      })
+    },
+    uploadByDyLink() {
       let params = {
         url: this.dy_link,
         tag: this.uploadTag,
@@ -488,35 +527,10 @@ export default {
         }
         this.loading = false
         this.uploadDialogVisible = false
-        this.$store.dispatch("task/pollFigureTasks");
+        this.$store.dispatch("generate/getFigureTasks");
       })
     },
-    uploadSuccess(res, file) {
-      if (res.status === "success") {
-        this.$notify({
-          title: "上传提示",
-          message: `创建${file.name}爆款视频上传任务成功`,
-          duration: 5000,
-          type: "success",
-        });
-      } else {
-        this.$notify({
-          title: "上传提示",
-          message: `创建${file.name}爆款视频上传任务失败，${res.message}`,
-          duration: 0,
-          type: "error",
-        });
-      }
-      this.loading = false
-      this.uploadFigureVisible = false
-      this.$store.dispatch("task/pollFigureTasks");
-    },
-    uploadError(file) {
-      this.loading = false
-      this.uploadFigureVisible = false
-      let content = `创建${file.name}爆款视频上传任务失败`;
-      this.$alert(content, "任务创建提醒");
-    },
+
     duplicate() {
       if (!this.select_hots.id) {
         this.$alert('请先选择一个要复刻的爆款视频','提示')

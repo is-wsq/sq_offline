@@ -211,16 +211,17 @@
                 ref="materialUpload"
                 class="material-uploader"
                 style="width: 100%"
-                action="http://127.0.0.1:6006/figure/clone_only"
+                action="#"
                 accept=".mp4, .mov"
-                :on-success="uploadMaterialsSuccess"
-                :on-error="uploadMaterialsError"
-                :on-progress="handleFileChange"
+                :http-request="handleUploadImage"
+                :on-change="handleMaterialChange"
+                :on-remove="handleMaterialRemove"
                 :file-list.sync="materialList"
                 :data="uploadData"
                 :auto-upload="false"
                 :limit="100"
                 :on-exceed="handleExceed"
+                :disabled="loading"
                 multiple>
               <i class="el-icon-upload"></i>
               <div class="el-upload__text">将文件拖到此处，或<em>点击上传</em></div>
@@ -469,9 +470,9 @@ export default {
     }
   },
   computed: {
-    ...mapGetters("task", ["figureTasks"]), // 获取任务列表
+    ...mapGetters("generate", ["figureTasks"]), // 获取任务列表
     processMaterials() {
-      return this.figureTasks.filter((item) => item.status === "pending");
+      return this.figureTasks.filter((item) => item.status === "pending" && item.video_type === 'material');
     },
     processTasks() {
       return this.figureTasks.filter((item) => item.status === "ready");
@@ -537,7 +538,7 @@ export default {
     this.queryShops()
     this.queryProducts()
     this.startDotAnimation();
-    this.$store.dispatch("task/pollFigureTasks");
+    this.$store.dispatch("generate/getFigureTasks");
     window.addEventListener('keydown', this.handleKeyDown);
     this.$nextTick(() => {
       const container = this.$refs.materialsRef;
@@ -678,18 +679,49 @@ export default {
       this.uploadData.tag = ''
       this.uploadDialogVisible = false
     },
+    handleMaterialChange(file, fileList) {
+      this.materialList = fileList;
+    },
+    handleMaterialRemove(file, fileList) {
+      this.materialList = fileList;
+    },
     handleSubmit() {
-      let files = this.$refs.materialUpload.uploadFiles || []
-      if (files.length === 0) {
-        this.$alert('请选择一个视频文件作为数字人素材。','上传素材')
+      if (this.materialList.length === 0) {
+        this.$message.warning("请先选择文件！");
         return;
       }
       if (!this.uploadData.store_id) {
         this.$alert('请必须选择一个关联店铺！','上传素材')
         return;
       }
+      const formData = new FormData();
+      this.materialList.forEach((file) => {
+        formData.append("file", file.raw); // 将文件添加到 FormData 中
+      });
+      if (this.uploadData.tag){
+        formData.append('tag', this.uploadData.tag);
+      }
+      formData.append('store_id', this.uploadData.store_id);
+      formData.append('lip_sync', true);
       this.loading = true
-      this.$refs.materialUpload.submit()
+      axios.post("http://127.0.0.1:6006/figure/clone_only", formData,{
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      }).then((res) => {
+        if (res.data.status === "success") {
+          this.loading = false
+          this.$store.dispatch("generate/getFigureTasks");
+          this.$message.success("上传成功");
+          this.beforeUploadClose();
+        }else {
+          this.loading = false
+          this.$alert(res.data.message, "上传失败");
+        }
+      }).catch((err) => {
+        this.loading = false
+        this.$alert(err, "上传错误");
+      })
     },
     startDotAnimation() {
       this.dotTimer = setInterval(() => {
@@ -728,7 +760,7 @@ export default {
       postAction(url, params).then((res) => {
         if (res.data.status === "success") {
           this.$message.success("重命名成功");
-          this.$store.dispatch("task/pollFigureTasks");
+          this.$store.dispatch("generate/getFigureTasks");
           this.queryProducts()
         } else {
           this.$alert(res.data.message,'重命名失败')
@@ -765,7 +797,7 @@ export default {
               sessionStorage.removeItem('figure');
             }
 
-            this.$store.dispatch("task/pollFigureTasks");
+            this.$store.dispatch("generate/getFigureTasks");
           } else {
             this.$alert(res.data.message, "删除失败")
           }
@@ -932,82 +964,8 @@ export default {
       this.imagesList = fileList;
     },
 
-    handleFileChange(event, file, fileList) {
-      this.materialList = fileList;
-    },
     handleExceed(files, fileList) {
       this.$alert(`当前限制选择 100 个文件，本次选择了 ${files.length} 个文件，共选择了 ${files.length + fileList.length} 个文件`,'批量上传限制提醒');
-    },
-    uploadMaterialsError(file) {
-      this.response_list.push({
-        name: file.name,
-        status: "failed",
-        message: "上传失败"
-      })
-      if (this.response_list.length === this.materialList.length) {
-        const successFiles = this.response_list.filter(item => item.status === "success").map(res => res.name);
-        const failedFiles = this.response_list.filter(item => item.status === "failed");
-
-        let successContent = successFiles.length > 0 ? `${successFiles.join('、')}上传成功` : '';
-        let errorContent = failedFiles.length > 0
-            ? failedFiles.map(item => `${item.name}上传失败，${item.message}`).join('\n')
-            : '';
-
-        this.response_list = [];
-        this.materialList = [];
-
-        if (successContent) {
-          this.$alert(successContent, "素材上传成功任务").finally(() => {
-            if (errorContent) {
-              this.$alert(errorContent, "素材上传失败任务");
-            }
-            this.$store.dispatch("task/pollFigureTasks");
-          });
-        } else {
-          if (errorContent) {
-            this.$alert(errorContent, "素材上传失败任务");
-          }
-          this.$store.dispatch("task/pollFigureTasks");
-        }
-      }
-    },
-    uploadMaterialsSuccess(res, file) {
-      this.response_list.push({
-        name: file.name,
-        status: res.status === "success" ? "success" : "failed",
-        message: res.message
-      });
-
-      if (this.response_list.length === this.materialList.length) {
-        this.loading = false
-        this.uploadDialogVisible = false
-        this.beforeUploadClose()
-
-        const successFiles = this.response_list.filter(item => item.status === "success").map(res => res.name);
-        const failedFiles = this.response_list.filter(item => item.status === "failed");
-
-        let successContent = successFiles.length > 0 ? `${successFiles.join('、')}上传成功` : '';
-        let errorContent = failedFiles.length > 0
-            ? failedFiles.map(item => `${item.name}上传失败，${item.message}`).join('\n')
-            : '';
-
-        this.response_list = [];
-        this.materialList = [];
-
-        if (successContent) {
-          this.$alert(successContent, "素材上传成功任务").finally(() => {
-            if (errorContent) {
-              this.$alert(errorContent, "素材上传失败任务");
-            }
-            this.$store.dispatch("task/pollFigureTasks");
-          });
-        } else {
-          if (errorContent) {
-            this.$alert(errorContent, "素材上传失败任务");
-          }
-          this.$store.dispatch("task/pollFigureTasks");
-        }
-      }
     },
     uploadError(file) {
       this.loading = false
@@ -1021,7 +979,7 @@ export default {
       if (res.status === "success") {
         let content = `已创建${file.name}形象克隆任务，形象克隆成功后会自动更新形象列表`;
         this.$alert(content, "任务创建提醒");
-        this.$store.dispatch("task/pollFigureTasks");
+        this.$store.dispatch("generate/getFigureTasks");
       } else {
         let content = `创建${file.name}形象克隆任务失败，${res.message}`;
         this.$alert(content, "任务创建提醒");

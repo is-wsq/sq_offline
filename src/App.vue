@@ -26,6 +26,9 @@ export default {
     processVideo(newVal) {
       this.checkVideoPolling();
     },
+    processFigure(newVal) {
+      this.checkFigurePolling();
+    },
   },
   computed: {
     processVoice() {
