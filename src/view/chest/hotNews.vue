@@ -596,6 +596,9 @@ export default {
         voice_mode: this.mode,
         filename_list: [this.oral_title],
         text_list: [this.oral_copy],
+        title_params: {
+          title_text_list: [this.oral_title],
+        },
       }
       postAction("/figure/generate_video_v2", params).then(res => {
         if (res.data.status === 'success') {
