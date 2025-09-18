@@ -32,15 +32,6 @@
       <div class="timbre-card margin-t-12">
         <div class="timbre-card-title">
           <div style="flex: 1">克隆音色</div>
-<!--          <el-upload-->
-<!--            action="http://127.0.0.1:6006/timbres/clone"-->
-<!--            :show-file-list="false"-->
-<!--            accept=".mp3, .wav"-->
-<!--            :on-success="uploadSuccess"-->
-<!--            :on-error="uploadError"-->
-<!--            :before-upload="beforeUpload">-->
-<!--            <el-button type="primary" icon="el-icon-upload">上传音频克隆</el-button>-->
-<!--          </el-upload>-->
         </div>
         <div class="timbre-card-content">
           <el-row :gutter="16">
@@ -178,16 +169,15 @@ export default {
     }
   },
   computed: {
-    ...mapGetters("task", ["voiceTasks"]), // 获取任务列表
     processVoice() {
-      return this.voiceTasks.filter((item) => item.status === 'pending');
+      return this.$store.getters['generate/processVoices']
     },
     cloneVoice() {
-      return this.voiceTasks.filter((item) => item.type === "clone" && item.status === "success");
+      return this.$store.getters['generate/successVoices']
     }
   },
   mounted() {
-    this.$store.dispatch("task/pollVoiceTasks");
+    this.$store.dispatch("generate/getVoiceTasks");
     this.querySystemVoice()
   },
   beforeDestroy() {
@@ -250,7 +240,7 @@ export default {
       postAction("/timbres/update_name", params).then((res) => {
         if (res.data.status === "success") {
           this.$message.success("重命名成功。");
-          this.$store.dispatch("task/pollVoiceTasks");
+          this.$store.dispatch("generate/getVoiceTasks");
         } else {
           this.$alert(res.data.message, "重命名失败")
         }
@@ -266,7 +256,7 @@ export default {
         delAction(`/timbres/${item.id}`).then((res) => {
           if (res.data.status === "success") {
             this.$message.success("删除成功。");
-            this.$store.dispatch("task/pollVoiceTasks");
+            this.$store.dispatch("generate/getVoiceTasks");
           } else {
             this.$alert(res.data.message, "删除失败")
           }
@@ -295,7 +285,8 @@ export default {
       if (res.status === "success") {
         let content = `已创建${file.name}音色克隆任务，音色克隆成功后会自动更新音色列表`;
         this.$alert(content, "任务创建提醒");
-        this.$store.dispatch("task/pollVoiceTasks");
+        this.$store.dispatch("generate/addVoiceTask", res.data.timbre_id);
+        this.$store.dispatch("generate/getVoiceTasks");
       } else {
         let content = `创建${file.name}音色克隆任务失败，${res.data}`;
         this.$alert(content, "任务创建提醒");

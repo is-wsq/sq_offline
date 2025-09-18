@@ -95,31 +95,7 @@ const actions = {
     async pollVoiceTasks({ state, commit }) {
         await getAction("/timbres/query_success").then(res => {
             if (res.data.status ==='success') {
-                const list = res.data.data;
-                list.forEach(voice => {
-                    const prev = state.voicePreviousStatusMap[voice.id];
-                    if (prev === "pending" && voice.status === "success") {
-                        Vue.prototype.$notify({
-                            title: "语音合成成功",
-                            message: `《${voice.name}》语音合成任务已完成`,
-                            type: "success",
-                            duration: 5000
-                        });
-                    }else if (prev === "pending" && voice.status === "failed") {
-                        Vue.prototype.$notify({
-                            title: "语音合成失败",
-                            message: `《${voice.name}》语音合成任务失败,${voice.message}`,
-                            duration: 0,
-                            type: "error",
-                        })
-                    }
-                });
-
-                const newStatusMap = {};
-                list.forEach(v => { newStatusMap[v.id] = v.status; });
-
-                commit("setVoiceTasks", list);
-                commit("updateVoicePreviousStatusMap", newStatusMap);
+                commit("setVoiceTasks", res.data.data);
             }else {
                 Vue.prototype.$message.error(res.data.message);
             }

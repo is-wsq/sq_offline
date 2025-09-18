@@ -178,7 +178,6 @@ export default {
       downloadFileName: '',
       selectedId: '',
       inputFocus: false,
-      videoList: [],
       hover_id: null,
       editId: '',
       logDialogVisible: false,
@@ -192,27 +191,16 @@ export default {
     }
   },
   computed: {
-    ...mapGetters("task", ["videoTasks"]),
     processList() {
-      return this.videoTasks.filter((item) => item.status === 'pending');
+      return this.$store.getters['generate/videoTasks'].filter((item) => item.status === 'pending');
     },
-    videos() {
-      return this.videoTasks.reduce((acc, item) => {
-        if (item.status === 'success') {
-          acc.push({...item, isEdit: false});
-        }
-        return acc;
-      }, []);
+    videoList() {
+      return this.$store.getters['generate/videoTasks'].filter((item) => item.status === 'success')
     },
-  },
-  watch: {
-    videos: function (newVal, oldVal) {
-      this.videoList = newVal
-    }
   },
   mounted() {
     this.startDotAnimation();
-    this.$store.dispatch("task/pollVideoTasks")
+    this.$store.dispatch("generate/getVideoTasks")
     this.$nextTick(() => {
       const container = this.$refs.videoContentRef;
       if (container) {
@@ -256,7 +244,7 @@ export default {
         delAction(`/video_record/delete/${item.id}`).then(res => {
           if (res.data.status === 'success') {
             this.$message.success('删除成功');
-            this.$store.dispatch("task/pollVideoTasks")
+            this.$store.dispatch("generate/getVideoTasks")
           } else {
             this.$alert(res.data.message, '删除提示');
           }
@@ -305,7 +293,7 @@ export default {
       postAction("/video_record/update_name", params).then((res) => {
         if (res.data.status === "success") {
           this.$message.success("重命名成功");
-          this.$store.dispatch("task/pollVideoTasks")
+          this.$store.dispatch("generate/getVideoTasks")
         } else {
           this.$alert(res.data.message, '重命名提示');
         }

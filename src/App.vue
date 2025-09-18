@@ -14,25 +14,93 @@ export default {
   },
   data() {
     return {
-      pollingTimer: null
+      videoPollingTimer: null,
+      voicePollingTimer: null,
+      figurePollingTimer: null,
     }
   },
-  created() {
-    // localStorage.removeItem('tasks')
+  watch: {
+    processVoice(newVal) {
+      this.checkVoicePolling();
+    },
+    processVideo(newVal) {
+      this.checkVideoPolling();
+    },
+  },
+  computed: {
+    processVoice() {
+      return this.$store.getters['generate/pendingVoiceTaskIds']
+    },
+    processVideo() {
+      return this.$store.getters['generate/pendingVideoTaskIds']
+    },
+    processFigure() {
+      return this.$store.getters['generate/pendingFigureTaskIds']
+    },
   },
   mounted() {
-    this.$store.dispatch("task/pollVideoTasks");
-    this.$store.dispatch("task/pollVoiceTasks");
-    this.$store.dispatch("task/pollFigureTasks");
-    this.pollingTimer = setInterval(() => {
-      this.$store.dispatch("task/pollVideoTasks");
-      this.$store.dispatch("task/pollVoiceTasks");
-      this.$store.dispatch("task/pollFigureTasks");
-    }, 5000);
+    this.$store.dispatch("generate/pollVoiceTasks");
+    this.checkVoicePolling();
+    this.checkVideoPolling();
+    this.checkFigurePolling();
+  },
+  methods: {
+    checkVoicePolling() {
+      if (this.processVoice.length > 0 && !this.voicePollingTimer) {
+        this.startVoicePolling();
+      } else if (this.processVoice.length === 0 && this.voicePollingTimer) {
+        this.stopVoicePolling();
+      }
+    },
+    startVoicePolling() {
+      this.voicePollingTimer = setInterval(() => {
+        this.$store.dispatch("generate/pollVoiceTasks");
+      }, 3000);
+    },
+    stopVoicePolling() {
+      clearInterval(this.voicePollingTimer);
+      this.voicePollingTimer = null;
+    },
+
+    checkVideoPolling() {
+      if (this.processVideo.length > 0 && !this.videoPollingTimer) {
+        this.startVideoPolling();
+      } else if (this.processVideo.length === 0 && this.videoPollingTimer) {
+        this.stopVideoPolling();
+      }
+    },
+    startVideoPolling() {
+      this.videoPollingTimer = setInterval(() => {
+        this.$store.dispatch("generate/pollVideoTasks");
+      }, 3000);
+    },
+    stopVideoPolling() {
+      clearInterval(this.videoPollingTimer);
+      this.videoPollingTimer = null;
+    },
+
+    checkFigurePolling() {
+      if (this.processFigure.length > 0 && !this.figurePollingTimer) {
+        this.startFigurePolling();
+      } else if (this.processFigure.length === 0 && this.figurePollingTimer) {
+        this.stopFigurePolling();
+      }
+    },
+    startFigurePolling() {
+      this.figurePollingTimer = setInterval(() => {
+        this.$store.dispatch("generate/pollFigureTasks");
+      }, 3000);
+    },
+    stopFigurePolling() {
+      clearInterval(this.figurePollingTimer);
+      this.figurePollingTimer = null;
+    },
   },
 
   beforeDestroy() {
-    clearInterval(this.pollingTimer);
+    clearInterval(this.voicePollingTimer);
+    clearInterval(this.videoPollingTimer);
+    clearInterval(this.figurePollingTimer);
   }
 }
 </script>

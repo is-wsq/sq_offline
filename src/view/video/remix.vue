@@ -1409,6 +1409,7 @@ export default {
       postAction('/figure/export_video_sync', params).then(res => {
         if (res.data.status === "success") {
           this.$alert('已创建视频生成任务，视频生成成功后会自动下载到本地', "任务创建提醒");
+          this.$store.dispatch("generate/addVideoTask", res.data.data.video_id_list);
           if (with_out_route) {
             return
           }
@@ -1483,6 +1484,7 @@ export default {
       postAction('/figure/export_video_sync_all', params, 3600000).then(res => {
         if (res.data.status === "success") {
           this.$alert('已创建视频生成任务，视频生成成功后会自动下载到本地', "任务创建提醒");
+          this.$store.dispatch("generate/addVideoTask", res.data.data.video_id_list);
           sessionStorage.clear()
           setTimeout(() => {
             this.clearCache()
