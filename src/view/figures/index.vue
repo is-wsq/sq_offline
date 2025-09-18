@@ -538,7 +538,7 @@ export default {
     this.queryShops()
     this.queryProducts()
     this.startDotAnimation();
-    this.$store.dispatch("generate/getFigureTasks");
+    this.$store.dispatch("generate/pollFigureTasks");
     window.addEventListener('keydown', this.handleKeyDown);
     this.$nextTick(() => {
       const container = this.$refs.materialsRef;
@@ -711,7 +711,7 @@ export default {
       }).then((res) => {
         if (res.data.status === "success") {
           this.loading = false
-          this.$store.dispatch("generate/getFigureTasks");
+          this.$store.dispatch("generate/pollFigureTasks");
           this.$message.success("上传成功");
           this.beforeUploadClose();
         }else {
@@ -760,7 +760,7 @@ export default {
       postAction(url, params).then((res) => {
         if (res.data.status === "success") {
           this.$message.success("重命名成功");
-          this.$store.dispatch("generate/getFigureTasks");
+          this.$store.dispatch("generate/pollFigureTasks");
           this.queryProducts()
         } else {
           this.$alert(res.data.message,'重命名失败')
@@ -797,7 +797,7 @@ export default {
               sessionStorage.removeItem('figure');
             }
 
-            this.$store.dispatch("generate/getFigureTasks");
+            this.$store.dispatch("generate/pollFigureTasks");
           } else {
             this.$alert(res.data.message, "删除失败")
           }
@@ -979,7 +979,7 @@ export default {
       if (res.status === "success") {
         let content = `已创建${file.name}形象克隆任务，形象克隆成功后会自动更新形象列表`;
         this.$alert(content, "任务创建提醒");
-        this.$store.dispatch("generate/getFigureTasks");
+        this.$store.dispatch("generate/pollFigureTasks");
       } else {
         let content = `创建${file.name}形象克隆任务失败，${res.message}`;
         this.$alert(content, "任务创建提醒");

@@ -177,7 +177,7 @@ export default {
     }
   },
   mounted() {
-    this.$store.dispatch("generate/getVoiceTasks");
+    this.$store.dispatch("generate/pollVoiceTasks");
     this.querySystemVoice()
   },
   beforeDestroy() {
@@ -240,7 +240,7 @@ export default {
       postAction("/timbres/update_name", params).then((res) => {
         if (res.data.status === "success") {
           this.$message.success("重命名成功。");
-          this.$store.dispatch("generate/getVoiceTasks");
+          this.$store.dispatch("generate/pollVoiceTasks");
         } else {
           this.$alert(res.data.message, "重命名失败")
         }
@@ -256,7 +256,7 @@ export default {
         delAction(`/timbres/${item.id}`).then((res) => {
           if (res.data.status === "success") {
             this.$message.success("删除成功。");
-            this.$store.dispatch("generate/getVoiceTasks");
+            this.$store.dispatch("generate/pollVoiceTasks");
           } else {
             this.$alert(res.data.message, "删除失败")
           }
@@ -285,8 +285,7 @@ export default {
       if (res.status === "success") {
         let content = `已创建${file.name}音色克隆任务，音色克隆成功后会自动更新音色列表`;
         this.$alert(content, "任务创建提醒");
-        this.$store.dispatch("generate/addVoiceTask", res.data.timbre_id);
-        this.$store.dispatch("generate/getVoiceTasks");
+        this.$store.dispatch("generate/pollVoiceTasks");
       } else {
         let content = `创建${file.name}音色克隆任务失败，${res.data}`;
         this.$alert(content, "任务创建提醒");

@@ -14,9 +14,6 @@ const state = {
 }
 
 const mutations = {
-    ADD_VOICE_TASK(state, taskId) {
-        state.voiceTaskIds.push(taskId)
-    },
     SET_VOICE_TASKS(state, list) {
         state.voiceTaskIds = list
     },
@@ -32,9 +29,6 @@ const mutations = {
         state.figureTasks = list
     },
 
-    ADD_VIDEO_TASK(state, tasks) {
-        state.videoTaskIds = state.videoTaskIds.concat(tasks)
-    },
     SET_VIDEO_TASK(state, list) {
         state.videoTaskIds = list
     },
@@ -44,25 +38,6 @@ const mutations = {
 }
 
 const actions = {
-    addVoiceTask({ commit }, taskId) {
-        commit('ADD_VOICE_TASK', taskId)
-    },
-    getVoiceTasks({ state, commit }) {
-        getAction("/timbres/query_success").then(res => {
-            if (res.data.status ==='success') {
-                let voices = {
-                    successVoices: res.data.data.filter(item => item.type === "clone" && item.status ==='success'),
-                    processVoices: res.data.data.filter(item => item.status === 'pending')
-                }
-                commit('SET_VOICES', voices)
-                commit('SET_VOICE_TASKS', res.data.data.filter(task => task.status === 'pending').map(item => item.id))
-            }else {
-                Vue.prototype.$message.error(res.data.message);
-            }
-        }).catch(err => {
-            console.log(err)
-        })
-    },
     async pollVoiceTasks({ state, commit }) {
         const pendingTasks = state.voiceTaskIds
 
@@ -101,20 +76,6 @@ const actions = {
         })
     },
 
-    getFigureTasks({ state, commit }) {
-        getAction("/figure/query_success").then(res => {
-            if (res.data.status ==='success') {
-                commit("SET_FIGURES", res.data.data);
-                commit('SET_FIGURE_TASK',
-                    res.data.data.filter(figure => figure.status === 'ready' || figure.status === 'pending')
-                        .map(item => item.id))
-            }else {
-                Vue.prototype.$message.error(res.data.message);
-            }
-        }).catch(err => {
-            console.log(err)
-        })
-    },
     async pollFigureTasks({ state, commit }) {
         const pendingTasks = state.figureTaskIds
 
@@ -153,21 +114,6 @@ const actions = {
         })
     },
 
-    addVideoTask({ commit }, tasks) {
-        commit('ADD_VIDEO_TASK', tasks)
-    },
-    getVideoTasks({ state, commit }) {
-        getAction("/video_record/query").then(res => {
-            if (res.data.status === 'success') {
-                commit("SET_VIDEOS", res.data.data);
-                commit('SET_VIDEO_TASK', res.data.data.filter(video => video.status === 'pending').map(item => item.id))
-            }else {
-                Vue.prototype.$message.error(res.data.message);
-            }
-        }).catch(err => {
-            console.log(err)
-        })
-    },
     async pollVideoTasks({ state, commit }) {
         const pendingTasks = state.videoTaskIds
 

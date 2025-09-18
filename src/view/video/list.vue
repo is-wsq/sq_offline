@@ -200,7 +200,7 @@ export default {
   },
   mounted() {
     this.startDotAnimation();
-    this.$store.dispatch("generate/getVideoTasks")
+    this.$store.dispatch("generate/pollVideoTasks")
     this.$nextTick(() => {
       const container = this.$refs.videoContentRef;
       if (container) {
@@ -244,7 +244,7 @@ export default {
         delAction(`/video_record/delete/${item.id}`).then(res => {
           if (res.data.status === 'success') {
             this.$message.success('删除成功');
-            this.$store.dispatch("generate/getVideoTasks")
+            this.$store.dispatch("generate/pollVideoTasks")
           } else {
             this.$alert(res.data.message, '删除提示');
           }
@@ -293,7 +293,7 @@ export default {
       postAction("/video_record/update_name", params).then((res) => {
         if (res.data.status === "success") {
           this.$message.success("重命名成功");
-          this.$store.dispatch("generate/getVideoTasks")
+          this.$store.dispatch("generate/pollVideoTasks")
         } else {
           this.$alert(res.data.message, '重命名提示');
         }

@@ -331,7 +331,7 @@ export default {
   mounted() {
     this.initData()
     this.startDotAnimation();
-    this.$store.dispatch("generate/getFigureTasks");
+    this.$store.dispatch("generate/pollFigureTasks");
   },
   beforeDestroy() {
     clearInterval(this.dotTimer);
@@ -398,7 +398,7 @@ export default {
       postAction("/figure/update_name", params).then((res) => {
         if (res.data.status === "success") {
           this.$message.success("重命名成功");
-          this.$store.dispatch("generate/getFigureTasks");
+          this.$store.dispatch("generate/pollFigureTasks");
         } else {
           this.$alert(res.data.message,'重命名失败')
         }
@@ -415,7 +415,7 @@ export default {
         delAction("/figure/delete", {ids: this.deleteId}).then((res) => {
           if (res.data.status === "success") {
             this.$message.success("删除成功");
-            this.$store.dispatch("generate/getFigureTasks");
+            this.$store.dispatch("generate/pollFigureTasks");
           } else {
             this.$alert(res.data.message, "删除失败")
           }
@@ -490,7 +490,7 @@ export default {
       }).then((res) => {
         if (res.data.status === "success") {
           this.loading = false
-          this.$store.dispatch("generate/getFigureTasks");
+          this.$store.dispatch("generate/pollFigureTasks");
           this.$message.success("上传成功");
           this.beforeUploadClose();
         }else {
@@ -527,7 +527,7 @@ export default {
         }
         this.loading = false
         this.uploadDialogVisible = false
-        this.$store.dispatch("generate/getFigureTasks");
+        this.$store.dispatch("generate/pollFigureTasks");
       })
     },
 
