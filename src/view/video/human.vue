@@ -1510,7 +1510,6 @@ export default {
   height: 13px;
   margin-top: 9px;
   border: 1px solid #409EFF;
-  background-color: #0075ff;
 }
 
 .s-btn-volume >>> .el-slider__button-wrapper {
@@ -1520,8 +1519,8 @@ export default {
 .s-btn-volume >>> .el-slider__runway {
   height: 5px;
   margin: 10px 0;
-  border: 1px solid #b5b5b5;
-  background-color: #efefef;
+  border: 1px solid #e4e7ed;
+  background-color: #f8fafc;
 }
 
 .s-btn-volume >>> .el-slider {
