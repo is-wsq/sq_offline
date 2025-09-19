@@ -276,6 +276,10 @@ export default {
       }
     },
     sendChat() {
+      if (this.chat_input.trim() === '') {
+        this.$alert('请先输入修改意见', '提示')
+        return
+      }
       this.isNewChat = false
       this.script_chat.push({
         type: 'userMessage',
@@ -416,6 +420,10 @@ export default {
       this.copy_num = this.findNearestHundred(this.exampleTexts.length)
     },
     batchGenerate() {
+      if (this.copy_require.trim() === '') {
+        this.$alert('文案要求不能为空，请先填写文案要求', '提示')
+        return
+      }
       this.isNewChat = false
       this.script_chat.push({
         type: 'userMessage',
