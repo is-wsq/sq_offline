@@ -52,7 +52,7 @@
             </div>
           </div>
           <template v-if="selected_figure.id">
-            <div class="panel-label margin-t-12">人物形象出镜比例</div>
+            <div class="panel-label margin-t-12">数字人时长占比</div>
             <div class="figure-ratio-slider">
               <el-slider v-model="figure_ratio" style="flex: 1" @change="saveFigureRatio"
                          :step="10" :format-tooltip="formatTooltip"></el-slider>
