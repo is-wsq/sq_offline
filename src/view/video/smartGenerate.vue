@@ -234,8 +234,11 @@
 <script>
 import axios from "axios";
 import {getAction, postAction} from "@/api/api";
+import {ClearCacheMixin} from "@/mixins/ClearCacheMixin";
 
 export default {
+  name: 'SmartGenerate',
+  mixins: [ClearCacheMixin],
   data() {
     return {
       activeName: '1',
@@ -820,6 +823,11 @@ export default {
       return result;
     },
     back() {
+      if (this.isGenerating) {
+        this.$message.warning('请等待当前生成完成之后返回')
+        return
+      }
+      this.clearCache()
       let path = this.script_type === 'material' ? '/material' : '/human'
       sessionStorage.setItem('video_path', path)
       this.$router.push({path: path})

@@ -179,8 +179,10 @@
 
 <script>
 import axios from "axios";
-
+import {ClearCacheMixin} from "@/mixins/ClearCacheMixin";
 export default {
+  name: 'Duplicate',
+  mixins: [ClearCacheMixin],
   data() {
     return {
       activeName: '1',
@@ -527,6 +529,11 @@ export default {
       sessionStorage.setItem('video_path', '/remix')
     },
     back() {
+      if (this.isGenerating) {
+        this.$message.warning('请等待当前生成完成之后返回')
+        return
+      }
+      this.clearCache()
       this.$router.push({path: '/material'})
       sessionStorage.setItem('video_path', '/material')
     }

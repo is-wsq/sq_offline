@@ -53,7 +53,7 @@ export default {
         {name: "品牌店铺", path: "/shop", class: 'el-icon-s-shop'},
         {name: "设置", path: "/system", class: 'el-icon-setting'},
       ],
-      alive_routers: ['/syncCv','/montage','/remix','/segments']
+      alive_routers: ['/syncCv','/montage','/remix','/segments','/smartGenerate','/duplicate']
     };
   },
   async mounted() {
