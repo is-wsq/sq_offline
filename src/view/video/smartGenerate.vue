@@ -11,10 +11,11 @@
       <el-row style="height: 100%;" :gutter="20">
         <el-col :span="12" :md="10" :lg="8" style="height: 100%">
           <div class="smart-generate-c-l">
-            <div class="font-weight">生成文案</div>
+            <div class="font-weight" style="margin-left: 12px">生成文案</div>
             <el-collapse v-model="activeName" accordion>
               <el-collapse-item title="AI批量生成" name="1">
-                <div class="smart-generate-c-l-ai">
+                <div class="smart-generate-c-l-ai" style="padding: 0 12px !important;"
+                     v-if="script_chat.length === 0 || isNewChat">
                   <div style="overflow-y: auto; overflow-x: hidden;" ref="scriptForm"
                        :style="{ maxHeight: script_type === 'material' && !selected_figure.id ?
                                 'max(calc(100vh - 410px), 330px)' :
@@ -71,8 +72,70 @@
                       <el-option label="deepseek v3" value="deepseek_v3"></el-option>
                     </el-select>
                   </div>
-                  <div class="smart-generate-c-l-ai-generate margin-t-8">
+                  <div class="smart-generate-c-l-ai-generate margin-t-8 margin-b-12">
                     <el-button type="primary" @click="batchGenerate" style="width: 100%">批量生成</el-button>
+                  </div>
+                </div>
+                <div class="smart-generate-c-l-ai" v-else>
+                  <div class="chat-area" :style="{ height: script_type === 'material' && !selected_figure.id ?
+                       'max(calc(100vh - 360px), 380px)' : 'max(calc(100vh - 310px), 430px)' }">
+                    <div class="chat-frame" ref="scriptChatRef">
+                      <div v-for="(item, index) in script_chat" :key="index"
+                           :class="{'historical-chat': lastNewChatIndex !== -1 && index < lastNewChatIndex}">
+                        <div v-if="item.type === 'userMessage'" style="display: flex;justify-content: end;">
+                          <div class="user-message">
+                            {{ item.content }}
+                          </div>
+                        </div>
+                        <div v-if="item.type === 'answerMessage'" class="answer-message-content">
+                          <div class="answer-message">
+                            <div class="avatar-area">奇</div>
+                            <div style="flex: 1">
+                              <div class="answer-message-label margin-t-12">生成的脚本</div>
+                              <div class="script-content" v-for="(script,script_index) in item.scripts" :key="script_index">
+                                {{ script.script }}
+                                <div class="script-btn-group">
+                                  <div title="选择该脚本" class="script-btn-item" @click="selectScript(script)">
+                                    <i class="el-icon-copy-document cursor-pointer"></i>
+                                  </div>
+                                  <div title="删除该脚本" class="script-btn-item" @click="deleteScript(index,script_index)">
+                                    <i class="el-icon-delete cursor-pointer"></i>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                          <div class="select-script-btn" @click="selectAllScript(item.scripts)">
+                            <i class="el-icon-copy-document font-weight"></i>
+                            选择本次生成脚本
+                          </div>
+                        </div>
+                        <div v-if="item.type === 'newChat'">
+                          <el-divider>新会话</el-divider>
+                        </div>
+                      </div>
+                      <div class="loading-content" v-if="isGenerating">
+                        <div class="avatar-area">奇</div>
+                        <div class="answer-message-label margin-t-12" style="line-height: 20px;font-size: 14px">
+                          文案生成中
+                          <i class="el-icon-loading" style="font-size: 16px;margin-left: 4px"></i>
+                        </div>
+                      </div>
+                    </div>
+                    <div class="chat-input">
+                      <div class="create-chat-btn" @click="createNewChat">
+                        <i class="el-icon-edit-outline" style="margin-right: 5px"></i>
+                        发起新会话
+                      </div>
+                      <div class="flex-center">
+                        <el-input type="textarea" placeholder="请输入您的修改意见..." resize="none" v-model="chat_input"
+                                  @keydown.native="enterSendChat"></el-input>
+                        <el-button type="primary" style="padding: 0 20px" @click="sendChat" :disabled="isGenerating">
+                          <i class="el-icon-s-promotion" style="font-size: 18px;line-height: 35px"></i>
+                        </el-button>
+                      </div>
+                      <div class="send-placeholder">按Enter或发送按钮发送，Shift+Enter换行</div>
+                    </div>
                   </div>
                 </div>
               </el-collapse-item>
@@ -212,13 +275,190 @@ export default {
 
       reverse: false,
       mention_list: [], //选择的素材列表
-      selected_figure: {}
+      selected_figure: {},
+
+      script_chat: [],
+      isNewChat: true,
+      chat_input: '',
+      isGenerating: false,
+      conversation_id: '',
+      lastGenerateScripts: []
+    }
+  },
+  watch: {
+    script_chat: {
+      handler(newValue, oldValue) {
+        if (this.script_type === 'material') {
+          sessionStorage.setItem('material_script_chat', JSON.stringify(newValue))
+        } else {
+          sessionStorage.setItem('script_chat', JSON.stringify(newValue))
+        }
+      },
+      deep: true
+    },
+    isNewChat: {
+      handler(newValue, oldValue) {
+        if (this.script_type === 'material') {
+          sessionStorage.setItem('material_script_is_newChat', JSON.stringify(newValue))
+        } else {
+          sessionStorage.setItem('script_is_newChat', JSON.stringify(newValue))
+        }
+      },
+      deep: true
+    },
+    conversation_id: {
+      handler(newValue, oldValue) {
+        if (this.script_type === 'material') {
+          sessionStorage.setItem('material_script_conversation_id', newValue)
+        } else {
+          sessionStorage.setItem('script_conversation_id', newValue)
+        }
+      },
+      deep: true
+    },
+    lastGenerateScripts: {
+      handler(newValue, oldValue) {
+        if (this.script_type === 'material') {
+          sessionStorage.setItem('material_script_last_generate', JSON.stringify(newValue))
+        } else {
+          sessionStorage.setItem('script_last_generate', JSON.stringify(newValue))
+        }
+      },
+      deep: true
+    }
+  },
+  computed: {
+    lastNewChatIndex() {
+      for (let i = this.script_chat.length - 1; i >= 0; i--) {
+        if (this.script_chat[i].type === 'newChat') {
+          return i;
+        }
+      }
+      return -1;
     }
   },
   mounted() {
     this.initData()
   },
   methods: {
+    scrollToBottom() {
+      if (this.$refs.scriptChatRef) {
+        this.$refs.scriptChatRef.scrollTop = this.$refs.scriptChatRef.scrollHeight
+      }
+    },
+    createNewChat() {
+      if (this.isGenerating) {
+        this.$alert('请等待生成结束后再发起新会话','提示')
+        return
+      }
+      this.isNewChat = true
+      this.conversation_id = null
+      sessionStorage.removeItem('script_conversation_id')
+      this.script_chat.push({type: 'newChat'})
+      this.$nextTick(() => { this.scrollToBottom() })
+    },
+    enterSendChat(event) {
+      if (event.key === 'Enter' && !event.shiftKey) {
+        event.preventDefault();
+        if (this.isGenerating) {
+          return;
+        }
+        this.sendChat();
+      }
+    },
+    sendChat() {
+      this.isNewChat = false
+      this.script_chat.push({
+        type: 'userMessage',
+        content: this.chat_input || '随意生成合适文案即可',
+      });
+      this.isGenerating = true
+      this.$nextTick(() => { this.scrollToBottom() })
+
+      const store_id = this.script_type === 'material' ? this.mention_list[0].store_id : ''
+      let params = {
+        requirements: this.chat_input,
+        num_of_words: parseInt(this.copy_num),
+        store_id: store_id,
+        conversation_id: this.conversation_id,
+        scripts: this.lastGenerateScripts,
+      }
+      this.chat_input = ''
+      axios.post('http://127.0.0.1:9669/api/re_generate_script', params).then(res => {
+        if (res.data.status === "success") {
+          this.isGenerating = false
+          this.lastGenerateScripts = res.data.data.scripts
+          this.script_chat.push({
+            type: 'answerMessage',
+            scripts: res.data.data.scripts,
+          })
+          this.$nextTick(() => { this.scrollToBottom() })
+        } else {
+          this.isGenerating = false
+          this.$alert(res.data.message,'文案生成失败')
+        }
+      }).catch(err => {
+        this.isGenerating = false
+        this.$alert(err,'文案生成错误')
+      })
+    },
+    selectScript(script) {
+      if (this.copy_list.some(item => item.content === script.script)) {
+        this.$message.warning('脚本已添加，请勿重复添加');
+      } else {
+        this.copy_list.push({
+          title: script.title,
+          content: script.script,
+          isEdit: false,
+          bgm: this.material_bgm
+        })
+        if (this.script_type === 'material') {
+          sessionStorage.setItem("copy_list", JSON.stringify(this.copy_list))
+          sessionStorage.removeItem('montage_data')
+        }else {
+          sessionStorage.setItem("figure_copy_list", JSON.stringify(this.copy_list))
+        }
+        this.$message.success('脚本已添加到列表');
+      }
+    },
+    deleteScript(index, script_index) {
+      let copy = this.script_chat[index].scripts[script_index].script
+      this.$confirm('确认删除该生成脚本吗？', '提示', {
+        type: 'warning'
+      }).then(() => {
+        this.script_chat[index].scripts.splice(script_index, 1);
+        this.$message.success('删除成功')
+      }).catch(() => {
+        this.$message.info('已取消删除');
+      })
+    },
+    selectAllScript(scripts) {
+      const existingCopies = new Set(this.copy_list.map(item => item.content));
+      const newScripts = scripts.filter(script => !existingCopies.has(script.script));
+      const duplicatedScripts = scripts.filter(script => existingCopies.has(script.script));
+      if (newScripts.length === 0) {
+        this.$message.warning('本次生成脚本已添加，请勿重复添加');
+        return;
+      }
+      const scriptsToAdd = newScripts.map(item => ({
+        title: item.title,
+        content: item.script,
+        isEdit: false,
+        bgm: this.material_bgm
+      }));
+
+      this.copy_list = this.copy_list.concat(scriptsToAdd);
+      if (this.script_type === 'material') {
+        sessionStorage.setItem("copy_list", JSON.stringify(this.copy_list))
+        sessionStorage.removeItem('montage_data')
+      }else {
+        sessionStorage.setItem("figure_copy_list", JSON.stringify(this.copy_list))
+      }
+      if (duplicatedScripts.length > 0) {
+        this.$message.success('脚本添加成功，已自动忽略重复脚本');
+      }
+    },
+
     generateNoCopy() {
       const maxTitleNumber = this.copy_list.reduce((max, item) => {
         const match = item.title.match(/无文案剪辑视频(\d+)/);
@@ -282,9 +522,19 @@ export default {
       if (this.script_type === 'material') {
         this.copy_list = sessionStorage.getItem("copy_list") ? JSON.parse(sessionStorage.getItem("copy_list")) : []
         this.material_bgm = JSON.parse(sessionStorage.getItem('setting_bgm')) || {}
+        this.conversation_id = sessionStorage.getItem('material_script_conversation_id')
+        this.isNewChat = sessionStorage.getItem('material_script_is_newChat') === 'true'
+        this.script_chat = JSON.parse(sessionStorage.getItem('material_script_chat')) || []
+        this.lastGenerateScripts = JSON.parse(sessionStorage.getItem('material_script_last_generate')) || []
+        this.$nextTick(() => { this.scrollToBottom() })
       } else {
         this.copy_list = sessionStorage.getItem("figure_copy_list") ? JSON.parse(sessionStorage.getItem("figure_copy_list")) : []
         this.material_bgm = JSON.parse(sessionStorage.getItem('figure_setting_bgm')) || {}
+        this.conversation_id = sessionStorage.getItem('script_conversation_id')
+        this.isNewChat = sessionStorage.getItem('script_is_newChat') === 'true'
+        this.script_chat = JSON.parse(sessionStorage.getItem('script_chat')) || []
+        this.lastGenerateScripts = JSON.parse(sessionStorage.getItem('script_last_generate')) || []
+        this.$nextTick(() => { this.scrollToBottom() })
       }
       let smart_generate_setting = JSON.parse(sessionStorage.getItem("smart_generate_setting")) || {}
       this.language = smart_generate_setting.language || '中文'
@@ -305,6 +555,14 @@ export default {
           url = 'http://127.0.0.1:9669/api/generate_script'
           break
       }
+      this.isNewChat = false
+      this.script_chat.push({
+        type: 'userMessage',
+        content: this.copy_require || '随意生成合适文案即可',
+      });
+      this.isGenerating = true
+      this.$nextTick(() => { this.scrollToBottom() })
+
       const cleanTexts = this.exampleTexts.map(text => text.trim()).filter(text => text !== '');
       const store_id = this.script_type === 'material' ? this.mention_list[0].store_id : ''
       let params = {
@@ -315,28 +573,21 @@ export default {
         script_count: parseInt(this.script_num),
         store_id: store_id
       }
-      this.loading = this.$loading({
-        lock: true, text: '文案生成中，请耐心等待...',
-        spinner: 'el-icon-loading', background: 'rgba(0, 0, 0, 0.7)'
-      });
       axios.post(url, params).then(res => {
-        this.loading.close();
-        this.loading = null;
         if (res.data.status === "success") {
-          this.copy_list = this.copy_list.concat(res.data.data.map(
-              item => ({title: item.title, content: item.script, isEdit: false, bgm: this.material_bgm})))
-          if (this.script_type === 'material') {
-            sessionStorage.setItem("copy_list", JSON.stringify(this.copy_list))
-            sessionStorage.removeItem('montage_data')
-          }else {
-            sessionStorage.setItem("figure_copy_list", JSON.stringify(this.copy_list))
-          }
+          this.isGenerating = false
+          this.lastGenerateScripts = res.data.data
+          this.script_chat.push({
+            type: 'answerMessage',
+            scripts: res.data.data
+          })
+          this.$nextTick(() => { this.scrollToBottom() })
         } else {
+          this.isGenerating = false
           this.$alert(res.data.message,'文案生成失败')
         }
       }).catch(err => {
-        this.loading.close();
-        this.loading = null;
+        this.isGenerating = false
         this.$alert(err,'文案生成错误')
       })
     },
@@ -604,13 +855,14 @@ export default {
   width: 100%;
   background-color: #FFFFFF;
   border-radius: 16px;
-  padding: 16px;
+  padding: 16px 0;
   box-sizing: border-box;
 }
 
 .smart-generate-c-r {
   display: flex;
   flex-direction: column;
+  padding: 16px !important;
 }
 
 .delete-group-btn {
@@ -625,13 +877,18 @@ export default {
 .smart-generate-c-l >>> .el-collapse-item__header {
   font-weight: bold;
   font-size: 14px;
+  padding-left: 12px;
 }
 
 .smart-generate-c-l >>> .el-collapse-item__content {
   padding-bottom: 0;
 }
 
-.smart-generate-c-l-ai, .smart-generate-c-l-manual {
+.smart-generate-c-l-ai {
+  padding-bottom: 16px;
+}
+
+.smart-generate-c-l-manual {
   padding: 0 4px 16px 4px;
 }
 
@@ -813,5 +1070,189 @@ export default {
 
 ::v-deep .el-switch__label {
   font-weight: bold;
+}
+
+.chat-area {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  overflow: hidden;
+}
+
+.chat-frame {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 0 12px;
+  overflow-y: auto;
+}
+
+.chat-frame >>> .el-divider--horizontal {
+  margin: 10px 0 !important;
+}
+
+.chat-frame >>> .el-divider__text {
+  color: #9ca3af;
+}
+
+.historical-chat {
+  opacity: 0.5;
+  /* pointer-events: none; */
+  transition: opacity 0.3s ease-in-out;
+}
+
+.user-message {
+  max-width: 85%;
+  background-color: #dbeafe;
+  padding: 10px;
+  box-shadow: 0 0 #0000, 0 0 #0000, 0 1px 2px 0 rgb(0 0 0 / 0.05);
+  border-radius: 8px;
+  border-top-left-radius: 0 !important;
+  color: #4B5563;
+  font-size: 14px;
+}
+
+.answer-message {
+  background-color: #eff6ff;
+  padding: 10px;
+  box-shadow: 0 0 #0000, 0 0 #0000, 0 1px 2px 0 rgb(0 0 0 / 0.05);
+  border-radius: 8px;
+  border-top-right-radius: 0 !important;
+  display: flex;
+  gap: 8px;
+}
+
+.answer-message >>> .el-collapse {
+  border: none;
+}
+
+.answer-message >>> .el-collapse-item__wrap {
+  background-color: transparent;
+  border: none;
+}
+
+.answer-message >>> .el-collapse-item__header {
+  height: 32px;
+  line-height: 32px;
+  background-color: transparent;
+  border: none;
+}
+
+.answer-message >>> .el-collapse-item__arrow {
+  margin: 0 10px;
+  font-weight: bold;
+}
+
+.answer-message >>> .el-collapse-item__content {
+  padding-bottom: 0;
+}
+
+.loading-content {
+  width: 80%;
+  background-color: #eff6ff;
+  padding: 10px;
+  box-shadow: 0 0 #0000, 0 0 #0000, 0 1px 2px 0 rgb(0 0 0 / 0.05);
+  border-radius: 8px;
+  border-top-right-radius: 0 !important;
+  display: flex;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.select-script-btn {
+  width: 120px;
+  font-size: 12px;
+  color: #4B5563;
+  margin-top: 4px;
+  cursor: pointer;
+  opacity: 0;
+}
+
+.answer-message-content {
+  max-width: 85%;
+}
+
+.answer-message-content:hover .select-script-btn {
+  opacity: 1;
+}
+
+.avatar-area {
+  width: 32px;
+  height: 32px;
+  background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #ec4899 100%);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-weight: bold;
+  font-size: 18px;
+  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+  position: relative;
+  overflow: hidden;
+}
+
+.answer-message-label {
+  color: #3b82f6;
+  font-weight: bold;
+  font-size: 12px;
+  line-height: 16px;
+}
+
+.script-content {
+  margin-top: 5px;
+  background-color: #ffffff;
+  font-size: 12px;
+  line-height: 18px;
+  border: 1px solid #f3f4f6;
+  border-radius: 6px;
+  padding: 10px;
+  color: #4b5563;
+  position: relative;
+  cursor: pointer;
+}
+
+.script-btn-group {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  display: flex;
+  gap: 10px;
+  background-color: rgba(0, 0, 0, 0.7);
+  padding: 4px 8px;
+  border-radius: 5px;
+  opacity: 0;
+}
+
+.script-content:hover .script-btn-group {
+  opacity: 1;
+}
+
+.script-btn-item {
+  color: #ffffff;
+  font-size: 14px;
+  padding: 2px 5px;
+}
+
+.chat-input {
+  padding: 12px;
+  background-color: #f3f4f6;
+  border-top: 1px solid #e5e7eb;
+}
+
+.create-chat-btn {
+  color: #4b5563;
+  font-size: 14px;
+  line-height: 20px;
+  margin-bottom: 8px;
+  cursor: pointer;
+}
+
+.send-placeholder {
+  color: #6b7280;
+  font-size: 12px;
+  line-height: 16px;
+  margin-top: 8px;
 }
 </style>
