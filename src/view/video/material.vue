@@ -42,25 +42,27 @@
               </div>
               <div style="display: flex;flex-direction: column;height: calc(100vh - 280px)">
                 <div style="display: flex">
-                  <div class="tags" :class="{'show-tags': showFullTags }">
+                  <div class="tags" ref="tagsContainer" :style="{maxHeight: needExpandBtn && !showFullTags ? '25px' : 'none'}">
                     <el-tag :class="{ 'tag-active': filter_active_tags.length === 0 && filter_active_store.length === 0 }"
-                            class="tag" size="small" @click="tagFilter('')">
+                            class="tag" size="small" @click="tagFilter('')" style="margin-right: 5px" ref="elTag" id="tagItem">
                       全部</el-tag>
                     <template v-for="store_id in storeIds">
                       <el-tag :key="store_id" size="small" v-if="shops.some(shop => shop.id.includes(store_id))"
                               class="tag" :class="{'tag-active': filter_active_store.includes(store_id)}"
-                              @click="storeFilter(store_id)">
+                              @click="storeFilter(store_id)" id="tagItem">
                         {{ shops.find(shop => shop.id === store_id).name }}</el-tag>
                     </template>
-                    <el-tag v-for="(tag, index) in tags" :key="index" size="small" class="tag"
+                    <el-tag v-for="(tag, index) in tags" :key="index" size="small" class="tag" id="tagItem"
                             :class="{ 'tag-active': filter_active_tags.includes(tag) }" @click="tagFilter(tag)">
                       {{ tag }}
                     </el-tag>
                   </div>
-                  <i class="el-icon-arrow-right full-tags-icon" slot="reference"
-                     v-if="!showFullTags" @click="showFullTags = true"></i>
-                  <i class="el-icon-arrow-down full-tags-icon" slot="reference"
-                     v-else @click="showFullTags = false"></i>
+                  <template v-if="needExpandBtn">
+                    <i class="el-icon-arrow-right full-tags-icon" slot="reference"
+                       v-if="!showFullTags" @click="showFullTags = true"></i>
+                    <i class="el-icon-arrow-down full-tags-icon" slot="reference"
+                       v-else @click="showFullTags = false"></i>
+                  </template>
                 </div>
                 <div class="m-card" ref="videoGrid">
                   <div class="m-item" v-for="item in filter_materials" :key="item.id" :data-id="item.id"
@@ -778,6 +780,8 @@ export default {
 
       resizeObserver: null,
       guideVisible: false,
+
+      needExpandBtn: false,
     }
   },
   watch: {
@@ -807,6 +811,7 @@ export default {
     this.queryFontFamily();
     this.initParams()
     window.addEventListener('keydown', this.handleKeyDown);
+    window.addEventListener('resize', this.checkTagsOverflow);
     this.$nextTick(() => {
       const container = this.$refs.videoGrid;
       if (container) {
@@ -819,6 +824,7 @@ export default {
   },
   beforeDestroy() {
     window.removeEventListener('keydown', this.handleKeyDown);
+    window.removeEventListener('resize', this.checkTagsOverflow);
     if (this.resizeObserver && this.$refs.videoGrid) {
       this.resizeObserver.unobserve(this.$refs.videoGrid);
       this.resizeObserver.disconnect();
@@ -826,6 +832,14 @@ export default {
     this.stopAudio()
   },
   methods: {
+    checkTagsOverflow() {
+      this.showFullTags = true
+      const container = this.$refs.tagsContainer;
+      if (!container) return;
+
+      this.needExpandBtn = container.clientHeight !== 33
+    },
+
     handleKeyDown(event) {
       if (event.ctrlKey && event.key.toLowerCase() === 'a') {
         event.preventDefault();
@@ -1042,6 +1056,11 @@ export default {
                 data.flatMap(item => item.tag ? item.tag.split(/[,，]/).filter(Boolean) : [])
             )];
             this.storeIds = [...new Set(data.flatMap(item => item.store_id).filter(id => !!id))];
+
+            setTimeout(() => {
+              this.checkTagsOverflow()
+            },50)
+
 
             this.filter_active_tags = JSON.parse(sessionStorage.getItem('active_tags')) || []
             this.filter_active_store = JSON.parse(sessionStorage.getItem('active_store')) || []
@@ -2080,12 +2099,7 @@ export default {
 
 .tags {
   flex: 1;
-  display: flex;
-  flex-wrap: wrap;
-  gap: 7px;
-  margin-bottom: 5px;
   margin-top: 5px;
-  height: 20px;
 }
 
 .show-tags {
@@ -2102,6 +2116,11 @@ export default {
   line-height: 28px;
   padding-left: 12px;
   padding-right: 12px;
+  margin-bottom: 5px;
+}
+
+.tag + .tag {
+  margin-right: 5px;
 }
 
 .tag-active {
