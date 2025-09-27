@@ -291,10 +291,12 @@ export default {
     },
     backToScript() {
       sessionStorage.setItem('figure_path', '/scriptToImage')
+      this.clearCache()
       this.$router.push({path: '/scriptToImage'})
     },
     toImage() {
       sessionStorage.setItem('figure_path', '/imageToScript')
+      this.clearCache()
       this.$router.push({ path: '/imageToScript' })
     },
   }

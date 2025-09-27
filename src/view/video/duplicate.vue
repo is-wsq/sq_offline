@@ -533,6 +533,7 @@ export default {
         this.$alert('请添加文案，您至少需要一条文案才能开始制作。', "提示")
         return;
       }
+      this.clearCache()
       this.$router.push({path: '/remix'})
       sessionStorage.setItem('video_path', '/remix')
     },

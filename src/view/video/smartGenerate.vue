@@ -704,6 +704,7 @@ export default {
         return;
       }
       sessionStorage.setItem('video_path', '/montage')
+      this.clearCache()
       this.$router.push({path: '/montage'})
     },
     verify() {
@@ -804,6 +805,7 @@ export default {
           this.$alert('已创建视频生成任务，视频生成成功后会自动下载到本地', "任务创建提醒");
           sessionStorage.clear()
           setTimeout(() => {
+            this.clearCache()
             this.$router.push({path: '/videoList'})
           }, 500)
         } else {
