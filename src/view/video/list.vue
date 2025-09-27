@@ -137,10 +137,19 @@
               </div>
             </div>
           </div>
-          <el-divider content-position="left" v-if="logInfo.reason">分镜组混剪信息</el-divider>
-          <el-collapse v-model="activeCollapse" v-if="logInfo.reason">
+          <el-divider content-position="left" v-if="logInfo.thinking">分镜组混剪信息</el-divider>
+          <el-collapse v-model="activeCollapse" v-if="logInfo.thinking">
             <el-collapse-item title="LLM 分析" name="1">
-              <div class="llm-thought-process">{{ logInfo.reason }}</div>
+              <div>思考内容</div>
+              <div class="llm-thought-process">{{ logInfo.thinking }}</div>
+              <div class="margin-t-12 margin-b-8">JSON输出</div>
+              <el-descriptions title="" border :column="1" :labelStyle="{'width': '150px','text-align': 'center'}">
+                <el-descriptions-item label="目标时长（s）">{{ logInfo.video_data.audio_file_duration }}</el-descriptions-item>
+                <el-descriptions-item label="视频卖点">{{ logInfo.video_data.selling_point }}</el-descriptions-item>
+                <el-descriptions-item label="视频受众">{{ logInfo.video_data.audience }}</el-descriptions-item>
+                <el-descriptions-item label="总体剪辑策略与框架">{{ logInfo.video_data.structure_framework }}</el-descriptions-item>
+                <el-descriptions-item label="素材选择依据">{{ logInfo.video_data.materials_reason }}</el-descriptions-item>
+              </el-descriptions>
             </el-collapse-item>
           </el-collapse>
         </div>
@@ -610,6 +619,8 @@ export default {
   border-radius: 4px;
   white-space: pre-wrap; /* 保留换行和空格 */
   word-wrap: break-word;
+  max-height: 200px;
+  overflow-y: auto;
 }
 
 .material-name {
