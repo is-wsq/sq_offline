@@ -6,6 +6,7 @@ import Register from '../view/login/Register.vue';
 import ai from '../view/ai/index.vue';
 import chest from '../view/chest/index.vue';
 import hotNews from '../view/chest/hotNews.vue';
+import eCommerce from '../view/chest/eCommerce.vue';
 import figures from '../view/figures/index.vue';
 import imageToScript from '../view/figures/imageToScript.vue';
 import scriptToImage from '../view/figures/scriptToImage.vue';
@@ -41,6 +42,11 @@ const routes = [
         path: '/hotNews',
         name: 'hotNews',
         component: hotNews
+    },
+    {
+        path: '/eCommerce',
+        name: 'eCommerce',
+        component: eCommerce
     },
     {
         path: '/figures',
