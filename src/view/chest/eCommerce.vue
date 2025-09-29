@@ -15,15 +15,15 @@
             <div class="setting-name">上传图片</div>
             <el-upload
                 class="img-uploader"
-                action="#"
+                action="http://127.0.0.1:6006/running_hub/upload"
                 accept=".jpg, .jpeg, .png"
-                :auto-upload="false"
                 :show-file-list="false"
-                :on-change="handleImgChange">
+                :data = "{'type': 'image' }"
+                :on-success="handleImgSuccess">
               <div v-if="imgUrl" style="position: relative;">
                 <el-image :src="imgUrl" class="img"></el-image>
                 <div class="img-delete">
-                  <i class="el-icon-delete" @click.stop="imgUrl = ''"></i>
+                  <i class="el-icon-delete" @click.stop="imgDelete"></i>
                 </div>
               </div>
               <i v-else class="el-icon-plus img-uploader-icon"></i>
@@ -34,11 +34,11 @@
             <div @click="stopAudio">
               <el-upload
                   class="audio-uploader"
-                  action="#"
+                  action="http://127.0.0.1:6006/running_hub/upload"
                   accept=".mp3, .wav"
-                  :auto-upload="false"
                   :show-file-list="false"
-                  :on-change="handleAudioChange">
+                  :data = "{'type': 'audio' }"
+                  :on-success="handleAudioSuccess">
                 <div v-if="audioInfo.uid" class="audio">
                   <div class="audio-icon" @click.stop="previewAudio">
                     <i :class="audio ? 'el-icon-pause' : 'el-icon-play'"
@@ -91,12 +91,16 @@
 </template>
 
 <script>
+import {postAction} from "@/api/api";
+
 export default {
   name: 'eCommerce',
   data() {
     return {
       imgUrl: '',
+      imgId: '',
       audioInfo: {},
+      audioId: '',
       audio: null,
       duration: 5,
       loading: false,
@@ -104,11 +108,25 @@ export default {
     }
   },
   methods: {
-    handleImgChange(file) {
-      this.imgUrl = URL.createObjectURL(file.raw);
+    handleImgSuccess(res, file) {
+      if (res.status === 'success') {
+        this.imgId = res.data.running_hub_ids[0]
+        this.imgUrl = URL.createObjectURL(file.raw);
+      } else {
+        this.$message.error('上传图片失败，请重试')
+      }
     },
-    handleAudioChange(file) {
-      this.audioInfo = file;
+    imgDelete() {
+      this.imgUrl = '';
+      this.imgId = '';
+    },
+    handleAudioSuccess(res, file) {
+      if (res.status === 'success') {
+        this.audioId = res.data.running_hub_ids[0]
+        this.audioInfo = file;
+      } else {
+        this.$message.error('上传音频失败，请重试')
+      }
     },
     previewAudio() {
       if (this.audio) {
@@ -131,9 +149,44 @@ export default {
     deleteAudio() {
       this.stopAudio();
       this.audioInfo = {};
+      this.audioId = '';
     },
     generate() {
-
+      if (!this.imgId) {
+        this.$alert('请上传图片后重试', '提示')
+        return
+      }
+      if (!this.audioId) {
+        this.$alert('请上传口播音频后重试', '提示')
+        return
+      }
+      let params = {
+        image_id: this.imgId,
+        audio_id: this.audioId,
+        duration: this.duration
+      }
+      this.loading = true
+      const loading = this.$loading({
+        lock: true,
+        text: '带货视频生成中...',
+        spinner: 'el-icon-loading',
+        background: 'rgba(0, 0, 0, 0.7)'
+      });
+      postAction('/running_hub/digital_human_broadcast',params,1800000).then(res => {
+        if (res.data.status === 'success') {
+          this.videoUrl = res.data.data.video_path
+          loading.close();
+          this.loading = false
+        } else {
+          loading.close();
+          this.loading = false
+          this.$alert(`生成失败，${res.data.message}`, '提示')
+        }
+      }).catch(err => {
+        loading.close();
+        this.loading = false
+        this.$alert(`生成错误，${err}`, '提示')
+      })
     },
     back() {
       this.$router.push({ path: '/chest'})
@@ -215,7 +268,7 @@ export default {
 
 .img {
   height: 160px;
-  max-width: 340px;
+  max-width: 317px;
   display: block;
   object-fit: cover;
 }
@@ -235,7 +288,7 @@ export default {
   display: flex;
   align-items: center;
   height: 56px;
-  width: 340px;
+  width: 317px;
   padding: 0 12px;
   border: 1px solid #E4E7ED;
   border-radius: 6px;
