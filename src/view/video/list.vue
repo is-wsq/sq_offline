@@ -1,417 +1,770 @@
 <template>
-  <div class="image-editor-container">
-    <div class="editor-header">
-      <h2>图片编辑器</h2>
-      <div class="controls">
-        <input type="file"
-               id="file-upload"
-               accept="image/*"
-               @change="handleFileUpload"
-               class="file-input"
-        >
-        <label for="file-upload" class="btn upload-btn">上传图片</label>
+  <div class="video-list-css">
+    <div class="list-content" ref="videoContentRef">
+      <div v-for="item in processList" :key="item.id" style="text-align: center">
+        <div class="image-wrapper shining">
+          <el-image style="width: 100%;height: 100%;border-radius: 8px;filter: blur(15px);opacity: 0.8"
+                    :src="require('/public/images/4.jpg')" fit="contain"></el-image>
+          <div class="video-item-info">
+            <div :title="item.filename" class="video-name">{{ item.filename }}</div>
+          </div>
 
-        <div class="brush-controls">
-          <label>画笔颜色:</label>
-          <input type="color" v-model="brushColor" @change="updateBrushSettings">
-
-          <label>画笔粗细:</label>
-          <input type="range" min="1" max="20" v-model="brushWidth" @change="updateBrushSettings">
-
-          <button class="btn" @click="toggleEraser">
-            {{ isEraserMode ? '切换画笔' : '切换橡皮擦' }}
-          </button>
-        </div>
-
-        <button class="btn clear-btn" @click="clearCanvas" :disabled="!hasImage">清除编辑</button>
-        <button class="btn download-btn" @click="downloadImage" :disabled="!hasImage">下载图片</button>
-        <button class="btn upload-api-btn" @click="uploadToBackend" :disabled="!hasImage">提交到后端</button>
-      </div>
-    </div>
-
-    <div class="editor-content">
-      <div class="canvas-wrapper">
-        <div class="canvas-container" :class="{ 'no-image': !hasImage }">
-          <canvas ref="editorCanvas" :width="canvasWidth" :height="canvasHeight"></canvas>
-          <div v-if="!hasImage" class="canvas-placeholder">请上传一张图片开始编辑</div>
+          <div class="shine-layer"></div>
+          <div class="list-progress">
+            <div>视频生成中</div>
+            <div style="width: 10px;text-align: left;margin-left: 5px;font-size: 22px">{{ dot }}</div>
+          </div>
         </div>
       </div>
-    </div>
+      <div class="video-list-item"
+           v-for="item in videoList"
+           :key="item.id"
+           :class="{'activeClass': item.id === selected.id}"
+           @contextmenu.stop="handleContextMenu(item, $event)"
+           @click="preview(item)"
+           @mouseleave="handleMouseLeave"
+           @mouseenter="handleMouseEnter(item)">
+        <video class="video-item-file" :src="item.video_path" loop muted autoplay v-if="item.id === hover_id"></video>
+        <el-image class="video-item-file" :src="item.picture" fit="cover" lazy v-else :scroll-container="$refs.videoContentRef"></el-image>
+        <div class="video-item-info">
+          <div :title="item.filename" class="video-name" v-if="editId !== item.id">{{ item.filename }}</div>
+          <div v-else style="flex: 1" @click.stop="">
+            <el-input :ref="'renameInput_' + item.id" style="width: 100%" v-model="newName" @change="onSave(item)"
+                      @blur="onBlur(item)"></el-input>
+          </div>
+          <div class="more-btn" @click.stop="">
+            <el-dropdown trigger="click" @command="command => handleCommand(command, item)" class="action-dropdown">
+            <span class="el-dropdown-link">
+              <i class="el-icon-more"></i>
+            </span>
+              <el-dropdown-menu slot="dropdown">
+                <el-dropdown-item command="rename" style="width: 150px">
+                  <i class="el-icon-edit" style="margin-right: 15px"></i>重命名
+                </el-dropdown-item>
+                <el-dropdown-item command="delete" style="width: 150px">
+                  <i class="el-icon-delete" style="margin-right: 15px"></i>删除
+                </el-dropdown-item>
+                <el-dropdown-item command="download" style="width: 150px">
+                  <i class="el-icon-download" style="margin-right: 15px"></i>另存为
+                </el-dropdown-item>
+                <el-dropdown-item command="document" style="width: 150px">
+                  <i class="el-icon-document" style="margin-right: 15px"></i>日志
+                </el-dropdown-item>
+              </el-dropdown-menu>
+            </el-dropdown>
+          </div>
+        </div>
+      </div>
+      <el-dialog class="preview-dialog" :visible.sync="dialogVisible" :before-close="beforeClose"
+                 :width="aspectRatio < 1? '720px' : '420px'" top="10vh">
+        <div style="width: 100%;text-align: center;position: relative">
+          <video style="border-radius: 10px;width: calc(100% - 40px);object-fit: cover"
+                 ref="video" :src="src" @ended="isPlaying = false" controls
+                 @loadedmetadata="checkAspectRatio">
+          </video>
+        </div>
+      </el-dialog>
+      <el-dialog class="log-dialog" :visible.sync="logDialogVisible" top="10vh" width="900px" :before-close="logClose">
+        <div slot="title" class="log-dialog-title" @mousedown.stop="">视频生成日志</div>
+        <div class="log-dialog-body">
+          <el-descriptions title="基础信息" :column="2" border :labelStyle="{'width': '120px','text-align': 'center'}">
+            <el-descriptions-item label="视频来源" :span="2">
+              {{ logInfo.source }}
+            </el-descriptions-item>
+            <el-descriptions-item label="开始生成时间" :contentStyle="{'width': '307px'}">
+              {{ logInfo.created_at ? logInfo.created_at.replace(/\.\d+$/, "") : '' }}
+            </el-descriptions-item>
+            <el-descriptions-item label="完成时间" :contentStyle="{'width': '307px'}">
+              {{ logInfo.finished_at ? logInfo.finished_at.replace(/\.\d+$/, "") : '' }}
+            </el-descriptions-item>
+            <el-descriptions-item label="文案标题" :span="2">
+              {{ logInfo.title }}
+            </el-descriptions-item>
+            <el-descriptions-item label="视频时长" :contentStyle="{'width': '307px'}">
+              {{ logInfo.duration ? logInfo.duration.toFixed(2) + 's' : '' }}
+            </el-descriptions-item>
+            <el-descriptions-item label="背景音乐" :contentStyle="{'width': '307px'}">
+              <div v-if="!logInfo.bgm_path">
+                无
+              </div>
+              <div style="display: flex;align-items: center;gap: 15px" v-else>
+                <div class="timbre-item-icon" @click="previewBgm(logInfo.bgm_path)">
+                  <i :class="audioPlaying ? 'el-icon-pause' : 'el-icon-play'"
+                     style="font-size: 13px; color: #6286ed"></i>
+                </div>
+                <div class="timbre-item-name">{{ logInfo.bgm_name }}</div>
+              </div>
+            </el-descriptions-item>
+            <el-descriptions-item label="文案内容" :span="2">
+              {{ logInfo.content ? logInfo.content : '无文案' }}
+            </el-descriptions-item>
+            <el-descriptions-item label="文案要求" :span="2">
+              {{ logInfo.copy_request }}
+            </el-descriptions-item>
+            <el-descriptions-item label="混剪要求" :span="2" v-if="logInfo.user_request">
+              {{ logInfo.user_request }}
+            </el-descriptions-item>
+          </el-descriptions>
+          <el-divider content-position="left" v-if="logInfo.video_data">分镜组混剪信息</el-divider>
 
-    <div class="status-message" v-if="statusMessage" :class="statusType">
-      {{ statusMessage }}
+          <div class="group-card" v-if="logInfo.video_data">
+            <div class="group-title" :title="logInfo.title">{{ logInfo.title }}</div>
+            <div class="group-content" :title="logInfo.content" v-if="logInfo.content">
+              {{ logInfo.content }}
+            </div>
+            <div class="group-content" style="display: flex;gap: 2px" v-else>
+              <i class="el-icon-wuneirong" style="line-height: 21px"></i>
+              <div style="line-height: 21px">无文案</div>
+              <div style="margin: 0 5px;line-height: 18px">|</div>
+              <i class="el-icon-time" style="line-height: 21px"></i>
+              <div style="line-height: 21px">{{ logInfo.duration + 's' }}</div>
+            </div>
+            <div class="groups-segment" v-if="logInfo.video_data">
+              <div class="group-segment" v-for="(group,group_index) in logInfo.video_data.segment_group"
+                   :key="group_index">
+                <div class="segment-title"
+                     :style="{ width: ((group.materials.length - 1) * 100 + 80) + 'px' }"
+                     :title="group.contentSummary">
+                  {{ group.contentSummary }}
+                </div>
+                <div class="material-list">
+                  <div class="material-item" v-for="(material,material_index) in group.materials"
+                       :key="material_index" @click="previewMaterial(material)">
+                    <el-image class="material-item-img" :src="material.picture"></el-image>
+                    <div class="material-item-title" :title="material.name">{{ material.name }}</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <el-divider content-position="left" v-if="logInfo.thinking">分镜组混剪信息</el-divider>
+          <el-collapse v-model="activeCollapse" v-if="logInfo.thinking">
+            <el-collapse-item title="LLM 分析" name="1">
+              <div>思考内容</div>
+              <div class="llm-thought-process">{{ logInfo.thinking }}</div>
+              <div class="margin-t-12 margin-b-8">JSON输出</div>
+              <el-descriptions title="" border :column="1" :labelStyle="{'width': '150px','text-align': 'center'}">
+                <el-descriptions-item label="目标时长（s）">{{ logInfo.video_data.audio_file_duration }}</el-descriptions-item>
+                <el-descriptions-item label="视频卖点">{{ logInfo.video_data.selling_point }}</el-descriptions-item>
+                <el-descriptions-item label="视频受众">{{ logInfo.video_data.audience }}</el-descriptions-item>
+                <el-descriptions-item label="总体剪辑策略与框架">{{ logInfo.video_data.structure_framework }}</el-descriptions-item>
+                <el-descriptions-item label="素材选择依据">{{ logInfo.video_data.materials_reason }}</el-descriptions-item>
+              </el-descriptions>
+            </el-collapse-item>
+          </el-collapse>
+        </div>
+        <div slot="footer" class="log-dialog-footer"></div>
+      </el-dialog>
+    </div>
+    <div class="placeholder-footer">
+      当前页只显示近7天生成的视频，7天前生成的视频可到视频缓存文件夹查看，请注意视频缓存文件夹只保留30天内生成的视频。
     </div>
   </div>
 </template>
 
 <script>
-import {fabric} from 'fabric';
-import axios from 'axios';
+import {RightMenuMixin} from "@/mixins/RightMenuMixin";
+import {mapGetters} from "vuex";
+import {delAction, getAction, postAction} from "@/api/api";
 
 export default {
+  mixins: [RightMenuMixin],
   data() {
     return {
-      canvas: null,
-      originalImage: null,
-      hasImage: false,
-      brushColor: '#ff0000',
-      brushWidth: 20,
-      isEraserMode: false,
-      canvasWidth: 800,
-      canvasHeight: 600,
-      statusMessage: '',
-      statusType: ''
-    };
-  },
+      keyword: '',
+      filterProcess: [],
+      dotCount: 1,
+      dotTimer: null,
+      timer: null,
+      dot: '.',
+      selected: {},
+      newName: '',
+      videoId: '',
+      dialogVisible: false,
+      src: "",
+      aspectRatio: 0,
+      isPlaying: false,
+      downloadFilePath: '',
+      downloadFileName: '',
+      selectedId: '',
+      inputFocus: false,
+      hover_id: null,
+      editId: '',
+      logDialogVisible: false,
+      logInfo: {},
+      expandedRowKeys: [],
+      activeCollapse: '',
+      audioPlaying: false,
+      audio: null,
 
+      resizeObserver: null
+    }
+  },
+  computed: {
+    processList() {
+      return this.$store.getters['generate/videoTasks'].filter((item) => item.status === 'pending');
+    },
+    videoList() {
+      return this.$store.getters['generate/videoTasks'].filter((item) => item.status === 'success')
+    },
+  },
   mounted() {
-    this.initCanvas();
-    // 监听窗口大小变化，必要时重新校准画布
-    window.addEventListener('resize', this.calibrateCanvas);
+    this.startDotAnimation();
+    this.$store.dispatch("generate/pollVideoTasks")
+    this.$nextTick(() => {
+      const container = this.$refs.videoContentRef;
+      if (container) {
+        this.resizeObserver = new ResizeObserver(() => {
+          container.dispatchEvent(new Event('scroll'));
+        });
+        this.resizeObserver.observe(container);
+      }
+    });
   },
-
   beforeDestroy() {
-    window.removeEventListener('resize', this.calibrateCanvas);
+    clearInterval(this.dotTimer);
+    if (this.resizeObserver && this.$refs.videoContentRef) {
+      this.resizeObserver.unobserve(this.$refs.videoContentRef);
+      this.resizeObserver.disconnect();
+    }
   },
-
   methods: {
-    initCanvas() {
-      // 初始化画布
-      this.canvas = new fabric.Canvas(this.$refs.editorCanvas, {
-        backgroundColor: '#f5f5f5',
-        isDrawingMode: true,
-        // 增加坐标精度
-        renderOnAddRemove: true,
-        preserveObjectStacking: true
-      });
-
-      // 校准画布偏移
-      this.calibrateCanvas();
-
-      // 设置初始画笔
-      this.updateBrushSettings();
-
-      // 监听画布事件，确保绘制坐标正确
-      this.canvas.on('after:render', () => {
-        this.calibrateCanvas();
-      });
+    startDotAnimation() {
+      this.dotTimer = setInterval(() => {
+        this.dotCount = this.dotCount % 3 + 1;
+        this.dot = '.'.repeat(this.dotCount);
+      }, 1000);
     },
-
-    // 校准画布偏移
-    calibrateCanvas() {
-      if (!this.canvas) return;
-
-      const canvasElement = this.$refs.editorCanvas;
-      const parentElement = canvasElement.parentElement;
-
-      // 获取画布在页面中的实际位置
-      const rect = canvasElement.getBoundingClientRect();
-      const parentRect = parentElement.getBoundingClientRect();
-
-      // 设置画布偏移，确保鼠标坐标与画布坐标一致
-      this.canvas.setViewportTransform([1, 0, 0, 1, 0, 0]);
-      this.canvas.calcOffset();
-    },
-
-    updateBrushSettings() {
-      if (!this.canvas) return;
-
-      // 根据是否橡皮擦模式设置画笔
-      this.canvas.freeDrawingBrush.color = this.isEraserMode ? '#f5f5f5' : this.brushColor;
-      this.canvas.freeDrawingBrush.width = this.brushWidth;
-    },
-
-    handleFileUpload(event) {
-      const file = event.target.files[0];
-      if (!file) return;
-
-      // 读取上传的图片
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        this.loadImageToCanvas(e.target.result);
-      };
-      reader.readAsDataURL(file);
-
-      // 重置文件输入，允许重复选择同一文件
-      event.target.value = '';
-    },
-
-    loadImageToCanvas(imageUrl) {
-      fabric.Image.fromURL(imageUrl, (img) => {
-        // 清除画布
-        this.canvas.clear();
-
-        // 调整图片大小以适应画布，保持比例
-        const scaleX = this.canvasWidth / img.width;
-        const scaleY = this.canvasHeight / img.height;
-        const scale = Math.min(scaleX, scaleY, 1); // 不放大图片
-
-        img.scale(scale);
-
-        // 将图片居中
-        img.set({
-          left: (this.canvasWidth - img.width * scale) / 2,
-          top: (this.canvasHeight - img.height * scale) / 2,
-          // 确保图片在最底层
-          zIndex: 1
-        });
-
-        // 添加图片到画布
-        this.canvas.add(img);
-        this.originalImage = img;
-        this.hasImage = true;
-
-        // 确保画笔设置正确
-        this.updateBrushSettings();
-
-        // 校准画布，防止偏移
-        this.calibrateCanvas();
-
-        this.showStatus('图片已加载，可开始编辑', 'success');
-      }, {
-        crossOrigin: 'anonymous'
-      });
-    },
-
-    toggleEraser() {
-      this.isEraserMode = !this.isEraserMode;
-      this.updateBrushSettings();
-    },
-
-    clearCanvas() {
-      if (!this.originalImage) return;
-
-      // 清除所有绘制，只保留原始图片
-      this.canvas.clear();
-      this.canvas.add(this.originalImage);
-      this.showStatus('已清除所有编辑', 'info');
-    },
-
-    downloadImage() {
-      // 将画布内容转换为图片并下载
-      const link = document.createElement('a');
-      link.download = 'edited-image.png';
-      link.href = this.canvas.toDataURL('image/png');
-      link.click();
-      this.showStatus('图片已下载', 'success');
-    },
-
-    async uploadToBackend() {
-      try {
-        // 将画布内容转换为Blob对象
-        const blob = await new Promise((resolve) => {
-          this.canvas.toBlob(resolve, 'image/png');
-        });
-
-        // 创建FormData对象
-        const formData = new FormData();
-        formData.append('editedImage', blob, 'edited-image.png');
-
-        // 发送到后端 (请替换为你的实际API地址)
-        const response = await axios.post('/api/upload-edited-image', formData, {
-          headers: {
-            'Content-Type': 'multipart/form-data'
-          }
-        });
-
-        if (response.data.success) {
-          this.showStatus('图片已成功提交到后端', 'success');
-        } else {
-          this.showStatus('提交失败: ' + (response.data.message || '未知错误'), 'error');
-        }
-      } catch (error) {
-        console.error('上传失败:', error);
-        this.showStatus('提交失败: 网络错误或服务器无响应', 'error');
+    handleCommand(command, item) {
+      if (command === 'rename') {
+        this.editId = item.id
+        this.rename(item)
+      } else if (command === 'delete') {
+        this.deleteVideo(item)
+      } else if (command === 'download') {
+        this.downloadVideo(item)
+      } else if (command === 'document') {
+        this.viewLog(item)
       }
     },
+    deleteVideo(item) {
+      this.$confirm('此操作将永久删除该文件, 是否继续?', '提示', {
+        type: 'warning'
+      }).then(() => {
+        delAction(`/video_record/delete/${item.id}`).then(res => {
+          if (res.data.status === 'success') {
+            this.$message.success('删除成功');
+            this.$store.dispatch("generate/pollVideoTasks")
+          } else {
+            this.$alert(res.data.message, '删除提示');
+          }
+        })
+      }).catch(() => {
+        this.$message.info('已取消删除');
+      });
+    },
+    async downloadVideo(item) {
+      let self = this
+      window.electronAPI.selectFolder().then((path) => {
+        if (path) {
+          window.electronAPI.downloadFile(item.video_path, path, item.filename)
+          self.$message.success(`视频已另存为${path}`)
+        }
+      })
+    },
+    rename(item) {
+      this.newName = item.filename;
+      this.videoId = item.id;
 
-    showStatus(message, type = 'info') {
-      this.statusMessage = message;
-      this.statusType = type;
-
-      // 3秒后自动清除状态消息
+      this.$nextTick(() => {
+        const inputRefs = this.$refs[`renameInput_${item.id}`];
+        if (inputRefs && inputRefs.length > 0) {
+          const input = inputRefs[0];
+          input.focus();
+          // 可选：全选内容
+          // input.select();
+        } else {
+          console.warn('未找到对应的输入框 ref', item.id);
+        }
+      });
+    },
+    onBlur() {
+      this.editId = ''
+    },
+    onSave(item) {
+      if (this.newName === item.filename) {
+        this.editId = ''
+        return
+      }
+      let params = {
+        id: this.videoId,
+        name: this.newName,
+      };
+      postAction("/video_record/update_name", params).then((res) => {
+        if (res.data.status === "success") {
+          this.$message.success("重命名成功");
+          this.$store.dispatch("generate/pollVideoTasks")
+        } else {
+          this.$alert(res.data.message, '重命名提示');
+        }
+        this.editId = ''
+      }).catch((err) => {
+        this.$message.error("重命名失败，请稍后重试！");
+      });
+    },
+    viewLog(item) {
+      if (!item.details) {
+        this.$alert('当前视频无日志信息','提示')
+        return
+      }
+      this.logInfo = item.details
+      this.logDialogVisible = true;
+    },
+    checkAspectRatio() {
+      const video = this.$refs.video;
+      const width = video.videoWidth;
+      const height = video.videoHeight;
+      this.aspectRatio = height / width
+    },
+    handleMouseEnter(item) {
+      this.timer = setTimeout(() => {
+        this.hover_id = item.id
+      },1500)
+    },
+    handleMouseLeave() {
+      if (this.timer) {
+        clearTimeout(this.timer)
+      }
+      this.hover_id = null
+    },
+    preview(item) {
+      this.src = item.video_path;
+      this.dialogVisible = true;
+      this.$nextTick(() => {
+        this.$refs.video.currentTime = 0;
+      })
+    },
+    previewMaterial(material) {
+      this.src = material.filepath;
+      this.dialogVisible = true;
+    },
+    previewBgm(bgm_path) {
+      if (this.audioPlaying) {
+        this.pauseBgm()
+        return
+      }
+      this.pauseBgm()
       setTimeout(() => {
-        this.statusMessage = '';
-        this.statusType = '';
-      }, 3000);
-    }
-  }
-};
+        this.audio = new Audio(bgm_path)
+        this.audio.play()
+        this.audioPlaying = true
+        this.audio.onended = () => {
+          this.audio = null;
+          this.audioPlaying = false;
+        };
+      }, 100);
+    },
+    pauseBgm() {
+      if (this.audioPlaying) {
+        this.audio.pause();
+        this.audio = null;
+        this.audioPlaying = false;
+      }
+    },
+    logClose() {
+      this.pauseBgm()
+      this.logDialogVisible = false;
+    },
+    controlVideo() {
+      const video = this.$refs.video;
+      if (this.isPlaying) {
+        video.pause();
+        this.isPlaying = false;
+      } else {
+        video.play();
+        this.isPlaying = true;
+      }
+    },
+    beforeClose() {
+      this.isPlaying = false;
+      const video = this.$refs.video;
+      video.pause();
+      this.dialogVisible = false;
+    },
+  },
+}
+
 </script>
 
 <style scoped>
-.image-editor-container {
-  max-width: 1000px;
-  margin: 20px auto;
-  padding: 20px;
-  font-family: Arial, sans-serif;
-}
-
-.editor-header {
-  margin-bottom: 20px;
-  padding-bottom: 15px;
-  border-bottom: 1px solid #e0e0e0;
-}
-
-h2 {
-  margin-top: 0;
-  color: #333;
-}
-
-.controls {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
-  align-items: center;
-  margin-top: 15px;
-}
-
-.file-input {
-  display: none;
-}
-
-.btn {
-  padding: 8px 16px;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  font-size: 14px;
-  transition: background-color 0.2s;
-}
-
-.upload-btn {
-  background-color: #42b983;
-  color: white;
-}
-
-.upload-btn:hover {
-  background-color: #359e75;
-}
-
-.brush-controls {
-  display: flex;
-  align-items: center;
-  gap: 15px;
-  margin: 0 10px;
-  padding: 5px;
-  background-color: #f9f9f9;
-  border-radius: 4px;
-}
-
-.brush-controls input[type="color"] {
-  width: 30px;
-  height: 30px;
-  padding: 0;
-  border: none;
-  cursor: pointer;
-}
-
-.brush-controls input[type="range"] {
-  width: 100px;
-}
-
-.clear-btn {
-  background-color: #f0ad4e;
-  color: white;
-}
-
-.clear-btn:hover {
-  background-color: #ec971f;
-}
-
-.clear-btn:disabled {
-  background-color: #d9d9d9;
-  cursor: not-allowed;
-}
-
-.download-btn {
-  background-color: #5bc0de;
-  color: white;
-}
-
-.download-btn:hover {
-  background-color: #31b0d5;
-}
-
-.download-btn:disabled {
-  background-color: #d9d9d9;
-  cursor: not-allowed;
-}
-
-.upload-api-btn {
-  background-color: #337ab7;
-  color: white;
-}
-
-.upload-api-btn:hover {
-  background-color: #286090;
-}
-
-.upload-api-btn:disabled {
-  background-color: #d9d9d9;
-  cursor: not-allowed;
-}
-
-.editor-content {
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-  border-radius: 4px;
-  overflow: hidden;
-}
-
-.canvas-wrapper {
-  position: relative;
-  display: inline-block;
-}
-
-.canvas-container {
-  position: relative;
-  line-height: 0; /* 消除底部间隙 */
-}
-
-canvas {
-  display: block;
-  vertical-align: top; /* 消除基线对齐导致的间隙 */
-}
-
-.no-image canvas {
-  background-color: #f9f9f9;
-  background-image: linear-gradient(45deg, #e0e0e0 25%, transparent 25%),
-  linear-gradient(-45deg, #e0e0e0 25%, transparent 25%),
-  linear-gradient(45deg, transparent 75%, #e0e0e0 75%),
-  linear-gradient(-45deg, transparent 75%, #e0e0e0 75%);
-  background-size: 20px 20px;
-  background-position: 0 0, 0 10px, 10px -10px, -10px 0px;
-}
-
-.canvas-placeholder {
-  position: absolute;
-  top: 0;
-  left: 0;
+.video-list-css {
   width: 100%;
   height: 100%;
+  padding: 12px;
+  box-sizing: border-box;
+}
+
+.list-search {
+  text-align: center;
+}
+
+.list-search-input {
+  width: 33.33%;
+}
+
+.list-search >>> .el-input__icon {
+  line-height: 42px;
+  font-size: 20px;
+}
+
+.list-search >>> .el-input__inner {
+  height: 42px;
+  line-height: 42px;
+  border-radius: 21px;
+  background-color: #FFFFFF;
+  border: 1px solid #D1D5DB;
+  font-size: 16px;
+  padding-left: 40px;
+}
+
+.list-content {
+  height: calc(100% - 50px);
+  padding: 10px;
+  margin-top: 20px;
+  box-sizing: border-box;
+  display: grid;
+  gap: 20px;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  grid-auto-rows: min-content;
+  overflow: auto;
+}
+
+.video-list-item {
+  aspect-ratio: 9 / 16;
+  position: relative;
+  display: flex;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.video-list-item:hover {
+  transform: scale(1.05);
+}
+
+.list-progress {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #999;
-  pointer-events: none;
+  width: 100%;
 }
 
-.status-message {
-  margin-top: 15px;
-  padding: 10px;
+.video-item-file {
+  width: 100%;
+  height: 100%;
+  border-radius: 8px;
+  object-fit: cover;
+}
+
+.video-item-info {
+  position: absolute;
+  bottom: 0;
+  width: 100%;
+  background: linear-gradient(to bottom, rgba(0, 0, 0, 0), rgba(0, 0, 0, 1));
+  padding: 10px 5px 10px 10px;
+  box-sizing: border-box;
+  border-bottom-left-radius: 8px;
+  border-bottom-right-radius: 8px;
+  display: flex;
+  align-items: end;
+}
+
+
+.video-name {
+  flex: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  cursor: pointer;
+  color: #FFFFFF;
+  font-size: 15px;
+}
+
+.video-list-item >>> .el-input__inner {
+  -webkit-appearance: none;
+  background-color: #1e1f20;
+  background-image: none;
   border-radius: 4px;
-  color: white;
+  border: 2px solid #4c8df1;
+  box-sizing: border-box;
+  color: #ffffff;
+  display: inline-block;
+  height: 30px;
+  line-height: 30px;
+  outline: 0;
+  padding: 0 15px;
+  transition: border-color .2s cubic-bezier(.645, .045, .355, 1);
+  width: 100%;
 }
 
-.status-message.success {
-  background-color: #5cb85c;
+.more-btn {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+  padding: 0;
+  font-size: 18px;
+  color: rgba(255, 255, 255, 0.8);
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 
-.status-message.error {
-  background-color: #d9534f;
+.more-btn:hover {
+  background-color: rgba(0, 0, 0, 1);
+  color: #FFFFFF;
 }
 
-.status-message.info {
-  background-color: #5bc0de;
+.more-btn-item {
+  height: 40px;
+  line-height: 40px;
+  border-radius: 5px;
+  padding-left: 10px
+}
+
+.more-btn-item:hover {
+  background-color: #1890ff !important;
+  color: #fff !important;
+}
+
+.menu-icon-more {
+  margin-left: 10px;
+  font-size: 20px;
+  color: rgba(255, 255, 255, 0.8);
+  cursor: pointer;
+}
+
+.activeClass {
+  border: 1px solid #6286ED;
+}
+
+.preview-dialog >>> .el-dialog {
+  background-color: #79777700 !important;
+  box-shadow: none !important;
+  margin: 0 auto;
+}
+
+.preview-dialog >>> .el-dialog__body {
+  padding: 10px 20px;
+}
+
+.preview-dialog >>> .el-dialog__headerbtn .el-dialog__close {
+  font-size: 24px;
+  color: #d3d2d2;
+}
+
+.control-icon {
+  font-size: 30px;
+  color: #fff;
+  cursor: pointer;
+  filter: drop-shadow(0px 0px 10px #292929);
+}
+
+.el-dropdown-link {
+  font-size: 16px;
+  color: #dfdede;
+  transform: rotate(90deg);
+  display: inline-block;
+}
+
+.more-btn:hover .el-dropdown-link {
+  color: #409EFF;
+}
+
+.log-dialog >>> .el-dialog {
+  border-radius: 10px;
+}
+
+.log-dialog-title {
+  padding: 20px 20px 10px;
+  line-height: 24px;
+  font-size: 18px;
+  color: #303133;
+  font-weight: 700;
+}
+
+.log-dialog-body {
+  padding: 10px 20px;
+  max-height: calc(80vh - 75px);
+  overflow-y: auto;
+}
+
+.log-dialog-body::-webkit-scrollbar {
+  width: 5px !important;
+}
+
+.log-dialog-footer {
+  padding-top: 10px;
+}
+
+.log-dialog >>> .el-dialog__header {
+  padding: 0;
+}
+
+.log-dialog >>> .el-dialog__close {
+  color: #9ca3af;
+  font-size: 24px;
+}
+
+.log-dialog >>> .el-dialog__body {
+  padding: 0;
+}
+
+.log-dialog >>> .el-dialog__footer {
+  padding: 0;
+}
+
+.llm-thought-process {
+  background-color: #f5f5f5;
+  padding: 15px;
+  border-radius: 4px;
+  white-space: pre-wrap; /* 保留换行和空格 */
+  word-wrap: break-word;
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+.material-name {
+  color: #409EFF;
+  margin-right: 5px;
+  cursor: pointer;
+}
+
+.timbre-item-icon {
+  width: 32px;
+  height: 30px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  cursor: pointer;
+  background-color: #ffffff;
+  border: 1px solid #DCDFE6;
+  border-radius: 8px;
+}
+
+.timbre-item-name {
+  flex: 1;
+}
+
+.group-card {
+  width: 100%;
+  box-sizing: border-box;
+  color: #1f2937;
+  cursor: pointer;
+  background: #f8fafc;
+  border-radius: 12px;
+  padding: 20px;
+  transition: all 0.2s ease;
+  position: relative;
+  background: linear-gradient(135deg, #dbeafe 0%, #ede9fe 100%) !important;
+  border-color: #8b5cf6 !important;
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.15), 0 4px 12px rgba(139, 92, 246, 0.15) !important;
+}
+
+.group-title {
+  width: 100%;
+  line-height: 28px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: #1e293b;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.group-content {
+  width: 100%;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  cursor: pointer;
+  color: #64748b;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.groups-segment {
+  margin-top: 12px;
+  display: flex;
+  flex-direction: row;
+  gap: 8px;
+  overflow-x: auto;
+  padding-bottom: 12px;
+}
+
+.group-segment {
+  flex-shrink: 0;
+  background-color: #f8fafc;
+  padding: 12px 20px;
+  border-radius: 8px;
+  border: 1px solid #e2e8f0;
+  overflow: hidden;
+}
+
+.segment-title {
+  font-size: 13px;
+  font-weight: 500;
+  color: #4338ca;
+  margin-bottom: 8px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.material-list {
+  display: flex;
+  gap: 20px;
+}
+
+.material-item {
+  position: relative;
+  width: 80px;
+  display: flex;
+  aspect-ratio: 9 / 16;
+  border-radius: 5px;
+  flex-shrink: 0;
+}
+
+.material-item-img {
+  width: 100%;
+  height: 100%;
+  border-radius: 5px;
+}
+
+.material-item-title {
+  position: absolute;
+  bottom: 0;
+  width: 100%;
+  background: linear-gradient(to bottom, rgba(0, 0, 0, 0), rgba(0, 0, 0, 1));
+  padding: 10px 2px;
+  box-sizing: border-box;
+  color: #FFFFFF;
+  font-size: 12px;
+  border-bottom-left-radius: 8px;
+  border-bottom-right-radius: 8px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.placeholder-footer {
+  color: #6d7177;
+  font-size: 15px;
+  font-family: "Helvetica Neue", Arial, sans-serif;
+  text-align: center;
+  margin-top: 12px;
 }
 </style>
