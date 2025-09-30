@@ -22,8 +22,8 @@
            :class="{'activeClass': item.id === selected.id}"
            @contextmenu.stop="handleContextMenu(item, $event)"
            @click="preview(item)"
-           @mouseleave="hover_id = null"
-           @mouseenter="hover_id = item.id">
+           @mouseleave="handleMouseLeave"
+           @mouseenter="handleMouseEnter(item)">
         <video class="video-item-file" :src="item.video_path" loop muted autoplay v-if="item.id === hover_id"></video>
         <el-image class="video-item-file" :src="item.picture" fit="cover" lazy v-else :scroll-container="$refs.videoContentRef"></el-image>
         <div class="video-item-info">
@@ -175,6 +175,7 @@ export default {
       filterProcess: [],
       dotCount: 1,
       dotTimer: null,
+      timer: null,
       dot: '.',
       selected: {},
       newName: '',
@@ -325,6 +326,17 @@ export default {
       const height = video.videoHeight;
       this.aspectRatio = height / width
     },
+    handleMouseEnter(item) {
+      this.timer = setTimeout(() => {
+        this.hover_id = item.id
+      },1500)
+    },
+    handleMouseLeave() {
+      if (this.timer) {
+        clearTimeout(this.timer)
+      }
+      this.hover_id = null
+    },
     preview(item) {
       this.src = item.video_path;
       this.dialogVisible = true;
@@ -432,6 +444,7 @@ export default {
   position: relative;
   display: flex;
   justify-content: center;
+  cursor: pointer;
 }
 
 .video-list-item:hover {
@@ -453,6 +466,7 @@ export default {
   width: 100%;
   height: 100%;
   border-radius: 8px;
+  object-fit: cover;
 }
 
 .video-item-info {
