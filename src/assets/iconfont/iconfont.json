@@ -6,6 +6,13 @@
   "description": "",
   "glyphs": [
     {
+      "icon_id": "45354792",
+      "name": "洗稿",
+      "font_class": "xigao",
+      "unicode": "e86d0",
+      "unicode_decimal": 952016
+    },
+    {
       "icon_id": "29705239",
       "name": "带货直播",
       "font_class": "zbdh",

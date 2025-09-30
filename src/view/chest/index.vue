@@ -48,6 +48,15 @@ export default {
           iconColor: '#059669',
           path: '/eCommerce'
         },
+        {
+          id: 3,
+          title: '万物洗稿工作流',
+          desc: '基于产品图、参考图，指定产品迁移到指定的背景，万物皆可洗稿',
+          icon: 'el-icon-xigao',
+          background: '#d1e8ff',
+          iconColor: '#3b82f6',
+          path: '/reWriting'
+        },
       ],
     };
   },
