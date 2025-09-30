@@ -11,60 +11,70 @@
       <div class="e-commerce-card">
         <div style="font-weight: bold">工作台</div>
         <div style="flex: 1;overflow-y: auto">
-          <div class="e-commerce-card-item">
-            <div class="setting-name">上传图片</div>
-            <el-upload
-                class="img-uploader"
-                action="http://127.0.0.1:6006/running_hub/upload"
-                accept=".jpg, .jpeg, .png"
-                :show-file-list="false"
-                :data = "{'type': 'image' }"
-                :on-success="handleImgSuccess">
-              <div v-if="imgUrl" style="position: relative;">
-                <el-image :src="imgUrl" class="img"></el-image>
-                <div class="img-delete">
-                  <i class="el-icon-delete" @click.stop="imgDelete"></i>
-                </div>
+          <div class="setting-name margin-t-12">上传图片</div>
+          <el-upload
+              class="img-uploader"
+              action="#"
+              accept=".jpg, .jpeg, .png"
+              :show-file-list="false"
+              :auto-upload="false"
+              :on-change="handleImgChange">
+            <div v-if="imgUrl" style="position: relative;">
+              <el-image :src="imgUrl" class="img"></el-image>
+              <div class="img-delete">
+                <i class="el-icon-delete" @click.stop="imgDelete"></i>
               </div>
-              <i v-else class="el-icon-plus img-uploader-icon"></i>
-            </el-upload>
-          </div>
-          <div class="e-commerce-card-item">
-            <div class="setting-name">上传口播音频</div>
-            <div @click="stopAudio">
-              <el-upload
-                  class="audio-uploader"
-                  action="http://127.0.0.1:6006/running_hub/upload"
-                  accept=".mp3, .wav"
-                  :show-file-list="false"
-                  :data = "{'type': 'audio' }"
-                  :on-success="handleAudioSuccess">
-                <div v-if="audioInfo.uid" class="audio">
-                  <div class="audio-icon" @click.stop="previewAudio">
-                    <i :class="audio ? 'el-icon-pause' : 'el-icon-play'"
-                       style="font-size: 13px; color: #6286ed"></i>
-                  </div>
-                  <div :title="audioInfo.name" class="audio-name">{{ audioInfo.name }}</div>
-                  <i class="el-icon-delete" style="color: red" @click.stop="deleteAudio"></i>
-                </div>
-                <div v-else style="height: 58px">
-                  <el-button type="primary" style="width: 150px">点击上传</el-button>
-                </div>
-              </el-upload>
+            </div>
+            <i v-else class="el-icon-plus img-uploader-icon"></i>
+          </el-upload>
+          <div style="display: flex;margin-top: 12px">
+            <div class="setting-name" style="margin-bottom: 0 !important;line-height: 24px">主播声音</div>
+            <el-popover ref="modePopoverRef" placement="bottom-start" trigger="click">
+              <div class="mode-popover-item" @click="saveMode('common')">
+                普通模式
+                <i class="el-icon-check mode-select" v-if="mode === 'common'"></i>
+              </div>
+              <div class="mode-popover-item" @click="saveMode('advanced')">
+                高级模式
+                <i class="el-icon-check mode-select" v-if="mode === 'advanced'"></i>
+              </div>
+              <div slot="reference" class="mode-switch">
+                {{ mode === 'common' ? '普通模式' : '高级模式' }}
+                <i class="el-icon-arrow-down"></i>
+              </div>
+            </el-popover>
+            <div class="mode-info" v-if="mode === 'advanced'">
+              <i class="el-icon-info" style="font-size: 16px;margin-right: 5px"></i>
+              高级模式将调用云端接口并计费
             </div>
           </div>
-          <div class="e-commerce-card-item">
-            <div class="flex-center">
-              <div class="setting-name" style="flex: 1">设置视频时长（秒）</div>
-              <el-input-number class="input-number"
-                               v-model="duration"
-                               controls-position="right"
-                               :min="5"
-                               :max="50"
-                               style="margin-left: 10px;width: 80px !important;">
-              </el-input-number>
+          <div class="s-voice-content">
+            <div class="s-voice-btn">
+              <i class="el-icon-play" @click="previewAudio(timbreInfo, -1)" v-if="audioIndex !== -1"></i>
+              <i class="el-icon-pause" @click="stopAudio" v-else></i>
             </div>
+            <el-popover ref="voiceRef" placement="bottom" trigger="click" @hide="stopAudio" style="flex: 1">
+              <div class="popover-content">
+                <el-row>
+                  <el-col :span="12" v-for="(voice, index) in mode === 'common'? voices : minimax_voices" :key="voice.id">
+                    <div class="voice-item" :class="{ active: voice.id === timbreInfo.id }" @click="selectVoice(voice)">
+                      <div class="voice-icon" @click.stop="previewAudio(voice, index)" v-if="audioIndex !== index">
+                        <i class="el-icon-play" style="font-size: 12px; color: #6286ed"></i>
+                      </div>
+                      <div class="voice-icon" @click.stop="stopAudio" v-else>
+                        <i class="el-icon-pause" style="font-size: 12px; color: #6286ed"></i>
+                      </div>
+                      <div class="voice-name" :title="voice.name">{{ voice.name }}</div>
+                    </div>
+                  </el-col>
+                </el-row>
+              </div>
+              <div class="s-voice-name" slot="reference" :title="timbreInfo.name">{{ timbreInfo.name }}</div>
+            </el-popover>
           </div>
+          <div class="setting-name margin-t-12">口播内容</div>
+          <el-input type="textarea" v-model="copywriting" :autosize="{ minRows: 3, maxRows: 6 }"
+                    placeholder="口播文案内容..." resize="none"></el-input>
         </div>
         <div class="generate-btn">
           <el-button @click="generate" :loading="!!loading"><i class="el-icon-bianjiqi btn-icon" v-if="!loading"></i>
@@ -75,15 +85,10 @@
       <div class="e-commerce-preview">
         <div class="preview-header">
           <div class="preview-header-title">应用介绍&输入建议</div>
-          <div class="preview-header-desc">电商带货商品展示数字人口播，上传图片和制作好的口播音频即可生成带货短视频，视频时长要设置比音频多1秒</div>
+          <div class="preview-header-desc">电商带货数字人口播，上传图片（图片需包含商品图和主播形象）、输入口播文案、选择口播音色，即可制作电商带货短视频</div>
         </div>
         <div class="preview-body">
           <video :src="videoUrl" controls class="preview-video"></video>
-<!--          <div class="preview-none">-->
-<!--            <i class="el-icon-video-camera preview-none-icon"></i>-->
-<!--            <div class="preview-none-title">暂无视频预览</div>-->
-<!--            <div class="preview-none-desc">请使用左侧工具生成带货视频</div>-->
-<!--          </div>-->
         </div>
       </div>
     </div>
@@ -91,88 +96,131 @@
 </template>
 
 <script>
-import {postAction} from "@/api/api";
+import {getAction, postAction} from "@/api/api";
+import axios from "axios";
 
 export default {
   name: 'eCommerce',
   data() {
     return {
       imgUrl: '',
-      imgId: '',
-      audioInfo: {},
-      audioId: '',
+      imgFile: {},
+      mode: 'common',
+      timbreInfo: {},
+      voices: [],
+      minimax_voices: [],
       audio: null,
-      duration: 5,
+      audioIndex: null,
+      copywriting: '',
+
       loading: false,
       videoUrl: '',
     }
   },
+  mounted() {
+    this.queryVoices()
+    this.queryMiniMaxVoices()
+  },
   methods: {
-    handleImgSuccess(res, file) {
-      if (res.status === 'success') {
-        this.imgId = res.data.running_hub_ids[0]
-        this.imgUrl = URL.createObjectURL(file.raw);
-      } else {
-        this.$message.error('上传图片失败，请重试')
-      }
+    queryVoices() {
+      getAction("/timbres/get_all_common_timbre").then((res) => {
+        if (res.data.status === "success") {
+          this.voices = res.data.data;
+          this.timbreInfo = res.data.data[0] || {}
+        } else {
+          this.$message.error("获取声音列表失败。");
+        }
+      }).catch((error) => {
+        console.error("获取声音列表失败:", error);
+      });
+    },
+    queryMiniMaxVoices() {
+      getAction("/timbres/get_all_system_timbres",{voice_mode: 'advanced'}).then((res) => {
+        if (res.data.status === "success") {
+          this.minimax_voices = res.data.data
+        } else {
+          this.$message.error("获取高级声音列表失败。");
+        }
+      }).catch((error) => {
+        console.error("获取高级声音列表失败:", error);
+      });
+    },
+    handleImgChange(file, fileList) {
+      this.imgUrl = URL.createObjectURL(file.raw);
+      this.imgFile = file
     },
     imgDelete() {
       this.imgUrl = '';
-      this.imgId = '';
+      this.imgFile = {};
     },
-    handleAudioSuccess(res, file) {
-      if (res.status === 'success') {
-        this.audioId = res.data.running_hub_ids[0]
-        this.audioInfo = file;
-      } else {
-        this.$message.error('上传音频失败，请重试')
-      }
-    },
-    previewAudio() {
-      if (this.audio) {
-        this.audio.pause();
-        this.audio = null
+    saveMode(mode) {
+      if (this.mode === mode) {
         return
       }
-      this.audio = new Audio(URL.createObjectURL(this.audioInfo.raw));
-      this.audio.play();
-      this.audio.onended = () => {
-        this.audio = null;
-      };
+      this.stopAudio()
+      this.timbreInfo = mode === 'common'? this.voices[0] : this.minimax_voices[0]
+      this.mode = mode
+      this.$refs.modePopoverRef.showPopper = false
+    },
+    selectVoice(voice) {
+      this.timbreInfo = voice
+      this.$nextTick(() => {
+        this.$refs.voiceRef.showPopper = false
+      })
+    },
+    previewAudio(voice, index) {
+      if (voice.id === '') {
+        this.$message.warning("无音频预览");
+        return;
+      }
+      this.stopAudio();
+
+      setTimeout(() => {
+        this.audio = new Audio(voice.filepath);
+        this.audio.play();
+        this.audioIndex = index;
+        this.audio.onended = () => {
+          this.audio = null;
+          this.audioIndex = null;
+        };
+      }, 100);
     },
     stopAudio() {
       if (this.audio) {
         this.audio.pause();
-        this.audio = null
+        this.audio = null;
+        this.audioIndex = null;
       }
     },
-    deleteAudio() {
-      this.stopAudio();
-      this.audioInfo = {};
-      this.audioId = '';
-    },
     generate() {
-      if (!this.imgId) {
+      if (!this.imgFile.uid) {
         this.$alert('请上传图片后重试', '提示')
         return
       }
-      if (!this.audioId) {
-        this.$alert('请上传口播音频后重试', '提示')
+      if (!this.copywriting) {
+        this.$alert('请输入口播文案后重试', '提示')
         return
-      }
-      let params = {
-        image_id: this.imgId,
-        audio_id: this.audioId,
-        duration: this.duration
       }
       this.loading = true
       const loading = this.$loading({
         lock: true,
-        text: '带货视频生成中...',
+        text: '带货视频制作中...',
         spinner: 'el-icon-loading',
         background: 'rgba(0, 0, 0, 0.7)'
       });
-      postAction('/running_hub/digital_human_broadcast',params,1800000).then(res => {
+
+      const formData = new FormData();
+      formData.append("image_file", this.imgFile.raw);
+      formData.append('timbre_id', this.timbreInfo.voice_id);
+      formData.append('voice_mode', this.mode);
+      formData.append('copy', this.copywriting);
+
+      axios.post("http://127.0.0.1:6006/running_hub/e_ommerce", formData,{
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+        timeout: 1800000
+      }).then(res => {
         if (res.data.status === 'success') {
           this.videoUrl = res.data.data.video_path
           loading.close();
@@ -226,15 +274,6 @@ export default {
   padding: 12px;
   box-sizing: border-box;
   border-radius: 12px;
-  background-color: #fbfbfb;
-  box-shadow: 0 1px 3px 0 #0000001a, 0 1px 2px -1px #0000001a;
-}
-
-.e-commerce-card-item {
-  margin-top: 16px;
-  padding: 16px;
-  box-sizing: border-box;
-  border-radius: 8px;
   background-color: #ffffff;
   box-shadow: 0 1px 3px 0 #0000001a, 0 1px 2px -1px #0000001a;
 }
@@ -284,67 +323,118 @@ export default {
   cursor: pointer;
 }
 
-.audio {
+.mode-switch {
+  background-color: #f3f4f6;
+  padding: 4px 8px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 12px;
   display: flex;
   align-items: center;
-  height: 56px;
-  width: 317px;
-  padding: 0 12px;
-  border: 1px solid #E4E7ED;
-  border-radius: 6px;
-  background-color: #F7F8FA;
-  transition: all 0.2s ease-in-out;
+  gap: 5px;
+  margin-left: 16px;
 }
 
-.audio-icon {
-  width: 32px;
-  height: 30px;
+.mode-popover-item {
+  padding: 8px 12px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  height: 20px;
+  line-height: 20px;
+}
+
+.mode-popover-item:hover {
+  background-color: #f5f7fa;
+}
+
+.mode-select {
+  color: #409EFF;
+  font-weight: bold;
+  font-size: 14px;
+  margin-left: auto;
+}
+
+.mode-info {
+  margin-left: 10px;
+  font-size: 12px;
+  display: flex;
+  align-items: center;
+  color: #909399;
+}
+
+.s-voice-content {
+  padding: 8px;
+  border-radius: 6px;
+  margin-top: 4px;
+  background-color: #ffffff;
+  border: 1px solid #e5e7eb;
+  display: flex;
+  gap: 8px;
+}
+
+.s-voice-btn {
+  aspect-ratio: 1 / 1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 13px;
+  color: #6286ed;
+  cursor: pointer;
+}
+
+.popover-content {
+  width: 350px;
+  height: 250px;
+  border-radius: 10px;
+  overflow: auto;
+}
+
+.voice-item {
+  height: 70px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.active {
+  background-color: #e0e7fb;
+}
+
+.voice-icon {
+  width: 37px;
+  height: 32px;
   display: flex;
   justify-content: center;
   align-items: center;
   cursor: pointer;
-  background-color: #ffffff;
-  border: 1px solid #DCDFE6;
+  background-color: #c7d4f8;
   border-radius: 8px;
 }
 
-.audio-name {
-  flex: 1;
-  margin: 0 10px;
-  font-size: 14px;
+.voice-name {
+  width: 110px;
+  margin-left: 10px;
+  font-size: 12px;
   color: #101010;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  text-align: left;
 }
 
-.input-number >>> .el-input__inner {
-  height: 30px;
-  line-height: 30px;
-  padding-right: 35px !important;
-}
-
-.input-number >>> .el-input-number {
-  width: 80px
-}
-
-.input-number >>> .el-input-number__decrease {
-  width: 20px;
-  height: 15px !important;
-  line-height: 15px !important;
-  bottom: 5px !important;
-}
-
-.input-number >>> .el-input-number__increase {
-  width: 20px;
-  height: 14px !important;
-  line-height: 14px !important;
-  top: 5px !important;
-}
-
-.input-number >>> .el-input__icon {
-  line-height: 30px;
+.s-voice-name {
+  background-color: #f3f4f6;
+  padding: 4px 4px 4px 8px;
+  box-sizing: border-box;
+  font-size: 12px;
+  height: 22px;
+  border-radius: 6px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  cursor: pointer;
 }
 
 .generate-btn >>> .el-button {

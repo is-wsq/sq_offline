@@ -42,7 +42,7 @@ export default {
         {
           id: 2,
           title: '电商带货短视频',
-          desc: '上传商品图、口播音频，生成电商带货短视频',
+          desc: '上传商品图、输入文案、选择音色，生成带货短视频',
           icon: 'el-icon-zbdh',
           background: '#D1FAE5',
           iconColor: '#059669',
