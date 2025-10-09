@@ -150,12 +150,12 @@
                           <div class="ai-thinking-content">{{ item.thinking }}</div>
                         </el-collapse-item>
                       </el-collapse>
-                      <div class="answer-message-label margin-t-12">生成的脚本</div>
+                      <div class="answer-message-label">生成的脚本</div>
                       <div class="script-content" v-for="(script,script_index) in item.scripts" :key="script_index">
                         {{ script.copy }}
                         <div class="script-btn-group">
                           <div title="选择该脚本" class="script-btn-item" @click="selectScript(script)">
-                            <i class="el-icon-copy-document cursor-pointer"></i>
+                            <i class="el-icon-tianjia cursor-pointer"></i>
                           </div>
                           <div title="删除该脚本" class="script-btn-item" @click="deleteScript(index,script_index)">
                             <i class="el-icon-delete cursor-pointer"></i>
@@ -165,7 +165,7 @@
                     </div>
                   </div>
                   <div class="select-script-btn" @click="selectAllScript(item.scripts)">
-                    <i class="el-icon-copy-document font-weight"></i>
+                    <i class="el-icon-tianjia font-weight"></i>
                     选择本次生成脚本
                   </div>
                 </div>
@@ -191,14 +191,18 @@
                   <i class="el-icon-edit-outline" style="margin-right: 5px"></i>
                   发起新会话
                 </div>
-                <div class="flex-center">
+                <div class="chat-text-area">
                   <el-input type="textarea" placeholder="请输入您的修改意见..." resize="none" v-model="chat_input"
-                            @keydown.native="enterSendChat"></el-input>
-                  <el-button type="primary" style="padding: 0 20px" @click="sendChat" :disabled="isGenerating">
-                    <i class="el-icon-s-promotion" style="font-size: 18px;line-height: 35px"></i>
-                  </el-button>
+                            :rows="3" @keydown.native="enterSendChat"></el-input>
+                  <div style="text-align: right;margin: 5px 8px">
+                    <el-tooltip class="item" effect="dark" content="发送(Enter)" placement="top">
+                      <el-button type="primary" style="padding: 0 15px" @click="sendChat" :disabled="isGenerating">
+                        <i class="el-icon-s-promotion" style="font-size: 16px;line-height: 24px"></i>
+                      </el-button>
+                    </el-tooltip>
+                  </div>
                 </div>
-                <div class="send-placeholder">按Enter或发送按钮发送，Shift+Enter换行</div>
+                <div class="send-placeholder">Shift + Enter 换行</div>
               </template>
               <template v-else>
                 <div class="design-label">产品核心卖点</div>
@@ -1043,8 +1047,8 @@ export default {
 }
 
 .avatar-area {
-  width: 32px;
-  height: 32px;
+  width: 24px;
+  height: 24px;
   background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #ec4899 100%);
   border-radius: 50%;
   display: flex;
@@ -1052,7 +1056,7 @@ export default {
   justify-content: center;
   color: white;
   font-weight: bold;
-  font-size: 18px;
+  font-size: 14px;
   box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
   position: relative;
   overflow: hidden;
@@ -1062,7 +1066,7 @@ export default {
   color: #3b82f6;
   font-weight: bold;
   font-size: 12px;
-  line-height: 16px;
+  line-height: 24px;
 }
 
 .ai-thinking-content {
@@ -1125,15 +1129,39 @@ export default {
   color: #4b5563;
   font-size: 14px;
   line-height: 20px;
-  margin-bottom: 8px;
+  margin: 4px 0;
   cursor: pointer;
+}
+
+
+.chat-text-area {
+  background-color: #f9f9f9;
+  border: 1px solid #DCDFE6;
+  border-radius: 4px;
+}
+
+.chat-text-area >>> .el-textarea__inner {
+  background-color: #f9f9f9;
+  border: none !important;
+}
+
+.chat-text-area:focus-within {
+  outline: none;
+  background: white;
+  border-color: #8b5cf6;
+  box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.1);
+}
+
+.chat-text-area >>> .el-textarea__inner:focus {
+  outline: none;
+  background: white;
+  box-shadow: none;
 }
 
 .send-placeholder {
   color: #6b7280;
-  font-size: 12px;
-  line-height: 16px;
-  margin-top: 8px;
+  font-size: 10px;
+  text-align: right;
 }
 
 .guide-dialog >>> .el-dialog {

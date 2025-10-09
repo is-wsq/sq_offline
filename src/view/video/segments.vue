@@ -126,7 +126,7 @@
                       <div class="ai-thinking-content">{{ item.content.thinking }}</div>
                     </el-collapse-item>
                   </el-collapse>
-                  <div class="mix-chat-system-label margin-t-12">混剪结果</div>
+                  <div class="mix-chat-system-label">混剪结果</div>
                   <div class="mix-chat-system-content" @click="selectMixResult(item.content.data)">
                     <div class="mix-chat-system-content-icon">
                       <svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" fill="none" viewBox="0 0 24 24">
@@ -149,7 +149,7 @@
           <div class="mix-loading-content" v-if="isGenerating">
             <div class="mix-avatar-area">奇</div>
             <template v-if="is_thinking">
-              <div class="mix-chat-system-label" style="line-height: 32px">
+              <div class="mix-chat-system-label">
                 AI思考中
                 <i class="el-icon-loading" style="font-size: 16px;margin-left: 4px"></i>
               </div>
@@ -165,7 +165,7 @@
                       <div class="ai-thinking-content">{{ thinking_text }}</div>
                     </el-collapse-item>
                   </el-collapse>
-                  <div class="mix-chat-system-label margin-t-12">混剪结果</div>
+                  <div class="mix-chat-system-label">混剪结果</div>
                   <div class="mix-chat-system-content">
                     <div :style="progressStyle"></div>
                     <div class="mix-chat-system-content-icon" style="z-index: 10">
@@ -182,7 +182,7 @@
                   </div>
                 </template>
                 <template v-else>
-                  <div class="flex-center" style="line-height: 32px;height: 32px;">
+                  <div class="flex-center">
                     <div class="mix-chat-system-label">AI思考过程</div>
                     <i class="el-icon-arrow-down loading-area-icon"></i>
                     <div style="flex: 1"></div>
@@ -1242,9 +1242,14 @@ export default {
       example[0] = this.exampleTexts
 
       this.isNewChat = false
+      let mixContent = `混剪要求:${this.requirement ? this.requirement : '挑选合适的视频素材即可'}\n 文案要求:${this.copy_require}`
+      this.sync_mix_chats.push({
+        role: 'user',
+        content: mixContent,
+      });
       this.segments_chats.push({
         role: 'user',
-        content: this.requirement || '挑选合适的视频素材即可',
+        content: mixContent,
       });
       this.isGenerating = true
       this.$nextTick(() => {
@@ -2305,8 +2310,8 @@ export default {
 }
 
 .mix-avatar-area {
-  width: 32px;
-  height: 32px;
+  width: 24px;
+  height: 24px;
   background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #ec4899 100%);
   border-radius: 50%;
   display: flex;
@@ -2314,7 +2319,7 @@ export default {
   justify-content: center;
   color: white;
   font-weight: bold;
-  font-size: 18px;
+  font-size: 14px;
   box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
   position: relative;
   overflow: hidden;
@@ -2333,8 +2338,8 @@ export default {
 
 .mix-chat-system >>> .el-collapse-item__header,
 .mix-loading-area >>> .el-collapse-item__header {
-  height: 32px;
-  line-height: 32px;
+  height: 24px;
+  line-height: 24px;
   background-color: transparent;
   border: none;
 }
@@ -2354,7 +2359,7 @@ export default {
   color: #3b82f6;
   font-weight: bold;
   font-size: 12px;
-  line-height: 16px;
+  line-height: 24px;
 }
 
 
@@ -2445,14 +2450,37 @@ export default {
   color: #4b5563;
   font-size: 14px;
   line-height: 20px;
-  margin-bottom: 8px;
+  margin: 4px;
   cursor: pointer;
+}
+
+.chat-text-area {
+  background-color: #f9f9f9;
+  border: 1px solid #DCDFE6;
+  border-radius: 4px;
+}
+
+.chat-text-area >>> .el-textarea__inner {
+  background-color: #f9f9f9;
+  border: none !important;
+}
+
+.chat-text-area:focus-within {
+  outline: none;
+  background: white;
+  border-color: #8b5cf6;
+  box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.1);
+}
+
+.chat-text-area >>> .el-textarea__inner:focus {
+  outline: none;
+  background: white;
+  box-shadow: none;
 }
 
 .mix-send-placeholder {
   color: #6b7280;
-  font-size: 12px;
-  line-height: 16px;
-  margin-top: 8px;
+  font-size: 10px;
+  text-align: right;
 }
 </style>

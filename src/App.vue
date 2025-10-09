@@ -148,6 +148,10 @@ body {
   margin-bottom: 8px;
 }
 
+.margin-b-4 {
+  margin-bottom: 4px;
+}
+
 .margin-b-16 {
   margin-bottom: 16px;
 }
