@@ -159,12 +159,6 @@ export default {
     calibrateCanvas() {
       if (!this.canvas) return;
 
-      const canvasElement = this.$refs.editorCanvas;
-      const parentElement = canvasElement.parentElement;
-
-      const rect = canvasElement.getBoundingClientRect();
-      const parentRect = parentElement.getBoundingClientRect();
-
       this.canvas.setViewportTransform([1, 0, 0, 1, 0, 0]);
       this.canvas.calcOffset();
     },
@@ -210,7 +204,6 @@ export default {
 
       this.canvas.clear();
       this.canvas.add(this.originalImage);
-      this.showStatus('已清除所有编辑', 'info');
     },
 
     downloadImage() {
@@ -218,7 +211,6 @@ export default {
       link.download = 'edited-image.png';
       link.href = this.canvas.toDataURL('image/png');
       link.click();
-      this.showStatus('图片已下载', 'success');
     },
 
     async uploadToBackend() {
@@ -238,15 +230,8 @@ export default {
             'Content-Type': 'multipart/form-data'
           }
         });
-
-        if (response.data.success) {
-          this.showStatus('图片已成功提交到后端', 'success');
-        } else {
-          this.showStatus('提交失败: ' + (response.data.message || '未知错误'), 'error');
-        }
       } catch (error) {
         console.error('上传失败:', error);
-        this.showStatus('提交失败: 网络错误或服务器无响应', 'error');
       }
     },
     back() {
