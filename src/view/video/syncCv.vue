@@ -204,8 +204,31 @@
             发起新会话
           </div>
           <div class="chat-text-area">
-            <el-input type="textarea" placeholder="请输入您的修改意见..." resize="none" v-model="mix_chatInput"
-                      :rows="3" @keydown.native="enterSendChat"></el-input>
+            <div style="position: relative">
+              <div class="chat-highlight-content"
+                   v-html="chat_highlightedText"
+                   :style="{height: chat_replaceDivHeight + 'px'}"
+                   ref="chatHighlightDiv">
+              </div>
+              <el-input type="textarea" placeholder="请输入您的修改意见..." resize="none" v-model="mix_chatInput"
+                        :rows="3" @keydown.native="enterSendChat" spellcheck="false" ref="textareaRef"
+                        class="textarea-layer" @input="onInput" @compositionstart="onCompositionStart"
+                        @compositionupdate="onCompositionUpdate" @compositionend="onCompositionEnd"
+                        @scroll="handleChatScroll"></el-input>
+              <div v-if="chat_showDropdown" class="dropdown" :style="chat_dropdownStyle">
+                <ul ref="urRef">
+                  <li v-for="(item, index) in filtered_mention_list" :key="index" @click="selectChatMention(item)"
+                      @mouseenter="liEnter(item)" :title="item.name" @mouseleave="liLeave"
+                      @mouseover="liMouseover(index)" :class="{'li-active': selectedShotIndex === index}">
+                    {{ item.name }}
+                  </li>
+                </ul>
+                <div class="li-video" v-if="hover_li">
+                  <video :src="hover_li.filepath" style="width: 100%; height: 100%;border-radius: 4px;"
+                         loop muted autoplay></video>
+                </div>
+              </div>
+            </div>
             <div style="text-align: right;margin: 5px 8px">
               <el-tooltip class="item" effect="dark" content="发送(Enter)" placement="top">
                 <el-button type="primary" style="padding: 0 15px" @click="sendChat" :disabled="isGenerating">
@@ -439,16 +462,6 @@ export default {
       subtitleNameParams: {},
       /* --end-- */
 
-      lastInput: '',
-      replaceDivHeight: 102,
-      showDropdown: false,
-      dropdownStyle: {
-        position: 'absolute',
-        top: '0px',
-        left: '0px'
-      },
-      mentionRanges: [],
-
       language: '中文',
       copy_require: '',
       exampleTexts: [''],
@@ -468,11 +481,34 @@ export default {
       loading: null,
       media_volume: 0.5,
 
-      displayText: '',
       isComposing: false,
       composingText: '',
       compositionStart: 0,
       highlightedText: '',
+      lastInput: '',
+      replaceDivHeight: 102,
+      showDropdown: false,
+      dropdownStyle: {
+        position: 'absolute',
+        top: '0px',
+        left: '0px'
+      },
+      mentionRanges: [],
+
+      chat_isComposing: false,
+      chat_composingText: '',
+      chat_compositionStart: 0,
+      chat_highlightedText: '',
+      chat_lastInput: '',
+      chat_replaceDivHeight: 79,
+      chat_showDropdown: false,
+      chat_dropdownStyle: {
+        position: 'absolute',
+        top: '0px',
+        left: '0px'
+      },
+      chat_mentionRanges: [],
+
       show_model: '',
       reverse: false,
       selected_figure: {},
@@ -492,6 +528,10 @@ export default {
     document.removeEventListener('keydown', this.handleKeyDown);
     const inputEl = this.$refs.inputRef.$el.querySelector('textarea')
     inputEl.removeEventListener('scroll', this.handleScroll);
+    if (this.$refs.textareaRef) {
+      const chatEl = this.$refs.textareaRef.$el.querySelector('textarea')
+      chatEl.removeEventListener('scroll', this.handleChatScroll);
+    }
     this.clearDelayTimer();
   },
   mounted() {
@@ -506,6 +546,11 @@ export default {
     requirement(newVal) {
       if (!this.isComposing) {
         this.updateDisplayText();
+      }
+    },
+    mix_chatInput(newVal) {
+      if (!this.chat_isComposing) {
+        this.updateDisplayChatText();
       }
     },
     sync_mix_chats: {
@@ -612,6 +657,10 @@ export default {
         this.$alert('请等待生成结束后再发起新会话','提示')
         return
       }
+      if (this.$refs.textareaRef) {
+        const chatEl = this.$refs.textareaRef.$el.querySelector('textarea')
+        chatEl.removeEventListener('scroll', this.handleChatScroll);
+      }
       this.isNewChat = true
       this.conversation_id = null
       sessionStorage.removeItem('sync_mix_conversation_id')
@@ -712,7 +761,7 @@ export default {
       }
     },
     enterSendChat(event) {
-      if (event.key === 'Enter' && !event.shiftKey) {
+      if (event.key === 'Enter' && !event.shiftKey && !this.chat_showDropdown) {
         event.preventDefault();
         if (this.isGenerating) {
           return;
@@ -734,10 +783,15 @@ export default {
       }
       this.sync_mix_chats.push({ role: 'user', content: this.mix_chatInput });
       let version = history_chat.filter(item => item.role === 'user').length - 1
+      let actualRequest = this.mix_chatInput
+      let names = this.mention_list.map(item => '@' + item.name);
+      names.forEach((item, index) => {
+        actualRequest = actualRequest.replace(item, `@{${this.material_list[index]}}`)
+      })
       let params = {
         data: this.lastGeneratedMixins,
         history_chat: history_chat,
-        user_feedback: this.mix_chatInput,
+        user_feedback: actualRequest,
         material_list: this.material_list,
         bool_list: this.mute_materials,
         conversation_id: this.conversation_id,
@@ -772,7 +826,7 @@ export default {
       this.push_shot_popover = false
     },
     handleKeyDown(event) {
-      if (this.showDropdown) {
+      if (this.showDropdown || this.chat_showDropdown) {
         if (event.key === 'ArrowUp' && this.selectedShotIndex > 0) {
           event.preventDefault();
           this.selectedShotIndex--;
@@ -791,7 +845,11 @@ export default {
           }
         } else if (event.key === 'Enter' && this.selectedShotIndex !== -1) {
           event.preventDefault();
-          this.selectMention(this.filtered_mention_list[this.selectedShotIndex]);
+          if (this.$refs.textareaRef) {
+            this.selectChatMention(this.filtered_mention_list[this.selectedShotIndex])
+          } else {
+            this.selectMention(this.filtered_mention_list[this.selectedShotIndex]);
+          }
         }
       }
       if (this.add_shot_popover) {
@@ -900,20 +958,37 @@ export default {
       sessionStorage.setItem('sync_setting', JSON.stringify(sync_setting))
     },
     onCompositionStart(e) {
+      if (this.$refs.textareaRef) {
+        this.chat_isComposing = true;
+        this.chat_compositionStart = e.target.selectionStart;
+        return
+      }
       this.isComposing = true;
       this.compositionStart = e.target.selectionStart;
     },
 
     onCompositionUpdate(e) {
-      this.composingText = e.data;
-      this.updateDisplayText();
+      if (this.$refs.textareaRef) {
+        this.chat_composingText = e.data;
+        this.updateDisplayChatText();
+      } else {
+        this.composingText = e.data;
+        this.updateDisplayText();
+      }
     },
 
     onCompositionEnd(e) {
-      this.isComposing = false;
-      this.composingText = '';
-      this.requirement = e.target.value;
-      this.updateDisplayText();
+      if (this.$refs.textareaRef) {
+        this.chat_isComposing = false;
+        this.chat_composingText = '';
+        this.mix_chatInput = e.target.value;
+        this.updateDisplayChatText();
+      } else {
+        this.isComposing = false;
+        this.composingText = '';
+        this.requirement = e.target.value;
+        this.updateDisplayText();
+      }
     },
     updateDisplayText() {
       let isDel = this.lastInput.length > this.requirement.length;
@@ -1014,6 +1089,104 @@ export default {
         this.hover_li = null;
       }
     },
+    updateDisplayChatText() {
+      let isDel = this.chat_lastInput.length > this.mix_chatInput.length;
+      this.chat_lastInput = this.mix_chatInput;
+      const inputEl = this.$refs.textareaRef.$el.querySelector('textarea');
+      const cursorPos = inputEl.selectionStart;
+      if (isDel) { // 删除@内容
+        for (let mention of this.chat_mentionRanges) {
+          const {start, end, name} = mention;
+          if (cursorPos >= start && cursorPos < end) { //删除@内容
+            this.mix_chatInput =
+                this.mix_chatInput.slice(0, start - 1) + this.mix_chatInput.slice(end - 1);
+          }
+        }
+      }
+
+      // 更新提及范围数组
+      this.updateChatMentionRanges()
+
+      let result = this.mix_chatInput;
+      if (this.chat_isComposing && this.chat_composingText) {
+        const before = result.substring(0, this.chat_compositionStart);
+        const after = result.substring(this.chat_compositionStart + this.chat_composingText.length);
+        result = before + this.chat_composingText + after;
+      }
+      let names = this.mention_list.map(item => '@' + item.name);
+
+      function escapeRegExp(str) {
+        return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      }
+
+      names.sort((a, b) => b.length - a.length);
+
+      const pattern = names.map(name => escapeRegExp(name)).join('|');
+
+      const regex = new RegExp(pattern, 'g');
+
+      result = result.replace(regex, (match) => {
+        return `<span style="color: #4c8df1">${match}</span>`;
+      });
+
+      result = result.replace(/\n/g, '<br>');
+      this.chat_highlightedText = result;
+
+      if (this.isSelecting) {
+        return;
+      }
+      const atIndex = this.mix_chatInput.lastIndexOf('@', cursorPos - 1);
+      let activeMention = false;
+
+      if (atIndex !== -1) {
+        const textBetweenAtAndCursor = this.mix_chatInput.substring(atIndex + 1, cursorPos);
+        if (!/\s/.test(textBetweenAtAndCursor)) {
+          activeMention = true;
+        }
+      }
+
+      if (activeMention && !isDel) {
+        const searchTerm = this.mix_chatInput.substring(atIndex + 1, cursorPos);
+
+        this.filtered_mention_list = this.mention_list.filter(mention =>
+            mention.name.toLowerCase().startsWith(searchTerm.toLowerCase())
+        );
+        this.chat_showDropdown = this.filtered_mention_list.length > 0;
+
+        if (this.chat_showDropdown) {
+          if (this.selectedShotIndex !== 0) {
+            this.selectedShotIndex = 0;
+            this.hover_li = this.filtered_mention_list[0];
+          }
+          this.$nextTick(() => {
+            const paddingLeft = parseFloat(getComputedStyle(inputEl).paddingLeft) || 0;
+            const canvas = document.createElement('canvas');
+            const context = canvas.getContext('2d');
+            const computedStyle = getComputedStyle(inputEl);
+            context.font = `${computedStyle.fontSize} ${computedStyle.fontFamily}`;
+
+            const textBeforeAt = this.mix_chatInput.substring(0, atIndex + 1);
+            const textWidth = context.measureText(textBeforeAt).width;
+            const inputWidth = inputEl.clientWidth - 30;
+            const lineHeight = parseFloat(computedStyle.lineHeight) || parseFloat(computedStyle.fontSize);
+
+            let offsetTop = Math.floor((paddingLeft + textWidth + 10) / inputWidth) + 1;
+            offsetTop = Math.min(offsetTop, 3);
+            let remainder = (paddingLeft + textWidth + 5) % inputWidth;
+
+            this.chat_dropdownStyle.top = `${window.scrollY + offsetTop * lineHeight - 223}px`;
+            this.chat_dropdownStyle.left = `${remainder}px`;
+          });
+        } else {
+          this.selectedShotIndex = -1;
+          this.hover_li = null;
+        }
+      } else {
+        this.chat_showDropdown = false;
+        this.selectedShotIndex = -1;
+        this.hover_li = null;
+      }
+    },
     validateNum() {
       let val = this.script_num
       if (val < 1) {
@@ -1052,6 +1225,13 @@ export default {
       highlightEl.scrollTop = inputEl.scrollTop;
       highlightEl.scrollLeft = inputEl.scrollLeft;
     },
+    handleChatScroll(event) {
+      const inputEl = this.$refs.textareaRef.$el.querySelector('textarea');
+      const highlightEl = this.$refs.chatHighlightDiv;
+      // 同步滚动位置
+      highlightEl.scrollTop = inputEl.scrollTop;
+      highlightEl.scrollLeft = inputEl.scrollLeft;
+    },
     updateMentionRanges() {
       let result = []
       let names = this.mention_list.map(item => '@' + item.name);
@@ -1068,7 +1248,30 @@ export default {
       });
       this.mentionRanges = result;
     },
+    updateChatMentionRanges() {
+      let result = []
+      let names = this.mention_list.map(item => '@' + item.name);
+      names.forEach(name => {
+        let startIndex = 0;
+        while ((startIndex = this.mix_chatInput.indexOf(name, startIndex)) !== -1) {
+          result.push({
+            start: startIndex + 1,
+            end: startIndex + name.length,
+            name: name
+          });
+          startIndex += name.length; // 移动索引避免死循环
+        }
+      });
+      this.chat_mentionRanges = result;
+    },
     onInput() {
+      if (this.$refs.textareaRef) {
+        if (this.chat_isComposing) {
+          return
+        }
+        this.updateDisplayChatText()
+        return;
+      }
       if (this.isComposing) {
         return
       }
@@ -1101,15 +1304,47 @@ export default {
         });
       }
     },
+    selectChatMention(item) {  //选择@
+      const inputEl = this.$refs.textareaRef.$el.querySelector('textarea');
+      const cursorPos = inputEl.selectionStart;
+      const atIndex = this.mix_chatInput.lastIndexOf('@', cursorPos - 1);
+      if (atIndex !== -1) {
+        this.isSelecting = true;
+        const startPart = this.mix_chatInput.slice(0, atIndex);
+        const endPart = this.mix_chatInput.slice(cursorPos);
+        const mentionText = '@' + item.name + ' ';
+        this.mix_chatInput = startPart + mentionText + endPart;
+
+        this.chat_showDropdown = false;
+        this.selectedShotIndex = -1;
+        this.hover_li = null;
+        this.chat_lastInput = this.mix_chatInput;
+        this.updateChatMentionRanges()
+
+        this.$nextTick(() => {
+          const newCursorPos = atIndex + mentionText.length;
+          inputEl.focus();
+          inputEl.selectionStart = newCursorPos;
+          inputEl.selectionEnd = newCursorPos;
+          this.isSelecting = false;
+        });
+      }
+    },
     handleClickOutside(event) {
-      if (!this.$refs.inputRef)
+      if (!this.$refs.inputRef && !this.$refs.textareaRef)
         return;
-      const inputEl = this.$refs.inputRef.$el.querySelector('textarea');
+      let inputEl
+      if (this.$refs.textareaRef) {
+        inputEl = this.$refs.textareaRef.$el.querySelector('textarea');
+      } else {
+        inputEl = this.$refs.inputRef.$el.querySelector('textarea');
+      }
       const dropdownEl = this.$refs.dropdownRef; // 假设选择框有一个引用
 
       // 检查点击是否发生在输入框或选择框内
       if (!inputEl.contains(event.target) && (!dropdownEl || !dropdownEl.contains(event.target))) {
         this.showDropdown = false;
+        this.chat_showDropdown = false;
         this.selectedShotIndex = -1;
         this.hover_li = null;
       }
@@ -1141,6 +1376,10 @@ export default {
       this.lastGeneratedMixins = JSON.parse(sessionStorage.getItem('sync_last_generated_mixins')) || []
       this.$nextTick(() => {
         this.scrollToBottom()
+        if (this.sync_mix_chats.length > 0 && !this.isNewChat) {
+          const chatEl = this.$refs.textareaRef.$el.querySelector('textarea')
+          chatEl.addEventListener('scroll', this.handleChatScroll);
+        }
       })
 
       let sync_setting = JSON.parse(sessionStorage.getItem("sync_setting")) || {}
@@ -1253,6 +1492,8 @@ export default {
       this.isGenerating = true
       this.$nextTick(() => {
         this.scrollToBottom()
+        const chatEl = this.$refs.textareaRef.$el.querySelector('textarea')
+        chatEl.addEventListener('scroll', this.handleChatScroll);
       })
 
       let params = {
@@ -2135,7 +2376,7 @@ export default {
   background-color: #DBEAFE;
 }
 
-.highlight-content {
+.highlight-content, .chat-highlight-content {
   padding: 8px;
   border: 1px solid #d1d5db;
   box-sizing: border-box;
@@ -2154,7 +2395,11 @@ export default {
   word-wrap: break-word;
 }
 
-.input-layer {
+.chat-highlight-content {
+  border: none !important;
+}
+
+.input-layer, .textarea-layer {
   position: relative;
   z-index: 2;
   background-color: transparent;
@@ -2162,7 +2407,8 @@ export default {
   caret-color: black;
 }
 
-.input-layer >>> .el-textarea__inner {
+.input-layer >>> .el-textarea__inner,
+.textarea-layer >>> .el-textarea__inner {
   padding: 8px;
   background-color: transparent;
   color: transparent; /* 让文字看不见 */
@@ -2489,7 +2735,7 @@ export default {
 }
 
 .chat-text-area >>> .el-textarea__inner {
-  background-color: #f9f9f9;
+  background-color: transparent;
   border: none !important;
 }
 
@@ -2502,7 +2748,7 @@ export default {
 
 .chat-text-area >>> .el-textarea__inner:focus {
   outline: none;
-  background: white;
+  background: transparent;
   box-shadow: none;
 }
 
