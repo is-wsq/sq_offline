@@ -396,7 +396,7 @@ export default {
         scripts: this.lastGenerateScripts,
       }
       this.chat_input = ''
-      axios.post('http://127.0.0.1:9669/api/re_generate_script', params).then(res => {
+      axios.post('http://127.0.0.1:6006/api/re_generate_script', params).then(res => {
         if (res.data.status === "success") {
           this.isGenerating = false
           this.lastGenerateScripts = res.data.data.scripts
@@ -565,10 +565,10 @@ export default {
       let url = ''
       switch (this.ai_model) {
         case 'local_model':
-          url = 'http://127.0.0.1:9669/api/generate_script'
+          url = 'http://127.0.0.1:6006/api/generate_script'
           break
         case 'deepseek_v3':
-          url = 'http://127.0.0.1:9669/api/generate_script'
+          url = 'http://127.0.0.1:6006/api/generate_script'
           break
       }
       this.isNewChat = false

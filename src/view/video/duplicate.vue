@@ -303,7 +303,7 @@ export default {
         voice_id: this.voice.id,
       }
       this.chat_input = ''
-      axios.post('http://127.0.0.1:9669/api/re_generate_script', params).then(res => {
+      axios.post('http://127.0.0.1:6006/api/re_generate_script', params).then(res => {
         if (res.data.status === "success") {
           this.isGenerating = false
           this.lastGenerateScripts = res.data.data.scripts
@@ -436,7 +436,7 @@ export default {
       });
       this.isGenerating = true
       this.$nextTick(() => { this.scrollToBottom() })
-      let url = this.exampleTexts ? 'http://127.0.0.1:9669/api/generate_script' : 'http://127.0.0.1:9669/api/generate_script_by_duration'
+      let url = this.exampleTexts ? 'http://127.0.0.1:6006/api/generate_script' : 'http://127.0.0.1:6006/api/generate_script_by_duration'
       let params = {}
       if (this.exampleTexts) {
         let examples = []
