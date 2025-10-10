@@ -165,9 +165,63 @@
     </el-dialog>
     <el-dialog class="detail-dialog" :visible.sync="detailDialogVisible" width="800px" title="爆款视频分镜详情">
       <div class="detail-list">
-        <div class="detail-item" v-for="(segment, index) in segments" :key="index">
-          <div v-html="marked(segment.description)" class="markdown-content"></div>
+        <el-descriptions title="基础信息" :column="2" border :labelStyle="{'width': '120px','text-align': 'center'}">
+          <el-descriptions-item label="视频名称">
+            {{ logInfo.name }}
+          </el-descriptions-item>
+          <el-descriptions-item label="视频时长" :contentStyle="{'width': '307px'}">
+            {{ logInfo.duration ? logInfo.duration.toFixed(2) + 's' : '' }}
+          </el-descriptions-item>
+          <el-descriptions-item label="上传时间" :contentStyle="{'width': '307px'}">
+            {{ logInfo.create_time ? logInfo.create_time.replace(/\.\d+$/, "") : '' }}
+          </el-descriptions-item>
+          <el-descriptions-item label="完成时间" :contentStyle="{'width': '307px'}">
+            {{ logInfo.updated_at ? logInfo.updated_at.replace(/\.\d+$/, "") : '' }}
+          </el-descriptions-item>
+          <el-descriptions-item label="复刻类别" :contentStyle="{'width': '307px'}"  :span="2">
+            {{ logInfo.asr_enabled ? '有文案复刻' : '无文案复刻' }}
+          </el-descriptions-item>
+          <el-descriptions-item label="文案内容" :span="2">
+            {{ logInfo.content ? logInfo.content : '无文案' }}
+          </el-descriptions-item>
+        </el-descriptions>
+        <el-divider content-position="left" v-if="logInfo.grouped_analysis_result">爆款视频分镜分析</el-divider>
+        <div class="group-card" v-if="logInfo.grouped_analysis_result">
+          <div class="group-title">视频分镜分组分析</div>
+          <div class="group-content" :title="logInfo.grouped_analysis_result.reason">
+            {{ logInfo.grouped_analysis_result.reason }}
+          </div>
+          <div class="groups-segment" v-if="logInfo.grouped_analysis_result">
+            <div class="group-segment" v-for="(group,group_index) in logInfo.grouped_analysis_result.segmentGroups"
+                 :key="group_index">
+              <div class="segment-title"
+                   :style="{ width: ((group.segments.length - 1) * 100 + 80) + 'px' }"
+                   :title="group.contentSummary">
+                {{ group.contentSummary }}
+              </div>
+              <div class="material-list">
+                <div class="material-item" v-for="(material,material_index) in group.segments"
+                     :key="material_index">
+                  <el-image class="material-item-img" :src="material.screenshot_path"></el-image>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
+        <el-divider content-position="left">分镜详情</el-divider>
+        <el-collapse v-model="activeCollapse">
+          <el-collapse-item title="LLM 分析" name="1">
+            <div>分析结果</div>
+            <div class="llm-thought-process" v-if="logInfo.grouped_analysis_result">
+              <div v-for="(item, index) in logInfo.grouped_analysis_result.segmentGroups" :key="index">
+                <div class="font-weight">分镜组{{ index + 1}}</div>
+                <div v-for="(segment, segment_index) in item.segments" :key="segment_index" style="margin-left: 50px">
+                  <div v-html="marked(segment.description)"></div>
+                </div>
+              </div>
+            </div>
+          </el-collapse-item>
+        </el-collapse>
       </div>
     </el-dialog>
     <el-dialog class="guide-dialog" :visible.sync="guideVisible" width="800px">
@@ -296,6 +350,8 @@ export default {
       renameId: '',
       detailDialogVisible: false,
       segments: [],
+      logInfo: {},
+      activeCollapse: '',
 
       guideVisible: false,
       nextType: 'hot_montage',
@@ -427,7 +483,13 @@ export default {
       });
     },
     showDetail() {
+      this.logInfo = this.rightItem
+      if (this.logInfo.asr_enabled) {
+        this.logInfo.content = this.logInfo.segments.map(segment => segment.asr_text ? segment.asr_text : '').join('')
+      }
       this.segments = this.rightItem.segments
+      console.log(this.rightItem)
+      console.log(this.segments)
       this.detailDialogVisible = true
     },
     initData() {
@@ -812,10 +874,7 @@ export default {
 }
 
 .detail-list {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  height: calc(70vh - 80px);
+  max-height: calc(70vh - 80px);
   overflow-y: auto;
   padding: 10px 20px;
 }
@@ -828,6 +887,15 @@ export default {
   background-color: #f5f5f5;
   padding: 0 10px;
   border-radius: 8px;
+}
+
+.llm-thought-process {
+  background-color: #f5f5f5;
+  padding: 15px;
+  border-radius: 4px;
+  max-height: 400px;
+  word-wrap: break-word;
+  overflow-y: auto;
 }
 
 .guide-dialog >>> .el-dialog {
@@ -881,5 +949,114 @@ export default {
 
 .guide-dialog >>> .el-dialog__footer {
   padding: 0;
+}
+
+.group-card {
+  width: 100%;
+  box-sizing: border-box;
+  color: #1f2937;
+  cursor: pointer;
+  background: #f8fafc;
+  border-radius: 12px;
+  padding: 20px;
+  transition: all 0.2s ease;
+  position: relative;
+  background: linear-gradient(135deg, #dbeafe 0%, #ede9fe 100%) !important;
+  border-color: #8b5cf6 !important;
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.15), 0 4px 12px rgba(139, 92, 246, 0.15) !important;
+}
+
+.group-title {
+  width: 100%;
+  line-height: 28px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: #1e293b;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.group-content {
+  width: 100%;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  cursor: pointer;
+  color: #64748b;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.groups-segment {
+  margin-top: 12px;
+  display: flex;
+  flex-direction: row;
+  gap: 8px;
+  overflow-x: auto;
+  padding-bottom: 12px;
+}
+
+.group-segment {
+  flex-shrink: 0;
+  background-color: #f8fafc;
+  padding: 12px 20px;
+  border-radius: 8px;
+  border: 1px solid #e2e8f0;
+  overflow: hidden;
+}
+
+.segment-title {
+  font-size: 13px;
+  font-weight: 500;
+  color: #4338ca;
+  margin-bottom: 8px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.material-list {
+  display: flex;
+  gap: 20px;
+}
+
+.material-item {
+  position: relative;
+  width: 80px;
+  display: flex;
+  aspect-ratio: 9 / 16;
+  border-radius: 5px;
+  flex-shrink: 0;
+}
+
+.material-item-img {
+  width: 100%;
+  height: 100%;
+  border-radius: 5px;
+}
+
+.material-item-title {
+  position: absolute;
+  bottom: 0;
+  width: 100%;
+  background: linear-gradient(to bottom, rgba(0, 0, 0, 0), rgba(0, 0, 0, 1));
+  padding: 10px 2px;
+  box-sizing: border-box;
+  color: #FFFFFF;
+  font-size: 12px;
+  border-bottom-left-radius: 8px;
+  border-bottom-right-radius: 8px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.placeholder-footer {
+  color: #6d7177;
+  font-size: 15px;
+  font-family: "Helvetica Neue", Arial, sans-serif;
+  text-align: center;
+  margin-top: 12px;
 }
 </style>
