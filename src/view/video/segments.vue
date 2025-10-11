@@ -2526,6 +2526,7 @@ export default {
   border-top-left-radius: 0 !important;
   color: #4B5563;
   font-size: 14px;
+  white-space: pre-wrap
 }
 
 .mix-chat-system-area {
