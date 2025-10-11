@@ -2806,7 +2806,6 @@ export default {
   padding: 10px;
   box-shadow: 0 0 #0000, 0 0 #0000, 0 1px 2px 0 rgb(0 0 0 / 0.05);
   border-radius: 8px;
-  border-top-left-radius: 0 !important;
   color: #4B5563;
   font-size: 14px;
 }
@@ -2833,7 +2832,6 @@ export default {
   padding: 10px;
   box-shadow: 0 0 #0000, 0 0 #0000, 0 1px 2px 0 rgb(0 0 0 / 0.05);
   border-radius: 8px;
-  border-top-right-radius: 0 !important;
   display: flex;
   gap: 8px;
 }
@@ -2943,7 +2941,6 @@ export default {
   padding: 10px;
   box-shadow: 0 0 #0000, 0 0 #0000, 0 1px 2px 0 rgb(0 0 0 / 0.05);
   border-radius: 8px;
-  border-top-right-radius: 0 !important;
   display: flex;
   gap: 8px;
 }
