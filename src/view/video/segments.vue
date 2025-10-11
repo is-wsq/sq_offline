@@ -110,9 +110,7 @@
           <div v-for="(item, index) in segments_chats" :key="index"
                :class="{'historical-chat': lastNewChatIndex !== -1 && index < lastNewChatIndex}">
             <div v-if="item.role === 'user'" style="display: flex;justify-content: end;">
-              <div class="mix-chat-user">
-                {{ item.content }}
-              </div>
+              <div class="mix-chat-user" v-html="highlightAt(item.content)" @click="handleMentionClick"></div>
             </div>
             <div v-if="item.role === 'system'" class="mix-chat-system-area">
               <div class="mix-chat-system">
@@ -629,6 +627,32 @@ export default {
     }
   },
   methods: {
+    highlightAt(content) {
+      let names = this.mention_list.map(item => '@' + item.name);
+
+      function escapeRegExp(str) {
+        return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      }
+
+      names.sort((a, b) => b.length - a.length);
+      const pattern = names.map(name => escapeRegExp(name)).join('|');
+      const regex = new RegExp(pattern, 'g');
+
+      // 添加一个唯一标识类名，用于事件委托
+      return content.replace(regex, (match) => {
+        return `<span class="mention-tag" style="color: #4c8df1;cursor: pointer;" data-name="${match}">${match}</span>`;
+      });
+    },
+    handleMentionClick(e) {
+      if (e.target.classList.contains('mention-tag')) {
+        const name = e.target.dataset.name;
+        this.viewMaterial(name);
+      }
+    },
+    viewMaterial(name) {
+      let filepath = this.mention_list.find(item => item.name === name.replace('@','')).filepath;
+      console.log(filepath);
+    },
     closeSettings() {
       if (this.copy_list.length === 0) {
         this.show_left_panel = false
@@ -1485,7 +1509,7 @@ export default {
       example[0] = this.exampleTexts
 
       this.isNewChat = false
-      let mixContent = `混剪要求:${this.requirement ? this.requirement : '挑选合适的视频素材即可'}\n 文案要求:${this.copy_require}`
+      let mixContent = `混剪要求:${this.requirement ? this.requirement : '挑选合适的视频素材即可'}\n文案要求:${this.copy_require}`
       this.segments_chats.push({
         role: 'user',
         content: mixContent,

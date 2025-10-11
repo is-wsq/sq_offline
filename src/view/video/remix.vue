@@ -77,9 +77,7 @@
           <div v-for="(item, index) in mix_chats" :key="index"
                :class="{'historical-chat': lastNewChatIndex !== -1 && index < lastNewChatIndex}">
             <div v-if="item.role === 'user'" style="display: flex;justify-content: end;">
-              <div class="mix-chat-user">
-                {{ item.content }}
-              </div>
+              <div class="mix-chat-user" v-html="highlightAt(item.content)" @click="handleMentionClick"></div>
             </div>
             <div v-if="item.role === 'system'" class="mix-chat-system-area">
               <div class="mix-chat-system">
@@ -738,6 +736,32 @@ export default {
     inputEl.addEventListener('scroll', this.handleScroll);
   },
   methods: {
+    highlightAt(content) {
+      let names = this.mention_list.map(item => '@' + item.name);
+
+      function escapeRegExp(str) {
+        return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      }
+
+      names.sort((a, b) => b.length - a.length);
+      const pattern = names.map(name => escapeRegExp(name)).join('|');
+      const regex = new RegExp(pattern, 'g');
+
+      // 添加一个唯一标识类名，用于事件委托
+      return content.replace(regex, (match) => {
+        return `<span class="mention-tag" style="color: #4c8df1;cursor: pointer;" data-name="${match}">${match}</span>`;
+      });
+    },
+    handleMentionClick(e) {
+      if (e.target.classList.contains('mention-tag')) {
+        const name = e.target.dataset.name;
+        this.viewMaterial(name);
+      }
+    },
+    viewMaterial(name) {
+      let filepath = this.mention_list.find(item => item.name === name.replace('@','')).filepath;
+      console.log(filepath);
+    },
     closeSettings() {
       if (this.montage_data.length === 0) {
         this.show_settings = false
