@@ -72,6 +72,7 @@ export default {
   methods: {
     gotoTool(path) {
       // window.open(path);
+      sessionStorage.setItem('chest_path', path)
       this.$router.push({path: path});
     },
   }

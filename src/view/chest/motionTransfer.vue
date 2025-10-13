@@ -1,5 +1,9 @@
 <template>
-  <div class="motion-transfer">
+  <div class="motion-transfer"
+       v-loading="loading"
+       element-loading-text="动作迁移中..."
+       element-loading-spinner="el-icon-loading"
+       element-loading-background="rgba(0, 0, 0, 0.8)">
     <div class="flex-center">
       <el-button type="text" class="back-btn" @click="back">
         <i class="el-icon-arrow-left" style="font-size: 20px;"></i>
@@ -71,8 +75,6 @@
           <div class="preview-header-title">应用介绍&输入建议</div>
           <div class="preview-header-desc">
             <div>动作迁移二创人像稳定版，没加补帧放大，跑完可以在高清处理下，效果更好</div>
-<!--            <div>工作流：视频高清放大补帧</div>-->
-<!--            <div>体验地址：https://www.runninghub.ai/post/1944401015175303170/?inviteCode=62b39991</div>-->
           </div>
         </div>
         <div class="preview-body">
@@ -84,8 +86,11 @@
 </template>
 
 <script>
+import {ClearCacheMixin} from "@/mixins/ClearCacheMixin";
+
 export default {
   name: 'MotionTransfer',
+  mixins: [ClearCacheMixin],
   data() {
     return {
       videoFile: {},
@@ -152,6 +157,7 @@ export default {
 
     },
     back() {
+      this.clearCache()
       this.$router.push({ path: '/chest'})
     }
   }

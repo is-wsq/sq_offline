@@ -1,5 +1,10 @@
 <template>
-  <div class="hot-news" @click="searchBlur">
+  <div class="hot-news"
+       @click="searchBlur"
+       v-loading="loading"
+       :element-loading-text="loading_text"
+       element-loading-spinner="el-icon-loading"
+       element-loading-background="rgba(0, 0, 0, 0.8)">
     <div class="flex-center">
       <el-button type="text" class="back-btn" @click="back">
         <i class="el-icon-arrow-left" style="font-size: 20px;"></i>
@@ -240,9 +245,11 @@
 import axios from "axios";
 import {marked} from "marked";
 import {getAction, postAction} from "@/api/api";
+import {ClearCacheMixin} from "@/mixins/ClearCacheMixin";
 
 export default {
   name: 'hotNews',
+  mixins: [ClearCacheMixin],
   data() {
     return {
       search_text: "",
@@ -256,16 +263,6 @@ export default {
       copy_history: [],
       dialogVisible: false,
       select_history_copy: null,
-      // urls: {
-      //   get_hot_news: "https://live.tellai.tech/api/news_assistant/news/rank",
-      //   get_styles: "https://live.tellai.tech/api/news_assistant/copywriting/styles/query/all",
-      //   extract_product_info: 'https://live.tellai.tech/api/news_assistant/extract_product_info',
-      //   generate: 'https://live.tellai.tech/api/news_assistant/copywriting/voice',
-      //   search_news: 'https://live.tellai.tech/api/news_assistant/news/online_search',
-      //   get_search_history: 'https://live.tellai.tech/api/news_assistant/news/query/user',
-      //   get_copy_history: 'https://live.tellai.tech/api/news_assistant/copywriting_history/query',
-      //   generate_video: 'https://live.tellai.tech/api/news_assistant/figure/generate_video',
-      // },
       urls: {
         get_hot_news: "http://192.168.1.25:5008/news/rank",
         get_styles: "http://192.168.1.25:5008/copywriting/styles/query/all",
@@ -303,7 +300,10 @@ export default {
       minimax_voices: [],
       timbres: {},
       figures: [],
-      select_figure: {}
+      select_figure: {},
+
+      loading: false,
+      loading_text: '正在生成...',
     }
   },
   mounted() {
@@ -567,21 +567,19 @@ export default {
         news_id: this.hot_news_info.id,
         news_details: this.hot_news_info.details,
       }
-      const loading = this.$loading({
-        lock: true,
-        text: '口播文案生成中...',
-        spinner: 'el-icon-loading',
-        background: 'rgba(0, 0, 0, 0.7)'
-      });
+      this.loading = true;
+      this.loading_text = '口播文案生成中...';
       axios.post(this.urls.generate, params, {timeout: 300000}).then(res => {
         if (res.data.status === 'success') {
-          loading.close()
+          this.loading = false;
           this.oral_copy = res.data.data.script
           this.show_script = true
         } else {
+          this.loading = false;
           this.$alert('生成失败' + res.data.message, '提示')
         }
       }).catch(err => {
+        this.loading = false;
         this.$alert('生成失败' + err, '提示')
       })
     },
@@ -617,6 +615,7 @@ export default {
         if (res.data.status === 'success') {
           this.$alert('已创建口播视频生成任务，视频生成成功后会自动下载到本地', "任务创建提醒");
           setTimeout(() => {
+            this.clearCache()
             this.$router.push({path: '/videoList'})
           }, 500)
         } else {
@@ -627,6 +626,7 @@ export default {
       })
     },
     back() {
+      this.clearCache()
       this.$router.push({ path: '/chest'})
     }
   }

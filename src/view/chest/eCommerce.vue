@@ -1,5 +1,9 @@
 <template>
-  <div class="e-commerce">
+  <div class="e-commerce"
+       v-loading="loading"
+       element-loading-text="带货视频制作中..."
+       element-loading-spinner="el-icon-loading"
+       element-loading-background="rgba(0, 0, 0, 0.8)">
     <div class="flex-center">
       <el-button type="text" class="back-btn" @click="back">
         <i class="el-icon-arrow-left" style="font-size: 20px;"></i>
@@ -101,9 +105,11 @@
 <script>
 import {getAction, postAction} from "@/api/api";
 import axios from "axios";
+import {ClearCacheMixin} from "@/mixins/ClearCacheMixin";
 
 export default {
   name: 'eCommerce',
+  mixins: [ClearCacheMixin],
   data() {
     return {
       imgUrl: '/eCommerce/defaultImg.png',
@@ -238,12 +244,12 @@ export default {
         return
       }
       this.loading = true
-      const loading = this.$loading({
-        lock: true,
-        text: '带货视频制作中...',
-        spinner: 'el-icon-loading',
-        background: 'rgba(0, 0, 0, 0.7)'
-      });
+      // const loading = this.$loading({
+      //   lock: true,
+      //   text: '带货视频制作中...',
+      //   spinner: 'el-icon-loading',
+      //   background: 'rgba(0, 0, 0, 0.7)'
+      // });
 
       const formData = new FormData();
       formData.append("image_file", this.imgFile.raw);
@@ -260,20 +266,21 @@ export default {
       }).then(res => {
         if (res.data.status === 'success') {
           this.videoUrl = res.data.data.video_path
-          loading.close();
+          // loading.close();
           this.loading = false
         } else {
-          loading.close();
+          // loading.close();
           this.loading = false
           this.$alert(`生成失败，${res.data.message}`, '提示')
         }
       }).catch(err => {
-        loading.close();
+        // loading.close();
         this.loading = false
         this.$alert(`生成错误，${err}`, '提示')
       })
     },
     back() {
+      this.clearCache()
       this.$router.push({ path: '/chest'})
     }
   },

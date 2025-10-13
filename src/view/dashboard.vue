@@ -53,7 +53,7 @@ export default {
         {name: "品牌店铺", path: "/shop", class: 'el-icon-s-shop'},
         {name: "设置", path: "/system", class: 'el-icon-setting'},
       ],
-      alive_routers: ['/syncCv','/montage','/remix','/segments','/smartGenerate','/duplicate'],
+      alive_routers: ['/syncCv','/montage','/remix','/segments','/smartGenerate','/duplicate', '/eCommerce', '/hotNews', '/reWriting', '/motionTransfer'],
       padding0_routers: ['/material', '/login', '/register'],
     };
   },
@@ -81,6 +81,11 @@ export default {
         return;
       }
       this.active = type;
+      let chest_path = sessionStorage.getItem("chest_path");
+      if (type === 1 && chest_path) {
+        this.$router.push({path: chest_path})
+        return;
+      }
       let figure_path = sessionStorage.getItem("figure_path");
       if (type === 2 && figure_path) {
         this.$router.push({path: figure_path})

@@ -1,5 +1,9 @@
 <template>
-  <div class="re-writing">
+  <div class="re-writing"
+       v-loading="loading"
+       element-loading-text="图片洗稿制作中..."
+       element-loading-spinner="el-icon-loading"
+       element-loading-background="rgba(0, 0, 0, 0.8)">
     <div class="flex-center">
       <el-button type="text" class="back-btn" @click="back">
         <i class="el-icon-arrow-left" style="font-size: 20px;"></i>
@@ -92,9 +96,11 @@
 <script>
 import {fabric} from "fabric";
 import axios from "axios";
+import {ClearCacheMixin} from "@/mixins/ClearCacheMixin";
 
 export default {
   name: 'ReWriting',
+  mixins: [ClearCacheMixin],
   data() {
     return {
       examples: [
@@ -112,7 +118,7 @@ export default {
       imagePosition: {},
 
       loading: false,
-      resultImg: '/reWriting/defaultResult.png', //http://127.0.0.1:6006/results/ComfyUI_00001_oukpp_1760176951.png
+      resultImg: '/reWriting/defaultResult.png',
       canvas: null,
       maskCanvas: null,
 
@@ -183,12 +189,6 @@ export default {
         return
       }
       this.loading = true
-      const loading = this.$loading({
-        lock: true,
-        text: '图片洗稿制作中...',
-        spinner: 'el-icon-loading',
-        background: 'rgba(0, 0, 0, 0.7)'
-      });
 
       const tempCanvas = this.generatePreview();
       const blob = await new Promise((resolve) => {
@@ -206,15 +206,12 @@ export default {
         if (res.data.status === "success") {
           this.resultImg = res.data.data.image_path;
           this.$message.success('洗稿成功');
-          loading.close();
           this.loading = false
         } else {
-          loading.close();
           this.loading = false
           this.$alert('洗稿失败:'+ res.data.message, '提示');
         }
       }).catch(err => {
-        loading.close();
         this.loading = false
         console.error('洗稿错误:', err);
       });
@@ -416,6 +413,7 @@ export default {
       link.click();
     },
     back() {
+      this.clearCache()
       this.$router.push({ path: '/chest'})
     }
   }
