@@ -161,7 +161,7 @@ export default {
       this.loading = true
       const loading = this.$loading({
         lock: true,
-        text: '带货视频制作中...',
+        text: '图片洗稿制作中...',
         spinner: 'el-icon-loading',
         background: 'rgba(0, 0, 0, 0.7)'
       });

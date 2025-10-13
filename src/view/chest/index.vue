@@ -57,6 +57,15 @@ export default {
           iconColor: '#3b82f6',
           path: '/reWriting'
         },
+        {
+          id: 4,
+          title: '动作迁移',
+          desc: '基于参考视频、参考图，指定参数，创作二创人像视频',
+          icon: 'el-icon-exportconfig',
+          background: '#dcffda',
+          iconColor: '#00a33a',
+          path: '/motionTransfer'
+        },
       ],
     };
   },

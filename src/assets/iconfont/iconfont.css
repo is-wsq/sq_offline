@@ -1,8 +1,8 @@
 @font-face {
   font-family: "element-icons"; /* Project id 3257355 */
-  src: url('iconfont.woff2?t=1759995896299') format('woff2'),
-       url('iconfont.woff?t=1759995896299') format('woff'),
-       url('iconfont.ttf?t=1759995896299') format('truetype');
+  src: url('iconfont.woff2?t=1760164377313') format('woff2'),
+       url('iconfont.woff?t=1760164377313') format('woff'),
+       url('iconfont.ttf?t=1760164377313') format('truetype');
 }
 
 .element-icons {
@@ -11,6 +11,10 @@
   font-style: normal;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+.el-icon-exportconfig:before {
+  content: "\e6b5a";
 }
 
 .el-icon-tianjia:before {

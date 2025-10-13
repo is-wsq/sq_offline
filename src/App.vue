@@ -121,6 +121,14 @@ body {
   font-family: Arial, sans-serif;
 }
 
+.c-page-header {
+  flex: 1;
+  margin: 0 0 8px;
+  font-weight: bold;
+  display: flex;
+  justify-content: center;
+}
+
 .el-dialog__wrapper {
   height: 100%;
   display: flex;

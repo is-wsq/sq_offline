@@ -6,6 +6,13 @@
   "description": "",
   "glyphs": [
     {
+      "icon_id": "25668347",
+      "name": "exportconfig",
+      "font_class": "exportconfig",
+      "unicode": "e6b5a",
+      "unicode_decimal": 944986
+    },
+    {
       "icon_id": "25712720",
       "name": "common_tools_add",
       "font_class": "tianjia",
