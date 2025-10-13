@@ -31,7 +31,16 @@ import ShopManagement from '../view/shop/index.vue';
 
 const routes = [
     {
+        path: '/login',
+        name: 'Login',
+        component: LogIn
+    },
+    {
         path: '/',
+        redirect: '/login'  // 添加重定向规则
+    },
+    {
+        path: '/ai',
         name: 'ai',
         component: ai
     },
@@ -149,11 +158,6 @@ const routes = [
         path: '/videoPlayer',
         name: 'videoPlayer',
         component: videoPlayer
-    },
-    {
-        path: '/login',
-        name: 'Login',
-        component: LogIn
     },
     {
         path: '/register',
