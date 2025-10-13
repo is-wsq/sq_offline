@@ -1,22 +1,26 @@
 <template>
   <div class="register">
     <div class="register-container">
-      <span style="font-size: 30px;font-weight: bold;color: #5478FE">奇点</span>
+      <div class="register-logo-text">注册获得免费体验</div>
       <el-form :model="form" ref="form" class="login-form" :rules="rules">
         <el-form-item label="手机号" prop="phone">
-          <el-input v-model="form.phone"></el-input>
+          <el-input v-model="form.phone" placeholder="请输入注册手机号"></el-input>
         </el-form-item>
         <el-form-item label="密码" prop="password">
-          <el-input v-model="form.password" type="password"></el-input>
+          <el-input v-model="form.password" show-password placeholder="请设置登陆密码"></el-input>
         </el-form-item>
-        <el-form-item label="确认密码" prop="rePassword">
-          <el-input v-model="form.rePassword" type="password"></el-input>
-        </el-form-item>
+<!--        <el-form-item label="验证码" prop="sms">-->
+<!--          <div class="flex-center" style="width: 100%">-->
+<!--            <el-input style="flex: 1" v-model="form.sms" placeholder="请输入验证码"></el-input>-->
+<!--            <div class="send-sms-button" @click="onSMSSend">-->
+<!--              {{ getSendBtnText }}-->
+<!--            </div>-->
+<!--          </div>-->
+<!--        </el-form-item>-->
         <el-form-item>
-          <el-button class="btn" @click="handleLogin">登录</el-button>
-        </el-form-item>
-        <el-form-item>
-          <el-button type="primary" class="btn" @click="createAccount">创建账户</el-button>
+          <div class="flex-center">
+            <el-button type="primary" class="btn" @click="createAccount">注册账号</el-button>
+          </div>
         </el-form-item>
       </el-form>
     </div>
@@ -33,46 +37,80 @@ export default {
       form: {
         phone: '',
         password: '',
-        rePassword: '',
+        sms: '',
       },
       rules: {
         phone: [
           { required: true, message: '请输入手机号', trigger: 'blur' },
-          { min: 11, max: 11, message: '请输入正确的手机号', trigger: 'blur' }
+          {validator: this.validatePhone, trigger: 'blur'}
         ],
         password: [
-          { required: true, message: '请输入密码', trigger: 'blur' },
+          { required: true, message: '请设置登陆密码', trigger: 'blur' },
           { min: 6, max: 20, message: '密码长度在6到20个字符之间', trigger: 'blur' }
         ],
-        rePassword: [
-          { required: true, message: '请确认密码', trigger: ['blur','change'] },
-          { validator: this.checkConfirmPassword, trigger: ['blur','change'] }
+        sms: [
+          { required: true, message: '请输入验证码',  trigger: 'blur' },
         ]
       },
     };
   },
-  methods: {
-    handleLogin() {
-      this.$router.push({path: '/'})
+  computed: {
+    isSendSMSEnable() {
+      return this.smsCountDown <= 0
     },
-    checkConfirmPassword(rule, value, callback) {
+    getSendBtnText() {
+      if (this.smsCountDown > 0) {
+        return this.smsCountDown + '秒后发送';
+      } else {
+        return '发送验证码';
+      }
+    },
+  },
+  methods: {
+    validatePhone(rule, value, callback) {
+      let checkPhone = new RegExp(/^[1]([3-9])[0-9]{9}$/);
+
       if (value === '') {
-        callback(new Error('请确认新密码'));
-      } else if (value !== this.form.rePassword) {
-        callback(new Error('确认密码与新密码不一致'));
+        callback(new Error('请填写手机号'));
+      } else if (!checkPhone.test(this.form.phone)) {
+        callback(new Error('手机号格式不正确'));
       } else {
         callback();
       }
     },
-    createAccount() {
-      postAction('/user/register', this.form).then(res => {
-        if (res.data.status === 'success') {
-          this.$message.success('注册成功，请登录');
-          this.$router.push({path: '/'})
-        } else {
-          this.$message.error(res.data.message);
+    onSMSSend() {
+      this.smsCountDown = 60;
+      this.startSMSTimer();
+    },
+    startSMSTimer() {
+      this.smsCountInterval = setInterval(() => {
+        this.smsCountDown--;
+        if (this.smsCountDown <= 0) {
+          clearInterval(this.smsCountInterval);
         }
-        this.form = {}
+      }, 1000);
+    },
+    createAccount() {
+      this.$refs.form.validate((valid) => {
+        if (valid) {
+          postAction('/user/register', this.form).then(res => {
+            if (res.data.status === 'success') {
+              this.form = {
+                phone: '',
+                password: '',
+                sms: '',
+              }
+              this.$message.success('注册成功，请登录');
+              this.$router.push({path: '/login'})
+            } else {
+              this.$alert('注册失败：' + res.data.message, '提示');
+            }
+          }).catch(err => {
+            console.log('注册失败：' + err.message);
+          })
+        } else {
+          this.$alert('表单校验错误，请修正后重试', '提示');
+        }
       })
     }
   }
@@ -82,33 +120,56 @@ export default {
 <style scoped>
 .register {
   width: 100%;
-  height: 100vh;
-  min-height: 700px;
+  height: 100%;
+  min-height: 600px;
   display: flex;
   justify-content: center;
   align-items: center;
-  background-image: url('/src/assets/login_bg_md.png');
-  background-size: cover;
 }
 
 .register-container {
   background-color: white;
-  padding: 40px;
+  padding: 40px 140px;
   border-radius: 10px;
   box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-  text-align: center;
-  width: 700px;
-  margin: auto;
+  width: 600px;
+  box-sizing: border-box;
+}
+
+.register-logo-text {
+  font-size: 16px;
+  font-weight: 700;
+  margin-bottom: 20px;
+  background: linear-gradient(135deg, #1f2937, #4b5563);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
 }
 
 .login-form {
-  margin: 50px auto;
-  width: 50%;
+  margin-top: 10px;
+  width: 100%;
+}
+
+.login-form >>> .el-form-item {
+  margin-bottom: 15px !important;
+}
+
+.send-sms-button {
+  text-align: center;
+  width: 100px;
+  height: 40px;
+  line-height: 40px;
+  color: #606266;
+  border: 1px solid #DCDFE6;
+  border-radius: 4px;
+  cursor: pointer;
+  box-sizing: border-box;
 }
 
 .btn {
-  width: 150px;
-  border-radius: 15px;
+  width: 250px;
+  border-radius: 4px;
   margin-top: 20px;
 }
 </style>
