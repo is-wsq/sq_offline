@@ -20,7 +20,7 @@
               :auto-upload="false"
               :on-change="handleImgChange">
             <div v-if="imgUrl" style="position: relative;">
-              <el-image :src="imgUrl" class="img"></el-image>
+              <el-image :src="imgUrl" class="img" fit="cover"></el-image>
               <div class="img-delete">
                 <i class="el-icon-delete" @click.stop="imgDelete"></i>
               </div>
@@ -75,6 +75,9 @@
           <div class="setting-name margin-t-12">口播内容</div>
           <el-input type="textarea" v-model="copywriting" :autosize="{ minRows: 3, maxRows: 6 }"
                     placeholder="口播文案内容..." resize="none"></el-input>
+          <div class="setting-name margin-t-12">提示词（默认效果就挺好，也可自行调整）</div>
+          <el-input type="textarea" v-model="promptInput" :autosize="{ minRows: 3, maxRows: 5 }"
+                    placeholder="口播文案内容..." resize="none"></el-input>
         </div>
         <div class="generate-btn">
           <el-button @click="generate" :loading="!!loading"><i class="el-icon-bianjiqi btn-icon" v-if="!loading"></i>
@@ -103,7 +106,7 @@ export default {
   name: 'eCommerce',
   data() {
     return {
-      imgUrl: '',
+      imgUrl: '/eCommerce/defaultImg.png',
       imgFile: {},
       mode: 'common',
       timbreInfo: {},
@@ -112,16 +115,49 @@ export default {
       audio: null,
       audioIndex: null,
       copywriting: '',
+      promptInput: '一位亚洲女孩正在自然生动地介绍她手中的商品。镜头全程平稳匀速跟随她的动作与讲解过程，动作节奏合理，完全符合真实人体运动逻辑。人物无遮挡，主体清晰完整，面部结构稳定，五官清晰，表情自然灵动，展现出自信优雅的气质。\n' +
+          '她始终双手展示一件具体商品，商品在整个过程中保持结构一致、位置稳定，不发生变形、漂移、融合错误或重绘问题。商品的颜色、尺寸、外观细节、品牌标识等信息始终一致，真实可见，细节清晰完整。\n' +
+          '商品与手部接触自然，贴合真实，无错位、无穿插，具备可信的物理接触感。衣物颜色与款式全程保持一致，布料动态自然、无异常形变。\n' +
+          '人物皮肤细腻光滑，纹理自然，无AI伪影、融合错误或异常噪点。镜头运动流畅无抖动，背景稳定无漂移，画面无跳帧、无模糊、无形变。整体构图平衡，画面风格写实统一，动作连贯自然，具有商业广告级别的视觉表现力与真实质感。\n' +
+          '全程无结构错乱、无异物干扰、无道具变化，人物与展示商品在画面中始终清晰协调，真实可信，强化产品价值与展示效果',
 
       loading: false,
-      videoUrl: '',
+      videoUrl: 'http://127.0.0.1:6006/running_hub/resource/eCommerce_example.mp4',
     }
   },
   mounted() {
     this.queryVoices()
     this.queryMiniMaxVoices()
+    this.initDefaultImgFile()
   },
   methods: {
+    initDefaultImgFile() {
+      const img = new Image();
+      img.src = '/eCommerce/defaultImg.png';
+      img.crossOrigin = 'anonymous';
+
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d');
+        canvas.width = img.width;
+        canvas.height = img.height;
+        ctx.drawImage(img, 0, 0);
+
+        canvas.toBlob((blob) => {
+          const realFile = new File([blob], 'defaultImg.png', {
+            type: 'image/png',
+            lastModified: Date.now()
+          });
+
+          this.imgFile = {
+            uid: Date.now(),
+            raw: realFile,
+            name: 'defaultImg.png',
+            url: this.imgUrl
+          };
+        }, 'image/png');
+      };
+    },
     queryVoices() {
       getAction("/timbres/get_all_common_timbre").then((res) => {
         if (res.data.status === "success") {
@@ -214,6 +250,7 @@ export default {
       formData.append('timbre_id', this.timbreInfo.voice_id);
       formData.append('voice_mode', this.mode);
       formData.append('copy', this.copywriting);
+      formData.append('prompt', this.promptInput);
 
       axios.post("http://127.0.0.1:6006/running_hub/e_ommerce", formData,{
         headers: {
@@ -309,7 +346,6 @@ export default {
   height: 160px;
   max-width: 317px;
   display: block;
-  object-fit: cover;
 }
 
 .img-delete {
@@ -496,28 +532,9 @@ export default {
   border-radius: 8px;
 }
 
-.preview-none {
-  height: 100%;
-  width: 100%;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-}
-
-.preview-none-icon {
-  font-size: 54px;
-  color: #9ca3af;
-}
-
-.preview-none-title {
-  font-size: 14px;
-  color: #9ca3af;
-  margin-top: 8px;
-}
-
-.preview-none-desc {
-  font-size: 12px;
-  color: #9ca3af;
+.e-commerce >>> .el-textarea__inner {
+  font-size: 14px !important;
+  color: #5f5f5f !important;
+  padding: 5px 8px !important;
 }
 </style>

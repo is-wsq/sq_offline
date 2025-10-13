@@ -88,10 +88,10 @@ export default {
   name: 'MotionTransfer',
   data() {
     return {
-      videoFile: null,
+      videoFile: {},
       example_video: 'http://127.0.0.1:6006/running_hub/resource/dance_girl01.mp4',
       video_image: 'http://127.0.0.1:6006/running_hub/resource/girl01.jpg',
-      imageFile: null,
+      imageFile: {},
       image_path: 'http://127.0.0.1:6006/running_hub/resource/girl02.jpg',
       duration: 8,
       fps: 30,
@@ -103,9 +103,37 @@ export default {
     }
   },
   mounted() {
-
+    this.initFile('image')
+    this.initFile('video')
   },
   methods: {
+    async initFile(type) {
+      try {
+        let url = type  === 'image' ? this.image_path : this.example_video
+        let suffix = type  === 'image' ? '.jpg' : '.mp4'
+        const response = await fetch(url);
+
+        if (!response.ok) {
+          throw new Error(`请求失败: ${response.status}`);
+        }
+
+        const blob = await response.blob();
+
+        const realFile = new File([blob], "example" + suffix, {
+          type: blob.type,
+          lastModified: Date.now()
+        });
+
+        this[type === 'image' ? 'imageFile' : 'videoFile'] = {
+          uid: Date.now(),
+          raw: realFile,
+          name: "example" + suffix,
+          url: url
+        };
+      } catch (error) {
+        console.error("视频文件初始化失败:", error);
+      }
+    },
     handleVideoChange(file, fileList) {
 
     },
@@ -219,8 +247,8 @@ export default {
 }
 
 .preview-header {
-  height: 125px;
-  margin-bottom: 40px;
+  height: 80px;
+  margin-bottom: 60px;
   opacity: 1;
   overflow-x: hidden;
   overflow-y: auto;

@@ -29,7 +29,7 @@
                 :auto-upload="false"
                 :on-change="handleProductChange">
               <div v-if="productImg" style="position: relative;">
-                <el-image :src="productImg" class="img"></el-image>
+                <el-image :src="productImg" class="img" fit="cover"></el-image>
                 <div class="img-delete">
                   <i class="el-icon-delete" @click.stop="productDelete"></i>
                 </div>
@@ -47,7 +47,7 @@
                 :auto-upload="false"
                 :on-change="handleExampleChange">
               <div v-if="exampleImg" style="position: relative;">
-                <el-image :src="exampleImg" class="img"></el-image>
+                <el-image :src="exampleImg" class="img" fit="cover"></el-image>
                 <div class="img-delete">
                   <i class="el-icon-delete" @click.stop="exampleDelete"></i>
                 </div>
@@ -56,26 +56,24 @@
             </el-upload>
           </div>
         </div>
-        <div class="generate-btn margin-t-12">
-          <el-button @click="generate" :loading="!!loading"><i class="el-icon-bianjiqi btn-icon" v-if="!loading"></i>
-            {{ !!loading ? '洗稿中...' : '洗稿' }}
-          </el-button>
-        </div>
         <div class="margin-t-12 work-setting-name" v-if="resultImg">
           洗稿结果
         </div>
         <div v-if="resultImg" style="position: relative;width: 120px;cursor: pointer" @click="previewImgVisible = true">
-          <el-image :src="resultImg" class="img"></el-image>
-          <div class="img-delete">
-            <i class="el-icon-download" @click.stop="downloadResult"></i>
-          </div>
+          <el-image :src="resultImg" class="img" fit="cover"></el-image>
+<!--          <div class="img-delete">-->
+<!--            <i class="el-icon-download" @click.stop="downloadResult"></i>-->
+<!--          </div>-->
         </div>
       </div>
       <div class="editor-content">
         <div class="edit-tips">上传参考图片后，使用鼠标左键在画布上划线，即可进行涂抹遮罩区域。</div>
         <div style="display: flex;gap: 20px;margin-bottom: 12px;">
           <el-button type="primary" @click="clearCanvas" style="width: 150px">清除编辑</el-button>
-          <el-button type="primary"  @click="downloadImage" style="width: 150px">下载图片</el-button>
+          <el-button type="primary" @click="generate" :loading="!!loading" style="width: 150px">
+            {{ !!loading ? '洗稿中...' : '洗稿' }}
+          </el-button>
+          <el-button type="primary"  @click="downloadResult" style="width: 150px" v-if="resultImg">下载洗稿结果</el-button>
         </div>
         <div class="canvas-wrapper">
           <div class="canvas-container" :class="{ 'no-image': !hasImage }">
@@ -100,22 +98,21 @@ export default {
   data() {
     return {
       examples: [
-        { title: '产品白底图', img: require('/public/reWriting/img1.png') },
-        { title: '参考图', img: require('/public/reWriting/img2.png') },
-        { title: '涂抹遮罩区域', img: require('/public/reWriting/img3.png') },
-        { title: '洗稿结果', img: require('/public/reWriting/img4.png') }
+        { title: '产品白底图', img: '/reWriting/defaultProduct.png' },
+        { title: '参考图', img: '/reWriting/img2.png' },
+        { title: '涂抹遮罩区域', img: '/reWriting/img3.png' },
+        { title: '洗稿结果', img: '/reWriting/img4.png' }
       ],
       productFile: {},
-      productImg: '',
-      exampleFile: {},
-      exampleImg: '',
+      productImg: '/reWriting/defaultProduct.png',
+      exampleImg: '/reWriting/defaultExample.png',
       editFile: {},
       editImg: '',
       hasImage: false,
       imagePosition: {},
 
       loading: false,
-      resultImg: '', //http://127.0.0.1:6006/results/ComfyUI_00001_oukpp_1760176951.png
+      resultImg: '/reWriting/defaultResult.png', //http://127.0.0.1:6006/results/ComfyUI_00001_oukpp_1760176951.png
       canvas: null,
       maskCanvas: null,
 
@@ -124,6 +121,8 @@ export default {
   },
   mounted() {
     this.initCanvas();
+    this.initDefaultImgFile()
+    this.loadImageToCanvas(this.exampleImg)
     window.addEventListener('resize', this.calibrateCanvas);
   },
 
@@ -131,6 +130,33 @@ export default {
     window.removeEventListener('resize', this.calibrateCanvas);
   },
   methods: {
+    initDefaultImgFile() {
+      const img = new Image();
+      img.src = `/reWriting/defaultProduct.png`
+      img.crossOrigin = 'anonymous';
+
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d');
+        canvas.width = img.width;
+        canvas.height = img.height;
+        ctx.drawImage(img, 0, 0);
+
+        canvas.toBlob((blob) => {
+          const realFile = new File([blob], "defaultProduct.png", {
+            type: 'image/png',
+            lastModified: Date.now()
+          });
+
+          this.productFile = {
+            uid: Date.now(),
+            raw: realFile,
+            name: 'defaultProduct.png',
+            url: this.imgUrl
+          };
+        }, 'image/png');
+      };
+    },
     handleProductChange(file, fileList) {
       this.productFile = file
       this.productImg = URL.createObjectURL(file.raw)
@@ -140,13 +166,11 @@ export default {
       this.productImg = ''
     },
     async handleExampleChange(file, fileList) {
-      this.exampleFile = file
       this.exampleImg = URL.createObjectURL(file.raw)
 
       this.loadImageToCanvas(this.exampleImg);
     },
     exampleDelete() {
-      this.exampleFile = {}
       this.exampleImg = ''
     },
     async generate() {
@@ -154,7 +178,7 @@ export default {
         this.$alert('请上传产品图后重试', '提示')
         return
       }
-      if (!this.exampleFile.uid) {
+      if (!this.exampleImg) {
         this.$alert('请上传参考图后重试', '提示')
         return
       }
@@ -490,7 +514,6 @@ export default {
   height: 160px;
   width: 120px;
   display: block;
-  object-fit: cover;
 }
 
 .img-delete {
