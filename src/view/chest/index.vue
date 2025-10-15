@@ -89,15 +89,6 @@ export default {
         },
         {
           id: 5,
-          title: '视频水印移除',
-          desc: '视频移动水印去除即梦 、可灵、豆包、VEO3等通用版',
-          icon: 'el-icon-logoremove',
-          background: '#d9d9d9',
-          iconColor: '#616161',
-          path: '/logoRemove'
-        },
-        {
-          id: 6,
           title: '多姿势图生成',
           desc: '上传人物图片，生成一致性多姿势图，一键式操作流程',
           icon: 'el-icon-multipose',
@@ -124,6 +115,15 @@ export default {
           background: '#d1e8ff',
           iconColor: '#3b82f6',
           path: '/reWriting'
+        },
+        {
+          id: 'c',
+          title: '视频水印移除',
+          desc: '视频移动水印去除即梦 、可灵、豆包、VEO3等通用版',
+          icon: 'el-icon-logoremove',
+          background: '#d9d9d9',
+          iconColor: '#616161',
+          path: '/logoRemove'
         },
       ],
     };
