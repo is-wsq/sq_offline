@@ -1,48 +1,32 @@
 <template>
-  <div class="action-imitation"
+  <div class="multiple-pose"
        v-loading="loading"
-       element-loading-text="姿势+动作模仿中..."
+       element-loading-text="多姿势图生成中..."
        element-loading-spinner="el-icon-loading"
        element-loading-background="rgba(0, 0, 0, 0.8)">
     <div class="flex-center">
       <el-button type="text" class="back-btn" @click="back">
         <i class="el-icon-arrow-left" style="font-size: 20px;"></i>
       </el-button>
-      <div class="c-page-header">一键模仿姿势 + 动作</div>
+      <div class="c-page-header">多姿势图生成</div>
       <div style="width: 36px"></div>
     </div>
-    <div class="action-imitation-content">
+    <div class="multiple-pose-content">
       <div class="work-setting-area">
         <div class="font-weight">工作台</div>
         <div style="flex: 1;overflow-y: auto">
-          <div class="work-setting-label">原始人物（正视+站姿效果更佳）</div>
+          <div class="work-setting-label">上传人物（正视图+站姿效果更佳）</div>
           <el-upload
               class="uploader"
               action="#"
               accept=".jpg, .jpeg, .png"
               :show-file-list="false"
               :auto-upload="false"
-              :on-change="handleOriginalChange">
-            <div v-if="original_image" style="position: relative;">
-              <el-image :src="original_image" class="placeholder-image" fit="cover"></el-image>
+              :on-change="handleImageChange">
+            <div v-if="image_path" style="position: relative;">
+              <el-image :src="image_path" class="placeholder-image" fit="cover"></el-image>
               <div class="placeholder-image-delete-icon">
-                <i class="el-icon-delete" @click.stop="originalDelete"></i>
-              </div>
-            </div>
-            <i v-else class="el-icon-plus uploader-icon"></i>
-          </el-upload>
-          <div class="work-setting-label">上传要模仿的姿势图</div>
-          <el-upload
-              class="uploader"
-              action="#"
-              accept=".jpg, .jpeg, .png"
-              :show-file-list="false"
-              :auto-upload="false"
-              :on-change="handleImitationChange">
-            <div v-if="imitation_image" style="position: relative;">
-              <el-image :src="imitation_image" class="placeholder-image" fit="cover"></el-image>
-              <div class="placeholder-image-delete-icon">
-                <i class="el-icon-delete" @click.stop="imitationDelete"></i>
+                <i class="el-icon-delete" @click.stop="imageDelete"></i>
               </div>
             </div>
             <i v-else class="el-icon-plus uploader-icon"></i>
@@ -53,17 +37,17 @@
           </div>
         </div>
         <div class="generate-btn">
-          <el-button @click="generate" :loading="!!loading" :disabled="!originalFile || !imitationFile">
+          <el-button @click="generate" :loading="!!loading" :disabled="!imageFile">
             <i class="el-icon-bianjiqi btn-icon" v-if="!loading"></i>
-            {{ !!loading ? '模仿中...' : '一键模仿' }}
+            {{ !!loading ? '生成中...' : '生成视频' }}
           </el-button>
         </div>
       </div>
-      <div class="action-imitation-preview">
+      <div class="multiple-pose-preview">
         <div class="preview-header">
           <div class="preview-header-title">应用介绍&输入建议</div>
           <div class="preview-header-desc">
-            <div>说明：生成一次大概5分钟以内，首次生成比第二次生成的时间要长。</div>
+            <div>说明：生成一次大概10分钟以内，首次生成比第二次生成的时间要长.</div>
           </div>
         </div>
         <div class="preview-body">
@@ -92,33 +76,30 @@
 import {ClearCacheMixin} from "@/mixins/ClearCacheMixin";
 
 export default {
-  name: 'ActionImitation',
+  name: 'MultiplePose',
   mixins: [ClearCacheMixin],
   data() {
     return {
-      originalFile: {},
-      original_image: '/chest/aImitation_original.png',
-      imitationFile: {},
-      imitation_image: '/chest/aImitation_imitation.jpeg',
-      resolutionRatio: 1280,
+      imageFile: {},
+      image_path: '/chest/multiPose_example.png',
+      resolutionRatio: 1360,
       resultList: [
-        '/chest/aImitation_result1.png',
-        '/chest/aImitation_result2.jpeg',
-        '/chest/aImitation_result3.png',
+        '/chest/multiPose_result1.png',
+        '/chest/multiPose_result2.png',
+        '/chest/multiPose_result3.png',
+        '/chest/multiPose_result4.png',
       ],
       activeIndex: 0,
       loading: false,
     }
   },
   mounted() {
-    this.initFile('original')
-    this.initFile('imitation')
+    this.initFile()
   },
   methods: {
-    async initFile(type) {
+    async initFile() {
       try {
-        let url = type  === 'original' ? this.original_image : this.imitation_image
-        const response = await fetch(url);
+        const response = await fetch(this.image_path);
 
         if (!response.ok) {
           throw new Error(`请求失败: ${response.status}`);
@@ -126,37 +107,28 @@ export default {
 
         const blob = await response.blob();
 
-        const suffix = '.' + blob.type.split('/')[1];
-        const realFile = new File([blob], type + suffix, {
+        const realFile = new File([blob], "example.png", {
           type: blob.type,
           lastModified: Date.now()
         });
 
-        this[type === 'original' ? 'originalFile' : 'imitationFile'] = {
+        this.imageFile = {
           uid: Date.now(),
           raw: realFile,
-          name: type + suffix,
-          url: url
+          name: "example.png",
+          url: this.image_path
         };
       } catch (error) {
-        console.error("文件初始化失败:", error);
+        console.error("视频文件初始化失败:", error);
       }
     },
-    handleOriginalChange(file, fileList) {
-      this.original_image = URL.createObjectURL(file.raw);
-      this.originalFile = file
+    handleImageChange(file, fileList) {
+      this.imgUrl = URL.createObjectURL(file.raw);
+      this.imgFile = file
     },
-    originalDelete() {
-      this.original_image = '';
-      this.originalFile = null;
-    },
-    handleImitationChange(file, fileList) {
-      this.imitation_image = URL.createObjectURL(file.raw);
-      this.imitationFile = file
-    },
-    imitationDelete() {
-      this.imitation_image = '';
-      this.imitationFile = null;
+    imageDelete() {
+      this.imgUrl = '';
+      this.imgFile = null;
     },
     generate() {
 
@@ -171,12 +143,12 @@ export default {
 </script>
 
 <style scoped>
-.action-imitation {
+.multiple-pose {
   height: 100%;
   min-width: 1200px
 }
 
-.action-imitation-content {
+.multiple-pose-content {
   height: calc(100% - 50px);
   display: flex;
   gap: 20px;
@@ -253,7 +225,7 @@ export default {
   border-radius: 8px;
 }
 
-.action-imitation-preview {
+.multiple-pose-preview {
   flex: 1;
   height: 100%;
 }
@@ -302,6 +274,7 @@ export default {
   flex-direction: column;
   gap: 10px;
   overflow-y: auto;
+  margin-right: 24px;
 }
 
 .preview-list-item {

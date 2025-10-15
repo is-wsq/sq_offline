@@ -6,6 +6,34 @@
   "description": "",
   "glyphs": [
     {
+      "icon_id": "33578527",
+      "name": "模仿",
+      "font_class": "imitate",
+      "unicode": "e722c",
+      "unicode_decimal": 946732
+    },
+    {
+      "icon_id": "10258831",
+      "name": "多图片",
+      "font_class": "multipose",
+      "unicode": "e606d",
+      "unicode_decimal": 942189
+    },
+    {
+      "icon_id": "26657087",
+      "name": "人物替换",
+      "font_class": "replace",
+      "unicode": "e807c",
+      "unicode_decimal": 950396
+    },
+    {
+      "icon_id": "42002609",
+      "name": "去除水印",
+      "font_class": "logoremove",
+      "unicode": "e666c",
+      "unicode_decimal": 943724
+    },
+    {
       "icon_id": "44585084",
       "name": "动作模仿",
       "font_class": "dongzuomofang",

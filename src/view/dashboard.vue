@@ -54,7 +54,7 @@ export default {
         {name: "设置", path: "/system", class: 'el-icon-setting'},
       ],
       alive_routers: ['/syncCv','/montage','/remix','/segments','/smartGenerate','/duplicate',
-        '/eCommerce', '/hotNews', '/reWriting', '/motionTransfer', '/actionImitation'],
+        '/eCommerce', '/hotNews', '/reWriting', '/motionTransfer', '/actionImitation', '/characterReplace', '/logoRemove', '/multiplePose'],
       padding0_routers: ['/material', '/login', '/register'],
     };
   },
@@ -102,7 +102,7 @@ export default {
     updateActiveFromRoute() {
       let paths = ['/human', '/material', '/smartGenerate', '/syncCv', '/duplicate', '/segments', '/montage', '/hot', '/remix']
       let first_paths = ['/imageToScript', '/scriptToImage', '/imageToVideo']
-      let chest_paths = ['/hotNews', '/eCommerce', '/reWriting', '/motionTransfer', '/actionImitation']
+      let chest_paths = ['/hotNews', '/eCommerce', '/reWriting', '/motionTransfer', '/actionImitation', '/characterReplace', '/logoRemove', '/multiplePose']
       if (first_paths.includes(this.$route.path)) {
         this.active = 2;
         return;

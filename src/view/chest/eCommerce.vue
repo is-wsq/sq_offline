@@ -112,7 +112,7 @@ export default {
   mixins: [ClearCacheMixin],
   data() {
     return {
-      imgUrl: '/eCommerce/defaultImg.png',
+      imgUrl: '/chest/eCommerce_example.png',
       imgFile: {},
       mode: 'common',
       timbreInfo: {},
@@ -147,7 +147,7 @@ export default {
 
         const blob = await response.blob();
 
-        const realFile = new File([blob], 'defaultImg.png', {
+        const realFile = new File([blob], 'example.png', {
           type: blob.type,
           lastModified: Date.now()
         });
@@ -155,7 +155,7 @@ export default {
         this.imgFile = {
           uid: Date.now(),
           raw: realFile,
-          name: 'defaultImg.png',
+          name: 'example.png',
           url: this.imgUrl
         };
       } catch (error) {

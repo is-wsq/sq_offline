@@ -10,6 +10,9 @@ import eCommerce from '../view/chest/eCommerce.vue';
 import reWriting from '../view/chest/reWriting.vue';
 import motionTransfer from '../view/chest/motionTransfer.vue';
 import actionImitation from '../view/chest/actionImitation.vue';
+import characterReplace from '../view/chest/characterReplace.vue';
+import logoRemove from '../view/chest/logoRemove.vue';
+import multiplePose from '../view/chest/multiplePose.vue';
 import figures from '../view/figures/index.vue';
 import imageToScript from '../view/figures/imageToScript.vue';
 import scriptToImage from '../view/figures/scriptToImage.vue';
@@ -73,6 +76,18 @@ const routes = [
         path: '/actionImitation',
         name: 'actionImitation',
         component: actionImitation
+    },{
+        path: '/characterReplace',
+        name: 'characterReplace',
+        component: characterReplace
+    },{
+        path: '/logoRemove',
+        name: 'logoRemove',
+        component: logoRemove
+    },{
+        path: '/multiplePose',
+        name: 'multiplePose',
+        component: multiplePose
     },
     {
         path: '/figures',

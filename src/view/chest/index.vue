@@ -73,10 +73,37 @@ export default {
           id: 3,
           title: '姿势动作模仿',
           desc: '姿势图像智能解析，动作实时模仿与生成，一键式操作流程',
-          icon: 'el-icon-dongzuomofang',
+          icon: 'el-icon-imitate',
           background: '#ffd7de',
           iconColor: '#c71818',
           path: '/actionImitation'
+        },
+        {
+          id: 4,
+          title: '人物形象替换',
+          desc: '智能替换目标人物形象，精准还原场景，一键式操作流程',
+          icon: 'el-icon-replace',
+          background: '#a6fff7',
+          iconColor: '#18a5c7',
+          path: '/characterReplace'
+        },
+        {
+          id: 5,
+          title: '视频水印移除',
+          desc: '视频移动水印去除即梦 、可灵、豆包、VEO3等通用版',
+          icon: 'el-icon-logoremove',
+          background: '#d9d9d9',
+          iconColor: '#616161',
+          path: '/logoRemove'
+        },
+        {
+          id: 6,
+          title: '多姿势图生成',
+          desc: '上传人物图片，生成一致性多姿势图，一键式操作流程',
+          icon: 'el-icon-multipose',
+          background: '#e4efff',
+          iconColor: '#3b7ea7',
+          path: '/multiplePose'
         },
       ],
       combats: [

@@ -104,21 +104,21 @@ export default {
   data() {
     return {
       examples: [
-        { title: '产品白底图', img: '/reWriting/defaultProduct.png' },
-        { title: '参考图', img: '/reWriting/img2.png' },
-        { title: '涂抹遮罩区域', img: '/reWriting/img3.png' },
-        { title: '洗稿结果', img: '/reWriting/img4.png' }
+        { title: '产品白底图', img: '/chest/reWriting_product.png' },
+        { title: '参考图', img: '/chest/reWriting_example1.png' },
+        { title: '涂抹遮罩区域', img: '/chest/reWriting_example2.png' },
+        { title: '洗稿结果', img: '/chest/reWriting_example3.png' }
       ],
       productFile: {},
-      productImg: '/reWriting/defaultProduct.png',
-      exampleImg: '/reWriting/defaultExample.png',
+      productImg: '/chest/reWriting_product.png',
+      exampleImg: '/chest/reWriting_example1.png',
       editFile: {},
       editImg: '',
       hasImage: false,
       imagePosition: {},
 
       loading: false,
-      resultImg: '/reWriting/defaultResult.png',
+      resultImg: '/chest/reWriting_example3.png',
       canvas: null,
       maskCanvas: null,
 
@@ -146,7 +146,7 @@ export default {
 
         const blob = await response.blob();
 
-        const realFile = new File([blob], 'defaultProduct.png', {
+        const realFile = new File([blob], 'product.png', {
           type: blob.type,
           lastModified: Date.now()
         });
@@ -154,7 +154,7 @@ export default {
         this.productFile = {
           uid: Date.now(),
           raw: realFile,
-          name: 'defaultProduct.png',
+          name: 'product.png',
           url: this.productImg
         };
       } catch (error) {

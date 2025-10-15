@@ -223,7 +223,7 @@
             <div slot="content" style="width: 200px">
               <div class="margin-b-4">示例图片</div>
               <div style="text-align: center;width: 100%;">
-                <el-image :src="require('/public/hotNews/extract.jpeg')" style="width: 150px;height: 150px" fit="cover"></el-image>
+                <el-image src="/chest/hotNews_extract.jpeg" style="width: 150px;height: 150px" fit="cover"></el-image>
               </div>
               <div class="margin-t-12 margin-b-4">提取的商品信息</div>
               <div style="color: #c6c6c6;font-size: 12px">宜昌无籽蜜桔,蜜桔果肉饱满、色泽鲜艳，外皮部分还能看出带有绿色，其外皮薄，果肉汁水丰富。同时，商品提供顺丰包邮的物流服务，并且承诺 15 点前下单的订单当天就能发货，能让消费者较快收到商品</div>

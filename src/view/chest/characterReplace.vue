@@ -1,87 +1,76 @@
 <template>
-  <div class="action-imitation"
+  <div class="character-replace"
        v-loading="loading"
-       element-loading-text="姿势+动作模仿中..."
+       element-loading-text="人物形象替换中..."
        element-loading-spinner="el-icon-loading"
        element-loading-background="rgba(0, 0, 0, 0.8)">
     <div class="flex-center">
       <el-button type="text" class="back-btn" @click="back">
         <i class="el-icon-arrow-left" style="font-size: 20px;"></i>
       </el-button>
-      <div class="c-page-header">一键模仿姿势 + 动作</div>
+      <div class="c-page-header">人物形象替换</div>
       <div style="width: 36px"></div>
     </div>
-    <div class="action-imitation-content">
+    <div class="character-replace-content">
       <div class="work-setting-area">
         <div class="font-weight">工作台</div>
         <div style="flex: 1;overflow-y: auto">
-          <div class="work-setting-label">原始人物（正视+站姿效果更佳）</div>
+          <div class="work-setting-label">上传视频</div>
           <el-upload
               class="uploader"
               action="#"
-              accept=".jpg, .jpeg, .png"
+              accept=".mp4, .mov"
               :show-file-list="false"
               :auto-upload="false"
-              :on-change="handleOriginalChange">
-            <div v-if="original_image" style="position: relative;">
-              <el-image :src="original_image" class="placeholder-image" fit="cover"></el-image>
+              :on-change="handleVideoChange">
+            <div v-if="video_image" style="position: relative;">
+              <el-image :src="video_image" class="placeholder-image" fit="cover"></el-image>
               <div class="placeholder-image-delete-icon">
-                <i class="el-icon-delete" @click.stop="originalDelete"></i>
+                <i class="el-icon-delete" @click.stop="videoDelete"></i>
               </div>
             </div>
             <i v-else class="el-icon-plus uploader-icon"></i>
           </el-upload>
-          <div class="work-setting-label">上传要模仿的姿势图</div>
+          <div class="work-setting-label">上传图片</div>
           <el-upload
               class="uploader"
               action="#"
               accept=".jpg, .jpeg, .png"
               :show-file-list="false"
               :auto-upload="false"
-              :on-change="handleImitationChange">
-            <div v-if="imitation_image" style="position: relative;">
-              <el-image :src="imitation_image" class="placeholder-image" fit="cover"></el-image>
+              :on-change="handleImageChange">
+            <div v-if="image_path" style="position: relative;">
+              <el-image :src="image_path" class="placeholder-image" fit="cover"></el-image>
               <div class="placeholder-image-delete-icon">
-                <i class="el-icon-delete" @click.stop="imitationDelete"></i>
+                <i class="el-icon-delete" @click.stop="imageDelete"></i>
               </div>
             </div>
             <i v-else class="el-icon-plus uploader-icon"></i>
           </el-upload>
           <div class="work-setting-label flex-center">
-            <div style="flex: 1">最大分辨率（越大越慢）</div>
-            <el-input-number v-model="resolutionRatio" size="mini" :min="1" :max="2160"></el-input-number>
+            <div style="flex: 1">视频时长（s）</div>
+            <el-input-number v-model="duration" size="mini" :min="1" :max="10"></el-input-number>
           </div>
+          <div class="work-setting-label">提示词</div>
+          <el-input type="textarea" placeholder="请输入动作迁移要求..." resize="none" v-model="promptInput"
+                    :rows="3"></el-input>
         </div>
         <div class="generate-btn">
-          <el-button @click="generate" :loading="!!loading" :disabled="!originalFile || !imitationFile">
+          <el-button @click="generate" :loading="!!loading" :disabled="!videoFile || !imageFile">
             <i class="el-icon-bianjiqi btn-icon" v-if="!loading"></i>
-            {{ !!loading ? '模仿中...' : '一键模仿' }}
+            {{ !!loading ? '生成中...' : '生成视频' }}
           </el-button>
         </div>
       </div>
-      <div class="action-imitation-preview">
+      <div class="character-replace-preview">
         <div class="preview-header">
           <div class="preview-header-title">应用介绍&输入建议</div>
           <div class="preview-header-desc">
-            <div>说明：生成一次大概5分钟以内，首次生成比第二次生成的时间要长。</div>
+            <div>视频中人物和图片中人物所占比例要相似，这样出来的视频效果才会比较好</div>
           </div>
         </div>
         <div class="preview-body">
-          <el-button type="text" class="cut-btn" @click="activeIndex --" :disabled="activeIndex === 0">
-            <i class="el-icon-arrow-left"></i>
-          </el-button>
-          <div class="preview-result">
-            <el-image :src="resultList[activeIndex]" class="preview-image" fit="contain"></el-image>
-          </div>
-          <el-button type="text" class="cut-btn" @click="activeIndex ++" :disabled="activeIndex === resultList.length - 1">
-            <i class="el-icon-arrow-right"></i>
-          </el-button>
-          <div class="preview-list">
-            <div v-for="(item, index) in resultList" :key="index">
-              <el-image class="preview-list-item" :class="{ 'preview-list-item-active': index === activeIndex }"
-                        :src="item" fit="cover" @click="activeIndex = index"></el-image>
-            </div>
-          </div>
+          <video :src="result_video" controls class="preview-video"></video>
         </div>
       </div>
     </div>
@@ -92,32 +81,30 @@
 import {ClearCacheMixin} from "@/mixins/ClearCacheMixin";
 
 export default {
-  name: 'ActionImitation',
+  name: 'CharacterReplace',
   mixins: [ClearCacheMixin],
   data() {
     return {
-      originalFile: {},
-      original_image: '/chest/aImitation_original.png',
-      imitationFile: {},
-      imitation_image: '/chest/aImitation_imitation.jpeg',
-      resolutionRatio: 1280,
-      resultList: [
-        '/chest/aImitation_result1.png',
-        '/chest/aImitation_result2.jpeg',
-        '/chest/aImitation_result3.png',
-      ],
-      activeIndex: 0,
+      videoFile: {},
+      example_video: 'http://127.0.0.1:6006/running_hub/resource/cReplace_example.mp4',
+      video_image: 'http://127.0.0.1:6006/running_hub/resource/cReplace_example.jpg',
+      imageFile: {},
+      image_path: '/chest/cReplace.png',
+      duration: 10,
+      promptInput: '1个中国美女在炒菜',
+      result_video: 'http://127.0.0.1:6006/running_hub/resource/cReplace_result.mp4',
       loading: false,
     }
   },
   mounted() {
-    this.initFile('original')
-    this.initFile('imitation')
+    this.initFile('image')
+    this.initFile('video')
   },
   methods: {
     async initFile(type) {
       try {
-        let url = type  === 'original' ? this.original_image : this.imitation_image
+        let url = type  === 'image' ? this.image_path : this.example_video
+        let suffix = type  === 'image' ? '.png' : '.mp4'
         const response = await fetch(url);
 
         if (!response.ok) {
@@ -126,37 +113,34 @@ export default {
 
         const blob = await response.blob();
 
-        const suffix = '.' + blob.type.split('/')[1];
-        const realFile = new File([blob], type + suffix, {
+        const realFile = new File([blob], "example" + suffix, {
           type: blob.type,
           lastModified: Date.now()
         });
 
-        this[type === 'original' ? 'originalFile' : 'imitationFile'] = {
+        this[type === 'image' ? 'imageFile' : 'videoFile'] = {
           uid: Date.now(),
           raw: realFile,
-          name: type + suffix,
+          name: "example" + suffix,
           url: url
         };
       } catch (error) {
-        console.error("文件初始化失败:", error);
+        console.error("视频文件初始化失败:", error);
       }
     },
-    handleOriginalChange(file, fileList) {
-      this.original_image = URL.createObjectURL(file.raw);
-      this.originalFile = file
+    handleVideoChange(file, fileList) {
+
     },
-    originalDelete() {
-      this.original_image = '';
-      this.originalFile = null;
+    videoDelete() {
+
     },
-    handleImitationChange(file, fileList) {
-      this.imitation_image = URL.createObjectURL(file.raw);
-      this.imitationFile = file
+    handleImageChange(file, fileList) {
+      this.imgUrl = URL.createObjectURL(file.raw);
+      this.imgFile = file
     },
-    imitationDelete() {
-      this.imitation_image = '';
-      this.imitationFile = null;
+    imageDelete() {
+      this.imgUrl = '';
+      this.imgFile = null;
     },
     generate() {
 
@@ -171,12 +155,12 @@ export default {
 </script>
 
 <style scoped>
-.action-imitation {
+.character-replace {
   height: 100%;
   min-width: 1200px
 }
 
-.action-imitation-content {
+.character-replace-content {
   height: calc(100% - 50px);
   display: flex;
   gap: 20px;
@@ -253,7 +237,7 @@ export default {
   border-radius: 8px;
 }
 
-.action-imitation-preview {
+.character-replace-preview {
   flex: 1;
   height: 100%;
 }
@@ -291,52 +275,11 @@ export default {
 
 .preview-body {
   height: calc(100% - 170px);
-  display: flex;
-  gap: 40px;
 }
 
-.preview-list {
-  width: 160px;
+.preview-video {
   height: 100%;
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  overflow-y: auto;
-}
-
-.preview-list-item {
-  width: 160px;
-  height: 160px;
-  box-sizing: border-box;
-  cursor: pointer;
-}
-
-.preview-list-item-active {
-  border: 2px solid #409EFF;
-}
-
-.cut-btn {
-  width: 40px;
-  height: 40px;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  font-size: 20px;
-  border-radius: 50%;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
-  color: #a2a8b3;
-  background-color: #FFFFFF;
-  margin: auto 0;
-  cursor: pointer;
-}
-
-.preview-result {
-  flex: 1;
-  height: 100%;
-}
-
-.preview-image {
   width: 100%;
-  height: 100%;
+  border-radius: 8px;
 }
 </style>

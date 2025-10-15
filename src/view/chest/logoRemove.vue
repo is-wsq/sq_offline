@@ -1,21 +1,21 @@
 <template>
-  <div class="motion-transfer"
+  <div class="logo-remove"
        v-loading="loading"
-       element-loading-text="动作迁移中..."
+       element-loading-text="视频水印去除中..."
        element-loading-spinner="el-icon-loading"
        element-loading-background="rgba(0, 0, 0, 0.8)">
     <div class="flex-center">
       <el-button type="text" class="back-btn" @click="back">
         <i class="el-icon-arrow-left" style="font-size: 20px;"></i>
       </el-button>
-      <div class="c-page-header">动作迁移二创人像</div>
+      <div class="c-page-header">视频水印去除</div>
       <div style="width: 36px"></div>
     </div>
-    <div class="motion-transfer-content">
+    <div class="logo-remove-content">
       <div class="work-setting-area">
         <div class="font-weight">工作台</div>
         <div style="flex: 1;overflow-y: auto">
-          <div class="work-setting-label">参考视频</div>
+          <div class="work-setting-label">上传视频</div>
           <el-upload
               class="uploader"
               action="#"
@@ -31,50 +31,19 @@
             </div>
             <i v-else class="el-icon-plus uploader-icon"></i>
           </el-upload>
-          <div class="work-setting-label">参考图片</div>
-          <el-upload
-              class="uploader"
-              action="#"
-              accept=".jpg, .jpeg, .png"
-              :show-file-list="false"
-              :auto-upload="false"
-              :on-change="handleImageChange">
-            <div v-if="image_path" style="position: relative;">
-              <el-image :src="image_path" class="placeholder-image" fit="cover"></el-image>
-              <div class="placeholder-image-delete-icon">
-                <i class="el-icon-delete" @click.stop="imageDelete"></i>
-              </div>
-            </div>
-            <i v-else class="el-icon-plus uploader-icon"></i>
-          </el-upload>
-          <div class="work-setting-label flex-center">
-            <div style="flex: 1">视频时长（s）</div>
-            <el-input-number v-model="duration" size="mini" :min="1" :max="10"></el-input-number>
-          </div>
-          <div class="work-setting-label flex-center">
-            <div style="flex: 1">视频帧率</div>
-            <el-input-number v-model="fps" size="mini" :min="1" :max="120"></el-input-number>
-          </div>
-          <div class="work-setting-label flex-center">
-            <div style="flex: 1">长边尺寸</div>
-            <el-input-number v-model="long_size" size="mini" :min="1" :max="2160"></el-input-number>
-          </div>
-          <div class="work-setting-label">提示词</div>
-          <el-input type="textarea" placeholder="请输入动作迁移要求..." resize="none" v-model="promptInput"
-                    :rows="3"></el-input>
         </div>
         <div class="generate-btn">
-          <el-button @click="generate" :loading="!!loading" :disabled="!videoFile || !imageFile">
+          <el-button @click="generate" :loading="!!loading" :disabled="!videoFile">
             <i class="el-icon-bianjiqi btn-icon" v-if="!loading"></i>
             {{ !!loading ? '生成中...' : '生成视频' }}
           </el-button>
         </div>
       </div>
-      <div class="motion-transfer-preview">
+      <div class="logo-remove-preview">
         <div class="preview-header">
           <div class="preview-header-title">应用介绍&输入建议</div>
           <div class="preview-header-desc">
-            <div>动作迁移二创人像稳定版，没加补帧放大，跑完可以在高清处理下，效果更好</div>
+            <div>视频移动水印去除即梦 、可灵、豆包、VEO3等通用版</div>
           </div>
         </div>
         <div class="preview-body">
@@ -89,34 +58,24 @@
 import {ClearCacheMixin} from "@/mixins/ClearCacheMixin";
 
 export default {
-  name: 'MotionTransfer',
+  name: 'LogoRemove',
   mixins: [ClearCacheMixin],
   data() {
     return {
       videoFile: {},
-      example_video: 'http://127.0.0.1:6006/running_hub/resource/mTransfer_example.mp4',
-      video_image: 'http://127.0.0.1:6006/running_hub/resource/mTransfer_example.jpg',
-      imageFile: {},
-      image_path: '/chest/mTransfer.jpg',
-      duration: 8,
-      fps: 30,
-      promptInput: '女人a',
-      long_size: 960,
-      result_video: 'http://127.0.0.1:6006/running_hub/resource/mTransfer_result.mp4',
+      example_video: 'http://127.0.0.1:6006/running_hub/resource/logoRemove_example.mp4',
+      video_image: 'http://127.0.0.1:6006/running_hub/resource/logoRemove_example.jpg',
+      result_video: 'http://127.0.0.1:6006/running_hub/resource/logoRemove_result.mp4',
       loading: false,
-      isDefault: true,
     }
   },
   mounted() {
-    this.initFile('image')
-    this.initFile('video')
+    this.initFile()
   },
   methods: {
-    async initFile(type) {
+    async initFile() {
       try {
-        let url = type  === 'image' ? this.image_path : this.example_video
-        let suffix = type  === 'image' ? '.jpg' : '.mp4'
-        const response = await fetch(url);
+        const response = await fetch(this.example_video);
 
         if (!response.ok) {
           throw new Error(`请求失败: ${response.status}`);
@@ -124,16 +83,16 @@ export default {
 
         const blob = await response.blob();
 
-        const realFile = new File([blob], "example" + suffix, {
+        const realFile = new File([blob], "example.mp4", {
           type: blob.type,
           lastModified: Date.now()
         });
 
-        this[type === 'image' ? 'imageFile' : 'videoFile'] = {
+        this.videoFile = {
           uid: Date.now(),
           raw: realFile,
-          name: "example" + suffix,
-          url: url
+          name: "example.mp4",
+          url: this.example_video
         };
       } catch (error) {
         console.error("视频文件初始化失败:", error);
@@ -144,14 +103,6 @@ export default {
     },
     videoDelete() {
 
-    },
-    handleImageChange(file, fileList) {
-      this.imgUrl = URL.createObjectURL(file.raw);
-      this.imgFile = file
-    },
-    imageDelete() {
-      this.imgUrl = '';
-      this.imgFile = null;
     },
     generate() {
 
@@ -166,12 +117,12 @@ export default {
 </script>
 
 <style scoped>
-.motion-transfer {
+.logo-remove {
   height: 100%;
   min-width: 1200px
 }
 
-.motion-transfer-content {
+.logo-remove-content {
   height: calc(100% - 50px);
   display: flex;
   gap: 20px;
@@ -248,7 +199,7 @@ export default {
   border-radius: 8px;
 }
 
-.motion-transfer-preview {
+.logo-remove-preview {
   flex: 1;
   height: 100%;
 }
