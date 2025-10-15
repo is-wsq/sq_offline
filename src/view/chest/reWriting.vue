@@ -412,6 +412,7 @@ export default {
     },
     back() {
       this.clearCache()
+      sessionStorage.setItem('chest_path', '/chest')
       this.$router.push({ path: '/chest'})
     }
   }
