@@ -67,7 +67,21 @@
           </div>
         </div>
         <div class="preview-body">
-          <el-image :src="result_image" class="preview-result" fit="contain"></el-image>
+          <div class="preview-list">
+            <div v-for="(item, index) in resultList" :key="index">
+              <el-image class="preview-list-item" :class="{ 'preview-list-item-active': index === activeIndex }"
+                        :src="item" fit="cover" @click="activeIndex = index"></el-image>
+            </div>
+          </div>
+          <el-button type="text" class="cut-btn" @click="activeIndex --" :disabled="activeIndex === 0">
+            <i class="el-icon-arrow-left"></i>
+          </el-button>
+          <div class="preview-result">
+            <el-image :src="resultList[activeIndex]" class="preview-image" fit="contain"></el-image>
+          </div>
+          <el-button type="text" class="cut-btn" @click="activeIndex ++" :disabled="activeIndex === resultList.length - 1">
+            <i class="el-icon-arrow-right"></i>
+          </el-button>
         </div>
       </div>
     </div>
@@ -88,6 +102,12 @@ export default {
       imitation_image: '/actionImitation/imitation.jpeg',
       resolutionRatio: 1280,
       result_image: '/actionImitation/result.png',
+      resultList: [
+        '/actionImitation/result1.png',
+        '/actionImitation/result2.jpeg',
+        '/actionImitation/result3.png',
+      ],
+      activeIndex: 0,
       loading: false,
     }
   },
@@ -272,11 +292,51 @@ export default {
 
 .preview-body {
   height: calc(100% - 170px);
+  display: flex;
+  gap: 24px;
+}
+
+.preview-list {
+  width: 120px;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.preview-list-item {
+  width: 120px;
+  height: 120px;
+  box-sizing: border-box;
+  cursor: pointer;
+}
+
+.preview-list-item-active {
+  border: 2px solid #409EFF;
+}
+
+.cut-btn {
+  width: 40px;
+  height: 40px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 20px;
+  border-radius: 50%;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+  color: #a2a8b3;
+  background-color: #FFFFFF;
+  margin: auto 0;
+  cursor: pointer;
 }
 
 .preview-result {
+  flex: 1;
   height: 100%;
+}
+
+.preview-image {
   width: 100%;
-  border-radius: 8px;
+  height: 100%;
 }
 </style>
