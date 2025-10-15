@@ -2,12 +2,15 @@
   <div class="chest">
     <div class="page-header">
       <h1 class="title1">AI八宝箱</h1>
-      <p class="desc">探索丰富的AI工具，提升您的创作效率与质量。</p>
+      <div class="desc">探索丰富的AI工具，提升您的创作效率与质量。</div>
     </div>
-
-    <div class="tools-grid">
+    <div class="flex-center margin-b-4">
+      <div class="classify-name">引流工具</div>
+      <div class="classify-desc">高效吸引目标用户，提升流量转化的实用工具</div>
+    </div>
+    <div class="classify-box margin-b-16">
       <div class="tools-grid-content">
-        <div class="tool-card" v-for="tool in tools" :key="tool.id" @click="gotoTool(tool.path)">
+        <div class="tool-card" v-for="tool in drainages" :key="tool.id" @click="gotoTool(tool.path)">
           <div class="tool-icon" :style="{ backgroundColor: tool.background }">
             <i :class="tool.icon" :style="{ color: tool.iconColor }"></i>
           </div>
@@ -21,6 +24,24 @@
         </div>
       </div>
     </div>
+    <div class="flex-center margin-b-4">
+      <div class="classify-name">实战工具</div>
+      <div class="classify-desc">专业实战操作中不可或缺的高效辅助工具</div>
+    </div>
+    <div class="tools-grid-content">
+      <div class="tool-card" v-for="tool in combats" :key="tool.id" @click="gotoTool(tool.path)">
+        <div class="tool-icon" :style="{ backgroundColor: tool.background }">
+          <i :class="tool.icon" :style="{ color: tool.iconColor }"></i>
+        </div>
+        <div class="tool-info">
+          <h3 class="tool-title">{{ tool.title }}</h3>
+          <p class="tool-desc">{{ tool.desc }}</p>
+        </div>
+        <div class="tool-action">
+          <i class="el-icon-right"></i>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -29,51 +50,53 @@ export default {
   name: "Chest",
   data() {
     return {
-      tools: [
+      drainages: [
         {
           id: 1,
-          title: '新闻热榜',
-          desc: '基于热门新闻，生成口播文案、视频，支持自定义创作',
-          icon: 'el-icon-baokuan',
-          background: '#FEF3C7',
-          iconColor: '#D97706',
-          path: '/hotNews'
-        },
-        {
-          id: 2,
           title: '电商带货短视频',
-          desc: '上传商品图、输入文案、选择音色，生成带货短视频',
+          desc: '商品图智能识别与处理，文案与商品匹配生成，多音色选择与配音',
           icon: 'el-icon-zbdh',
           background: '#D1FAE5',
           iconColor: '#059669',
           path: '/eCommerce'
         },
         {
-          id: 3,
-          title: '万物洗稿工作流',
-          desc: '基于产品图、参考图，指定产品迁移到指定的背景，万物皆可洗稿',
-          icon: 'el-icon-xigao',
-          background: '#d1e8ff',
-          iconColor: '#3b82f6',
-          path: '/reWriting'
-        },
-        {
-          id: 4,
+          id: 2,
           title: '动作迁移',
-          desc: '基于参考视频、参考图，指定参数，创作二创人像视频',
+          desc: '动作精准识别与捕捉，人像智能匹配与迁移，参数化视频创作',
           icon: 'el-icon-exportconfig',
           background: '#dcffda',
           iconColor: '#00a33a',
           path: '/motionTransfer'
         },
         {
-          id: 5,
+          id: 3,
           title: '姿势动作模仿',
-          desc: '上传原始人物、姿势图，一键模仿姿势+动作',
+          desc: '姿势图像智能解析，动作实时模仿与生成，一键式操作流程',
           icon: 'el-icon-dongzuomofang',
           background: '#ffd7de',
           iconColor: '#c71818',
           path: '/actionImitation'
+        },
+      ],
+      combats: [
+        {
+          id: 'a',
+          title: '新闻热榜',
+          desc: '热门新闻素材整合，多风格口播文案生成，视频快速制作与自定义',
+          icon: 'el-icon-baokuan',
+          background: '#FEF3C7',
+          iconColor: '#D97706',
+          path: '/hotNews'
+        },
+        {
+          id: 'b',
+          title: '万物洗稿工作流',
+          desc: '图像元素智能提取，背景迁移与融合，多场景适配洗稿',
+          icon: 'el-icon-xigao',
+          background: '#d1e8ff',
+          iconColor: '#3b82f6',
+          path: '/reWriting'
         },
       ],
     };
@@ -97,7 +120,7 @@ export default {
 }
 
 .page-header {
-  margin-bottom: 30px;
+  margin-bottom: 20px;
 }
 
 .title1 {
@@ -118,21 +141,36 @@ export default {
   transition: color 0.3s ease;
 }
 
-.tools-grid {
-  margin-bottom: 40px;
+.classify-name {
+  font-weight: 800;
+  background: linear-gradient(135deg, #1e40af 0%, #3b82f6 50%, #8b5cf6 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  letter-spacing: -0.02em;
+}
+
+.classify-desc {
+  flex: 1;
+  font-size: 13px;
+  color: #64748b;
+  padding-top: 4px;
+  margin-left: 10px;
+  transition: color 0.3s ease;
 }
 
 .tools-grid-content {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
   gap: 24px;
-  max-height: calc(100vh - 200px);
-  overflow-y: auto;
   padding-top: 10px;
+  max-height: calc(50vh - 125px);
+  overflow-y: auto;
   box-sizing: border-box;
 }
 
 .tool-card {
+  border: 1px solid #f8fafc;
   background-color: white;
   border-radius: 16px;
   padding: 24px;

@@ -2,7 +2,7 @@
   <div class="video-home">
     <div class="page-header">
       <h1 class="title1">生成视频</h1>
-      <p class="desc">选择一个创作模式，即刻开启您的AI创作之旅。</p>
+      <div class="desc">选择一个创作模式，即刻开启您的AI创作之旅。</div>
     </div>
 
     <div class="figure-card">
