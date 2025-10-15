@@ -548,6 +548,8 @@ export default {
       }
       axios.post(this.urls.extract_product_info,params,{ timeout: 1800000 }).then(res => {
         if (res.data.status === 'success') {
+          this.$message.success('商品信息提取成功！');
+          this.imageDialogVisible = false;
           this.script_params.productInfo = res.data.data.product_info
         } else {
           this.$alert('提取失败' + res.data.message, '提示')
@@ -901,12 +903,14 @@ export default {
 .script-setting-product_info {
   width: 100%;
   min-height: 100px;
-  padding: 0 12px;
+  padding: 8px;
   margin-top: 10px;
   box-sizing: border-box;
-  border-radius: 8px;
-  background-color: #f8fafc;
+  border-radius: 4px;
+  background-color: #f5f5f5;
+  border: 1px solid #DCDFE6;
   font-size: 13px;
+  line-height: 20px;
 }
 
 .upload-dialog >>> .el-dialog {
