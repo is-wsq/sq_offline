@@ -66,6 +66,15 @@ export default {
           iconColor: '#00a33a',
           path: '/motionTransfer'
         },
+        {
+          id: 5,
+          title: '姿势动作模仿',
+          desc: '上传原始人物、姿势图，一键模仿姿势+动作',
+          icon: 'el-icon-dongzuomofang',
+          background: '#ffd7de',
+          iconColor: '#c71818',
+          path: '/actionImitation'
+        },
       ],
     };
   },

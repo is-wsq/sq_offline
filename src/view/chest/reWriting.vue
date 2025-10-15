@@ -136,32 +136,30 @@ export default {
     window.removeEventListener('resize', this.calibrateCanvas);
   },
   methods: {
-    initDefaultImgFile() {
-      const img = new Image();
-      img.src = `/reWriting/defaultProduct.png`
-      img.crossOrigin = 'anonymous';
+    async initDefaultImgFile() {
+      try {
+        const response = await fetch(this.productImg);
 
-      img.onload = () => {
-        const canvas = document.createElement('canvas');
-        const ctx = canvas.getContext('2d');
-        canvas.width = img.width;
-        canvas.height = img.height;
-        ctx.drawImage(img, 0, 0);
+        if (!response.ok) {
+          throw new Error(`请求失败: ${response.status}`);
+        }
 
-        canvas.toBlob((blob) => {
-          const realFile = new File([blob], "defaultProduct.png", {
-            type: 'image/png',
-            lastModified: Date.now()
-          });
+        const blob = await response.blob();
 
-          this.productFile = {
-            uid: Date.now(),
-            raw: realFile,
-            name: 'defaultProduct.png',
-            url: this.imgUrl
-          };
-        }, 'image/png');
-      };
+        const realFile = new File([blob], 'defaultProduct.png', {
+          type: blob.type,
+          lastModified: Date.now()
+        });
+
+        this.productFile = {
+          uid: Date.now(),
+          raw: realFile,
+          name: 'defaultProduct.png',
+          url: this.productImg
+        };
+      } catch (error) {
+        console.error("文件初始化失败:", error);
+      }
     },
     handleProductChange(file, fileList) {
       this.productFile = file

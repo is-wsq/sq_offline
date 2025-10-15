@@ -9,6 +9,7 @@ import hotNews from '../view/chest/hotNews.vue';
 import eCommerce from '../view/chest/eCommerce.vue';
 import reWriting from '../view/chest/reWriting.vue';
 import motionTransfer from '../view/chest/motionTransfer.vue';
+import actionImitation from '../view/chest/actionImitation.vue';
 import figures from '../view/figures/index.vue';
 import imageToScript from '../view/figures/imageToScript.vue';
 import scriptToImage from '../view/figures/scriptToImage.vue';
@@ -68,6 +69,10 @@ const routes = [
         path: '/motionTransfer',
         name: 'motionTransfer',
         component: motionTransfer
+    },{
+        path: '/actionImitation',
+        name: 'actionImitation',
+        component: actionImitation
     },
     {
         path: '/figures',

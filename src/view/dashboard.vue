@@ -53,7 +53,8 @@ export default {
         {name: "品牌店铺", path: "/shop", class: 'el-icon-s-shop'},
         {name: "设置", path: "/system", class: 'el-icon-setting'},
       ],
-      alive_routers: ['/syncCv','/montage','/remix','/segments','/smartGenerate','/duplicate', '/eCommerce', '/hotNews', '/reWriting', '/motionTransfer'],
+      alive_routers: ['/syncCv','/montage','/remix','/segments','/smartGenerate','/duplicate',
+        '/eCommerce', '/hotNews', '/reWriting', '/motionTransfer', '/actionImitation'],
       padding0_routers: ['/material', '/login', '/register'],
     };
   },
@@ -101,7 +102,7 @@ export default {
     updateActiveFromRoute() {
       let paths = ['/human', '/material', '/smartGenerate', '/syncCv', '/duplicate', '/segments', '/montage', '/hot', '/remix']
       let first_paths = ['/imageToScript', '/scriptToImage', '/imageToVideo']
-      let chest_paths = ['/hotNews', '/eCommerce', '/reWriting', '/motionTransfer']
+      let chest_paths = ['/hotNews', '/eCommerce', '/reWriting', '/motionTransfer', '/actionImitation']
       if (first_paths.includes(this.$route.path)) {
         this.active = 2;
         return;

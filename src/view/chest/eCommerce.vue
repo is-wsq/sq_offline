@@ -137,32 +137,30 @@ export default {
     this.initDefaultImgFile()
   },
   methods: {
-    initDefaultImgFile() {
-      const img = new Image();
-      img.src = '/eCommerce/defaultImg.png';
-      img.crossOrigin = 'anonymous';
+    async initDefaultImgFile() {
+      try {
+        const response = await fetch(this.imgUrl);
 
-      img.onload = () => {
-        const canvas = document.createElement('canvas');
-        const ctx = canvas.getContext('2d');
-        canvas.width = img.width;
-        canvas.height = img.height;
-        ctx.drawImage(img, 0, 0);
+        if (!response.ok) {
+          throw new Error(`请求失败: ${response.status}`);
+        }
 
-        canvas.toBlob((blob) => {
-          const realFile = new File([blob], 'defaultImg.png', {
-            type: 'image/png',
-            lastModified: Date.now()
-          });
+        const blob = await response.blob();
 
-          this.imgFile = {
-            uid: Date.now(),
-            raw: realFile,
-            name: 'defaultImg.png',
-            url: this.imgUrl
-          };
-        }, 'image/png');
-      };
+        const realFile = new File([blob], 'defaultImg.png', {
+          type: blob.type,
+          lastModified: Date.now()
+        });
+
+        this.imgFile = {
+          uid: Date.now(),
+          raw: realFile,
+          name: 'defaultImg.png',
+          url: this.imgUrl
+        };
+      } catch (error) {
+        console.error("视频文件初始化失败:", error);
+      }
     },
     queryVoices() {
       getAction("/timbres/get_all_common_timbre").then((res) => {
@@ -244,12 +242,6 @@ export default {
         return
       }
       this.loading = true
-      // const loading = this.$loading({
-      //   lock: true,
-      //   text: '带货视频制作中...',
-      //   spinner: 'el-icon-loading',
-      //   background: 'rgba(0, 0, 0, 0.7)'
-      // });
 
       const formData = new FormData();
       formData.append("image_file", this.imgFile.raw);
@@ -266,15 +258,12 @@ export default {
       }).then(res => {
         if (res.data.status === 'success') {
           this.videoUrl = res.data.data.video_path
-          // loading.close();
           this.loading = false
         } else {
-          // loading.close();
           this.loading = false
           this.$alert(`生成失败，${res.data.message}`, '提示')
         }
       }).catch(err => {
-        // loading.close();
         this.loading = false
         this.$alert(`生成错误，${err}`, '提示')
       })

@@ -6,6 +6,13 @@
   "description": "",
   "glyphs": [
     {
+      "icon_id": "44585084",
+      "name": "动作模仿",
+      "font_class": "dongzuomofang",
+      "unicode": "e65f",
+      "unicode_decimal": 58975
+    },
+    {
       "icon_id": "25668347",
       "name": "exportconfig",
       "font_class": "exportconfig",
