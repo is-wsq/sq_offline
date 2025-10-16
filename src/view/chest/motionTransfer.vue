@@ -87,6 +87,7 @@
 
 <script>
 import {ClearCacheMixin} from "@/mixins/ClearCacheMixin";
+import axios from "axios";
 
 export default {
   name: 'MotionTransfer',
@@ -140,21 +141,90 @@ export default {
       }
     },
     handleVideoChange(file, fileList) {
+      this.getVideoCover(file.raw).then(coverUrl => {
+        this.video_image = coverUrl
+      }).catch(err => {
+        console.log(err)
+      })
+      this.videoFile = file
+    },
+    getVideoCover(file) {
+      return new Promise((resolve, reject) => {
+        const video = document.createElement('video');
+        video.setAttribute('crossOrigin', 'anonymous'); // 处理跨域
+        video.setAttribute('src', URL.createObjectURL(file));
+        video.setAttribute('preload', 'auto');
 
+        video.onloadeddata = () => {
+          const canvas = document.createElement('canvas');
+          const width = video.videoWidth;
+          const height = video.videoHeight;
+
+          canvas.width = width;
+          canvas.height = height;
+
+          canvas.getContext('2d').drawImage(video, 0, 0, width, height);
+
+          const coverUrl = canvas.toDataURL('image/jpeg');
+
+          URL.revokeObjectURL(video.src);
+          resolve(coverUrl);
+        };
+
+        video.onerror = (err) => {
+          this.$message.error('视频加载失败，请重新选择！');
+          reject(err);
+        };
+      });
     },
     videoDelete() {
-
+      this.video_image = '';
+      this.videoFile = null;
     },
     handleImageChange(file, fileList) {
-      this.imgUrl = URL.createObjectURL(file.raw);
-      this.imgFile = file
+      this.image_path = URL.createObjectURL(file.raw);
+      this.imageFile = file
     },
     imageDelete() {
-      this.imgUrl = '';
-      this.imgFile = null;
+      this.image_path = '';
+      this.imageFile = null;
     },
     generate() {
+      if (!this.videoFile.uid) {
+        this.$alert('请上传视频后重试', '提示')
+        return
+      }
+      if (!this.imageFile.uid) {
+        this.$alert('请上传图片后重试', '提示')
+        return
+      }
+      this.loading = true
 
+      const formData = new FormData();
+      formData.append("video_file", this.videoFile.raw);
+      formData.append('image_file', this.imageFile.raw);
+      formData.append('video_duration', this.duration);
+      formData.append('fps', this.fps);
+      formData.append('prompt', this.promptInput);
+      formData.append('long_side_size', this.long_size);
+
+      axios.post("http://127.0.0.1:6006/running_hub/action_transfer_portrait", formData,{
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+        timeout: 1800000
+      }).then(res => {
+        if (res.data.status === 'success') {
+          this.videoUrl = res.data.data.video_path
+          this.loading = false
+        } else {
+          this.loading = false
+          this.$alert(`生成失败，${res.data.message}`, '提示')
+        }
+      }).catch(err => {
+        this.loading = false
+        this.$alert(`生成错误，${err}`, '提示')
+      })
     },
     back() {
       this.clearCache()

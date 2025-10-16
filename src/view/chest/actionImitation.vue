@@ -90,6 +90,7 @@
 
 <script>
 import {ClearCacheMixin} from "@/mixins/ClearCacheMixin";
+import axios from "axios";
 
 export default {
   name: 'ActionImitation',
@@ -159,7 +160,39 @@ export default {
       this.imitationFile = null;
     },
     generate() {
+      if (!this.originalFile.uid) {
+        this.$alert('请上传视频后重试', '提示')
+        return
+      }
+      if (!this.imitationFile.uid) {
+        this.$alert('请上传图片后重试', '提示')
+        return
+      }
+      this.loading = true
 
+      const formData = new FormData();
+      formData.append("original_image_file", this.originalFile.raw);
+      formData.append('pose_image_file', this.imitationFile.raw);
+      formData.append('max_resolution', this.resolutionRatio);
+
+      axios.post("http://127.0.0.1:6006/running_hub/imitate_person_pose", formData,{
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+        timeout: 1800000
+      }).then(res => {
+        if (res.data.status === 'success') {
+          this.activeIndex = 0
+          this.resultList = res.data.data.image_paths
+          this.loading = false
+        } else {
+          this.loading = false
+          this.$alert(`生成失败，${res.data.message}`, '提示')
+        }
+      }).catch(err => {
+        this.loading = false
+        this.$alert(`生成错误，${err}`, '提示')
+      })
     },
     back() {
       this.clearCache()
