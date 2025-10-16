@@ -47,7 +47,15 @@
           </div>
         </div>
         <div class="preview-body">
-          <video :src="result_video" controls class="preview-video"></video>
+          <el-button type="text" class="cut-btn" @click="activeIndex --" :disabled="activeIndex === 0">
+            <i class="el-icon-arrow-left"></i>
+          </el-button>
+          <div class="preview-result">
+            <video :src="result_list[activeIndex]" controls class="preview-video"></video>
+          </div>
+          <el-button type="text" class="cut-btn" @click="activeIndex ++" :disabled="activeIndex === result_list.length - 1">
+            <i class="el-icon-arrow-right"></i>
+          </el-button>
         </div>
       </div>
     </div>
@@ -56,6 +64,7 @@
 
 <script>
 import {ClearCacheMixin} from "@/mixins/ClearCacheMixin";
+import axios from "axios";
 
 export default {
   name: 'LogoRemove',
@@ -65,7 +74,8 @@ export default {
       videoFile: {},
       example_video: 'http://127.0.0.1:6006/running_hub/resource/logoRemove_example.mp4',
       video_image: 'http://127.0.0.1:6006/running_hub/resource/logoRemove_example.jpg',
-      result_video: 'http://127.0.0.1:6006/running_hub/resource/logoRemove_result.mp4',
+      result_list: ['http://127.0.0.1:6006/running_hub/resource/logoRemove_result.mp4'],
+      activeIndex: 0,
       loading: false,
     }
   },
@@ -99,13 +109,44 @@ export default {
       }
     },
     handleVideoChange(file, fileList) {
-
+      this.getVideoCover(file.raw).then(coverUrl => {
+        this.video_image = coverUrl
+      }).catch(err => {
+        console.log(err)
+      })
+      this.videoFile = file;
     },
     videoDelete() {
-
+      this.video_image = ''
+      this.videoFile = {}
     },
     generate() {
+      if (!this.videoFile.uid) {
+        this.$alert('请上传视频后重试', '提示')
+        return
+      }
+      this.loading = true
 
+      const formData = new FormData();
+      formData.append("video_file", this.videoFile.raw);
+
+      axios.post("http://127.0.0.1:6006/running_hub/video_watermark_removal", formData,{
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+        timeout: 1800000
+      }).then(res => {
+        if (res.data.status === 'success') {
+          this.result_list = res.data.data.map(item => item.video_url)
+          this.loading = false
+        } else {
+          this.loading = false
+          this.$alert(`生成失败，${res.data.message}`, '提示')
+        }
+      }).catch(err => {
+        this.loading = false
+        this.$alert(`生成错误，${err}`, '提示')
+      })
     },
     back() {
       this.clearCache()
@@ -237,11 +278,32 @@ export default {
 
 .preview-body {
   height: calc(100% - 170px);
+  display: flex;
+  gap: 40px;
+}
+
+.cut-btn {
+  width: 40px;
+  height: 40px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 20px;
+  border-radius: 50%;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+  color: #a2a8b3;
+  background-color: #FFFFFF;
+  margin: auto 0;
+  cursor: pointer;
+}
+
+.preview-result {
+  flex: 1;
+  height: 100%;
 }
 
 .preview-video {
   height: 100%;
   width: 100%;
-  border-radius: 8px;
 }
 </style>

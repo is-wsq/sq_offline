@@ -78,7 +78,15 @@
           </div>
         </div>
         <div class="preview-body">
-          <video :src="result_video" controls class="preview-video"></video>
+          <el-button type="text" class="cut-btn" @click="activeIndex --" :disabled="activeIndex === 0">
+            <i class="el-icon-arrow-left"></i>
+          </el-button>
+          <div class="preview-result">
+            <video :src="result_list[activeIndex]" controls class="preview-video"></video>
+          </div>
+          <el-button type="text" class="cut-btn" @click="activeIndex ++" :disabled="activeIndex === result_list.length - 1">
+            <i class="el-icon-arrow-right"></i>
+          </el-button>
         </div>
       </div>
     </div>
@@ -103,7 +111,8 @@ export default {
       fps: 30,
       promptInput: '女人a',
       long_size: 960,
-      result_video: 'http://127.0.0.1:6006/running_hub/resource/mTransfer_result.mp4',
+      result_list: ['http://127.0.0.1:6006/running_hub/resource/mTransfer_result.mp4'],
+      activeIndex: 0,
       loading: false,
       isDefault: true,
     }
@@ -148,35 +157,6 @@ export default {
       })
       this.videoFile = file
     },
-    getVideoCover(file) {
-      return new Promise((resolve, reject) => {
-        const video = document.createElement('video');
-        video.setAttribute('crossOrigin', 'anonymous'); // 处理跨域
-        video.setAttribute('src', URL.createObjectURL(file));
-        video.setAttribute('preload', 'auto');
-
-        video.onloadeddata = () => {
-          const canvas = document.createElement('canvas');
-          const width = video.videoWidth;
-          const height = video.videoHeight;
-
-          canvas.width = width;
-          canvas.height = height;
-
-          canvas.getContext('2d').drawImage(video, 0, 0, width, height);
-
-          const coverUrl = canvas.toDataURL('image/jpeg');
-
-          URL.revokeObjectURL(video.src);
-          resolve(coverUrl);
-        };
-
-        video.onerror = (err) => {
-          this.$message.error('视频加载失败，请重新选择！');
-          reject(err);
-        };
-      });
-    },
     videoDelete() {
       this.video_image = '';
       this.videoFile = null;
@@ -215,7 +195,8 @@ export default {
         timeout: 1800000
       }).then(res => {
         if (res.data.status === 'success') {
-          this.videoUrl = res.data.data.video_path
+          this.activeIndex = 0
+          this.result_list = res.data.data.map(item => item.video_url)
           this.loading = false
         } else {
           this.loading = false
@@ -356,11 +337,32 @@ export default {
 
 .preview-body {
   height: calc(100% - 170px);
+  display: flex;
+  gap: 40px;
+}
+
+.cut-btn {
+  width: 40px;
+  height: 40px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 20px;
+  border-radius: 50%;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+  color: #a2a8b3;
+  background-color: #FFFFFF;
+  margin: auto 0;
+  cursor: pointer;
+}
+
+.preview-result {
+  flex: 1;
+  height: 100%;
 }
 
 .preview-video {
   height: 100%;
   width: 100%;
-  border-radius: 8px;
 }
 </style>

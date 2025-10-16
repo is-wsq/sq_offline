@@ -79,6 +79,7 @@
 
 <script>
 import {ClearCacheMixin} from "@/mixins/ClearCacheMixin";
+import axios from "axios";
 
 export default {
   name: 'CharacterReplace',
@@ -129,21 +130,59 @@ export default {
       }
     },
     handleVideoChange(file, fileList) {
-
+      this.getVideoCover(file.raw).then(coverUrl => {
+        this.video_image = coverUrl
+      }).catch(err => {
+        console.log(err)
+      })
+      this.videoFile = file
     },
     videoDelete() {
-
+      this.video_image = '';
+      this.videoFile = null;
     },
     handleImageChange(file, fileList) {
-      this.imgUrl = URL.createObjectURL(file.raw);
-      this.imgFile = file
+      this.image_path = URL.createObjectURL(file.raw);
+      this.imageFile = file
     },
     imageDelete() {
-      this.imgUrl = '';
-      this.imgFile = null;
+      this.image_path = '';
+      this.imageFile = null;
     },
     generate() {
+      if (!this.videoFile.uid) {
+        this.$alert('请上传视频后重试', '提示')
+        return
+      }
+      if (!this.imageFile.uid) {
+        this.$alert('请上传图片后重试', '提示')
+        return
+      }
+      this.loading = true
 
+      const formData = new FormData();
+      formData.append("video_file", this.videoFile.raw);
+      formData.append('image_file', this.imageFile.raw);
+      formData.append('video_duration', this.duration);
+      formData.append('prompt', this.promptInput);
+
+      axios.post("http://127.0.0.1:6006/running_hub/replace_video_person_workflow", formData,{
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+        timeout: 1800000
+      }).then(res => {
+        if (res.data.status === 'success') {
+          this.result_video = res.data.data.video_path
+          this.loading = false
+        } else {
+          this.loading = false
+          this.$alert(`生成失败，${res.data.message}`, '提示')
+        }
+      }).catch(err => {
+        this.loading = false
+        this.$alert(`生成错误，${err}`, '提示')
+      })
     },
     back() {
       this.clearCache()
