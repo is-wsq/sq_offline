@@ -62,7 +62,7 @@ export default {
           icon: 'el-icon-zbdh',
           background: '#E6F7FF',
           iconColor: '#20A0FF',
-          path: '/eCommerce'
+          path: '/chest/eCommerce'
         },
         {
           id: 2,
@@ -71,7 +71,7 @@ export default {
           icon: 'el-icon-exportconfig',
           background: '#FFF7E6',
           iconColor: '#FF9900',
-          path: '/motionTransfer'
+          path: '/chest/motionTransfer'
         },
         {
           id: 3,
@@ -80,7 +80,7 @@ export default {
           icon: 'el-icon-imitate',
           background: '#FFE6F7',
           iconColor: '#F5222D',
-          path: '/actionImitation'
+          path: '/chest/actionImitation'
         },
         {
           id: 4,
@@ -89,7 +89,7 @@ export default {
           icon: 'el-icon-replace',
           background: '#E6FFF7',
           iconColor: '#36CFC9',
-          path: '/characterReplace'
+          path: '/chest/characterReplace'
         },
         {
           id: 5,
@@ -98,7 +98,7 @@ export default {
           icon: 'el-icon-multipose',
           background: '#F7E6FF',
           iconColor: '#722ED1',
-          path: '/multiplePose'
+          path: '/chest/multiplePose'
         },
         {
           id: 6,
@@ -127,7 +127,7 @@ export default {
           icon: 'el-icon-baokuan',
           background: '#FEF3C7',
           iconColor: '#D97706',
-          path: '/hotNews'
+          path: '/chest/hotNews'
         },
         {
           id: 'b',
@@ -136,7 +136,7 @@ export default {
           icon: 'el-icon-xigao',
           background: '#d1e8ff',
           iconColor: '#3b82f6',
-          path: '/reWriting'
+          path: '/chest/reWriting'
         },
         {
           id: 'c',
@@ -145,7 +145,7 @@ export default {
           icon: 'el-icon-logoremove',
           background: '#d9d9d9',
           iconColor: '#616161',
-          path: '/logoRemove'
+          path: '/chest/watermarkRemove/video'
         },
         {
           id: 'd',

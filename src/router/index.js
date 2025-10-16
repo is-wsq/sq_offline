@@ -4,19 +4,22 @@ Vue.use(Router);
 import LogIn from '../view/login/Login.vue';
 import Register from '../view/login/Register.vue';
 import ai from '../view/ai/index.vue';
-import chest from '../view/chest/index.vue';
-import hotNews from '../view/chest/hotNews.vue';
-import eCommerce from '../view/chest/eCommerce.vue';
-import reWriting from '../view/chest/reWriting.vue';
-import motionTransfer from '../view/chest/motionTransfer.vue';
-import actionImitation from '../view/chest/actionImitation.vue';
-import characterReplace from '../view/chest/characterReplace.vue';
-import logoRemove from '../view/chest/logoRemove.vue';
-import multiplePose from '../view/chest/multiplePose.vue';
+
+// ai八宝箱
+import Chest from '../view/chest/Index.vue';
+import HotNews from '../view/chest/HotNews.vue';
+import ECommerce from '../view/chest/ECommerce.vue';
+import ReWriting from '../view/chest/ReWriting.vue';
+import MotionTransfer from '../view/chest/MotionTransfer.vue';
+import ActionImitation from '../view/chest/ActionImitation.vue';
+import CharacterReplace from '../view/chest/CharacterReplace.vue';
+import VideoWatermarkRemove from '../view/chest/VideoWatermarkRemove.vue';
+import MultiplePose from '../view/chest/MultiplePose.vue';
 import ImageWatermarkRemove from '../view/chest/ImageWatermarkRemove.vue';
 import PhotoRestoration from '../view/chest/PhotoRestoration.vue';
 import DualTimbreCloning from '../view/chest/DualTimbreCloning.vue';
 import InteriorDesign from '../view/chest/InteriorDesign.vue';
+
 import figures from '../view/figures/index.vue';
 import imageToScript from '../view/figures/imageToScript.vue';
 import scriptToImage from '../view/figures/scriptToImage.vue';
@@ -52,46 +55,43 @@ const routes = [
         name: 'ai',
         component: ai
     },
+
     {
         path: '/chest',
-        name: 'chest',
-        component: chest
-    },
-    {
-        path: '/hotNews',
-        name: 'hotNews',
-        component: hotNews
-    },
-    {
-        path: '/eCommerce',
-        name: 'eCommerce',
-        component: eCommerce
-    },
-    {
-        path: '/reWriting',
-        name: 'reWriting',
-        component: reWriting
-    },
-    {
-        path: '/motionTransfer',
-        name: 'motionTransfer',
-        component: motionTransfer
+        name: 'Chest',
+        component: Chest
     },{
-        path: '/actionImitation',
-        name: 'actionImitation',
-        component: actionImitation
+        path: '/chest/hotNews',
+        name: 'HotNews',
+        component: HotNews
     },{
-        path: '/characterReplace',
-        name: 'characterReplace',
-        component: characterReplace
+        path: '/chest/eCommerce',
+        name: 'ECommerce',
+        component: ECommerce
     },{
-        path: '/logoRemove',
-        name: 'logoRemove',
-        component: logoRemove
+        path: '/chest/reWriting',
+        name: 'ReWriting',
+        component: ReWriting
     },{
-        path: '/multiplePose',
-        name: 'multiplePose',
-        component: multiplePose
+        path: '/chest/motionTransfer',
+        name: 'MotionTransfer',
+        component: MotionTransfer
+    },{
+        path: '/chest/actionImitation',
+        name: 'ActionImitation',
+        component: ActionImitation
+    },{
+        path: '/chest/characterReplace',
+        name: 'CharacterReplace',
+        component: CharacterReplace
+    },{
+        path: '/chest/watermarkRemove/video',
+        name: 'VideoWatermarkRemove',
+        component: VideoWatermarkRemove
+    },{
+        path: '/chest/multiplePose',
+        name: 'MultiplePose',
+        component: MultiplePose
     },{
         path: '/chest/watermarkRemove/image',
         name: 'ImageWatermarkRemove',
@@ -109,6 +109,7 @@ const routes = [
         name: 'InteriorDesign',
         component: InteriorDesign
     },
+
     {
         path: '/figures',
         name: 'figures',
