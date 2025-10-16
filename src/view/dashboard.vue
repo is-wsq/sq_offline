@@ -22,9 +22,9 @@
       </el-aside>
       <el-main class="main" :class="{'padding0': padding0_routers.includes($route.path)}">
         <keep-alive>
-          <router-view v-if="alive_routers.includes($route.path)"></router-view>
+          <router-view v-if="alive_routers.includes($route.path) || $route.path.indexOf('/chest/') !== -1"></router-view>
         </keep-alive>
-        <router-view v-if="!alive_routers.includes($route.path)"></router-view>
+        <router-view v-if="!alive_routers.includes($route.path) && $route.path.indexOf('/chest/') === -1"></router-view>
 <!--        <router-view></router-view>-->
       </el-main>
     </el-container>
@@ -111,7 +111,7 @@ export default {
         this.active = 4;
         return;
       }
-      if (chest_paths.includes(this.$route.path)) {
+      if (chest_paths.includes(this.$route.path) || this.$route.path.indexOf('/chest') !== -1) {
         this.active = 1;
         return;
       }

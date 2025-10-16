@@ -1,53 +1,70 @@
 <template>
-  <div class="logo-remove"
+  <div class="photoRestoration"
        v-loading="loading"
-       element-loading-text="视频水印去除中..."
+       element-loading-text="照片修复中..."
        element-loading-spinner="el-icon-loading"
        element-loading-background="rgba(0, 0, 0, 0.8)">
     <div class="flex-center">
       <el-button type="text" class="back-btn" @click="back">
         <i class="el-icon-arrow-left" style="font-size: 20px;"></i>
       </el-button>
-      <div class="c-page-header">视频水印去除</div>
+      <div class="c-page-header">老照片修复</div>
       <div style="width: 36px"></div>
     </div>
-    <div class="logo-remove-content">
+    <div class="photoRestoration-content">
       <div class="work-setting-area">
         <div class="font-weight">工作台</div>
         <div style="flex: 1;overflow-y: auto">
-          <div class="work-setting-label">上传视频</div>
+          <div class="work-setting-label">上传照片</div>
           <el-upload
               class="uploader"
               action="#"
-              accept=".mp4, .mov"
+              accept=".jpg, .jpeg, .png"
               :show-file-list="false"
               :auto-upload="false"
-              :on-change="handleVideoChange">
-            <div v-if="video_image" style="position: relative;">
-              <el-image :src="video_image" class="placeholder-image" fit="cover"></el-image>
+              :on-change="handleImageChange">
+            <div v-if="image_path" style="position: relative;">
+              <el-image :src="image_path" class="placeholder-image" fit="cover"></el-image>
               <div class="placeholder-image-delete-icon">
-                <i class="el-icon-delete" @click.stop="videoDelete"></i>
+                <i class="el-icon-delete" @click.stop="imageDelete"></i>
               </div>
             </div>
             <i v-else class="el-icon-plus uploader-icon"></i>
           </el-upload>
+          <div class="work-setting-label margin-t-12">提示词（默认效果就挺好，也可自行调整）</div>
+          <el-input type="textarea" v-model="promptInput" :autosize="{ minRows: 3, maxRows: 5 }"
+                    placeholder="请输入提示词..." resize="none"></el-input>
         </div>
         <div class="generate-btn">
-          <el-button @click="generate" :loading="!!loading" :disabled="!videoFile">
+          <el-button @click="generate" :loading="!!loading" :disabled="!imageFile">
             <i class="el-icon-bianjiqi btn-icon" v-if="!loading"></i>
-            {{ !!loading ? '去除中...' : '水印去除' }}
+            {{ !!loading ? '修复中...' : '照片修复' }}
           </el-button>
         </div>
       </div>
-      <div class="logo-remove-preview">
+      <div class="photoRestoration-preview">
         <div class="preview-header">
           <div class="preview-header-title">应用介绍&输入建议</div>
           <div class="preview-header-desc">
-            <div>视频移动水印去除即梦 、可灵、豆包、VEO3等通用版</div>
+            <div>提示词默认的无需修改，可以适当增加新的提示词</div>
           </div>
         </div>
         <div class="preview-body">
-          <video :src="result_video" controls class="preview-video"></video>
+          <el-button type="text" class="cut-btn" @click="activeIndex --" :disabled="activeIndex === 0">
+            <i class="el-icon-arrow-left"></i>
+          </el-button>
+          <div class="preview-result">
+            <el-image :src="resultList[activeIndex]" class="preview-image" fit="contain"></el-image>
+          </div>
+          <el-button type="text" class="cut-btn" @click="activeIndex ++" :disabled="activeIndex === resultList.length - 1">
+            <i class="el-icon-arrow-right"></i>
+          </el-button>
+          <div class="preview-list">
+            <div v-for="(item, index) in resultList" :key="index">
+              <el-image class="preview-list-item" :class="{ 'preview-list-item-active': index === activeIndex }"
+                        :src="item" fit="cover" @click="activeIndex = index"></el-image>
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -58,14 +75,19 @@
 import {ClearCacheMixin} from "@/mixins/ClearCacheMixin";
 
 export default {
-  name: 'LogoRemove',
+  name: 'PhotoRestoration',
   mixins: [ClearCacheMixin],
   data() {
     return {
-      videoFile: {},
-      example_video: 'http://127.0.0.1:6006/running_hub/resource/logoRemove_example.mp4',
-      video_image: 'http://127.0.0.1:6006/running_hub/resource/logoRemove_example.jpg',
-      result_video: 'http://127.0.0.1:6006/running_hub/resource/logoRemove_result.mp4',
+      imageFile: {},
+      image_path: '/chest/photoRestoration_example.jpg',
+      promptInput: '还原照片并上色',
+      resultList: [
+        '/chest/photoRestoration_result1.png',
+        '/chest/photoRestoration_result2.jpg',
+        '/chest/photoRestoration_result3.png',
+      ],
+      activeIndex: 0,
       loading: false,
     }
   },
@@ -75,7 +97,7 @@ export default {
   methods: {
     async initFile() {
       try {
-        const response = await fetch(this.example_video);
+        const response = await fetch(this.image_path);
 
         if (!response.ok) {
           throw new Error(`请求失败: ${response.status}`);
@@ -83,26 +105,28 @@ export default {
 
         const blob = await response.blob();
 
-        const realFile = new File([blob], "example.mp4", {
+        const realFile = new File([blob], "example.png", {
           type: blob.type,
           lastModified: Date.now()
         });
 
-        this.videoFile = {
+        this.imageFile = {
           uid: Date.now(),
           raw: realFile,
-          name: "example.mp4",
-          url: this.example_video
+          name: "example.png",
+          url: this.image_path
         };
       } catch (error) {
         console.error("视频文件初始化失败:", error);
       }
     },
-    handleVideoChange(file, fileList) {
-
+    handleImageChange(file, fileList) {
+      this.imgUrl = URL.createObjectURL(file.raw);
+      this.imgFile = file
     },
-    videoDelete() {
-
+    imageDelete() {
+      this.imgUrl = '';
+      this.imgFile = null;
     },
     generate() {
 
@@ -117,12 +141,12 @@ export default {
 </script>
 
 <style scoped>
-.logo-remove {
+.photoRestoration {
   height: 100%;
   min-width: 1200px
 }
 
-.logo-remove-content {
+.photoRestoration-content {
   height: calc(100% - 50px);
   display: flex;
   gap: 20px;
@@ -199,7 +223,7 @@ export default {
   border-radius: 8px;
 }
 
-.logo-remove-preview {
+.photoRestoration-preview {
   flex: 1;
   height: 100%;
 }
@@ -233,15 +257,64 @@ export default {
   opacity: .8;
   margin-top: 4px;
   line-height: 24px;
+  white-space: pre-wrap;
 }
 
 .preview-body {
   height: calc(100% - 170px);
+  display: flex;
+  gap: 40px;
 }
 
-.preview-video {
+.preview-list {
+  width: 160px;
   height: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  overflow-y: auto;
+  margin-right: 24px;
+}
+
+.preview-list-item {
+  width: 160px;
+  height: 160px;
+  box-sizing: border-box;
+  cursor: pointer;
+}
+
+.preview-list-item-active {
+  border: 2px solid #409EFF;
+}
+
+.cut-btn {
+  width: 40px;
+  height: 40px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 20px;
+  border-radius: 50%;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+  color: #a2a8b3;
+  background-color: #FFFFFF;
+  margin: auto 0;
+  cursor: pointer;
+}
+
+.preview-result {
+  flex: 1;
+  height: 100%;
+}
+
+.preview-image {
   width: 100%;
-  border-radius: 8px;
+  height: 100%;
+}
+
+.photoRestoration >>> .el-textarea__inner {
+  font-size: 14px !important;
+  color: #5f5f5f !important;
+  padding: 5px 8px !important;
 }
 </style>

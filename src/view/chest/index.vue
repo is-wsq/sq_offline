@@ -50,14 +50,18 @@ export default {
   name: "Chest",
   data() {
     return {
+      bg_colors: ['#E6F7FF','#FFF7E6','#FFE6F7','#E6FFF7','#F7E6FF','#E6F7F7','#FFF7F7','#F7FFF7','#F7F7E6','#F7F7FF',
+                  '#E6E6F7','#F7E6E6','#E6F7E6','#F7F7F7','#E6E6E6','#FFF0F0','#F0FFF0','#FFFFF0','#F0F8FF','#FAF0E6'],
+      icon_colors: ['#20A0FF','#FF9900','#F5222D','#36CFC9','#722ED1','#00BFA5','#FF4D4F','#52C41A','#FAAD14','#9254DE',
+                    '#597EF7','#FF7A45','#13C2C2','#8C8C8C','#2F54EB','#FF1493','#00FF7F','#FFFF00','#4169E1','#D2B48C'],
       drainages: [
         {
           id: 1,
           title: '电商带货短视频',
           desc: '商品图智能识别与处理，文案与商品匹配生成，多音色选择与配音',
           icon: 'el-icon-zbdh',
-          background: '#D1FAE5',
-          iconColor: '#059669',
+          background: '#E6F7FF',
+          iconColor: '#20A0FF',
           path: '/eCommerce'
         },
         {
@@ -65,8 +69,8 @@ export default {
           title: '动作迁移',
           desc: '动作精准识别与捕捉，人像智能匹配与迁移，参数化视频创作',
           icon: 'el-icon-exportconfig',
-          background: '#dcffda',
-          iconColor: '#00a33a',
+          background: '#FFF7E6',
+          iconColor: '#FF9900',
           path: '/motionTransfer'
         },
         {
@@ -74,8 +78,8 @@ export default {
           title: '姿势动作模仿',
           desc: '姿势图像智能解析，动作实时模仿与生成，一键式操作流程',
           icon: 'el-icon-imitate',
-          background: '#ffd7de',
-          iconColor: '#c71818',
+          background: '#FFE6F7',
+          iconColor: '#F5222D',
           path: '/actionImitation'
         },
         {
@@ -83,18 +87,36 @@ export default {
           title: '人物形象替换',
           desc: '智能替换目标人物形象，精准还原场景，一键式操作流程',
           icon: 'el-icon-replace',
-          background: '#a6fff7',
-          iconColor: '#18a5c7',
+          background: '#E6FFF7',
+          iconColor: '#36CFC9',
           path: '/characterReplace'
         },
         {
           id: 5,
           title: '多姿势图生成',
-          desc: '上传人物图片，生成一致性多姿势图，一键式操作流程',
+          desc: '智能提取人物形象细节，一键生成多姿势图，9宫格照片极速完成',
           icon: 'el-icon-multipose',
-          background: '#e4efff',
-          iconColor: '#3b7ea7',
+          background: '#F7E6FF',
+          iconColor: '#722ED1',
           path: '/multiplePose'
+        },
+        {
+          id: 6,
+          title: '双人语音克隆',
+          desc: '格式输入对话文案，音色选择与配音，对话音频快速制作',
+          icon: 'el-icon-dualTimbre',
+          background: '#F7FFF7',
+          iconColor: '#52C41A',
+          path: '/chest/dualTimbreCloning'
+        },
+        {
+          id: 7,
+          title: 'SU一键室内效果图',
+          desc: 'SU图、参考图智能借鉴，室内效果图极速制作呈现',
+          icon: 'el-icon-interior',
+          background: '#F7F7E6',
+          iconColor: '#FAAD14',
+          path: '/chest/interiorDesign'
         },
       ],
       combats: [
@@ -124,6 +146,24 @@ export default {
           background: '#d9d9d9',
           iconColor: '#616161',
           path: '/logoRemove'
+        },
+        {
+          id: 'd',
+          title: '图像水印擦除',
+          desc: '智能识别图像水印，一键极速擦除，无损文字',
+          icon: 'el-icon-a-07',
+          background: '#E6F7F7',
+          iconColor: '#00BFA5',
+          path: '/chest/watermarkRemove/image'
+        },
+        {
+          id: 'e',
+          title: '老照片修复',
+          desc: '破旧照片智能识别处理，一键修复与润色',
+          icon: 'el-icon-photoRestoration',
+          background: '#FFF7F7',
+          iconColor: '#FF4D4F',
+          path: '/chest/photoRestoration'
         },
       ],
     };

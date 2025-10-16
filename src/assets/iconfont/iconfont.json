@@ -6,6 +6,41 @@
   "description": "",
   "glyphs": [
     {
+      "icon_id": "11504732",
+      "name": "室内设计",
+      "font_class": "interior",
+      "unicode": "e606",
+      "unicode_decimal": 58886
+    },
+    {
+      "icon_id": "4054581",
+      "name": "双人语音",
+      "font_class": "dualTimbre",
+      "unicode": "e606b",
+      "unicode_decimal": 942187
+    },
+    {
+      "icon_id": "32304409",
+      "name": "照片修复",
+      "font_class": "photoRestoration",
+      "unicode": "e685c",
+      "unicode_decimal": 944220
+    },
+    {
+      "icon_id": "35799218",
+      "name": "室内设计",
+      "font_class": "interiorDesign",
+      "unicode": "e607",
+      "unicode_decimal": 58887
+    },
+    {
+      "icon_id": "40134784",
+      "name": "水印擦除",
+      "font_class": "a-07",
+      "unicode": "e619c",
+      "unicode_decimal": 942492
+    },
+    {
       "icon_id": "33578527",
       "name": "模仿",
       "font_class": "imitate",

@@ -81,7 +81,7 @@
                     placeholder="口播文案内容..." resize="none"></el-input>
           <div class="setting-name margin-t-12">提示词（默认效果就挺好，也可自行调整）</div>
           <el-input type="textarea" v-model="promptInput" :autosize="{ minRows: 3, maxRows: 5 }"
-                    placeholder="口播文案内容..." resize="none"></el-input>
+                    placeholder="请输入提示词..." resize="none"></el-input>
         </div>
         <div class="generate-btn">
           <el-button @click="generate" :loading="!!loading"><i class="el-icon-bianjiqi btn-icon" v-if="!loading"></i>

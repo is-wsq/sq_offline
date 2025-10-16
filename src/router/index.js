@@ -13,6 +13,10 @@ import actionImitation from '../view/chest/actionImitation.vue';
 import characterReplace from '../view/chest/characterReplace.vue';
 import logoRemove from '../view/chest/logoRemove.vue';
 import multiplePose from '../view/chest/multiplePose.vue';
+import ImageWatermarkRemove from '../view/chest/ImageWatermarkRemove.vue';
+import PhotoRestoration from '../view/chest/PhotoRestoration.vue';
+import DualTimbreCloning from '../view/chest/DualTimbreCloning.vue';
+import InteriorDesign from '../view/chest/InteriorDesign.vue';
 import figures from '../view/figures/index.vue';
 import imageToScript from '../view/figures/imageToScript.vue';
 import scriptToImage from '../view/figures/scriptToImage.vue';
@@ -88,6 +92,22 @@ const routes = [
         path: '/multiplePose',
         name: 'multiplePose',
         component: multiplePose
+    },{
+        path: '/chest/watermarkRemove/image',
+        name: 'ImageWatermarkRemove',
+        component: ImageWatermarkRemove
+    },{
+        path: '/chest/photoRestoration',
+        name: 'PhotoRestoration',
+        component: PhotoRestoration
+    },{
+        path: '/chest/dualTimbreCloning',
+        name: 'DualTimbreCloning',
+        component: DualTimbreCloning
+    },{
+        path: '/chest/interiorDesign',
+        name: 'InteriorDesign',
+        component: InteriorDesign
     },
     {
         path: '/figures',
