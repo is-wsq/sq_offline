@@ -74,9 +74,16 @@
       <div slot="title" class="edit-dialog-title">绘制移除区</div>
       <div class="edit-dialog-body">
         <div class="edit-list">
-          <el-tooltip class="item" effect="dark" content="编辑" placement="top">
-            <i class="el-icon-removal" style="color: #409eff;"></i>
-          </el-tooltip>
+          <el-popover
+              placement="bottom"
+              width="200"
+              trigger="click">
+            <el-slider v-model="lineWidth" :min="1" :max="100" :step="1" style="margin: -4px 0" @change="lineWidthChange"></el-slider>
+            <i class="el-icon-removal cursor-pointer" style="color: #409eff;" slot="reference"></i>
+          </el-popover>
+<!--          <el-tooltip class="item" effect="dark" content="编辑" placement="top">-->
+<!--            <i class="el-icon-removal cursor-pointer" style="color: #409eff;"></i>-->
+<!--          </el-tooltip>-->
           <el-tooltip class="item" effect="dark" content="撤销编辑" placement="top">
             <i class="el-icon-chexiao cursor-pointer" @click="clearCanvas"></i>
           </el-tooltip>
@@ -117,6 +124,8 @@ export default {
       imagePosition: {},
       canvas: null,
       maskCanvas: null,
+
+      lineWidth: 20,
     }
   },
   mounted() {
@@ -127,6 +136,11 @@ export default {
     window.removeEventListener('resize', this.calibrateCanvas);
   },
   methods: {
+    lineWidthChange() {
+          if (this.canvas) {
+            this.canvas.freeDrawingBrush.width = this.lineWidth;
+          }
+    },
     async initFile() {
       try {
         let url = this.image_path
@@ -277,7 +291,7 @@ export default {
         }
       });
 
-      ctx.lineWidth = 20;
+      ctx.lineWidth = this.lineWidth;
       ctx.strokeStyle = '#ffffff';
       ctx.lineCap = 'round';
       ctx.lineJoin = 'round';
