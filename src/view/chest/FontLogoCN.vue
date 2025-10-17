@@ -31,8 +31,7 @@
           <div class="preview-header-title">应用介绍&输入建议</div>
           <div class="preview-header-desc">
             <div>
-              采用480P采样，6秒10分钟出片，7秒15分出，建议时间长一点，变形会自然一些。<br>
-              提示词只需填写增加的特效效果。如变形金刚变形效果，小孩长大效果，生长特效，解体特效，烟雾特效等。无需太长，内置图片反推和首尾帧提示词会自动优化。
+              填写logo设计要求，即可直出中文字体logo
             </div>
           </div>
         </div>
@@ -163,7 +162,7 @@ export default {
 }
 
 .preview-header {
-  height: 120px;
+  height: 80px;
   margin-bottom: 40px;
   opacity: 1;
   overflow-x: hidden;
