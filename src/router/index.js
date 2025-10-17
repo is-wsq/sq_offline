@@ -19,6 +19,10 @@ import ImageWatermarkRemove from '../view/chest/ImageWatermarkRemove.vue';
 import PhotoRestoration from '../view/chest/PhotoRestoration.vue';
 import DualTimbreCloning from '../view/chest/DualTimbreCloning.vue';
 import InteriorDesign from '../view/chest/InteriorDesign.vue';
+import FrameHeadTail from '../view/chest/FrameHeadTail.vue';
+import ImageLipSync from '../view/chest/ImageLipSync.vue';
+import FontLogoCN from '../view/chest/FontLogoCN.vue';
+import ContentRemoval from '../view/chest/ContentRemoval.vue';
 // 克隆形象
 import Figures from '../view/figures/index.vue';
 import ImageToScript from '../view/figures/imageToScript.vue';
@@ -160,6 +164,34 @@ const routes = [
         component: InteriorDesign,
         meta: {
             title: '室内设计'
+        }
+    },{
+        path: '/chest/frameHeadTail',
+        name: 'FrameHeadTail',
+        component: FrameHeadTail,
+        meta: {
+            title: '视频首尾帧'
+        }
+    },{
+        path: '/chest/imageLipSync',
+        name: 'ImageLipSync',
+        component: ImageLipSync,
+        meta: {
+            title: '图片对嘴型'
+        }
+    },{
+        path: '/chest/fontLogoCN',
+        name: 'FontLogoCN',
+        component: FontLogoCN,
+        meta: {
+            title: '中文字体LOGO'
+        }
+    },{
+        path: '/chest/contentRemoval',
+        name: 'ContentRemoval',
+        component: ContentRemoval,
+        meta: {
+            title: '内容消除'
         }
     },{
         path: '/figures',

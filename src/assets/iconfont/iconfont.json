@@ -6,6 +6,48 @@
   "description": "",
   "glyphs": [
     {
+      "icon_id": "4890374",
+      "name": "撤销",
+      "font_class": "chexiao",
+      "unicode": "e6e2c",
+      "unicode_decimal": 945708
+    },
+    {
+      "icon_id": "7789608",
+      "name": "撤销",
+      "font_class": "chexiao1",
+      "unicode": "e608e",
+      "unicode_decimal": 942222
+    },
+    {
+      "icon_id": "4508713",
+      "name": "数字人说话",
+      "font_class": "lipsync",
+      "unicode": "e66a",
+      "unicode_decimal": 58986
+    },
+    {
+      "icon_id": "10134276",
+      "name": "画笔",
+      "font_class": "removal",
+      "unicode": "e608c",
+      "unicode_decimal": 942220
+    },
+    {
+      "icon_id": "10389523",
+      "name": "首尾帧",
+      "font_class": "headTail",
+      "unicode": "e626",
+      "unicode_decimal": 58918
+    },
+    {
+      "icon_id": "12881305",
+      "name": "中文字体Logo",
+      "font_class": "ziti",
+      "unicode": "e837",
+      "unicode_decimal": 59447
+    },
+    {
       "icon_id": "11504732",
       "name": "室内设计",
       "font_class": "interior",

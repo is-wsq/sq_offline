@@ -118,6 +118,33 @@ export default {
           iconColor: '#FAAD14',
           path: '/chest/interiorDesign'
         },
+        {
+          id: 8,
+          title: '视频首尾帧',
+          desc: '首尾帧输入，自定义特效功能，智能生成过渡特效视频',
+          icon: 'el-icon-headTail',
+          background: '#E6E6F7',
+          iconColor: '#597EF7',
+          path: '/chest/frameHeadTail'
+        },
+        {
+          id: 9,
+          title: '图片对嘴型',
+          desc: '选形象、挑音色、定文案，图片也能开口说',
+          icon: 'el-icon-lipsync',
+          background: '#F7E6E6',
+          iconColor: '#FF7A45',
+          path: '/chest/imageLipSync'
+        },
+        {
+          id: 10,
+          title: '中文字体Logo',
+          desc: '提交设计要求，一键生成专属 logo',
+          icon: 'el-icon-ziti',
+          background: '#E6F7E6',
+          iconColor: '#13C2C2',
+          path: '/chest/fontLogoCN'
+        },
       ],
       combats: [
         {
@@ -164,6 +191,15 @@ export default {
           background: '#FFF7F7',
           iconColor: '#FF4D4F',
           path: '/chest/photoRestoration'
+        },
+        {
+          id: 'f',
+          title: '内容消除',
+          desc: '图片内容消除，涂哪消哪，简单操作精准消除',
+          icon: 'el-icon-removal',
+          background: '#F7F7FF',
+          iconColor: '#9254DE',
+          path: '/chest/contentRemoval'
         },
       ],
     };
