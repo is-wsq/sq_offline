@@ -153,7 +153,7 @@
                  @mouseup="onMouseUp"
                  @mouseleave="onMouseUp">
               <el-image style="width: 100%;border-radius: 8px" :src="mentionList[0].picture"
-                        fit="contain" v-if="mentionList[0]"></el-image>
+                        fit="contain" v-if="mentionList[0]" draggable="false"></el-image>
               <div style="width: 360px;height: 640px" v-else></div>
               <div class="c-preview-title"
                    ref="titleContainer"

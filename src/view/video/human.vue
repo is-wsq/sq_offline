@@ -63,7 +63,7 @@
                  @mouseup="onMouseUp"
                  @mouseleave="onMouseUp">
               <el-image style="width: 100%;border-radius: 8px" :src="figure.picture"
-                        fit="contain" v-if="figure.picture"></el-image>
+                        fit="contain" v-if="figure.picture" draggable="false"></el-image>
               <div style="width: 360px;height: 640px" v-else></div>
               <div class="figure-preview-title"
                    ref="titleContainer"
