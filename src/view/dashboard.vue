@@ -67,7 +67,7 @@ export default {
         {name: "品牌店铺", path: "/shop", class: 'el-icon-s-shop'},
         {name: "账户设置", path: "/system", class: 'el-icon-setting'},
       ],
-      alive_routers: ['/syncCv','/montage','/remix','/segments','/smartGenerate','/duplicate'],
+      alive_routers: ['/syncCv','/montage','/remix','/segments','/smartGenerate','/duplicate','/scriptToImage','/imageToVideo'],
       padding0_routers: ['/material', '/login', '/register'],
     };
   },

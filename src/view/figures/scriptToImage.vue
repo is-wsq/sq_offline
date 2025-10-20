@@ -1,5 +1,9 @@
 <template>
-  <div class="scriptToImage">
+  <div class="scriptToImage"
+       v-loading="reLoading"
+       element-loading-text="图片重新生成中，请稍等..."
+       element-loading-spinner="el-icon-loading"
+       element-loading-background="rgba(0, 0, 0, 0.8)">
     <div class="scriptToImage-header">
       <el-button type="text" class="back-btn" @click="backToImage">
         <i class="el-icon-arrow-left" style="font-size: 20px;"></i>
@@ -104,9 +108,11 @@
 
 <script>
 import {postAction} from "@/api/api";
+import {ClearCacheMixin} from "@/mixins/ClearCacheMixin";
 
 export default {
-  name: "scriptToImage",
+  name: "ScriptToImage",
+  mixins: [ClearCacheMixin],
   data() {
     return {
       operateProductInfo: {},
@@ -114,6 +120,7 @@ export default {
       editIndex: -1,
       editCopy: '',
       loading: null,
+      reLoading: false,
       previewImgVisible: false,
       previewImgUrl: ''
     }
@@ -127,12 +134,7 @@ export default {
       this.editCopy = this.image_scripts[index].copy
     },
     handleReload(index) {
-      this.loading = this.$loading({
-        lock: true,
-        text: '图片重新生成中，请稍等...',
-        spinner: 'el-icon-loading',
-        background: 'rgba(0, 0, 0, 0.7)'
-      });
+      this.reLoading = true
       let params = {
         product_id: this.operateProductInfo.id,
         scripts: [this.image_scripts[index]],
@@ -140,20 +142,17 @@ export default {
       }
       postAction('/picture/generate_images_parallel',params, 600000).then(res => {
         if (res.data.status === 'success') {
-          this.loading.close();
-          this.loading = null;
+          this.reLoading = false
           this.image_scripts[index].images = [...this.image_scripts[index].images, ...res.data.data[0].images]
           sessionStorage.setItem("image_scripts", JSON.stringify(this.image_scripts))
           this.$message.success('图片重新生成成功')
           this.$forceUpdate()
         } else {
-          this.loading.close();
-          this.loading = null;
+          this.reLoading = false
           this.$alert(res.data.message,'提示')
         }
       }).catch(err => {
-        this.loading.close();
-        this.loading = null;
+        this.reLoading = false
         this.$alert(err,'提示')
       })
     },
@@ -238,7 +237,7 @@ export default {
           this.loading = null;
           sessionStorage.setItem('video_scripts', JSON.stringify(res.data.data))
           sessionStorage.setItem('params_scripts', JSON.stringify(res.data.data))
-
+          this.clearCache()
           sessionStorage.setItem('figure_path', '/imageToVideo')
           this.$router.push({path: '/imageToVideo'})
         } else {
@@ -253,10 +252,12 @@ export default {
       })
     },
     backToImage() {
+      this.clearCache()
       sessionStorage.setItem('figure_path', '/imageToScript')
       this.$router.push({path: '/imageToScript'})
     },
     toVideo() {
+      this.clearCache()
       let video_scripts = sessionStorage.getItem('video_scripts') ? JSON.parse(sessionStorage.getItem('video_scripts')) : []
       if (video_scripts.length === 0) {
         this.$message.warning('无图生视频页面缓存，无法获取缓存跳转')

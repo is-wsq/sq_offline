@@ -1,5 +1,9 @@
 <template>
-  <div class="imageToVideo">
+  <div class="imageToVideo"
+       v-loading="loading"
+       element-loading-text="素材生成中，请稍等..."
+       element-loading-spinner="el-icon-loading"
+       element-loading-background="rgba(0, 0, 0, 0.8)">
     <div class="imageToVideo-header">
       <el-button type="text" class="back-btn" @click="backToScript">
         <i class="el-icon-arrow-left" style="font-size: 20px;"></i>
@@ -107,14 +111,17 @@
 
 <script>
 import {postAction} from "@/api/api";
+import {ClearCacheMixin} from "@/mixins/ClearCacheMixin";
 
 export default {
-  name: 'imageToVideo',
+  name: 'ImageToVideo',
+  mixins: [ClearCacheMixin],
   data() {
     return {
       video_scripts: [],
       params_scripts: [],
       loading: false,
+      reLoading: false,
       hoverIndex: null,
       hoverVideoIndex: null,
       previewVideoVisible: false,
@@ -130,20 +137,14 @@ export default {
   },
   methods: {
     handleReload(index) {
-      this.loading = this.$loading({
-        lock: true,
-        text: '素材生成中，请稍等...',
-        spinner: 'el-icon-loading',
-        background: 'rgba(0, 0, 0, 0.7)'
-      });
+      this.loading = true
       let params = {
         scripts: [this.params_scripts[index]],
         duration: 4,
       }
       postAction('/picture/generate_video', params, 600000).then(res => {
         if (res.data.status ==='success') {
-          this.loading.close();
-          this.loading = null;
+          this.loading = false;
           this.video_scripts[index].images = [...this.video_scripts[index].images, ...res.data.data[0].images]
           this.video_scripts[index].video_paths = [...this.video_scripts[index].video_paths, ...res.data.data[0].video_paths]
           sessionStorage.setItem('video_scripts', JSON.stringify(this.video_scripts))
@@ -153,13 +154,11 @@ export default {
           this.$message.success('分镜素材重新生成成功')
           this.$forceUpdate()
         } else {
-          this.loading.close();
-          this.loading = null;
+          this.loading = false;
           this.$alert(res.data.message,'生成素材失败')
         }
       }).catch(err => {
-        this.loading.close();
-        this.loading = null;
+        this.loading = false;
         this.$alert(err,'生成素材错误')
       })
     },
@@ -263,6 +262,7 @@ export default {
         if (res.data.status ==='success') {
           // this.$message.success('保存为素材成功')
           this.clearCache()
+          this.removeCache()
           sessionStorage.setItem('classify_type', 'material')
           this.$router.push({path: '/figures'})
         } else {
@@ -272,7 +272,7 @@ export default {
         this.$alert(err,'保存为素材错误')
       })
     },
-    clearCache() {
+    removeCache() {
       sessionStorage.removeItem('video_scripts')
       sessionStorage.removeItem('params_scripts')
       sessionStorage.removeItem('operate_product')
