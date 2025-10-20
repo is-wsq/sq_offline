@@ -91,7 +91,14 @@
                       <div class="ai-thinking-content">{{ item.content.thinking }}</div>
                     </el-collapse-item>
                   </el-collapse>
-                  <div class="mix-chat-system-label">混剪结果</div>
+<!--                  <div class="mix-chat-system-label">混剪结果</div>-->
+                  <div style="background-color: #f8fafc;border-radius: 4px;font-size: 12px;padding: 10px">
+                    <div v-for="(info,infoIndex) in item.content.jsons" :key="infoIndex"
+                         :class="{'margin-t-8': infoIndex !== 0}">
+                      <div class="font-weight margin-b-4">视频{{ infoIndex + 1 }}</div>
+                      <div v-html="info"></div>
+                    </div>
+                  </div>
                   <div class="mix-chat-system-content" @click="selectMixResult(item.content.data)">
                     <div class="mix-chat-system-content-icon">
                       <svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" fill="none" viewBox="0 0 24 24">
@@ -130,7 +137,7 @@
                       <div class="ai-thinking-content">{{ thinking_text }}</div>
                     </el-collapse-item>
                   </el-collapse>
-                  <div class="mix-chat-system-label">混剪结果</div>
+<!--                  <div class="mix-chat-system-label">混剪结果</div>-->
                   <div class="mix-chat-system-content">
                     <div :style="progressStyle"></div>
                     <div class="mix-chat-system-content-icon" style="z-index: 10">
@@ -866,11 +873,18 @@ export default {
                 this.lastGeneratedMixins = data.data.data
                 sessionStorage.setItem("hot_montage_data", JSON.stringify(this.montage_data))
                 sessionStorage.setItem('hot_last_generated_mixins', JSON.stringify(this.lastGeneratedMixins))
+                const jsons = data.data.data.map(item => {
+                  const { duration, selling_point, audience } = item.details;
+                  return `<span style="line-height: 16px">目标时长：${duration.toFixed(2)}s</span><br>
+                          <span style="line-height: 16px">卖点：${selling_point}</span><br>
+                          <span style="line-height: 16px">受众：${audience}</span>`;
+                });
                 this.mix_chats.push({
                   role: 'system',
                   content: {
                     thinking: data.data.thinking,
                     data: data.data.data,
+                    jsons: jsons,
                     title: version ? `修改版本 V${version}`: '混剪结果'
                   }
                 })
