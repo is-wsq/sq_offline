@@ -87,9 +87,9 @@
         <div class="footer flex-center">
           <div style="flex: 1;">
             <span style="color: #4b5563;font-size: 14px" v-if="scripts.length > 0">
-              已生成 {{ scripts.length }} 条视觉脚本，可进行编辑或删除</span>
+              已选择 {{ scripts.length }} 条视觉脚本，可进行编辑或删除</span>
           </div>
-          <el-button type="primary" :disabled="scripts.length === 0" @click="next">下一步：脚本生图</el-button>
+          <el-button type="primary" v-if="scripts.length > 0" @click="next">下一步：脚本生图</el-button>
         </div>
       </div>
       <div class="right">
