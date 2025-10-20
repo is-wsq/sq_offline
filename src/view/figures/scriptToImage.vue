@@ -56,7 +56,7 @@
             <template v-if="editIndex !== index">
               <div class="cursor-pointer" @click="handleEdit(index)">
                 <i class="el-icon-edit" style="margin-right: 5px;"></i>
-                重新编辑</div>
+                文案编辑</div>
               <el-button type="primary" @click="handleReload(index)">
                 <i class="el-icon-refresh" style="margin-right: 5px;"></i>
                 重新生成</el-button>
