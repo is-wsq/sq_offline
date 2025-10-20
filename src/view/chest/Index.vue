@@ -102,15 +102,6 @@ export default {
         },
         {
           id: 6,
-          title: '双人语音克隆',
-          desc: '格式输入对话文案，音色选择与配音，对话音频快速制作',
-          icon: 'el-icon-dualTimbre',
-          background: '#F7FFF7',
-          iconColor: '#52C41A',
-          path: '/chest/dualTimbreCloning'
-        },
-        {
-          id: 7,
           title: 'SU一键室内效果图',
           desc: 'SU图、参考图智能借鉴，室内效果图极速制作呈现',
           icon: 'el-icon-interior',
@@ -119,7 +110,7 @@ export default {
           path: '/chest/interiorDesign'
         },
         {
-          id: 8,
+          id: 7,
           title: '视频首尾帧',
           desc: '首尾帧输入，自定义特效功能，智能生成过渡特效视频',
           icon: 'el-icon-headTail',
@@ -128,22 +119,13 @@ export default {
           path: '/chest/frameHeadTail'
         },
         {
-          id: 9,
+          id: 8,
           title: '图片对嘴型',
           desc: '选形象、挑音色、定文案，图片也能开口说',
           icon: 'el-icon-lipsync',
           background: '#F7E6E6',
           iconColor: '#FF7A45',
           path: '/chest/imageLipSync'
-        },
-        {
-          id: 10,
-          title: '中文字体Logo',
-          desc: '提交设计要求，一键生成专属 logo',
-          icon: 'el-icon-ziti',
-          background: '#E6F7E6',
-          iconColor: '#13C2C2',
-          path: '/chest/fontLogoCN'
         },
       ],
       combats: [
@@ -200,6 +182,24 @@ export default {
           background: '#F7F7FF',
           iconColor: '#9254DE',
           path: '/chest/contentRemoval'
+        },
+        {
+          id: 'g',
+          title: '中文字体Logo',
+          desc: '提交设计要求，一键生成专属 logo',
+          icon: 'el-icon-ziti',
+          background: '#E6F7E6',
+          iconColor: '#13C2C2',
+          path: '/chest/fontLogoCN'
+        },
+        {
+          id: 'h',
+          title: '双人语音克隆',
+          desc: '格式输入对话文案，音色选择与配音，对话音频快速制作',
+          icon: 'el-icon-dualTimbre',
+          background: '#F7FFF7',
+          iconColor: '#52C41A',
+          path: '/chest/dualTimbreCloning'
         },
       ],
     };
@@ -264,7 +264,7 @@ export default {
 
 .tools-grid-content {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(385px, 1fr));
   gap: 24px;
   padding-top: 10px;
   max-height: calc(50vh - 125px);
