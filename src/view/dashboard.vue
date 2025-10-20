@@ -18,21 +18,12 @@
             </svg>
             <span class="nav-text">{{ menu.name }}</span>
           </div>
-          <div class="nav-item" @click="logout">
-            <div class="flex-center nav-icon">
-              <i class="el-icon-switch-button" style="font-size: 18px"></i>
-            </div>
-            <span class="nav-text">退出登陆</span>
-          </div>
         </div>
-<!--        <div class="logout">-->
-<!--          <div class="nav-item" @click="logout">-->
-<!--            <div class="flex-center nav-icon">-->
-<!--              <i class="el-icon-switch-button" style="font-size: 18px"></i>-->
-<!--            </div>-->
-<!--            <span class="nav-text">退出登陆</span>-->
-<!--          </div>-->
-<!--        </div>-->
+        <div class="logout flex-center">
+          <el-avatar size="medium" src="./avatar.jpeg"></el-avatar>
+          <div style="flex: 1;margin-left: 4px">17670845180</div>
+          <i class="el-icon-logout logout-icon" @click="logout"></i>
+        </div>
       </el-aside>
       <el-main class="main" :class="{'padding0': padding0_routers.includes($route.path)}">
         <keep-alive>
@@ -272,13 +263,17 @@ export default {
 
 .logout {
   padding: 24px 16px;
-  //padding-left: 16px;
-  //margin-bottom: 5px;
-  //font-size: 14px;
-  //cursor: pointer;
+  color: #6b7280;
+  font-size: 14px;
+  cursor: pointer;
 }
 
-.logout:hover {
+.logout-icon {
+  font-size: 20px;
+  color: #666666
+}
+
+.logout-icon:hover {
   color: #6286ed;
 }
 
