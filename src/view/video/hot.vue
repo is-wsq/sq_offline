@@ -173,10 +173,10 @@
             {{ logInfo.duration ? logInfo.duration.toFixed(2) + 's' : '' }}
           </el-descriptions-item>
           <el-descriptions-item label="上传时间" :contentStyle="{'width': '307px'}">
-            {{ logInfo.create_time ? logInfo.create_time.replace(/\.\d+$/, "") : '' }}
+            {{ logInfo.create_time ? logInfo.create_time.replace('T', ' ').split('.')[0] : '' }}
           </el-descriptions-item>
           <el-descriptions-item label="完成时间" :contentStyle="{'width': '307px'}">
-            {{ logInfo.updated_at ? logInfo.updated_at.replace(/\.\d+$/, "") : '' }}
+            {{ logInfo.updated_at ? logInfo.updated_at.replace('T', ' ').split('.')[0] : '' }}
           </el-descriptions-item>
           <el-descriptions-item label="复刻类别" :contentStyle="{'width': '307px'}"  :span="2">
             {{ logInfo.asr_enabled ? '有文案复刻' : '无文案复刻' }}
