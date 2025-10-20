@@ -67,7 +67,7 @@
                 <i class="el-icon-video-play" style="font-size: 14px"></i>
                 <div style="margin-left: 8px;flex: 1">{{ formattedDuration(video.duration) }}</div>
                 <i class="el-icon-film" style="font-size: 14px"></i>
-                <div style="margin-left: 8px;">{{ video.segments.length + '分镜' }}</div>
+                <div style="margin-left: 8px;" v-if="video.segments">{{ video.segments.length + '分镜' }}</div>
               </div>
             </div>
           </template>
@@ -185,43 +185,45 @@
             {{ logInfo.content ? logInfo.content : '无文案' }}
           </el-descriptions-item>
         </el-descriptions>
-        <el-divider content-position="left" v-if="logInfo.grouped_analysis_result">爆款视频分镜分析</el-divider>
-        <div class="group-card" v-if="logInfo.grouped_analysis_result">
-          <div class="group-title">视频分镜分组分析</div>
-          <div class="group-content" :title="logInfo.grouped_analysis_result.reason">
-            {{ logInfo.grouped_analysis_result.reason }}
-          </div>
-          <div class="groups-segment" v-if="logInfo.grouped_analysis_result">
-            <div class="group-segment" v-for="(group,group_index) in logInfo.grouped_analysis_result.segmentGroups"
-                 :key="group_index">
-              <div class="segment-title"
-                   :style="{ width: ((group.segments.length - 1) * 100 + 80) + 'px' }"
-                   :title="group.contentSummary">
-                {{ group.contentSummary }}
-              </div>
-              <div class="material-list">
-                <div class="material-item" v-for="(material,material_index) in group.segments"
-                     :key="material_index">
-                  <el-image class="material-item-img" :src="material.screenshot_path"></el-image>
+        <template v-if="logInfo.grouped_analysis_result">
+          <el-divider content-position="left">爆款视频分镜分析</el-divider>
+          <div class="group-card">
+            <div class="group-title">视频分镜分组分析</div>
+            <div class="group-content" :title="logInfo.grouped_analysis_result.reason">
+              {{ logInfo.grouped_analysis_result.reason }}
+            </div>
+            <div class="groups-segment" v-if="logInfo.grouped_analysis_result">
+              <div class="group-segment" v-for="(group,group_index) in logInfo.grouped_analysis_result.segmentGroups"
+                   :key="group_index">
+                <div class="segment-title"
+                     :style="{ width: ((group.segments.length - 1) * 100 + 80) + 'px' }"
+                     :title="group.contentSummary">
+                  {{ group.contentSummary }}
+                </div>
+                <div class="material-list">
+                  <div class="material-item" v-for="(material,material_index) in group.segments"
+                       :key="material_index">
+                    <el-image class="material-item-img" :src="material.screenshot_path"></el-image>
+                  </div>
                 </div>
               </div>
             </div>
           </div>
-        </div>
-        <el-divider content-position="left">分镜详情</el-divider>
-        <el-collapse v-model="activeCollapse">
-          <el-collapse-item title="LLM 分析" name="1">
-            <div>分析结果</div>
-            <div class="llm-thought-process" v-if="logInfo.grouped_analysis_result">
-              <div v-for="(item, index) in logInfo.grouped_analysis_result.segmentGroups" :key="index">
-                <div class="font-weight">分镜组{{ index + 1}}</div>
-                <div v-for="(segment, segment_index) in item.segments" :key="segment_index" style="margin-left: 50px">
-                  <div v-html="marked(segment.description)"></div>
+          <el-divider content-position="left">分镜详情</el-divider>
+          <el-collapse v-model="activeCollapse">
+            <el-collapse-item title="LLM 分析" name="1">
+              <div>分析结果</div>
+              <div class="llm-thought-process">
+                <div v-for="(item, index) in logInfo.grouped_analysis_result.segmentGroups" :key="index">
+                  <div class="font-weight">分镜组{{ index + 1 }}({{ item.contentSummary }})</div>
+                  <div v-for="(segment, segment_index) in item.segments" :key="segment_index" style="margin-left: 50px">
+                    <div v-html="marked(segment.description)"></div>
+                  </div>
                 </div>
               </div>
-            </div>
-          </el-collapse-item>
-        </el-collapse>
+            </el-collapse-item>
+          </el-collapse>
+        </template>
       </div>
     </el-dialog>
     <el-dialog class="guide-dialog" :visible.sync="guideVisible" width="800px">
@@ -488,8 +490,6 @@ export default {
         this.logInfo.content = this.logInfo.segments.map(segment => segment.asr_text ? segment.asr_text : '').join('')
       }
       this.segments = this.rightItem.segments
-      console.log(this.rightItem)
-      console.log(this.segments)
       this.detailDialogVisible = true
     },
     initData() {
