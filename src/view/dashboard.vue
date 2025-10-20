@@ -18,7 +18,21 @@
             </svg>
             <span class="nav-text">{{ menu.name }}</span>
           </div>
+          <div class="nav-item" @click="logout">
+            <div class="flex-center nav-icon">
+              <i class="el-icon-switch-button" style="font-size: 18px"></i>
+            </div>
+            <span class="nav-text">退出登陆</span>
+          </div>
         </div>
+<!--        <div class="logout">-->
+<!--          <div class="nav-item" @click="logout">-->
+<!--            <div class="flex-center nav-icon">-->
+<!--              <i class="el-icon-switch-button" style="font-size: 18px"></i>-->
+<!--            </div>-->
+<!--            <span class="nav-text">退出登陆</span>-->
+<!--          </div>-->
+<!--        </div>-->
       </el-aside>
       <el-main class="main" :class="{'padding0': padding0_routers.includes($route.path)}">
         <keep-alive>
@@ -51,7 +65,7 @@ export default {
         {name: "生成视频", path: "/video", class: 'el-icon-video'},
         {name: "视频列表", path: "/videoList", class: 'el-icon-view-list'},
         {name: "品牌店铺", path: "/shop", class: 'el-icon-s-shop'},
-        {name: "设置", path: "/system", class: 'el-icon-setting'},
+        {name: "账户设置", path: "/system", class: 'el-icon-setting'},
       ],
       alive_routers: ['/syncCv','/montage','/remix','/segments','/smartGenerate','/duplicate'],
       padding0_routers: ['/material', '/login', '/register'],
@@ -66,6 +80,18 @@ export default {
     }
   },
   methods: {
+    logout() {
+      this.$confirm('确定要退出登陆吗？', '提示', {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'warning'
+      }).then(() => {
+        sessionStorage.clear();
+        this.$router.push({path: '/login'});
+      }).catch(() => {
+        this.$message.info('取消退出登陆');
+      });
+    },
     async queryServiceStatus() {
       return axios.get("http://127.0.0.1:11434/api/ps").then((res) => {
         return res.data.models.length > 0;
@@ -242,6 +268,18 @@ export default {
   font-size: 14px;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Microsoft YaHei', sans-serif;;
   line-height: 22.39px;
+}
+
+.logout {
+  padding: 24px 16px;
+  //padding-left: 16px;
+  //margin-bottom: 5px;
+  //font-size: 14px;
+  //cursor: pointer;
+}
+
+.logout:hover {
+  color: #6286ed;
 }
 
 .main {

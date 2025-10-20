@@ -161,7 +161,6 @@ export default {
         usage: 'login',
       }
       postAction('/user/login', params).then(res => {
-        console.log(res.data)
         if (res.data.status === 'success') {
           this.$message.success('登录成功');
           this.$router.push({path: '/ai'});
