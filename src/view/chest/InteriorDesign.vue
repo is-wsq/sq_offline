@@ -115,16 +115,16 @@ export default {
   data() {
     return {
       suFile: {},
-      su_image: '/chest/interiorDesign_example1.jpg',
+      su_image: './chest/interiorDesign_example1.jpg',
       referenceFile: {},
-      reference_image: '/chest/interiorDesign_example2.png',
+      reference_image: './chest/interiorDesign_example2.png',
       styleTransfer: 0,
       promptInput: '',
       effect: 0,
       resultList: [
-        '/chest/interiorDesign_result1.webp',
-        '/chest/interiorDesign_result2.webp',
-        '/chest/interiorDesign_result3.webp',
+        './chest/interiorDesign_result1.webp',
+        './chest/interiorDesign_result2.webp',
+        './chest/interiorDesign_result3.webp',
       ],
       activeIndex: 0,
       loading: false,

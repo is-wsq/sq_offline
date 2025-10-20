@@ -155,7 +155,7 @@ export default {
       minimax_voices: [],
       audio: null,
       audioIndex: null,
-      resultImg: '/chest/dualTimbreCloning.png',
+      resultImg: './chest/dualTimbreCloning.png',
       loading: false,
     }
   },

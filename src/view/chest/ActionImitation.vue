@@ -98,14 +98,14 @@ export default {
   data() {
     return {
       originalFile: {},
-      original_image: '/chest/aImitation_original.png',
+      original_image: './chest/aImitation_original.png',
       imitationFile: {},
-      imitation_image: '/chest/aImitation_imitation.jpeg',
+      imitation_image: './chest/aImitation_imitation.jpeg',
       resolutionRatio: 1280,
       resultList: [
-        '/chest/aImitation_result1.png',
-        '/chest/aImitation_result2.jpeg',
-        '/chest/aImitation_result3.png',
+        './chest/aImitation_result1.png',
+        './chest/aImitation_result2.jpeg',
+        './chest/aImitation_result3.png',
       ],
       activeIndex: 0,
       loading: false,

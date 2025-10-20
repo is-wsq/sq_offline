@@ -104,21 +104,21 @@ export default {
   data() {
     return {
       examples: [
-        { title: '产品白底图', img: '/chest/reWriting_product.png' },
-        { title: '参考图', img: '/chest/reWriting_example1.png' },
-        { title: '涂抹遮罩区域', img: '/chest/reWriting_example2.png' },
-        { title: '洗稿结果', img: '/chest/reWriting_example3.png' }
+        { title: '产品白底图', img: './chest/reWriting_product.png' },
+        { title: '参考图', img: './chest/reWriting_example1.png' },
+        { title: '涂抹遮罩区域', img: './chest/reWriting_example2.png' },
+        { title: '洗稿结果', img: './chest/reWriting_example3.png' }
       ],
       productFile: {},
-      productImg: '/chest/reWriting_product.png',
-      exampleImg: '/chest/reWriting_example1.png',
+      productImg: './chest/reWriting_product.png',
+      exampleImg: './chest/reWriting_example1.png',
       editFile: {},
       editImg: '',
       hasImage: false,
       imagePosition: {},
 
       loading: false,
-      resultImg: '/chest/reWriting_example3.png',
+      resultImg: './chest/reWriting_example3.png',
       canvas: null,
       maskCanvas: null,
 

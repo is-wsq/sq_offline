@@ -90,7 +90,7 @@ export default {
       example_video: 'http://127.0.0.1:6006/running_hub/resource/cReplace_example.mp4',
       video_image: 'http://127.0.0.1:6006/running_hub/resource/cReplace_example.jpg',
       imageFile: {},
-      image_path: '/chest/cReplace.png',
+      image_path: './chest/cReplace.png',
       duration: 10,
       promptInput: '1个中国美女在炒菜',
       result_video: 'http://127.0.0.1:6006/running_hub/resource/cReplace_result.mp4',

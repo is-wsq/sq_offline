@@ -106,7 +106,7 @@ export default {
       example_video: 'http://127.0.0.1:6006/running_hub/resource/mTransfer_example.mp4',
       video_image: 'http://127.0.0.1:6006/running_hub/resource/mTransfer_example.jpg',
       imageFile: {},
-      image_path: '/chest/mTransfer.jpg',
+      image_path: './chest/mTransfer.jpg',
       duration: 8,
       fps: 30,
       promptInput: '女人a',

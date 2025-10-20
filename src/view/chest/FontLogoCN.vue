@@ -68,7 +68,7 @@ export default {
     return {
       design_requirements: '版画标志设计，黑白印刷风格的标志。图形打印，简单的细节。抽象的图形。标志设计，大面积留白。品牌logo地图，整体设计风格简约而富有古典气息。在图片的左边是一个穿着传统服装的女人的形象。她的头发梳成一个发髻，她的脸很平静，她的右手放在她的嘴，她似乎轻轻地触摸她的嘴唇在一个优雅的姿势。女性形象以黑色线条勾勒，背景为白色，简洁优雅。在图片的右侧是三个汉字“中文”，字体是黑色的，旁边是拼音“PINMINGXUAN”。在拼音的底部，有四个红色的圆形标志，每个都有一个汉字，连接着“喝茶听音乐”，传达着悠闲优雅的氛围。从整体上看，标志传达了一种传统优雅的品牌形象，这可能与茶馆或传统茶文化有关。',
       resultList: [
-        '/chest/fontLogoCN_result1.webp',
+        './chest/fontLogoCN_result1.webp',
         // '/chest/fontLogoCN_result2.gif',
       ],
       activeIndex: 0,

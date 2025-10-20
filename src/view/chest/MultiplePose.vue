@@ -82,13 +82,13 @@ export default {
   data() {
     return {
       imageFile: {},
-      image_path: '/chest/multiPose_example.png',
+      image_path: './chest/multiPose_example.png',
       resolutionRatio: 1360,
       resultList: [
-        '/chest/multiPose_result1.png',
-        '/chest/multiPose_result2.png',
-        '/chest/multiPose_result3.png',
-        '/chest/multiPose_result4.png',
+        './chest/multiPose_result1.png',
+        './chest/multiPose_result2.png',
+        './chest/multiPose_result3.png',
+        './chest/multiPose_result4.png',
       ],
       activeIndex: 0,
       loading: false,

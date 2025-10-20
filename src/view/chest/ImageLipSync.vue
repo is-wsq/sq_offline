@@ -99,9 +99,9 @@ export default {
   data() {
     return {
       imageFile: {},
-      image_path: '/chest/imageLipSync_example.png',
+      image_path: './chest/imageLipSync_example.png',
       voiceFile: {},
-      voice_path: '/chest/ai-icon-sound.png',
+      voice_path: './chest/ai-icon-sound.png',
       movement_range: 0.5,
       resolution_ratio: 512,
       resultList: [

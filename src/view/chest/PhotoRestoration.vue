@@ -81,12 +81,12 @@ export default {
   data() {
     return {
       imageFile: {},
-      image_path: '/chest/photoRestoration_example.jpg',
+      image_path: './chest/photoRestoration_example.jpg',
       promptInput: '还原照片并上色',
       resultList: [
-        '/chest/photoRestoration_result1.png',
-        '/chest/photoRestoration_result2.jpg',
-        '/chest/photoRestoration_result3.png',
+        './chest/photoRestoration_result1.png',
+        './chest/photoRestoration_result2.jpg',
+        './chest/photoRestoration_result3.png',
       ],
       activeIndex: 0,
       loading: false,

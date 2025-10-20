@@ -111,11 +111,11 @@ export default {
   data() {
     return {
       imageFile: null,
-      image_path: '/chest/contentRemoval_example.png',
-      originalImage: '/chest/contentRemoval_example.png',
+      image_path: './chest/contentRemoval_example.png',
+      originalImage: './chest/contentRemoval_example.png',
       resultList: [
-        '/chest/contentRemoval_result1.gif',
-        '/chest/contentRemoval_result2.webp',
+        './chest/contentRemoval_result1.gif',
+        './chest/contentRemoval_result2.webp',
       ],
       activeIndex: 0,
       loading: false,

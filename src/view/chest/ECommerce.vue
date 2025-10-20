@@ -112,7 +112,7 @@ export default {
   mixins: [ClearCacheMixin],
   data() {
     return {
-      imgUrl: '/chest/eCommerce_example.png',
+      imgUrl: './chest/eCommerce_example.png',
       imgFile: {},
       mode: 'common',
       timbreInfo: {},

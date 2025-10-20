@@ -78,11 +78,11 @@ export default {
   data() {
     return {
       imageFile: {},
-      image_path: '/chest/imageWatermarkRemove_example.png',
+      image_path: './chest/imageWatermarkRemove_example.png',
       resultList: [
-        '/chest/imageWatermarkRemove_result1.jpg',
-        '/chest/imageWatermarkRemove_result2.webp',
-        '/chest/imageWatermarkRemove_result3.webp',
+        './chest/imageWatermarkRemove_result1.jpg',
+        './chest/imageWatermarkRemove_result2.webp',
+        './chest/imageWatermarkRemove_result3.webp',
       ],
       activeIndex: 0,
       loading: false,

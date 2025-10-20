@@ -99,9 +99,9 @@ export default {
     return {
       promptInput: '',
       firstFrameFile: {},
-      first_frame: '/chest/frameHeadTail_example1.png',
+      first_frame: './chest/frameHeadTail_example1.png',
       endFrameFile: {},
-      end_frame: '/chest/frameHeadTail_example2.png',
+      end_frame: './chest/frameHeadTail_example2.png',
       duration: 6,
       resultList: [
           'http://127.0.0.1:6006/running_hub/resource/frameHeadTail_result1.mp4',
