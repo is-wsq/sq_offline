@@ -48,7 +48,7 @@ const actions = {
                     if (prev === "ready" && figure.status === "success") {
                         Vue.prototype.$notify({
                             title: "形象克隆成功",
-                            message: `《${figure.name}》形象克隆任务已完成`,
+                            message: `${figure.name}形象克隆任务已完成`,
                             type: "success",
                             duration: 5000
                         });
@@ -56,7 +56,7 @@ const actions = {
                     if (prev === "ready" && figure.status === "failed") {
                         Vue.prototype.$notify({
                             title: "形象克隆失败",
-                            message: `《${figure.name}》形象克隆任务失败,${figure.message}`,
+                            message: `${figure.name}形象克隆任务失败,${figure.message}`,
                             duration: 0,
                             type: "error",
                         })
@@ -64,7 +64,7 @@ const actions = {
                     if (prev === "pending" && figure.status === "success") {
                         Vue.prototype.$notify({
                             title: message + '成功',
-                            message: `《${figure.name}》${message}任务已完成`,
+                            message: `${figure.name}${message}任务已完成`,
                             type: "success",
                             duration: 5000
                         });
@@ -72,7 +72,7 @@ const actions = {
                     if (prev === "pending" && figure.status === "failed") {
                         Vue.prototype.$notify({
                             title: message + '失败',
-                            message: `《${figure.name}》${message}任务失败,${figure.message}`,
+                            message: `${figure.name}${message}任务失败,${figure.message}`,
                             duration: 0,
                             type: "error",
                         })
@@ -117,7 +117,7 @@ const actions = {
                     if (prev === "pending" && video.status === "success") {
                         Vue.prototype.$notify({
                             title: "视频生成成功",
-                            message: `《${video.filename}》视频生成任务已完成`,
+                            message: `${video.filename}视频生成任务已完成`,
                             type: "success",
                             duration: 5000
                         });
@@ -128,7 +128,7 @@ const actions = {
                     }else if (prev === "pending" && video.status === "failed") {
                         Vue.prototype.$notify({
                             title: "视频生成失败",
-                            message: `《${video.filename}》视频生成任务失败,${video.message}`,
+                            message: `${video.filename}视频生成任务失败,${video.message}`,
                             duration: 0,
                             type: "error",
                         })

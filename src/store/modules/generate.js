@@ -55,14 +55,14 @@ const actions = {
                     if (task.status === 'success') {
                         Vue.prototype.$notify({
                             title: "语音合成成功",
-                            message: `《${task.name}》语音合成任务已完成`,
+                            message: `${task.name}语音合成任务已完成`,
                             type: "success",
                             duration: 5000
                         });
                     } else if (task.status === 'failed') {
                         Vue.prototype.$notify({
                             title: "语音合成失败",
-                            message: `《${task.name}》语音合成任务失败,${task.message}`,
+                            message: `${task.name}语音合成任务失败,${task.message}`,
                             duration: 0,
                             type: "error",
                         })
@@ -93,14 +93,14 @@ const actions = {
                     if (task.status === 'success') {
                         Vue.prototype.$notify({
                             title: taskName + "成功",
-                            message: "《" + task.name + "》" + taskName + "任务已完成",
+                            message: task.name + taskName + "任务已完成",
                             type: "success",
                             duration: 5000
                         });
                     } else if (task.status === 'failed') {
                         Vue.prototype.$notify({
                             title: taskName + "失败",
-                            message: "《" + task.name + "》" + taskName + "任务失败," + task.message,
+                            message: task.name + taskName + "任务失败," + task.message,
                             duration: 0,
                             type: "error",
                         })
@@ -128,7 +128,7 @@ const actions = {
                     if (task.status === 'success') {
                         Vue.prototype.$notify({
                             title: "视频生成成功",
-                            message: `《${task.filename}》视频生成任务已完成`,
+                            message: `${task.filename}视频生成任务已完成`,
                             type: "success",
                             duration: 5000
                         });
@@ -138,7 +138,7 @@ const actions = {
                     } else if (task.status === 'failed') {
                         Vue.prototype.$notify({
                             title: "视频生成失败",
-                            message: `《${task.filename}》视频生成任务失败,${task.message}`,
+                            message: `${task.filename}视频生成任务失败,${task.message}`,
                             duration: 0,
                             type: "error",
                         })
