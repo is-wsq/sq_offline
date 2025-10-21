@@ -128,7 +128,7 @@ export default {
         const blob = await response.blob();
 
         const suffix = '.' + blob.type.split('/')[1];
-        const realFile = new File([blob], type + suffix, {
+        const realFile = new File([blob], 'example' + suffix, {
           type: blob.type,
           lastModified: Date.now()
         });
@@ -136,7 +136,7 @@ export default {
         this.imageFile = {
           uid: Date.now(),
           raw: realFile,
-          name: type + suffix,
+          name: 'example' + suffix,
           url: url
         };
       } catch (error) {
