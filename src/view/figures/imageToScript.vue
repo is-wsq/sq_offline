@@ -417,6 +417,7 @@ export default {
         marketing_highlights: this.active_highlights,
         product_id: this.operateProductInfo.id,
         num_scripts: this.script_num,
+        user_id: sessionStorage.getItem('token'),
       }
       this.stream_query(params, 'http://127.0.0.1:6006/picture/generate_script_stream')
     },
@@ -487,6 +488,7 @@ export default {
         history_chats: history_chats,
         user_feedback: this.chat_input,
         conversation_id: this.conversation_id,
+        user_id: sessionStorage.getItem('token'),
       };
       this.chat_input = ''
 

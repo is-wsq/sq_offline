@@ -71,6 +71,7 @@ export default {
       modelOpen: false,
       loading: false,
       guideVisible: false,
+      user_id: sessionStorage.getItem('token') || '',
     };
   },
   async mounted() {
@@ -94,7 +95,7 @@ export default {
       }
     },
     async queryServiceStatus() {
-      return axios.get("http://127.0.0.1:11434/api/ps").then((res) => {
+      return axios.get("http://127.0.0.1:11434/api/ps", {params: {user_id: this.user_id}}).then((res) => {
         return res.data.models.length > 0;
       }).catch((err) => {
         return false;
@@ -122,6 +123,7 @@ export default {
       let params = {
         model: this.model,
         keep_alive: -1,
+        user_id: this.user_id,
       };
       this.loading = this.$loading({
         lock: true,
@@ -169,11 +171,12 @@ export default {
       });
     },
     stopService() {
-      axios.get("http://127.0.0.1:11434/api/ps").then((res) => {
+      axios.get("http://127.0.0.1:11434/api/ps", {params: {user_id: this.user_id}}).then((res) => {
         if (res.data.models.length > 0) {
           let params = {
             model: res.data.models[0].model,
             keep_alive: 0,
+            user_id: this.user_id,
           };
           this.modelOpen = true
           axios.post("http://127.0.0.1:11434/api/generate", params).then((res) => {

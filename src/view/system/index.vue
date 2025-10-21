@@ -220,7 +220,8 @@ export default {
   methods: {
     getInfo(payer_total) {
       let params = {
-        add_total: payer_total? payer_total * 10 : 0
+        add_total: payer_total? payer_total * 10 : 0,
+        user_id: sessionStorage.getItem('token')
       }
       axios.get("http://127.0.0.1:9669/get_remaining_tokens", {params: params}).then((res) => {
         if (res.data.status === 'success') {
@@ -243,7 +244,8 @@ export default {
     getBill() {
       let params = {
         pageSize: this.iPagination.pageSize,
-        currentPage: this.iPagination.currentPage
+        currentPage: this.iPagination.currentPage,
+        user_id: sessionStorage.getItem('token')
       }
       axios.get('http://127.0.0.1:9669/get_api_call_log',{ params: params }).then(res => {
         if (res.data.status === 'success') {
@@ -281,6 +283,7 @@ export default {
       let params = {
         amount: this.rechargeForm.amount,
         type: this.rechargeForm.paymentMethod,
+        user_id: sessionStorage.getItem('token')
       }
       axios.post('http://127.0.0.1:9669/recharge_balance',params).then(res => {
         if (res.data.status === 'success') {
@@ -303,7 +306,8 @@ export default {
     },
     queryQrCodeStatus() {
       let params = {
-        payment_id: this.codeInfo.payment_id
+        payment_id: this.codeInfo.payment_id,
+        user_id: sessionStorage.getItem('token')
       }
       axios.post('http://127.0.0.1:9669/query_recharge_status',params).then(res => {
         if (res.data.status === 'success') {

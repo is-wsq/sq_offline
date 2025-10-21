@@ -139,6 +139,7 @@ export default {
       const formData = new FormData();
       formData.append("image_file", this.imageFile.raw);
       formData.append("instruction", this.promptInput);
+      formData.append('user_id', sessionStorage.getItem('token'));
 
       axios.post("http://127.0.0.1:6006/running_hub/flux_kontex_old_photo_restoration", formData,{
         headers: {

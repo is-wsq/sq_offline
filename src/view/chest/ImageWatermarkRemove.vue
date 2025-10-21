@@ -134,6 +134,7 @@ export default {
 
       const formData = new FormData();
       formData.append("image_file", this.imageFile.raw);
+      formData.append('user_id', sessionStorage.getItem('token'));
 
       axios.post("http://127.0.0.1:6006/running_hub/fast_image_watermark_removal", formData,{
         headers: {

@@ -259,7 +259,7 @@ export default {
       hot_news: [],
       search_history: [],
       hot_news_info: null,
-      userId: '272f4122-ab74-4bc1-9cd6-c29a41fb508f',
+      userId: sessionStorage.getItem("token"),
       copy_history: [],
       dialogVisible: false,
       select_history_copy: null,
@@ -271,7 +271,6 @@ export default {
         search_news: 'http://127.0.0.1:5008/news/online_search',
         get_search_history: 'http://127.0.0.1:5008/news/query/user',
         get_copy_history: 'http://127.0.0.1:5008/copywriting_history/query',
-        generate_video: 'https://live.tellai.tech/api/news_assistant/figure/generate_video',
       },
       script_params: {
         count: 200,
@@ -495,7 +494,7 @@ export default {
       })
     },
     queryHotNews() {
-      axios.get(this.urls.get_hot_news).then(res => {
+      axios.get(this.urls.get_hot_news, { params: { user_id: this.userId } }).then(res => {
         if (res.data.status === 'success') {
           this.hot_news = res.data.data
         } else {
@@ -506,7 +505,7 @@ export default {
       })
     },
     queryStyles() {
-      axios.get(this.urls.get_styles).then(res => {
+      axios.get(this.urls.get_styles, { params: { user_id: this.userId } }).then(res => {
         if (res.data.status === 'success') {
           this.styles = res.data.data
         } else {
@@ -544,7 +543,8 @@ export default {
         return;
       }
       let params = {
-        image_base64_list: this.image_base64_list
+        image_base64_list: this.image_base64_list,
+        user_id: this.userId,
       }
       axios.post(this.urls.extract_product_info,params,{ timeout: 1800000 }).then(res => {
         if (res.data.status === 'success') {
@@ -603,7 +603,6 @@ export default {
         return;
       }
       let params = {
-        user_id: this.userId,
         voice_id: this.timbres.voice_id,
         video_id: this.select_figure.video_id,
         voice_mode: this.mode,

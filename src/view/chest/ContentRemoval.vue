@@ -360,6 +360,7 @@ export default {
       this.loading = true
 
       const formData = new FormData();
+      formData.append('user_id', sessionStorage.getItem('token'));
 
       axios.post("http://127.0.0.1:6006/running_hub/imitate_person_pose", formData,{
         headers: {

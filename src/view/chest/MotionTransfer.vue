@@ -187,6 +187,7 @@ export default {
       formData.append('fps', this.fps);
       formData.append('prompt', this.promptInput);
       formData.append('long_side_size', this.long_size);
+      formData.append('user_id', sessionStorage.getItem('token'));
 
       axios.post("http://127.0.0.1:6006/running_hub/action_transfer_portrait", formData,{
         headers: {

@@ -84,7 +84,7 @@ export default {
       });
     },
     async queryServiceStatus() {
-      return axios.get("http://127.0.0.1:11434/api/ps").then((res) => {
+      return axios.get("http://127.0.0.1:11434/api/ps", { params: { user_id: sessionStorage.getItem('token') } }).then((res) => {
         return res.data.models.length > 0;
       }).catch((err) => {
         return false;

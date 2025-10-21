@@ -544,6 +544,7 @@ export default {
       formData.append('withAsr', this.withAsr);
       formData.append('category', this.classify);
       formData.append('tag', this.uploadTag);
+      formData.append('user_id', sessionStorage.getItem('token'));
 
       axios.post("http://127.0.0.1:6006/figure/add_hot_video", formData,{
         headers: {

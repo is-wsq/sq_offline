@@ -174,6 +174,7 @@ export default {
       formData.append("original_image_file", this.originalFile.raw);
       formData.append('pose_image_file', this.imitationFile.raw);
       formData.append('max_resolution', this.resolutionRatio);
+      formData.append('user_id', sessionStorage.getItem('token'));
 
       axios.post("http://127.0.0.1:6006/running_hub/imitate_person_pose", formData,{
         headers: {

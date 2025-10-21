@@ -249,6 +249,7 @@ export default {
       formData.append('voice_mode', this.mode);
       formData.append('copy', this.copywriting);
       formData.append('prompt', this.promptInput);
+      formData.append('user_id', sessionStorage.getItem('token'));
 
       axios.post("http://127.0.0.1:6006/running_hub/e_ommerce", formData,{
         headers: {

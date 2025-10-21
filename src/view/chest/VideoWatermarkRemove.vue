@@ -129,6 +129,7 @@ export default {
 
       const formData = new FormData();
       formData.append("video_file", this.videoFile.raw);
+      formData.append('user_id', sessionStorage.getItem('token'));
 
       axios.post("http://127.0.0.1:6006/running_hub/video_watermark_removal", formData,{
         headers: {

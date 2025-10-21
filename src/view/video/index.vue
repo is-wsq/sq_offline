@@ -147,6 +147,7 @@
                             action="http://127.0.0.1:6006/bgm/upload"
                             :show-file-list="false"
                             accept=".mp3, .wav"
+                            :data="{ user_id: user_id}"
                             :on-success="bgmUploadSuccess">
                           <div style="display: flex;align-items: center;height: 80px;">
                             <div class="voice-icon" style="background-color: pink !important">
@@ -730,6 +731,8 @@ export default {
       startY: 0,
       topOffset: 0,
       bottomOffset: 100,
+
+      user_id: sessionStorage.getItem('token'),
     };
   },
   computed: {
@@ -949,7 +952,8 @@ export default {
         examples: cleanTexts,
         requirements: this.requirements,
         num_of_words: parseInt(this.num_of_words),
-        script_count: parseInt(this.script_count)
+        script_count: parseInt(this.script_count),
+        user_id: sessionStorage.getItem('token')
       }
       this.loading = this.$loading({
         lock: true,

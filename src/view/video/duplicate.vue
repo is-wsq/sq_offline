@@ -301,6 +301,7 @@ export default {
         scripts: this.lastGenerateScripts,
         duration: this.exampleTexts ? null : parseInt(this.video_time),
         voice_id: this.voice.id,
+        user_id: sessionStorage.getItem('token')
       }
       this.chat_input = ''
       axios.post('http://127.0.0.1:6006/api/re_generate_script', params).then(res => {
@@ -447,7 +448,8 @@ export default {
           requirements: this.copy_require,
           num_of_words: parseInt(this.copy_num),
           script_count: parseInt(this.script_num),
-          store_id: this.mention_list[0].store_id
+          store_id: this.mention_list[0].store_id,
+          user_id: sessionStorage.getItem('token')
         }
       }else {
         params = {
@@ -456,7 +458,8 @@ export default {
           duration: parseInt(this.video_time),
           voice_id: this.voice.id,
           script_count: parseInt(this.script_num),
-          store_id: this.mention_list[0].store_id
+          store_id: this.mention_list[0].store_id,
+          user_id: sessionStorage.getItem('token')
         }
       }
       axios.post(url, params).then(res => {

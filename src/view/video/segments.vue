@@ -833,6 +833,7 @@ export default {
         material_list: this.material_list,
         bool_list: this.mute_materials,
         conversation_id: this.conversation_id,
+        user_id: sessionStorage.getItem('token')
       }
       this.mix_chatInput = '';
       this.isGenerating = true
@@ -1552,6 +1553,7 @@ export default {
         reverse: this.reverse,
         figure_ratio: this.figure_ratio + '%',
         reference_segments: this.reference_segments,
+        user_id: sessionStorage.getItem('token')
       }
       this.stream_query(params, 'http://127.0.0.1:6006/figure/video_mix_edit_sync_stream')
     },

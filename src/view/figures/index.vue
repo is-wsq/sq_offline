@@ -163,7 +163,7 @@
             :on-error="uploadError"
             :on-change="handleProgress"
             :file-list.sync="uploadFigureList"
-            :data="{ lip_sync: true }">
+            :data="{ lip_sync: true, user_id: user_id }">
           <i class="el-icon-upload"></i>
           <div class="el-upload__text">将文件拖到此处，或<em>点击上传</em></div>
         </el-upload>
@@ -447,7 +447,8 @@ export default {
       readonly: false,
       loading: false,
       uploadFigureVisible: false,
-      uploadFigureList: []
+      uploadFigureList: [],
+      user_id: sessionStorage.getItem('token')
     };
   },
   watch: {
@@ -703,6 +704,8 @@ export default {
       }
       formData.append('store_id', this.uploadData.store_id);
       formData.append('lip_sync', true);
+      formData.append('user_id', sessionStorage.getItem('token'));
+
       this.loading = true
       axios.post("http://127.0.0.1:6006/figure/clone_only", formData,{
         headers: {
@@ -922,6 +925,7 @@ export default {
       });
       formData.append('group_name', this.uploadImageData.name);
       formData.append('store_id', this.uploadImageData.store_id);
+      formData.append('user_id', sessionStorage.getItem('token'));
       this.loading = true
       axios.post("http://127.0.0.1:6006/picture/upload", formData,{
         headers: {

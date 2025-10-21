@@ -165,6 +165,7 @@ export default {
       formData.append('image_file', this.imageFile.raw);
       formData.append('video_duration', this.duration);
       formData.append('prompt', this.promptInput);
+      formData.append('user_id', sessionStorage.getItem('token'));
 
       axios.post("http://127.0.0.1:6006/running_hub/replace_video_person_workflow", formData,{
         headers: {

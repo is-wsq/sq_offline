@@ -46,21 +46,25 @@ instance.interceptors.response.use(
 
 const getAction = (url, params = {}, timeout = defaultTimeout) => {
     instance = createInstance(timeout);
+    params.user_id = sessionStorage.getItem('token');
     return instance.get(url, {params});
 };
 
 const postAction = (url, data = {}, timeout = defaultTimeout) => {
     instance = createInstance(timeout);
+    data.user_id = sessionStorage.getItem('token');
     return instance.post(url, data);
 };
 
 const putAction = (url, data = {}, timeout = defaultTimeout) => {
     instance = createInstance(timeout);
+    data.user_id = sessionStorage.getItem('token');
     return instance.put(url, data);
 };
 
 const delAction = (url, params = {}, timeout = defaultTimeout) => {
     instance = createInstance(timeout);
+    params.user_id = sessionStorage.getItem('token');
     return instance.delete(url, {params});
 };
 
