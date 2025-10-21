@@ -1,28 +1,41 @@
 <template>
   <div class="register">
     <div class="register-container">
-      <div class="register-logo-text">注册获得免费体验</div>
-      <el-form :model="form" ref="form" class="login-form" :rules="rules">
-        <el-form-item label="手机号" prop="phone">
-          <el-input v-model="form.phone" placeholder="请输入注册手机号"></el-input>
-        </el-form-item>
-        <el-form-item label="密码" prop="password">
-          <el-input v-model="form.password" show-password placeholder="请设置登陆密码"></el-input>
-        </el-form-item>
-<!--        <el-form-item label="验证码" prop="sms">-->
-<!--          <div class="flex-center" style="width: 100%">-->
-<!--            <el-input style="flex: 1" v-model="form.sms" placeholder="请输入验证码"></el-input>-->
-<!--            <div class="send-sms-button" @click="onSMSSend">-->
-<!--              {{ getSendBtnText }}-->
-<!--            </div>-->
-<!--          </div>-->
-<!--        </el-form-item>-->
-        <el-form-item>
-          <div class="flex-center">
-            <el-button type="primary" class="btn" @click="createAccount">注册账号</el-button>
+      <div style="flex: 1">
+        <div class="register-logo-text">注册获得免费体验！</div>
+        <div class="flex-center">
+          <div class="register-type" :class="{'register-type-active': type === 'phone'}" @click="type = 'phone'">手机号注册
           </div>
-        </el-form-item>
-      </el-form>
+<!--          <div class="register-type" :class="{'register-type-active': type === 'username'}" @click="type = 'username'">账号注册-->
+<!--          </div>-->
+          <div style="flex: 1"></div>
+        </div>
+        <el-form :model="form" ref="form" class="register-form" :rules="rules">
+          <el-form-item label="手机号" prop="phone">
+            <el-input v-model="form.phone" placeholder="请输入注册手机号"></el-input>
+          </el-form-item>
+          <el-form-item label="密码" prop="password">
+            <el-input v-model="form.password" show-password placeholder="请设置登陆密码"></el-input>
+          </el-form-item>
+<!--          <el-form-item label="验证码" prop="sms">-->
+<!--            <div class="flex-center" style="width: 100%">-->
+<!--              <el-input style="flex: 1" v-model="form.sms" placeholder="请输入验证码"></el-input>-->
+<!--              <div class="send-sms-button" @click="onSMSSend">-->
+<!--                {{ getSendBtnText }}-->
+<!--              </div>-->
+<!--            </div>-->
+<!--          </el-form-item>-->
+          <el-form-item>
+            <div class="flex-center">
+              <el-button type="primary" class="btn" @click="createAccount">注册账号</el-button>
+            </div>
+          </el-form-item>
+        </el-form>
+      </div>
+      <div class="register-area">
+        已有账号？
+        <span style="color: #409eff;cursor: pointer;" @click="toLogin">去登陆</span>
+      </div>
     </div>
   </div>
 </template>
@@ -34,6 +47,7 @@ export default {
   name: 'Register',
   data() {
     return {
+      type: 'phone',
       form: {
         phone: '',
         password: '',
@@ -112,6 +126,9 @@ export default {
           this.$alert('表单校验错误，请修正后重试', '提示');
         }
       })
+    },
+    toLogin() {
+      this.$router.push({path: '/login'})
     }
   }
 };
@@ -129,11 +146,14 @@ export default {
 
 .register-container {
   background-color: white;
-  padding: 40px 140px;
+  padding: 20px 24px;
   border-radius: 10px;
   box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-  width: 600px;
+  width: 400px;
+  height: 520px;
   box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
 }
 
 .register-logo-text {
@@ -146,12 +166,33 @@ export default {
   background-clip: text;
 }
 
-.login-form {
+.register-type {
+  font-size: 14px;
+  font-weight: 500;
+  color: #606266;
+  line-height: 35px;
+  margin-right: 20px;
+  margin-bottom: 10px;
+  cursor: pointer;
+  border-bottom: 2px solid #fff;
+}
+
+.register-type-active {
+  font-weight: 700;
+  color: #409eff !important;
+  border-bottom: 2px solid #409eff;
+}
+
+.register-form {
   margin-top: 10px;
   width: 100%;
 }
 
-.login-form >>> .el-form-item {
+.register-form >>> .el-form-item__label {
+  line-height: 32px;
+}
+
+.register-form >>> .el-form-item {
   margin-bottom: 15px !important;
 }
 
@@ -168,8 +209,15 @@ export default {
 }
 
 .btn {
-  width: 250px;
+  width: 100%;
   border-radius: 4px;
   margin-top: 20px;
+}
+
+.register-area {
+  text-align: center;
+  color: #41464f;
+  font-size: 14px;
+  margin-top: 10px;
 }
 </style>
