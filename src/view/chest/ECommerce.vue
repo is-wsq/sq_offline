@@ -14,7 +14,7 @@
     <div class="e-commerce-body">
       <div class="e-commerce-card">
         <div style="font-weight: bold">工作台</div>
-        <div style="flex: 1;overflow-y: auto">
+        <div style="flex: 1;overflow-y: auto;overflow-x: hidden">
           <div class="setting-name margin-t-12">上传图片</div>
           <el-upload
               class="img-uploader"
@@ -32,7 +32,7 @@
             <i v-else class="el-icon-plus img-uploader-icon"></i>
           </el-upload>
           <div style="display: flex;margin-top: 12px">
-            <div class="setting-name" style="margin-bottom: 0 !important;line-height: 24px">主播声音</div>
+            <div class="setting-name" style="margin-bottom: 0 !important;line-height: 24px">音色</div>
             <el-popover ref="modePopoverRef" placement="bottom-start" trigger="click">
               <div class="mode-popover-item" @click="saveMode('common')">
                 普通模式
@@ -270,6 +270,7 @@ export default {
     },
     back() {
       this.clearCache()
+      this.stopAudio()
       sessionStorage.setItem('chest_path', '/chest')
       this.$router.push({ path: '/chest'})
     }
@@ -301,7 +302,7 @@ export default {
 }
 
 .e-commerce-card {
-  width: 400px;
+  width: 370px;
   height: 100%;
   display: flex;
   flex-direction: column;

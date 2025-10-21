@@ -14,7 +14,7 @@
     <div class="image-lip-sync-content">
       <div class="work-setting-area">
         <div class="font-weight">工作台</div>
-        <div style="flex: 1;overflow-y: auto">
+        <div style="flex: 1;overflow-y: auto;overflow-x: hidden">
           <div class="work-setting-label">图片</div>
           <el-upload
               class="uploader"
@@ -30,23 +30,81 @@
               </div>
             </div>
             <i v-else class="el-icon-plus uploader-icon"></i>
-          </el-upload>
-          <div class="work-setting-label">音频文件(可以是说话可以是唱歌)</div>
-          <el-upload
-              class="uploader"
-              action="#"
-              accept=".mp3, .wav"
-              :show-file-list="false"
-              :auto-upload="false"
-              :on-change="handleVoiceChange">
-            <div v-if="voiceFile.uid" style="position: relative;">
-              <el-image :src="voice_path" class="placeholder-image" fit="cover"></el-image>
-              <div class="placeholder-image-delete-icon">
-                <i class="el-icon-delete" @click.stop="voiceDelete"></i>
+          </el-upload><div class="work-setting-label flex-center">
+          <div style="flex: 1">音频来源</div>
+            <el-select v-model="voice_from" size="mini">
+              <el-option label="0-音频上传" :value="0"></el-option>
+              <el-option label="1-音频生成" :value="1"></el-option>
+            </el-select>
+          </div>
+          <template v-if="voice_from === 0">
+            <div class="work-setting-label">音频文件(可以是说话可以是唱歌)</div>
+            <el-upload
+                class="uploader"
+                action="#"
+                accept=".mp3, .wav"
+                :show-file-list="false"
+                :auto-upload="false"
+                :on-change="handleVoiceChange">
+              <div v-if="voiceFile.uid" style="position: relative;">
+                <el-image :src="voice_path" class="placeholder-image" fit="cover"></el-image>
+                <div class="placeholder-image-delete-icon">
+                  <i class="el-icon-delete" @click.stop="voiceDelete"></i>
+                </div>
+              </div>
+              <i v-else class="el-icon-plus uploader-icon"></i>
+            </el-upload>
+          </template>
+          <template v-else>
+            <div style="display: flex;margin-top: 12px">
+              <div class="work-setting-label" style="margin: 0 !important;line-height: 24px">音色</div>
+              <el-popover ref="modePopoverRef" placement="bottom-start" trigger="click">
+                <div class="mode-popover-item" @click="saveMode('common')">
+                  普通模式
+                  <i class="el-icon-check mode-select" v-if="mode === 'common'"></i>
+                </div>
+                <div class="mode-popover-item" @click="saveMode('advanced')">
+                  高级模式
+                  <i class="el-icon-check mode-select" v-if="mode === 'advanced'"></i>
+                </div>
+                <div slot="reference" class="mode-switch">
+                  {{ mode === 'common' ? '普通模式' : '高级模式' }}
+                  <i class="el-icon-arrow-down"></i>
+                </div>
+              </el-popover>
+              <div class="mode-info" v-if="mode === 'advanced'">
+                <i class="el-icon-info" style="font-size: 16px;margin-right: 5px"></i>
+                高级模式将调用云端接口并计费
               </div>
             </div>
-            <i v-else class="el-icon-plus uploader-icon"></i>
-          </el-upload>
+            <div class="s-voice-content">
+              <div class="s-voice-btn">
+                <i class="el-icon-play" @click="previewAudio(timbreInfo, -1)" v-if="audioIndex !== -1"></i>
+                <i class="el-icon-pause" @click="stopAudio" v-else></i>
+              </div>
+              <el-popover ref="voiceRef" placement="bottom" trigger="click" @hide="stopAudio" style="flex: 1">
+                <div class="popover-content">
+                  <el-row>
+                    <el-col :span="12" v-for="(voice, index) in mode === 'common'? voices : minimax_voices" :key="voice.id">
+                      <div class="voice-item" :class="{ active: voice.id === timbreInfo.id }" @click="selectVoice(voice)">
+                        <div class="voice-icon" @click.stop="previewAudio(voice, index)" v-if="audioIndex !== index">
+                          <i class="el-icon-play" style="font-size: 12px; color: #6286ed"></i>
+                        </div>
+                        <div class="voice-icon" @click.stop="stopAudio" v-else>
+                          <i class="el-icon-pause" style="font-size: 12px; color: #6286ed"></i>
+                        </div>
+                        <div class="voice-name" :title="voice.name">{{ voice.name }}</div>
+                      </div>
+                    </el-col>
+                  </el-row>
+                </div>
+                <div class="s-voice-name" slot="reference" :title="timbreInfo.name">{{ timbreInfo.name }}</div>
+              </el-popover>
+            </div>
+            <div class="work-setting-label margin-t-12">口播内容</div>
+            <el-input type="textarea" v-model="copywriting" :autosize="{ minRows: 3, maxRows: 6 }"
+                      placeholder="音频内容..." resize="none"></el-input>
+          </template>
           <div class="work-setting-label flex-center">
             <div style="flex: 1;overflow: hidden;text-overflow: ellipsis;white-space: nowrap;"
                  title="动作幅度（动作幅度越大开口越大）">动作幅度(动作幅度越大开口越大)</div>
@@ -92,6 +150,7 @@
 <script>
 import {ClearCacheMixin} from "@/mixins/ClearCacheMixin";
 import axios from "axios";
+import {getAction} from "@/api/api";
 
 export default {
   name: 'ImageLipSync',
@@ -100,8 +159,16 @@ export default {
     return {
       imageFile: {},
       image_path: './chest/imageLipSync_example.png',
+      voice_from: 0,
       voiceFile: {},
       voice_path: './chest/ai-icon-sound.png',
+      mode: 'common',
+      timbreInfo: {},
+      voices: [],
+      minimax_voices: [],
+      audio: null,
+      audioIndex: null,
+      copywriting: '',
       movement_range: 0.5,
       resolution_ratio: 512,
       resultList: [
@@ -113,6 +180,8 @@ export default {
     }
   },
   mounted() {
+    this.queryVoices()
+    this.queryMiniMaxVoices()
     this.initFile()
   },
   methods: {
@@ -150,6 +219,68 @@ export default {
     imageDelete() {
       this.image_path = '';
       this.imageFile = null;
+    },
+    queryVoices() {
+      getAction("/timbres/get_all_common_timbre").then((res) => {
+        if (res.data.status === "success") {
+          this.voices = res.data.data;
+          this.timbreInfo = res.data.data[0] || {}
+        } else {
+          this.$message.error("获取声音列表失败。");
+        }
+      }).catch((error) => {
+        console.error("获取声音列表失败:", error);
+      });
+    },
+    queryMiniMaxVoices() {
+      getAction("/timbres/get_all_system_timbres",{voice_mode: 'advanced'}).then((res) => {
+        if (res.data.status === "success") {
+          this.minimax_voices = res.data.data
+        } else {
+          this.$message.error("获取高级声音列表失败。");
+        }
+      }).catch((error) => {
+        console.error("获取高级声音列表失败:", error);
+      });
+    },
+    saveMode(mode) {
+      if (this.mode === mode) {
+        return
+      }
+      this.stopAudio()
+      this.timbreInfo = mode === 'common'? this.voices[0] : this.minimax_voices[0]
+      this.mode = mode
+      this.$refs.modePopoverRef.showPopper = false
+    },
+    selectVoice(voice) {
+      this.timbreInfo = voice
+      this.$nextTick(() => {
+        this.$refs.voiceRef.showPopper = false
+      })
+    },
+    previewAudio(voice, index) {
+      if (voice.id === '') {
+        this.$message.warning("无音频预览");
+        return;
+      }
+      this.stopAudio();
+
+      setTimeout(() => {
+        this.audio = new Audio(voice.filepath);
+        this.audio.play();
+        this.audioIndex = index;
+        this.audio.onended = () => {
+          this.audio = null;
+          this.audioIndex = null;
+        };
+      }, 100);
+    },
+    stopAudio() {
+      if (this.audio) {
+        this.audio.pause();
+        this.audio = null;
+        this.audioIndex = null;
+      }
     },
     handleVoiceChange(file, fileList) {
       this.voiceFile = file
@@ -191,10 +322,14 @@ export default {
     },
     back() {
       this.clearCache()
+      this.stopAudio()
       sessionStorage.setItem('chest_path', '/chest')
       this.$router.push({ path: '/chest'})
     }
-  }
+  },
+  beforeDestroy() {
+    this.stopAudio()
+  },
 }
 </script>
 
@@ -211,7 +346,7 @@ export default {
 }
 
 .work-setting-area {
-  width: 320px;
+  width: 370px;
   height: 100%;
   display: flex;
   flex-direction: column;
@@ -346,5 +481,119 @@ export default {
 .preview-video {
   width: 100%;
   height: 100%;
+}
+
+.mode-switch {
+  background-color: #f3f4f6;
+  padding: 4px 8px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 12px;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  margin-left: 16px;
+}
+
+.mode-popover-item {
+  padding: 8px 12px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  height: 20px;
+  line-height: 20px;
+}
+
+.mode-popover-item:hover {
+  background-color: #f5f7fa;
+}
+
+.mode-select {
+  color: #409EFF;
+  font-weight: bold;
+  font-size: 14px;
+  margin-left: auto;
+}
+
+.mode-info {
+  margin-left: 10px;
+  font-size: 12px;
+  display: flex;
+  align-items: center;
+  color: #909399;
+}
+
+.s-voice-content {
+  padding: 8px;
+  border-radius: 6px;
+  margin-top: 4px;
+  background-color: #ffffff;
+  border: 1px solid #e5e7eb;
+  display: flex;
+  gap: 8px;
+}
+
+.s-voice-btn {
+  aspect-ratio: 1 / 1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 13px;
+  color: #6286ed;
+  cursor: pointer;
+}
+
+.popover-content {
+  width: 350px;
+  height: 250px;
+  border-radius: 10px;
+  overflow: auto;
+}
+
+.voice-item {
+  height: 70px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.active {
+  background-color: #e0e7fb;
+}
+
+.voice-icon {
+  width: 37px;
+  height: 32px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  cursor: pointer;
+  background-color: #c7d4f8;
+  border-radius: 8px;
+}
+
+.voice-name {
+  width: 110px;
+  margin-left: 10px;
+  font-size: 12px;
+  color: #101010;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.s-voice-name {
+  background-color: #f3f4f6;
+  padding: 4px 4px 4px 8px;
+  box-sizing: border-box;
+  font-size: 12px;
+  height: 22px;
+  border-radius: 6px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  cursor: pointer;
 }
 </style>
