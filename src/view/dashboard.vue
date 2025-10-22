@@ -20,8 +20,8 @@
           </div>
         </div>
         <div class="logout flex-center">
-          <el-avatar size="medium" src="./avatar.jpeg"></el-avatar>
-          <div style="flex: 1;margin-left: 4px">17670845180</div>
+          <el-avatar size="medium" :src="userInfo.avatar"></el-avatar>
+          <div style="flex: 1;margin-left: 4px">{{ userInfo.username }}</div>
           <i class="el-icon-logout logout-icon" @click="logout"></i>
         </div>
       </el-aside>
@@ -60,13 +60,16 @@ export default {
       ],
       alive_routers: ['/syncCv','/montage','/remix','/segments','/smartGenerate','/duplicate','/scriptToImage','/imageToVideo'],
       padding0_routers: ['/material', '/login', '/register'],
+      userInfo: {}
     };
   },
   async mounted() {
+    this.userInfo = JSON.parse(sessionStorage.getItem('userInfo'));
     this.updateActiveFromRoute()
   },
   watch: {
     $route(to) {
+      this.userInfo = JSON.parse(sessionStorage.getItem('userInfo'));
       this.updateActiveFromRoute();
     }
   },

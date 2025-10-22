@@ -34,7 +34,7 @@
       </div>
       <el-divider>其他登录方式</el-divider>
       <div class="flex-center">
-        <div class="cursor-pointer">
+        <div class="cursor-pointer" @click="onThirdLogin('wx')">
           <svg t="1761015613423" class="icon" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg"
                width="32" height="32">
             <path
@@ -150,6 +150,16 @@ export default {
         }
       }, 1000);
     },
+    onThirdLogin(code) {
+      const appId = 'wx48d2e02bf10f849c'
+      const redirectUri = encodeURIComponent('https://tellai.tech/#/pages/login/login')
+      // const redirectUri = encodeURIComponent('https://tellai.tech/#/pages/login/login')
+      // const redirectUri = encodeURIComponent(`${this.getCurrentUrl()}#/pages/login/auth-callback`)
+      const scope = 'snsapi_login'
+      const state = 'xyz123'
+      const authUrl = `https://open.weixin.qq.com/connect/oauth2/authorize?appid=${appId}&redirect_uri=${redirectUri}&response_type=code&scope=${scope}&state=${state}&forcePopup=true#wechat_redirect`;
+      window.location.replace(authUrl)
+    },
     handleLogin() {
       this.$refs.form.validate((valid) => {
         if (valid) {
@@ -191,7 +201,8 @@ export default {
         if (res.data.status === 'success') {
           this.$message.success('登录成功');
           this.$router.push({path: '/ai'});
-          sessionStorage.setItem('token', res.data.data.user_id);
+          sessionStorage.setItem('token', res.data.data.id);
+          sessionStorage.setItem("userInfo", JSON.stringify(res.data.data))
         } else {
           this.$alert('登陆失败：' + res.data.message, '提示');
         }

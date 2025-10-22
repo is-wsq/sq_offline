@@ -39,7 +39,7 @@
         <div class="generate-btn">
           <el-button @click="generate" :loading="!!loading" :disabled="!imageFile">
             <i class="el-icon-bianjiqi btn-icon" v-if="!loading"></i>
-            {{ !!loading ? '生成中...' : '生成视频' }}
+            {{ !!loading ? '生成中...' : '生成图片' }}
           </el-button>
         </div>
       </div>
