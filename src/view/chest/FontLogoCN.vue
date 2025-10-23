@@ -86,12 +86,12 @@ export default {
       }
       this.loading = true
       let params = {
-
+        prompt: this.design_requirements
       }
-      postAction("/running_hub/imitate_person_pose", params, 1800000).then(res => {
+      postAction("/running_hub/chinese_font_logo", params, 1800000).then(res => {
         if (res.data.status === 'success') {
           this.activeIndex = 0
-          this.resultList = res.data.data.image_paths
+          this.resultList = res.data.data.image_path
           this.loading = false
         } else {
           this.loading = false

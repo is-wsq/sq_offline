@@ -97,7 +97,7 @@ export default {
   mixins: [ClearCacheMixin],
   data() {
     return {
-      promptInput: '',
+      promptInput: '逐渐转身，花瓣特效',
       firstFrameFile: {},
       first_frame: './chest/frameHeadTail_example1.png',
       endFrameFile: {},
@@ -161,6 +161,10 @@ export default {
       this.endFrameFile = null;
     },
     generate() {
+      if (!this.promptInput) {
+        this.$alert('请输入提示词后重试', '提示')
+        return
+      }
       if (!this.firstFrameFile.uid) {
         this.$alert('请上传首帧后重试', '提示')
         return
@@ -172,9 +176,13 @@ export default {
       this.loading = true
 
       const formData = new FormData();
+      formData.append('action_prompt', this.promptInput);
+      formData.append('start_frame_file', this.firstFrameFile.raw);
+      formData.append('end_frame_file', this.endFrameFile.raw);
+      formData.append('duration_seconds', this.duration);
       formData.append('user_id', sessionStorage.getItem('token'));
 
-      axios.post("http://127.0.0.1:6006/running_hub/imitate_person_pose", formData,{
+      axios.post("http://127.0.0.1:6006/running_hub/video_first_last_frame_wan", formData,{
         headers: {
           'Content-Type': 'multipart/form-data',
         },
@@ -182,7 +190,7 @@ export default {
       }).then(res => {
         if (res.data.status === 'success') {
           this.activeIndex = 0
-          this.resultList = res.data.data.image_paths
+          this.resultList = res.data.data.video_path.map(item => item.video_url)
           this.loading = false
         } else {
           this.loading = false

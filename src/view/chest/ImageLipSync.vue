@@ -301,9 +301,13 @@ export default {
       this.loading = true
 
       const formData = new FormData();
+      formData.append('image_file', this.imageFile.raw);
+      formData.append('audio_file', this.voiceFile.raw);
+      formData.append('expand_ratio', this.movement_range);
+      formData.append('min_resolution', this.resolution_ratio);
       formData.append('user_id', sessionStorage.getItem('token'));
 
-      axios.post("http://127.0.0.1:6006/running_hub/imitate_person_pose", formData,{
+      axios.post("http://127.0.0.1:6006/running_hub/photo_lip_sync", formData,{
         headers: {
           'Content-Type': 'multipart/form-data',
         },
@@ -311,7 +315,7 @@ export default {
       }).then(res => {
         if (res.data.status === 'success') {
           this.activeIndex = 0
-          this.resultList = res.data.data.image_paths
+          this.resultList = res.data.data.video_path.map(item => item.video_url)
           this.loading = false
         } else {
           this.loading = false

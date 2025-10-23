@@ -188,10 +188,17 @@ export default {
     },
     async submitDraw() {
       const tempCanvas = this.generatePreview();
-      this.imageFile = await new Promise((resolve) => {
+
+      const realFile = await new Promise((resolve) => {
         tempCanvas.toBlob(resolve, 'image/png');
       });
-      this.image_path = URL.createObjectURL(this.imageFile)
+      this.image_path = URL.createObjectURL(realFile)
+      this.imageFile = {
+        uid: Date.now(),
+        raw: realFile,
+        name: 'example.png',
+        url: this.image_path
+      };
       this.handleCloseDrawDialog()
     },
     initCanvas() {
@@ -360,9 +367,10 @@ export default {
       this.loading = true
 
       const formData = new FormData();
+      formData.append('image_file', this.imageFile.raw);
       formData.append('user_id', sessionStorage.getItem('token'));
 
-      axios.post("http://127.0.0.1:6006/running_hub/imitate_person_pose", formData,{
+      axios.post("http://127.0.0.1:6006/running_hub/image_content_removal", formData,{
         headers: {
           'Content-Type': 'multipart/form-data',
         },
@@ -370,7 +378,7 @@ export default {
       }).then(res => {
         if (res.data.status === 'success') {
           this.activeIndex = 0
-          this.resultList = res.data.data.image_paths
+          this.resultList = res.data.data.image_path
           this.loading = false
         } else {
           this.loading = false
