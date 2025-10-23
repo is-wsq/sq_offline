@@ -30,8 +30,9 @@
               </div>
             </div>
             <i v-else class="el-icon-plus uploader-icon"></i>
-          </el-upload><div class="work-setting-label flex-center">
-          <div style="flex: 1">音频来源</div>
+          </el-upload>
+          <div class="work-setting-label flex-center">
+            <div style="flex: 1">音频来源</div>
             <el-select v-model="voice_from" size="mini">
               <el-option label="0-音频上传" :value="0"></el-option>
               <el-option label="1-音频生成" :value="1"></el-option>

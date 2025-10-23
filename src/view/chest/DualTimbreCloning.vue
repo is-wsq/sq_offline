@@ -1,7 +1,7 @@
 <template>
   <div class="dualTimbreCloning"
        v-loading="loading"
-       element-loading-text="语音克隆中..."
+       element-loading-text="双人语音克隆中..."
        element-loading-spinner="el-icon-loading"
        element-loading-background="rgba(0, 0, 0, 0.8)">
     <div class="flex-center">
@@ -18,99 +18,142 @@
           <div class="work-setting-label margin-t-12">文本内容</div>
           <el-input type="textarea" v-model="copyText" :autosize="{ minRows: 3, maxRows: 5 }"
                     placeholder="请按照格式输入文本内容..." resize="none"></el-input>
-          <div style="display: flex;margin-top: 16px">
-            <div class="work-setting-label" style="margin: 0 !important;line-height: 24px">音色1</div>
-            <el-popover ref="modePopoverRef1" placement="bottom-start" trigger="click">
-              <div class="mode-popover-item" @click="saveMode('common', 1)">
-                普通模式
-                <i class="el-icon-check mode-select" v-if="mode1 === 'common'"></i>
-              </div>
-              <div class="mode-popover-item" @click="saveMode('advanced', 1)">
-                高级模式
-                <i class="el-icon-check mode-select" v-if="mode1 === 'advanced'"></i>
-              </div>
-              <div slot="reference" class="mode-switch">
-                {{ mode1 === 'common' ? '普通模式' : '高级模式' }}
-                <i class="el-icon-arrow-down"></i>
-              </div>
-            </el-popover>
-            <div class="mode-info" v-if="mode1 === 'advanced'">
-              <i class="el-icon-info" style="font-size: 16px;margin-right: 5px"></i>
-              高级模式将调用云端接口并计费
-            </div>
+          <div class="work-setting-label flex-center">
+            <div style="flex: 1">音频来源</div>
+            <el-select v-model="voice_from" size="mini">
+              <el-option label="0-音频上传" :value="0"></el-option>
+              <el-option label="1-本地音色" :value="1"></el-option>
+            </el-select>
           </div>
-          <div class="s-voice-content">
-            <div class="s-voice-btn">
-              <i class="el-icon-play" @click="previewAudio(timbreInfo1, -1)" v-if="audioIndex !== -1"></i>
-              <i class="el-icon-pause" @click="stopAudio" v-else></i>
+          <template v-if="voice_from === 0">
+            <div class="work-setting-label">音频1</div>
+            <el-upload
+                class="uploader"
+                action="#"
+                accept=".mp3, .wav"
+                :show-file-list="false"
+                :auto-upload="false"
+                :on-change="handleAudio1Change">
+              <div v-if="audio1.uid" style="position: relative;">
+                <el-image src="./chest/ai-icon-sound.png" class="placeholder-image" fit="cover"></el-image>
+                <div class="placeholder-image-delete-icon">
+                  <i class="el-icon-delete" @click.stop="audio1Delete"></i>
+                </div>
+              </div>
+              <i v-else class="el-icon-plus uploader-icon"></i>
+            </el-upload>
+            <div class="work-setting-label">音频2</div>
+            <el-upload
+                class="uploader"
+                action="#"
+                accept=".mp3, .wav"
+                :show-file-list="false"
+                :auto-upload="false"
+                :on-change="handleAudio2Change">
+              <div v-if="audio2.uid" style="position: relative;">
+                <el-image src="./chest/ai-icon-sound.png" class="placeholder-image" fit="cover"></el-image>
+                <div class="placeholder-image-delete-icon">
+                  <i class="el-icon-delete" @click.stop="audio2Delete"></i>
+                </div>
+              </div>
+              <i v-else class="el-icon-plus uploader-icon"></i>
+            </el-upload>
+          </template>
+          <template v-else>
+            <div style="display: flex;margin-top: 16px">
+              <div class="work-setting-label" style="margin: 0 !important;line-height: 24px">音色1</div>
+              <el-popover ref="modePopoverRef1" placement="bottom-start" trigger="click">
+                <div class="mode-popover-item" @click="saveMode('common', 1)">
+                  普通模式
+                  <i class="el-icon-check mode-select" v-if="mode1 === 'common'"></i>
+                </div>
+                <div class="mode-popover-item" @click="saveMode('advanced', 1)">
+                  高级模式
+                  <i class="el-icon-check mode-select" v-if="mode1 === 'advanced'"></i>
+                </div>
+                <div slot="reference" class="mode-switch">
+                  {{ mode1 === 'common' ? '普通模式' : '高级模式' }}
+                  <i class="el-icon-arrow-down"></i>
+                </div>
+              </el-popover>
+              <div class="mode-info" v-if="mode1 === 'advanced'">
+                <i class="el-icon-info" style="font-size: 16px;margin-right: 5px"></i>
+                高级模式将调用云端接口并计费
+              </div>
             </div>
-            <el-popover ref="voiceRef1" placement="bottom" trigger="click" @hide="stopAudio" style="flex: 1">
-              <div class="popover-content">
-                <el-row>
-                  <el-col :span="12" v-for="(voice, index) in mode1 === 'common'? voices : minimax_voices" :key="voice.id">
-                    <div class="voice-item" :class="{ active: voice.id === timbreInfo1.id }" @click="selectVoice(voice, 1)">
-                      <div class="voice-icon" @click.stop="previewAudio(voice, index)" v-if="audioIndex !== index">
-                        <i class="el-icon-play" style="font-size: 12px; color: #6286ed"></i>
+            <div class="s-voice-content">
+              <div class="s-voice-btn">
+                <i class="el-icon-play" @click="previewAudio(timbreInfo1, -1)" v-if="audioIndex !== -1"></i>
+                <i class="el-icon-pause" @click="stopAudio" v-else></i>
+              </div>
+              <el-popover ref="voiceRef1" placement="bottom" trigger="click" @hide="stopAudio" style="flex: 1">
+                <div class="popover-content">
+                  <el-row>
+                    <el-col :span="12" v-for="(voice, index) in mode1 === 'common'? voices : minimax_voices" :key="voice.id">
+                      <div class="voice-item" :class="{ active: voice.id === timbreInfo1.id }" @click="selectVoice(voice, 1)">
+                        <div class="voice-icon" @click.stop="previewAudio(voice, index)" v-if="audioIndex !== index">
+                          <i class="el-icon-play" style="font-size: 12px; color: #6286ed"></i>
+                        </div>
+                        <div class="voice-icon" @click.stop="stopAudio" v-else>
+                          <i class="el-icon-pause" style="font-size: 12px; color: #6286ed"></i>
+                        </div>
+                        <div class="voice-name" :title="voice.name">{{ voice.name }}</div>
                       </div>
-                      <div class="voice-icon" @click.stop="stopAudio" v-else>
-                        <i class="el-icon-pause" style="font-size: 12px; color: #6286ed"></i>
-                      </div>
-                      <div class="voice-name" :title="voice.name">{{ voice.name }}</div>
-                    </div>
-                  </el-col>
-                </el-row>
-              </div>
-              <div class="s-voice-name" slot="reference" :title="timbreInfo1.name">{{ timbreInfo1.name }}</div>
-            </el-popover>
-          </div>
-          <div style="display: flex;margin-top: 16px">
-            <div class="work-setting-label" style="margin: 0 !important;line-height: 24px">音色2</div>
-            <el-popover ref="modePopoverRef2" placement="bottom-start" trigger="click">
-              <div class="mode-popover-item" @click="saveMode('common', 2)">
-                普通模式
-                <i class="el-icon-check mode-select" v-if="mode2 === 'common'"></i>
-              </div>
-              <div class="mode-popover-item" @click="saveMode('advanced', 2)">
-                高级模式
-                <i class="el-icon-check mode-select" v-if="mode2 === 'advanced'"></i>
-              </div>
-              <div slot="reference" class="mode-switch">
-                {{ mode2 === 'common' ? '普通模式' : '高级模式' }}
-                <i class="el-icon-arrow-down"></i>
-              </div>
-            </el-popover>
-            <div class="mode-info" v-if="mode2 === 'advanced'">
-              <i class="el-icon-info" style="font-size: 16px;margin-right: 5px"></i>
-              高级模式将调用云端接口并计费
+                    </el-col>
+                  </el-row>
+                </div>
+                <div class="s-voice-name" slot="reference" :title="timbreInfo1.name">{{ timbreInfo1.name }}</div>
+              </el-popover>
             </div>
-          </div>
-          <div class="s-voice-content">
-            <div class="s-voice-btn">
-              <i class="el-icon-play" @click="previewAudio(timbreInfo2, -2)" v-if="audioIndex !== -2"></i>
-              <i class="el-icon-pause" @click="stopAudio" v-else></i>
-            </div>
-            <el-popover ref="voiceRef2" placement="bottom" trigger="click" @hide="stopAudio" style="flex: 1">
-              <div class="popover-content">
-                <el-row>
-                  <el-col :span="12" v-for="(voice, index) in mode2 === 'common'? voices : minimax_voices" :key="voice.id">
-                    <div class="voice-item" :class="{ active: voice.id === timbreInfo2.id }" @click="selectVoice(voice, 2)">
-                      <div class="voice-icon" @click.stop="previewAudio(voice, index)" v-if="audioIndex !== index">
-                        <i class="el-icon-play" style="font-size: 12px; color: #6286ed"></i>
-                      </div>
-                      <div class="voice-icon" @click.stop="stopAudio" v-else>
-                        <i class="el-icon-pause" style="font-size: 12px; color: #6286ed"></i>
-                      </div>
-                      <div class="voice-name" :title="voice.name">{{ voice.name }}</div>
-                    </div>
-                  </el-col>
-                </el-row>
+            <div style="display: flex;margin-top: 16px">
+              <div class="work-setting-label" style="margin: 0 !important;line-height: 24px">音色2</div>
+              <el-popover ref="modePopoverRef2" placement="bottom-start" trigger="click">
+                <div class="mode-popover-item" @click="saveMode('common', 2)">
+                  普通模式
+                  <i class="el-icon-check mode-select" v-if="mode2 === 'common'"></i>
+                </div>
+                <div class="mode-popover-item" @click="saveMode('advanced', 2)">
+                  高级模式
+                  <i class="el-icon-check mode-select" v-if="mode2 === 'advanced'"></i>
+                </div>
+                <div slot="reference" class="mode-switch">
+                  {{ mode2 === 'common' ? '普通模式' : '高级模式' }}
+                  <i class="el-icon-arrow-down"></i>
+                </div>
+              </el-popover>
+              <div class="mode-info" v-if="mode2 === 'advanced'">
+                <i class="el-icon-info" style="font-size: 16px;margin-right: 5px"></i>
+                高级模式将调用云端接口并计费
               </div>
-              <div class="s-voice-name" slot="reference" :title="timbreInfo2.name">{{ timbreInfo2.name }}</div>
-            </el-popover>
-          </div>
+            </div>
+            <div class="s-voice-content">
+              <div class="s-voice-btn">
+                <i class="el-icon-play" @click="previewAudio(timbreInfo2, -2)" v-if="audioIndex !== -2"></i>
+                <i class="el-icon-pause" @click="stopAudio" v-else></i>
+              </div>
+              <el-popover ref="voiceRef2" placement="bottom" trigger="click" @hide="stopAudio" style="flex: 1">
+                <div class="popover-content">
+                  <el-row>
+                    <el-col :span="12" v-for="(voice, index) in mode2 === 'common'? voices : minimax_voices" :key="voice.id">
+                      <div class="voice-item" :class="{ active: voice.id === timbreInfo2.id }" @click="selectVoice(voice, 2)">
+                        <div class="voice-icon" @click.stop="previewAudio(voice, index)" v-if="audioIndex !== index">
+                          <i class="el-icon-play" style="font-size: 12px; color: #6286ed"></i>
+                        </div>
+                        <div class="voice-icon" @click.stop="stopAudio" v-else>
+                          <i class="el-icon-pause" style="font-size: 12px; color: #6286ed"></i>
+                        </div>
+                        <div class="voice-name" :title="voice.name">{{ voice.name }}</div>
+                      </div>
+                    </el-col>
+                  </el-row>
+                </div>
+                <div class="s-voice-name" slot="reference" :title="timbreInfo2.name">{{ timbreInfo2.name }}</div>
+              </el-popover>
+            </div>
+          </template>
         </div>
         <div class="generate-btn">
-          <el-button @click="generate" :loading="!!loading">
+          <el-button @click="generate_by_file" :loading="!!loading">
             <i class="el-icon-bianjiqi btn-icon" v-if="!loading"></i>
             {{ !!loading ? '克隆中...' : '语音克隆' }}
           </el-button>
@@ -120,7 +163,7 @@
         <div class="preview-header">
           <div class="preview-header-title">应用介绍&输入建议</div>
           <div class="preview-header-desc">
-            <div>按照格式输入文本<br>[S1]代表第一个人讲话<br>[S2]代表第二个人讲话<br>
+            <div>按照格式输入对话文案，音色选择与配音，对话音频快速制作<br>输入格式<br>[S1]代表第一个人讲话，[S2]代表第二个人讲话
             </div>
           </div>
         </div>
@@ -134,7 +177,8 @@
 
 <script>
 import {ClearCacheMixin} from "@/mixins/ClearCacheMixin";
-import {getAction} from "@/api/api";
+import {getAction, postAction} from "@/api/api";
+import axios from "axios";
 
 export default {
   name: 'DualTimbreCloning',
@@ -147,15 +191,19 @@ export default {
                 '[S2]那咱先从基础的来，用 AI 生成 PPT 内容。你知道不，现在有个叫智谱「AutoGLM 沉思」的，超厉害，能自动检索信息生成报告，做 PPT 素材啥的肯定不在话下，关键还免费！\n' +
                 '[S1]真的假的？这么宝藏！今晚你可得手把手教我，我怕我这‘科技小白’搞不定。\n' +
                 '[S2]行嘞，现在咱就上网搜搜免费教程。还有个 DeepSider 浏览器插件也不错，里面集成了好多热门 AI 模型，说不定也能用来辅助做 PPT，先体验体验，要是上手了，以后做 PPT 就跟玩似的！',
+      voice_from: 0,
       mode1: 'common',
       timbreInfo1: {},
       mode2: 'common',
       timbreInfo2: {},
+      audio1: {},
+      audio2: {},
       voices: [],
       minimax_voices: [],
       audio: null,
       audioIndex: null,
       resultImg: './chest/dualTimbreCloning.png',
+      resultList: [],
       loading: false,
     }
   },
@@ -187,6 +235,18 @@ export default {
       }).catch((error) => {
         console.error("获取高级声音列表失败:", error);
       });
+    },
+    handleAudio1Change(file, fileList) {
+      this.audio1 = file
+    },
+    audio1Delete() {
+      this.audio1 = null;
+    },
+    handleAudio2Change(file, fileList) {
+      this.audio2 = file
+    },
+    audio2Delete() {
+      this.audio2 = null;
     },
     saveMode(mode, num) {
       if (this['mode' + num] === mode) {
@@ -230,7 +290,72 @@ export default {
       }
     },
     generate() {
+      if (!this.copyText) {
+        this.$alert('请输入对话内容后重试', '提示')
+        return
+      }
+      this.loading = true
 
+      let params = {
+        text: this.copyText,
+        voice1_id: this.timbreInfo1.id,
+        voice2_id: this.timbreInfo2.id,
+      }
+      postAction('/running_hub/megatts3_dual_voice', params, 1800000).then(res => {
+        if (res.data.status === 'success') {
+          this.resultList = res.data.data.audio_path
+          this.loading = false
+        } else {
+          this.loading = false
+          this.$alert(`双人语音克隆失败，${res.data.message}`, '提示')
+        }
+      }).catch(err => {
+        this.loading = false
+        this.$alert(`双人语音克隆错误，${err}`, '提示')
+      })
+    },
+    generate_by_file() {
+      if (this.voice_from === 1) {
+        this.$alert('待完善，请先使用音频上传模式', '提示')
+        return;
+      }
+      if (!this.copyText) {
+        this.$alert('请输入对话内容后重试', '提示')
+        return
+      }
+      if (!this.audio1.uid) {
+        this.$alert('请上传音频1后重试', '提示')
+        return
+      }
+      if (!this.audio2.uid) {
+        this.$alert('请上传音频2后重试', '提示')
+        return
+      }
+      this.loading = true
+
+      const formData = new FormData();
+      formData.append("text", this.copyText);
+      formData.append("audio1_file", this.audio1.raw);
+      formData.append("audio2_file", this.audio2.raw);
+      formData.append('user_id', sessionStorage.getItem('token'));
+
+      axios.post("http://127.0.0.1:6006/running_hub/megatts3_dual_voice", formData,{
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+        timeout: 1800000
+      }).then(res => {
+        if (res.data.status === 'success') {
+          this.resultList = res.data.data.audio_path
+          this.loading = false
+        } else {
+          this.loading = false
+          this.$alert(`生成失败，${res.data.message}`, '提示')
+        }
+      }).catch(err => {
+        this.loading = false
+        this.$alert(`生成错误，${err}`, '提示')
+      })
     },
     back() {
       this.clearCache()
@@ -449,6 +574,44 @@ export default {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  cursor: pointer;
+}
+
+.uploader >>> .el-upload {
+  border: 1px dashed #d9d9d9;
+  border-radius: 6px;
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+}
+
+.uploader >>> .el-upload:hover {
+  border-color: #409EFF;
+}
+
+.uploader-icon {
+  font-size: 28px;
+  color: #8c939d;
+  width: 108px;
+  height: 108px;
+  line-height: 108px;
+  text-align: center;
+}
+
+.placeholder-image {
+  height: 108px;
+  width: 108px;
+  display: block;
+}
+
+.placeholder-image-delete-icon {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  padding: 4px;
+  background-color: #232a2e80;
+  color: #fff;
+  border-radius: 3px;
   cursor: pointer;
 }
 </style>

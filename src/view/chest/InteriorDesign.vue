@@ -108,6 +108,7 @@
 
 <script>
 import {ClearCacheMixin} from "@/mixins/ClearCacheMixin";
+import axios from "axios";
 
 export default {
   name: 'InteriorDesign',
@@ -179,7 +180,41 @@ export default {
       this.referenceFile = null;
     },
     generate() {
+      if (!this.suFile.uid) {
+        this.$alert('请上传SU图片后重试', '提示')
+        return
+      }
+      if (!this.referenceFile.uid) {
+        this.$alert('请上传参考图片后重试', '提示')
+        return
+      }
+      this.loading = true
 
+      const formData = new FormData();
+      formData.append("su_image_file", this.suFile.raw);
+      formData.append("ref_image_file", this.referenceFile.raw);
+      formData.append("style_transfer_mode", this.styleTransfer);
+      formData.append("prompt", this.promptInput);
+      formData.append("effect_mode", this.effect);
+      formData.append('user_id', sessionStorage.getItem('token'));
+
+      axios.post("http://127.0.0.1:6006/running_hub/su_interior_design_v2", formData,{
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+        timeout: 1800000
+      }).then(res => {
+        if (res.data.status === 'success') {
+          this.resultList = res.data.data.image_paths
+          this.loading = false
+        } else {
+          this.loading = false
+          this.$alert(`生成失败，${res.data.message}`, '提示')
+        }
+      }).catch(err => {
+        this.loading = false
+        this.$alert(`生成错误，${err}`, '提示')
+      })
     },
     back() {
       this.clearCache()
