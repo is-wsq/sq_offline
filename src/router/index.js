@@ -45,7 +45,6 @@ import Hot from '../view/video/hot.vue';
 import VideoList from '../view/video/list.vue';
 // 设置
 import System from '../view/system/index.vue';
-import VideoPlayer from "../view/system/videoPlayer.vue";
 // 品牌店铺
 import ShopManagement from '../view/shop/index.vue';
 
@@ -312,10 +311,6 @@ const routes = [
         meta: {
             title: '设置'
         }
-    },{
-        path: '/videoPlayer',
-        name: 'VideoPlayer',
-        component: VideoPlayer
     },{
         path: '/shop',
         name: 'shop',

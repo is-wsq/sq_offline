@@ -180,14 +180,14 @@
         <div class="total-score-card">
           <div class="total-score-header">
             <div class="left-title">素材质量评估结果</div>
-            <div class="right-score-box">{{ video_score.total }}&nbsp;/&nbsp;30</div>
+            <div class="right-score-box">{{ video_score_details.total }}&nbsp;/&nbsp;30</div>
           </div>
         </div>
 
         <div class="detail-score-card">
           <el-collapse v-model="activeCollapseNames" accordion>
             <el-collapse-item
-                v-for="(dimension, dimIndex) in video_score.dimensionality"
+                v-for="(dimension, dimIndex) in video_score_details.dimensionality"
                 :key="dimIndex"
                 :title="`${dimension.name}（${dimension.score}分）`"
                 :name="dimIndex.toString()"
@@ -382,6 +382,7 @@ export default {
       detailDialogVisible: false,
       detail_content: '',
       video_score: {},
+      video_score_details: {},
 
       // 框选相关状态
       isSelecting: false,
@@ -815,6 +816,7 @@ export default {
       this.detailDialogVisible = true;
       this.detail_content = this.selectedItem.material_summary;
       this.video_score = this.selectedItem.video_score || {};
+      this.video_score_details = this.video_score.details || {};
     },
     addImage(item) {
       this.readonly = true

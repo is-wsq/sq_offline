@@ -74,7 +74,7 @@
 
 <script>
 export default {
-  name: "PageGenerateVideo",
+  name: "Home",
   data() {
     return {};
   },
