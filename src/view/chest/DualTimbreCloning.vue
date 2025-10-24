@@ -153,7 +153,7 @@
           </template>
         </div>
         <div class="generate-btn">
-          <el-button @click="generate_by_file" :loading="!!loading">
+          <el-button @click="generate" :loading="!!loading">
             <i class="el-icon-bianjiqi btn-icon" v-if="!loading"></i>
             {{ !!loading ? '克隆中...' : '语音克隆' }}
           </el-button>
@@ -168,7 +168,8 @@
           </div>
         </div>
         <div class="preview-body">
-          <el-image :src="resultImg" class="preview-image" fit="contain"></el-image>
+          <audio v-if="resultAudio" controls style="width: 100%" :src="resultAudio"></audio>
+          <el-image v-else :src="resultImg" class="preview-image" fit="contain"></el-image>
         </div>
       </div>
     </div>
@@ -203,6 +204,7 @@ export default {
       audio: null,
       audioIndex: null,
       resultImg: './chest/dualTimbreCloning.png',
+      resultAudio: '',
       resultList: [],
       loading: false,
     }
@@ -290,35 +292,13 @@ export default {
       }
     },
     generate() {
-      if (!this.copyText) {
-        this.$alert('请输入对话内容后重试', '提示')
-        return
+      if (this.voice_from === 0) {
+        this.generate_by_file()
+      } else {
+        this.generate_by_timbre()
       }
-      this.loading = true
-
-      let params = {
-        text: this.copyText,
-        voice1_id: this.timbreInfo1.id,
-        voice2_id: this.timbreInfo2.id,
-      }
-      postAction('/running_hub/megatts3_dual_voice', params, 1800000).then(res => {
-        if (res.data.status === 'success') {
-          this.resultList = res.data.data.audio_path
-          this.loading = false
-        } else {
-          this.loading = false
-          this.$alert(`双人语音克隆失败，${res.data.message}`, '提示')
-        }
-      }).catch(err => {
-        this.loading = false
-        this.$alert(`双人语音克隆错误，${err}`, '提示')
-      })
     },
     generate_by_file() {
-      if (this.voice_from === 1) {
-        this.$alert('待完善，请先使用音频上传模式', '提示')
-        return;
-      }
       if (!this.copyText) {
         this.$alert('请输入对话内容后重试', '提示')
         return
@@ -346,7 +326,7 @@ export default {
         timeout: 1800000
       }).then(res => {
         if (res.data.status === 'success') {
-          this.resultList = res.data.data.audio_path
+          this.resultAudio = res.data.data.audio_path[0] || ''
           this.loading = false
         } else {
           this.loading = false
@@ -355,6 +335,31 @@ export default {
       }).catch(err => {
         this.loading = false
         this.$alert(`生成错误，${err}`, '提示')
+      })
+    },
+    generate_by_timbre() {
+      if (!this.copyText) {
+        this.$alert('请输入对话内容后重试', '提示')
+        return
+      }
+      this.loading = true
+
+      let params = {
+        text: this.copyText,
+        timbre1_id: this.timbreInfo1.voice_id,
+        timbre2_id: this.timbreInfo2.voice_id,
+      }
+      postAction('/running_hub/megatts3_dual_voice_by_timbre', params, 1800000).then(res => {
+        if (res.data.status === 'success') {
+          this.resultAudio = res.data.data.audio_path[0] || ''
+          this.loading = false
+        } else {
+          this.loading = false
+          this.$alert(`双人语音克隆失败，${res.data.message}`, '提示')
+        }
+      }).catch(err => {
+        this.loading = false
+        this.$alert(`双人语音克隆错误，${err}`, '提示')
       })
     },
     back() {

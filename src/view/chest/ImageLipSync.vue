@@ -117,7 +117,7 @@
           </div>
         </div>
         <div class="generate-btn">
-          <el-button @click="generate" :loading="!!loading" :disabled="!imageFile || !voiceFile">
+          <el-button @click="generate" :loading="!!loading">
             <i class="el-icon-bianjiqi btn-icon" v-if="!loading"></i>
             {{ !!loading ? '视频生成中...' : '生成视频' }}
           </el-button>
@@ -290,6 +290,13 @@ export default {
       this.voiceFile = null;
     },
     generate() {
+      if (this.voice_from === 0) {
+        this.generateByUpload()
+      } else {
+        this.generateByTimbre()
+      }
+    },
+    generateByUpload() {
       if (!this.imageFile.uid) {
         this.$alert('请上传图片后重试', '提示')
         return
@@ -308,6 +315,45 @@ export default {
       formData.append('user_id', sessionStorage.getItem('token'));
 
       axios.post("http://127.0.0.1:6006/running_hub/photo_lip_sync", formData,{
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+        timeout: 1800000
+      }).then(res => {
+        if (res.data.status === 'success') {
+          this.activeIndex = 0
+          this.resultList = res.data.data.video_path.map(item => item.video_url)
+          this.loading = false
+        } else {
+          this.loading = false
+          this.$alert(`生成失败，${res.data.message}`, '提示')
+        }
+      }).catch(err => {
+        this.loading = false
+        this.$alert(`生成错误，${err}`, '提示')
+      })
+    },
+    generateByTimbre() {
+      if (!this.imageFile.uid) {
+        this.$alert('请上传图片后重试', '提示')
+        return
+      }
+      if (!this.copywriting) {
+        this.$alert('请输入文案后重试', '提示')
+        return
+      }
+      this.loading = true
+
+      const formData = new FormData();
+      formData.append('image_file', this.imageFile.raw);
+      formData.append('timbre_id', this.timbreInfo.voice_id);
+      formData.append('voice_mode', this.mode);
+      formData.append('copy', this.copywriting);
+      formData.append('expand_ratio', this.movement_range);
+      formData.append('min_resolution', this.resolution_ratio);
+      formData.append('user_id', sessionStorage.getItem('token'));
+
+      axios.post("http://127.0.0.1:6006/running_hub/photo_lip_sync_by_timbre", formData,{
         headers: {
           'Content-Type': 'multipart/form-data',
         },

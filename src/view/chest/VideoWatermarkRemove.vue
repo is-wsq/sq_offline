@@ -67,7 +67,7 @@ import {ClearCacheMixin} from "@/mixins/ClearCacheMixin";
 import axios from "axios";
 
 export default {
-  name: 'LogoRemove',
+  name: 'VideoWatermarkRemove',
   mixins: [ClearCacheMixin],
   data() {
     return {
