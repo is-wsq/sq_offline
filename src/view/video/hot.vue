@@ -295,10 +295,9 @@
 </template>
 
 <script>
-import {delAction, getAction, postAction} from "@/api/api";
+import {delAction, filePostAction, getAction, postAction} from "@/api/api";
 import {marked} from "marked";
 import {mapGetters} from "vuex";
-import axios from "axios";
 
 export default {
   data() {
@@ -544,13 +543,8 @@ export default {
       formData.append('withAsr', this.withAsr);
       formData.append('category', this.classify);
       formData.append('tag', this.uploadTag);
-      formData.append('user_id', sessionStorage.getItem('token'));
 
-      axios.post("http://127.0.0.1:6006/figure/add_hot_video", formData,{
-        headers: {
-          'Content-Type': 'multipart/form-data',
-        },
-      }).then((res) => {
+      filePostAction("/figure/add_hot_video", formData,1800000).then((res) => {
         if (res.data.status === "success") {
           this.loading = false
           this.$store.dispatch("generate/pollFigureTasks");

@@ -95,8 +95,8 @@
 
 <script>
 import {fabric} from "fabric";
-import axios from "axios";
 import {ClearCacheMixin} from "@/mixins/ClearCacheMixin";
+import {filePostAction} from "@/api/api";
 
 export default {
   name: 'ReWriting',
@@ -195,13 +195,8 @@ export default {
       const formData = new FormData();
       formData.append("white_image_file", this.productFile.raw)
       formData.append("black_image_file", blob)
-      formData.append('user_id', sessionStorage.getItem('token'));
 
-      axios.post("http://127.0.0.1:6006/running_hub/generate_all_rewrite_picture_workflow", formData, {
-        headers: {
-          'Content-Type': 'multipart/form-data',
-        },
-      }).then(res => {
+      filePostAction("/running_hub/generate_all_rewrite_picture_workflow", formData, 1800000).then(res => {
         if (res.data.status === "success") {
           this.resultImg = res.data.data.image_path;
           this.$message.success('洗稿成功');

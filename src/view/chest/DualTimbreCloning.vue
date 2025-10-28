@@ -178,8 +178,7 @@
 
 <script>
 import {ClearCacheMixin} from "@/mixins/ClearCacheMixin";
-import {getAction, postAction} from "@/api/api";
-import axios from "axios";
+import {filePostAction, getAction, postAction} from "@/api/api";
 
 export default {
   name: 'DualTimbreCloning',
@@ -317,14 +316,8 @@ export default {
       formData.append("text", this.copyText);
       formData.append("audio1_file", this.audio1.raw);
       formData.append("audio2_file", this.audio2.raw);
-      formData.append('user_id', sessionStorage.getItem('token'));
 
-      axios.post("http://127.0.0.1:6006/running_hub/megatts3_dual_voice", formData,{
-        headers: {
-          'Content-Type': 'multipart/form-data',
-        },
-        timeout: 1800000
-      }).then(res => {
+      filePostAction("/running_hub/megatts3_dual_voice", formData,1800000).then(res => {
         if (res.data.status === 'success') {
           this.resultAudio = res.data.data.audio_path[0] || ''
           this.loading = false

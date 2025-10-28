@@ -183,8 +183,8 @@
 </template>
 
 <script>
-import axios from "axios";
 import {ClearCacheMixin} from "@/mixins/ClearCacheMixin";
+import {postAction} from "@/api/api";
 export default {
   name: 'Duplicate',
   mixins: [ClearCacheMixin],
@@ -301,10 +301,9 @@ export default {
         scripts: this.lastGenerateScripts,
         duration: this.exampleTexts ? null : parseInt(this.video_time),
         voice_id: this.voice.id,
-        user_id: sessionStorage.getItem('token')
       }
       this.chat_input = ''
-      axios.post('http://127.0.0.1:6006/api/re_generate_script', params).then(res => {
+      postAction('/api/re_generate_script', params).then(res => {
         if (res.data.status === "success") {
           this.isGenerating = false
           this.lastGenerateScripts = res.data.data.scripts
@@ -437,7 +436,7 @@ export default {
       });
       this.isGenerating = true
       this.$nextTick(() => { this.scrollToBottom() })
-      let url = this.exampleTexts ? 'http://127.0.0.1:6006/api/generate_script' : 'http://127.0.0.1:6006/api/generate_script_by_duration'
+      let url = this.exampleTexts ? '/api/generate_script' : '/api/generate_script_by_duration'
       let params = {}
       if (this.exampleTexts) {
         let examples = []
@@ -449,7 +448,6 @@ export default {
           num_of_words: parseInt(this.copy_num),
           script_count: parseInt(this.script_num),
           store_id: this.mention_list[0].store_id,
-          user_id: sessionStorage.getItem('token')
         }
       }else {
         params = {
@@ -459,10 +457,9 @@ export default {
           voice_id: this.voice.id,
           script_count: parseInt(this.script_num),
           store_id: this.mention_list[0].store_id,
-          user_id: sessionStorage.getItem('token')
         }
       }
-      axios.post(url, params).then(res => {
+      postAction(url, params).then(res => {
         if (res.data.status === "success") {
           this.isGenerating = false
           this.lastGenerateScripts = res.data.data

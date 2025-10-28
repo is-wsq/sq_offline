@@ -153,10 +153,10 @@
 </template>
 
 <script>
-import axios from "axios";
 import {IPaginationMixin} from "@/mixins/IPaginationMixin";
 import {marked} from "marked";
 import {AgreementMixin} from "@/mixins/AgreementMixin";
+import {getAction, postAction} from "@/api/api";
 
 export default {
   name: 'system',
@@ -218,9 +218,8 @@ export default {
     getInfo(payer_total) {
       let params = {
         add_total: payer_total? payer_total * 10 : 0,
-        user_id: sessionStorage.getItem('token')
       }
-      axios.get("http://127.0.0.1:9669/get_remaining_tokens", {params: params}).then((res) => {
+      getAction("/get_remaining_tokens", {params: params}, 60000, 9669).then((res) => {
         if (res.data.status === 'success') {
           this.info = res.data.data
           const remainingTokensRatio = this.info.remaining_tokens / this.info.total_tokens;
@@ -242,9 +241,8 @@ export default {
       let params = {
         pageSize: this.iPagination.pageSize,
         currentPage: this.iPagination.currentPage,
-        user_id: sessionStorage.getItem('token')
       }
-      axios.get('http://127.0.0.1:9669/get_api_call_log',{ params: params }).then(res => {
+      getAction('/get_api_call_log',{ params: params }, 60000, 9669).then(res => {
         if (res.data.status === 'success') {
           this.bills = res.data.data.api_call_log_list || []
           this.iPagination.total = res.data.data.total || 0
@@ -280,9 +278,8 @@ export default {
       let params = {
         amount: this.rechargeForm.amount,
         type: this.rechargeForm.paymentMethod,
-        user_id: sessionStorage.getItem('token')
       }
-      axios.post('http://127.0.0.1:9669/recharge_balance',params).then(res => {
+      postAction('/recharge_balance', params, 60000, 9669).then(res => {
         if (res.data.status === 'success') {
           this.codeInfo = res.data.data
           this.qr_loading = false
@@ -304,9 +301,8 @@ export default {
     queryQrCodeStatus() {
       let params = {
         payment_id: this.codeInfo.payment_id,
-        user_id: sessionStorage.getItem('token')
       }
-      axios.post('http://127.0.0.1:9669/query_recharge_status',params).then(res => {
+      postAction('/query_recharge_status', params, 60000, 9669).then(res => {
         if (res.data.status === 'success') {
           let status = res.data.data.trade_state
           switch (status) {

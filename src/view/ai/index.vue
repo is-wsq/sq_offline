@@ -59,7 +59,6 @@
 
 <script>
 import {getAction, postAction} from "@/api/api";
-import axios from "axios";
 
 export default {
   data() {
@@ -71,7 +70,6 @@ export default {
       modelOpen: false,
       loading: false,
       guideVisible: false,
-      user_id: sessionStorage.getItem('token') || '',
     };
   },
   async mounted() {
@@ -95,7 +93,7 @@ export default {
       }
     },
     async queryServiceStatus() {
-      return axios.get("http://127.0.0.1:11434/api/ps", {params: {user_id: this.user_id}}).then((res) => {
+      return getAction("/api/ps", {}, 60000, 11434).then((res) => {
         return res.data.models.length > 0;
       }).catch((err) => {
         return false;
@@ -123,7 +121,6 @@ export default {
       let params = {
         model: this.model,
         keep_alive: -1,
-        user_id: this.user_id,
       };
       this.loading = this.$loading({
         lock: true,
@@ -141,7 +138,7 @@ export default {
             this.$message.success("模型加载成功");
             return
           }
-          axios.post("http://127.0.0.1:11434/api/generate", params).then((result) => {
+          postAction("/api/generate", params, 60000, 11434).then((result) => {
             if (result.data.done) {
               this.modelOpen = true;
               this.$message.success("模型加载成功");
@@ -170,16 +167,15 @@ export default {
         this.$alert(err,'模型加载错误');
       });
     },
-    stopService() {
-      axios.get("http://127.0.0.1:11434/api/ps", {params: {user_id: this.user_id}}).then((res) => {
+     stopService() {
+      getAction("/api/ps", {}, 60000, 11434).then((res) => {
         if (res.data.models.length > 0) {
           let params = {
             model: res.data.models[0].model,
             keep_alive: 0,
-            user_id: this.user_id,
           };
           this.modelOpen = true
-          axios.post("http://127.0.0.1:11434/api/generate", params).then((res) => {
+          postAction("/api/generate", params, 60000, 11434).then((res) => {
             if (res.data.done) {
               this.modelOpen = false;
               this.$message.success("模型卸载成功");

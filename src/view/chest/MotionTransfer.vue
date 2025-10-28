@@ -95,7 +95,7 @@
 
 <script>
 import {ClearCacheMixin} from "@/mixins/ClearCacheMixin";
-import axios from "axios";
+import {filePostAction} from "@/api/api";
 
 export default {
   name: 'MotionTransfer',
@@ -187,14 +187,8 @@ export default {
       formData.append('fps', this.fps);
       formData.append('prompt', this.promptInput);
       formData.append('long_side_size', this.long_size);
-      formData.append('user_id', sessionStorage.getItem('token'));
 
-      axios.post("http://127.0.0.1:6006/running_hub/action_transfer_portrait", formData,{
-        headers: {
-          'Content-Type': 'multipart/form-data',
-        },
-        timeout: 1800000
-      }).then(res => {
+      filePostAction("/running_hub/action_transfer_portrait", formData,1800000).then(res => {
         if (res.data.status === 'success') {
           this.activeIndex = 0
           this.result_list = res.data.data.map(item => item.video_url)

@@ -341,10 +341,9 @@
 
 <script>
 import {RightMenuMixin} from "@/mixins/RightMenuMixin";
-import {delAction, getAction, postAction} from "@/api/api";
+import {delAction, filePostAction, getAction, postAction} from "@/api/api";
 import {mapGetters} from "vuex";
 import {marked} from "marked";
-import axios from "axios";
 
 export default {
   name: "figures",
@@ -705,14 +704,9 @@ export default {
       }
       formData.append('store_id', this.uploadData.store_id);
       formData.append('lip_sync', true);
-      formData.append('user_id', sessionStorage.getItem('token'));
 
       this.loading = true
-      axios.post("http://127.0.0.1:6006/figure/clone_only", formData,{
-        headers: {
-          'Content-Type': 'multipart/form-data',
-        },
-      }).then((res) => {
+      filePostAction("/figure/clone_only", formData,1800000).then((res) => {
         if (res.data.status === "success") {
           this.loading = false
           this.$store.dispatch("generate/pollFigureTasks");
@@ -927,13 +921,9 @@ export default {
       });
       formData.append('group_name', this.uploadImageData.name);
       formData.append('store_id', this.uploadImageData.store_id);
-      formData.append('user_id', sessionStorage.getItem('token'));
+
       this.loading = true
-      axios.post("http://127.0.0.1:6006/picture/upload", formData,{
-        headers: {
-          'Content-Type': 'multipart/form-data',
-        },
-      }).then((res) => {
+      filePostAction("http://127.0.0.1:6006/picture/upload", formData,1800000).then((res) => {
         if (res.data.status === "success") {
           this.loading = false
           this.$message.success("上传成功");

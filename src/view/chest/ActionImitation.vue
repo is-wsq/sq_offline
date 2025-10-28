@@ -90,7 +90,7 @@
 
 <script>
 import {ClearCacheMixin} from "@/mixins/ClearCacheMixin";
-import axios from "axios";
+import {filePostAction} from "@/api/api";
 
 export default {
   name: 'ActionImitation',
@@ -174,14 +174,8 @@ export default {
       formData.append("original_image_file", this.originalFile.raw);
       formData.append('pose_image_file', this.imitationFile.raw);
       formData.append('max_resolution', this.resolutionRatio);
-      formData.append('user_id', sessionStorage.getItem('token'));
 
-      axios.post("http://127.0.0.1:6006/running_hub/imitate_person_pose", formData,{
-        headers: {
-          'Content-Type': 'multipart/form-data',
-        },
-        timeout: 1800000
-      }).then(res => {
+      filePostAction('/running_hub/imitate_person_pose', formData, 1800000).then(res => {
         if (res.data.status === 'success') {
           this.activeIndex = 0
           this.resultList = res.data.data.image_paths

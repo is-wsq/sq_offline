@@ -41,7 +41,7 @@
 </template>
 
 <script>
-import axios from "axios";
+import {getAction} from "@/api/api";
 
 export default {
   components: {},
@@ -91,7 +91,7 @@ export default {
       });
     },
     async queryServiceStatus() {
-      return axios.get("http://127.0.0.1:11434/api/ps", { params: { user_id: sessionStorage.getItem('token') } }).then((res) => {
+      return getAction("/api/ps", {}, 60000, 11434).then((res) => {
         return res.data.models.length > 0;
       }).catch((err) => {
         return false;

@@ -1,16 +1,17 @@
 import axios from 'axios';
 
 // 创建一个 Axios 实例
-const baseURL = 'http://127.0.0.1:6006';
+const baseURL = 'http://127.0.0.1';
 // const baseURL = 'http://192.168.1.25:6006';
 // const baseURL = 'http://120.86.188.249:6006';
 
-const defaultTimeout = 60000 //设置默认超时时间
+const default_port = 6006;
+const default_timeout = 60000
 
-const createInstance = (timeout = defaultTimeout) => {
+const createInstance = (timeout, port) => {
     return axios.create({
-        baseURL: baseURL, // 设置你的基础 URL
-        timeout: timeout, // 设置请求超时
+        baseURL: baseURL + ':' + port,
+        timeout: timeout,
         headers: {'Content-Type': 'application/json'}
     })
 }
@@ -44,29 +45,89 @@ instance.interceptors.response.use(
     }
 );
 
-const getAction = (url, params = {}, timeout = defaultTimeout) => {
-    instance = createInstance(timeout);
-    params.user_id = sessionStorage.getItem('token');
-    return instance.get(url, {params});
-};
+const getAction =
+    (
+        url,
+        params = {},
+        timeout = default_timeout,
+        port = default_port
+    ) => {
+        instance = createInstance(timeout, port);
+        params.user_id = sessionStorage.getItem('token');
+        return instance.get(
+            url,
+            {params}
+        );
+    };
 
-const postAction = (url, data = {}, timeout = defaultTimeout) => {
-    instance = createInstance(timeout);
-    data.user_id = sessionStorage.getItem('token');
-    return instance.post(url, data);
-};
+const postAction =
+    (
+        url,
+        data = {},
+        timeout = default_timeout,
+        port = default_port
+    ) => {
+        instance = createInstance(timeout, port);
+        data.user_id = sessionStorage.getItem('token');
+        return instance.post(
+            url,
+            data
+        );
+    };
 
-const putAction = (url, data = {}, timeout = defaultTimeout) => {
-    instance = createInstance(timeout);
-    data.user_id = sessionStorage.getItem('token');
-    return instance.put(url, data);
-};
+const putAction =
+    (
+        url,
+        data = {},
+        timeout = default_timeout,
+        port = default_port
+    ) => {
+        instance = createInstance(timeout, port);
+        data.user_id = sessionStorage.getItem('token');
+        return instance.put(
+            url,
+            data
+        );
+    };
 
-const delAction = (url, params = {}, timeout = defaultTimeout) => {
-    instance = createInstance(timeout);
-    params.user_id = sessionStorage.getItem('token');
-    return instance.delete(url, {params});
-};
+const delAction =
+    (
+        url,
+        params = {},
+        timeout = default_timeout,
+        port = default_port
+    ) => {
+        instance = createInstance(timeout, port);
+        params.user_id = sessionStorage.getItem('token');
+        return instance.delete(
+            url,
+            {params}
+        );
+    };
 
-// 导出所有请求方法
-export {getAction, postAction, putAction, delAction};
+const filePostAction =
+    (
+        url,
+        formData,
+        timeout = default_timeout,
+        port = default_port
+    ) => {
+        instance = createInstance(timeout, port);
+        formData.append('user_id', sessionStorage.getItem('token'));
+        return instance.post(
+            url,
+            formData,
+            {
+                headers:
+                    {'Content-Type': 'multipart/form-data'}
+            }
+        );
+    };
+
+export {
+    getAction,
+    postAction,
+    putAction,
+    delAction,
+    filePostAction
+};

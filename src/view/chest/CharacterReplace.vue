@@ -79,7 +79,7 @@
 
 <script>
 import {ClearCacheMixin} from "@/mixins/ClearCacheMixin";
-import axios from "axios";
+import {filePostAction} from "@/api/api";
 
 export default {
   name: 'CharacterReplace',
@@ -165,14 +165,8 @@ export default {
       formData.append('image_file', this.imageFile.raw);
       formData.append('video_duration', this.duration);
       formData.append('prompt', this.promptInput);
-      formData.append('user_id', sessionStorage.getItem('token'));
 
-      axios.post("http://127.0.0.1:6006/running_hub/replace_video_person_workflow", formData,{
-        headers: {
-          'Content-Type': 'multipart/form-data',
-        },
-        timeout: 1800000
-      }).then(res => {
+      filePostAction("/running_hub/replace_video_person_workflow", formData,1800000).then(res => {
         if (res.data.status === 'success') {
           this.result_video = res.data.data.video_path
           this.loading = false

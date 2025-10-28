@@ -108,7 +108,7 @@
 
 <script>
 import {ClearCacheMixin} from "@/mixins/ClearCacheMixin";
-import axios from "axios";
+import {filePostAction} from "@/api/api";
 
 export default {
   name: 'InteriorDesign',
@@ -196,14 +196,8 @@ export default {
       formData.append("style_transfer_mode", this.styleTransfer);
       formData.append("prompt", this.promptInput);
       formData.append("effect_mode", this.effect);
-      formData.append('user_id', sessionStorage.getItem('token'));
 
-      axios.post("http://127.0.0.1:6006/running_hub/su_interior_design_v2", formData,{
-        headers: {
-          'Content-Type': 'multipart/form-data',
-        },
-        timeout: 1800000
-      }).then(res => {
+      filePostAction("/running_hub/su_interior_design_v2", formData,1800000).then(res => {
         if (res.data.status === 'success') {
           this.resultList = res.data.data.image_paths
           this.loading = false

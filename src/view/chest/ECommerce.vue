@@ -103,8 +103,7 @@
 </template>
 
 <script>
-import {getAction, postAction} from "@/api/api";
-import axios from "axios";
+import {filePostAction, getAction, postAction} from "@/api/api";
 import {ClearCacheMixin} from "@/mixins/ClearCacheMixin";
 
 export default {
@@ -249,14 +248,8 @@ export default {
       formData.append('voice_mode', this.mode);
       formData.append('copy', this.copywriting);
       formData.append('prompt', this.promptInput);
-      formData.append('user_id', sessionStorage.getItem('token'));
 
-      axios.post("http://127.0.0.1:6006/running_hub/e_ommerce", formData,{
-        headers: {
-          'Content-Type': 'multipart/form-data',
-        },
-        timeout: 1800000
-      }).then(res => {
+      filePostAction("/running_hub/e_ommerce", formData,1800000).then(res => {
         if (res.data.status === 'success') {
           this.videoUrl = res.data.data.video_path
           this.loading = false

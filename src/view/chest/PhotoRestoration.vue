@@ -73,7 +73,7 @@
 
 <script>
 import {ClearCacheMixin} from "@/mixins/ClearCacheMixin";
-import axios from "axios";
+import {filePostAction} from "@/api/api";
 
 export default {
   name: 'PhotoRestoration',
@@ -139,14 +139,8 @@ export default {
       const formData = new FormData();
       formData.append("image_file", this.imageFile.raw);
       formData.append("instruction", this.promptInput);
-      formData.append('user_id', sessionStorage.getItem('token'));
 
-      axios.post("http://127.0.0.1:6006/running_hub/flux_kontex_old_photo_restoration", formData,{
-        headers: {
-          'Content-Type': 'multipart/form-data',
-        },
-        timeout: 1800000
-      }).then(res => {
+      filePostAction("/running_hub/flux_kontex_old_photo_restoration", formData,1800000).then(res => {
         if (res.data.status === 'success') {
           this.resultList = res.data.data.image_paths
           this.loading = false

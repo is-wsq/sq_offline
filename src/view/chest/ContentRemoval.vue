@@ -102,8 +102,8 @@
 
 <script>
 import {ClearCacheMixin} from "@/mixins/ClearCacheMixin";
-import axios from "axios";
 import {fabric} from "fabric";
+import {filePostAction} from "@/api/api";
 
 export default {
   name: 'ContentRemoval',
@@ -368,14 +368,8 @@ export default {
 
       const formData = new FormData();
       formData.append('image_file', this.imageFile.raw);
-      formData.append('user_id', sessionStorage.getItem('token'));
 
-      axios.post("http://127.0.0.1:6006/running_hub/image_content_removal", formData,{
-        headers: {
-          'Content-Type': 'multipart/form-data',
-        },
-        timeout: 1800000
-      }).then(res => {
+      filePostAction("/running_hub/image_content_removal", formData,1800000).then(res => {
         if (res.data.status === 'success') {
           this.activeIndex = 0
           this.resultList = res.data.data.image_path

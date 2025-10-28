@@ -70,7 +70,7 @@
 
 <script>
 import {ClearCacheMixin} from "@/mixins/ClearCacheMixin";
-import axios from "axios";
+import {filePostAction} from "@/api/api";
 
 export default {
   name: 'ImageWatermarkRemove',
@@ -134,14 +134,8 @@ export default {
 
       const formData = new FormData();
       formData.append("image_file", this.imageFile.raw);
-      formData.append('user_id', sessionStorage.getItem('token'));
 
-      axios.post("http://127.0.0.1:6006/running_hub/fast_image_watermark_removal", formData,{
-        headers: {
-          'Content-Type': 'multipart/form-data',
-        },
-        timeout: 1800000
-      }).then(res => {
+      filePostAction("/running_hub/fast_image_watermark_removal", formData,1800000).then(res => {
         if (res.data.status === 'success') {
           this.resultList = res.data.data.image_paths
           this.loading = false

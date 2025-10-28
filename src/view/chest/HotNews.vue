@@ -242,7 +242,6 @@
 </template>
 
 <script>
-import axios from "axios";
 import {marked} from "marked";
 import {getAction, postAction} from "@/api/api";
 import {ClearCacheMixin} from "@/mixins/ClearCacheMixin";
@@ -263,15 +262,6 @@ export default {
       copy_history: [],
       dialogVisible: false,
       select_history_copy: null,
-      urls: {
-        get_hot_news: "http://127.0.0.1:5008/news/rank",
-        get_styles: "http://127.0.0.1:5008/copywriting/styles/query/all",
-        extract_product_info: 'http://127.0.0.1:5008/extract_product_info',
-        generate: 'http://127.0.0.1:5008/copywriting/voice',
-        search_news: 'http://127.0.0.1:5008/news/online_search',
-        get_search_history: 'http://127.0.0.1:5008/news/query/user',
-        get_copy_history: 'http://127.0.0.1:5008/copywriting_history/query',
-      },
       script_params: {
         count: 200,
         style_id: 'default',
@@ -441,10 +431,7 @@ export default {
       });
     },
     querySearchHistory() {
-      let params = {
-        user_id: this.userId,
-      }
-      axios.get(this.urls.get_search_history, { params: params }).then(res => {
+      getAction('/news/query/user', {}, 60000, 5008).then(res => {
         if (res.data.status === 'success') {
           this.search_history = res.data.data
         } else {
@@ -457,10 +444,9 @@ export default {
     },
     queryCopyHistory() {
       let params = {
-        user_id: this.userId,
         news_id: this.hot_news_info.id
       }
-      axios.get(this.urls.get_copy_history, {params: params}).then(res => {
+      getAction('/copywriting_history/query', {params: params}, 60000, 5008).then(res => {
         if (res.data.status === 'success') {
           this.copy_history = res.data.data
         } else {
@@ -479,10 +465,9 @@ export default {
       this.resultVisible = true;
       this.search_loading = true;
       let params = {
-        user_id: this.userId,
         keyword: this.search_text
       }
-      axios.get(this.urls.search_news, { params: params, timeout: 1800000 }).then(res => {
+      getAction('/news/online_search', { params: params }, 1800000, 5008).then(res => {
         if (res.data.status === 'success') {
           this.search_loading = false;
           this.search_result = res.data.data
@@ -497,7 +482,7 @@ export default {
       })
     },
     queryHotNews() {
-      axios.get(this.urls.get_hot_news, { params: { user_id: this.userId } }).then(res => {
+      getAction('/news/rank', {}, 60000, 5008).then(res => {
         if (res.data.status === 'success') {
           this.hot_news = res.data.data
         } else {
@@ -508,7 +493,7 @@ export default {
       })
     },
     queryStyles() {
-      axios.get(this.urls.get_styles, { params: { user_id: this.userId } }).then(res => {
+      getAction('/copywriting/styles/query/all', {}, 60000, 5008).then(res => {
         if (res.data.status === 'success') {
           this.styles = res.data.data
         } else {
@@ -547,9 +532,8 @@ export default {
       }
       let params = {
         image_base64_list: this.image_base64_list,
-        user_id: this.userId,
       }
-      axios.post(this.urls.extract_product_info,params,{ timeout: 1800000 }).then(res => {
+      postAction('extract_product_info', params,1800000, 5008).then(res => {
         if (res.data.status === 'success') {
           this.$message.success('商品信息提取成功！');
           this.imageDialogVisible = false;
@@ -568,13 +552,12 @@ export default {
       }
       let params = {
         ...this.script_params,
-        user_id: this.userId,
         news_id: this.hot_news_info.id,
         news_details: this.hot_news_info.details,
       }
       this.loading = true;
       this.loading_text = '口播文案生成中...';
-      axios.post(this.urls.generate, params, {timeout: 300000}).then(res => {
+      postAction('/copywriting/voice', params, 1800000, 5008).then(res => {
         if (res.data.status === 'success') {
           this.loading = false;
           this.oral_copy = res.data.data.script

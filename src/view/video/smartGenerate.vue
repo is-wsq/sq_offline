@@ -237,7 +237,6 @@
 </template>
 
 <script>
-import axios from "axios";
 import {getAction, postAction} from "@/api/api";
 import {ClearCacheMixin} from "@/mixins/ClearCacheMixin";
 
@@ -394,10 +393,9 @@ export default {
         store_id: store_id,
         conversation_id: this.conversation_id,
         scripts: this.lastGenerateScripts,
-        user_id: sessionStorage.getItem('token')
       }
       this.chat_input = ''
-      axios.post('http://127.0.0.1:6006/api/re_generate_script', params).then(res => {
+      postAction('/api/re_generate_script', params).then(res => {
         if (res.data.status === "success") {
           this.isGenerating = false
           this.lastGenerateScripts = res.data.data.scripts
@@ -566,10 +564,10 @@ export default {
       let url = ''
       switch (this.ai_model) {
         case 'local_model':
-          url = 'http://127.0.0.1:6006/api/generate_script'
+          url = '/api/generate_script'
           break
         case 'deepseek_v3':
-          url = 'http://127.0.0.1:6006/api/generate_script'
+          url = '/api/generate_script'
           break
       }
       this.isNewChat = false
@@ -589,9 +587,8 @@ export default {
         num_of_words: parseInt(this.copy_num),
         script_count: parseInt(this.script_num),
         store_id: store_id,
-        user_id: sessionStorage.getItem('token')
       }
-      axios.post(url, params).then(res => {
+      postAction(url, params).then(res => {
         if (res.data.status === "success") {
           this.isGenerating = false
           this.lastGenerateScripts = res.data.data

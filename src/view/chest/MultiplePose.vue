@@ -74,7 +74,7 @@
 
 <script>
 import {ClearCacheMixin} from "@/mixins/ClearCacheMixin";
-import axios from "axios";
+import {filePostAction} from "@/api/api";
 
 export default {
   name: 'MultiplePose',
@@ -141,14 +141,8 @@ export default {
       const formData = new FormData();
       formData.append("person_image_file", this.imageFile.raw);
       formData.append("max_resolution", this.resolutionRatio);
-      formData.append('user_id', sessionStorage.getItem('token'));
 
-      axios.post("http://127.0.0.1:6006/running_hub/consistent_multi_pose_images", formData,{
-        headers: {
-          'Content-Type': 'multipart/form-data',
-        },
-        timeout: 1800000
-      }).then(res => {
+      filePostAction("/running_hub/consistent_multi_pose_images", formData,1800000).then(res => {
         if (res.data.status === 'success') {
           this.resultList = res.data.data.image_paths
           this.loading = false
