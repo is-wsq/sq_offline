@@ -5,6 +5,13 @@ export const ClearCacheMixin = {
         }
     },
     methods: {
+        clearSessionCache() {
+            let token = sessionStorage.getItem('token')
+            let userInfo = sessionStorage.getItem('userInfo')
+            sessionStorage.clear()
+            sessionStorage.setItem('token', token);
+            sessionStorage.setItem('userInfo', userInfo);
+        },
         clearCache() {
             console.log(this.$vnode)
             if (this.$vnode && this.$vnode.data.keepAlive) {
