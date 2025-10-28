@@ -25,13 +25,17 @@
           <i class="el-icon-logout logout-icon" @click="logout"></i>
         </div>
       </el-aside>
-      <el-main class="main" :class="{'padding0': padding0_routers.includes($route.path)}">
-        <keep-alive>
-          <router-view v-if="alive_routers.includes($route.path) || $route.path.indexOf('/chest/') !== -1"></router-view>
-        </keep-alive>
-        <router-view v-if="!alive_routers.includes($route.path) && $route.path.indexOf('/chest/') === -1"></router-view>
-<!--        <router-view></router-view>-->
-      </el-main>
+      <el-container>
+        <el-main class="main" :class="{'padding0': padding0_routers.includes($route.path)}">
+          <keep-alive>
+            <router-view v-if="alive_routers.includes($route.path) || $route.path.indexOf('/chest/') !== -1"></router-view>
+          </keep-alive>
+          <router-view v-if="!alive_routers.includes($route.path) && $route.path.indexOf('/chest/') === -1"></router-view>
+        </el-main>
+        <el-footer class="footer">
+          <div>Copyright &copy; 2024-2025&nbsp奇点未来研发院.&nbspAll Rights Reserved.&nbspICP备案号：<a target="_blank" href="https://beian.miit.gov.cn/">粤ICP备2024275330号-1</a></div>
+        </el-footer>
+      </el-container>
     </el-container>
   </div>
 </template>
@@ -283,11 +287,20 @@ export default {
 .main {
   padding: 20px;
   background-color: rgb(239, 239, 239, 1%);
-  height: 100vh;
+  height: calc(100vh - 40px);
   overflow: auto;
+  box-sizing: border-box;
 }
 
 .padding0 {
   padding: 0 !important;
+}
+
+.footer {
+  text-align: center;
+  height: 40px !important;
+  color: rgba(0, 0, 0, .45);
+  font-size: 12px;
+  margin: 0 auto;
 }
 </style>

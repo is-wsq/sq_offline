@@ -55,9 +55,6 @@
         </div>
       </div>
     </div>
-    <div class="page-footer">
-      <div class="footer-text">奇点 v0.3.0 - © 2025 奇点AI团队</div>
-    </div>
     <el-dialog class="contact-us-dialog" title="联系我们" :visible.sync="dialogVisible" width="500px">
       <div class="contact-us">
         <div style="font-size: 15px; font-weight: bold;color: #000000;margin: 10px 0;">广东省奇点未来软件研发</div>
@@ -375,7 +372,9 @@ export default {
 <style scoped>
 .system {
   width: 100%;
-  padding: 24px;
+  height: 100%;
+  overflow-y: auto;
+  padding: 24px 24px 0 24px;
   box-sizing: border-box;
 }
 

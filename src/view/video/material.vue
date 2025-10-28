@@ -40,7 +40,7 @@
                 <el-input prefix-icon="el-icon-search" placeholder="输入素材名称、标签匹配搜索" clearable
                           class="filter-input" v-model="filter_text" @change="filterMaterials"></el-input>
               </div>
-              <div style="display: flex;flex-direction: column;height: calc(100vh - 280px)">
+              <div style="display: flex;flex-direction: column;height: calc(100vh - 320px)">
                 <div style="display: flex">
                   <div class="tags" ref="tagsContainer" :style="{maxHeight: needExpandBtn && !showFullTags ? '25px' : 'none'}">
                     <el-tag :class="{ 'tag-active': filter_active_tags.length === 0 && filter_active_store.length === 0 }"
@@ -98,7 +98,7 @@
                 <el-input prefix-icon="el-icon-search" placeholder="输入素材名称、标签匹配搜索" clearable
                           class="filter-input" v-model="figure_filter_text" @change="filterFigure"></el-input>
               </div>
-              <div style="max-height: calc(100vh - 320px);display: flex">
+              <div style="max-height: calc(100vh - 360px);display: flex">
                 <div class="m-card">
                   <div class="m-item" v-for="item in filter_figures" :key="item.id" @click="selectFigure(item)">
                     <el-image class="m-item-img" :class="{'m-img-selected': item.id === figure.id }"
@@ -614,12 +614,11 @@
 <script>
 import {getAction} from "@/api/api";
 import {EnhancedChoiceMixin} from "@/mixins/EnhancedChoiceMixin";
-import Video from "@/view/video/index.vue";
 import CustomColorPicker from "@/components/CustomColorPicker.vue";
 
 export default {
   name: 'Material',
-  components: {CustomColorPicker, Video},
+  components: {CustomColorPicker},
   mixins: [EnhancedChoiceMixin],
   data() {
     return {
@@ -1594,7 +1593,8 @@ export default {
 <style scoped>
 .material {
   min-width: 1250px;
-  min-height: 700px;
+  min-height: 830px;
+  overflow-y: auto;
   height: 100%;
   padding: 20px;
   box-sizing: border-box;

@@ -90,8 +90,9 @@ export default {
 
 <style scoped>
 .video-home {
-  padding: 24px;
+  padding: 24px 24px 0 24px;
   height: 100%;
+  overflow-y: auto;
   min-width: 1000px;
   box-sizing: border-box;
 }

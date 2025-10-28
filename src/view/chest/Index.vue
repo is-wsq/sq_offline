@@ -267,7 +267,7 @@ export default {
   grid-template-columns: repeat(auto-fill, minmax(385px, 1fr));
   gap: 24px;
   padding-top: 10px;
-  max-height: calc(50vh - 125px);
+  max-height: calc(50vh - 140px);
   overflow-y: auto;
   box-sizing: border-box;
 }

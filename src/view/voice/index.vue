@@ -299,7 +299,7 @@ export default {
 
 <style scoped>
 .timbre {
-  padding: 20px;
+  padding: 20px 20px 0 20px;
   width: 100%;
   min-width: 1000px;
   height: 100%;
@@ -434,8 +434,8 @@ export default {
 
 .timbre-footer {
   width: 80%;
+  font-size: 15px;
   margin: 0 auto;
-  height: 50px;
   color: #6d7177;
 }
 

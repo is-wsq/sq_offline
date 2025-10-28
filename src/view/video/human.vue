@@ -1147,7 +1147,8 @@ export default {
 <style scoped>
 .human {
   min-width: 1200px;
-  min-height: 800px;
+  min-height: 700px;
+  overflow-y: auto;
   height: 100%;
 }
 

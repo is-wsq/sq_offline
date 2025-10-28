@@ -18,8 +18,8 @@
                      v-if="script_chat.length === 0 || isNewChat">
                   <div style="overflow-y: auto; overflow-x: hidden;" ref="scriptForm"
                        :style="{ maxHeight: script_type === 'material' && !selected_figure.id ?
-                                'max(calc(100vh - 410px), 330px)' :
-                                'max(calc(100vh - 360px), 380px)' }">
+                                'max(calc(100vh - 450px), 290px)' :
+                                'max(calc(100vh - 400px), 340px)' }">
                     <div class="smart-generate-c-l-ai-title">语言选择</div>
                     <el-select v-model="language" placeholder="请选择" style="width: 100%" @change="saveSetting">
                       <el-option label="中文" value="中文"></el-option>
@@ -78,7 +78,7 @@
                 </div>
                 <div class="smart-generate-c-l-ai" v-else>
                   <div class="chat-area" :style="{ height: script_type === 'material' && !selected_figure.id ?
-                       'max(calc(100vh - 360px), 380px)' : 'max(calc(100vh - 310px), 430px)' }">
+                       'max(calc(100vh - 400px), 340px)' : 'max(calc(100vh - 350px), 390px)' }">
                     <div class="chat-frame" ref="scriptChatRef">
                       <div v-for="(item, index) in script_chat" :key="index"
                            :class="{'historical-chat': lastNewChatIndex !== -1 && index < lastNewChatIndex}">
