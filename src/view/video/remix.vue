@@ -1697,9 +1697,11 @@ export default {
           if (with_out_route) {
             return
           }
+          let token = sessionStorage.getItem('token');
           sessionStorage.clear()
           setTimeout(() => {
             this.clearCache()
+            sessionStorage.setItem('token', token);
             this.$router.push({path: '/videoList'})
           }, 500)
         } else {
@@ -1768,9 +1770,11 @@ export default {
       postAction('/figure/export_video_sync_all', params, 3600000).then(res => {
         if (res.data.status === "success") {
           this.$alert('已创建视频生成任务，视频生成成功后会自动下载到本地', "任务创建提醒");
+          let token = sessionStorage.getItem('token');
           sessionStorage.clear()
           setTimeout(() => {
             this.clearCache()
+            sessionStorage.setItem('token', token);
             this.$router.push({path: '/videoList'})
           }, 500)
         } else {

@@ -181,7 +181,7 @@ export default {
       }
       postAction('/sms/verify', params).then(res => {
         if (res.data.status === 'success') {
-          this.message.success('登录成功');
+          this.$message.success('登录成功');
           this.$router.push({path: '/ai'});
           sessionStorage.setItem('token', res.data.data.id);
           sessionStorage.setItem("userInfo", JSON.stringify(res.data.data))
