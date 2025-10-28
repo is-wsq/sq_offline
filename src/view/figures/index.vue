@@ -448,7 +448,7 @@ export default {
       loading: false,
       uploadFigureVisible: false,
       uploadFigureList: [],
-      user_id: sessionStorage.getItem('token')
+      user_id: sessionStorage.getItem('user_id')
     };
   },
   watch: {

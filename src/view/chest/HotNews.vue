@@ -258,7 +258,6 @@ export default {
       hot_news: [],
       search_history: [],
       hot_news_info: null,
-      userId: sessionStorage.getItem("token"),
       copy_history: [],
       dialogVisible: false,
       select_history_copy: null,

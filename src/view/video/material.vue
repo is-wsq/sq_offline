@@ -622,7 +622,7 @@ export default {
   mixins: [EnhancedChoiceMixin],
   data() {
     return {
-      user_id: sessionStorage.getItem('token'),
+      user_id: sessionStorage.getItem('user_id'),
       sub_expands: [],
       mode: 'common',
       activeName: '1',

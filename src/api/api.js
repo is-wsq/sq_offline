@@ -53,7 +53,7 @@ const getAction =
         port = default_port
     ) => {
         instance = createInstance(timeout, port);
-        params.user_id = sessionStorage.getItem('token');
+        params.user_id = sessionStorage.getItem('user_id');
         return instance.get(
             url,
             {params}
@@ -68,7 +68,7 @@ const postAction =
         port = default_port
     ) => {
         instance = createInstance(timeout, port);
-        data.user_id = sessionStorage.getItem('token');
+        data.user_id = sessionStorage.getItem('user_id');
         return instance.post(
             url,
             data
@@ -83,7 +83,7 @@ const putAction =
         port = default_port
     ) => {
         instance = createInstance(timeout, port);
-        data.user_id = sessionStorage.getItem('token');
+        data.user_id = sessionStorage.getItem('user_id');
         return instance.put(
             url,
             data
@@ -98,7 +98,7 @@ const delAction =
         port = default_port
     ) => {
         instance = createInstance(timeout, port);
-        params.user_id = sessionStorage.getItem('token');
+        params.user_id = sessionStorage.getItem('user_id');
         return instance.delete(
             url,
             {params}
@@ -113,7 +113,7 @@ const filePostAction =
         port = default_port
     ) => {
         instance = createInstance(timeout, port);
-        formData.append('user_id', sessionStorage.getItem('token'));
+        formData.append('user_id', sessionStorage.getItem('user_id'));
         return instance.post(
             url,
             formData,

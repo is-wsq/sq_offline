@@ -6,10 +6,10 @@ export const ClearCacheMixin = {
     },
     methods: {
         clearSessionCache() {
-            let token = sessionStorage.getItem('token')
+            let user_id = sessionStorage.getItem('user_id')
             let userInfo = sessionStorage.getItem('userInfo')
             sessionStorage.clear()
-            sessionStorage.setItem('token', token);
+            sessionStorage.setItem('user_id', user_id);
             sessionStorage.setItem('userInfo', userInfo);
         },
         clearCache() {

@@ -183,7 +183,7 @@ export default {
         if (res.data.status === 'success') {
           this.$message.success('登录成功');
           this.$router.push({path: '/ai'});
-          sessionStorage.setItem('token', res.data.data.id);
+          sessionStorage.setItem('user_id', res.data.data.id);
           sessionStorage.setItem("userInfo", JSON.stringify(res.data.data))
         } else {
           this.$alert('登陆失败：' + res.data.message, '提示');
@@ -202,7 +202,7 @@ export default {
         if (res.data.status === 'success') {
           this.$message.success('登录成功');
           this.$router.push({path: '/ai'});
-          sessionStorage.setItem('token', res.data.data.id);
+          sessionStorage.setItem('user_id', res.data.data.id);
           sessionStorage.setItem("userInfo", JSON.stringify(res.data.data))
         } else {
           this.$alert('登陆失败：' + res.data.message, '提示');

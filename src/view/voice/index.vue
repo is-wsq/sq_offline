@@ -167,7 +167,7 @@ export default {
         name: ''
       },
       guideVisible: false,
-      user_id: sessionStorage.getItem('token')
+      user_id: sessionStorage.getItem('user_id')
     }
   },
   computed: {
