@@ -35,7 +35,7 @@ if (!gotTheLock) {
             height: 800,
             frame: true,
             show: false,
-            icon: path.join(__dirname, 'public/favicon.ico'),
+            icon: path.join(__dirname, 'public/logo.ico'),
             webPreferences: {
                 preload: path.join(__dirname, 'preload.js'), // 如果需要
                 contextIsolation: true,

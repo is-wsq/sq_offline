@@ -81,7 +81,6 @@ offline-deployment/
 │  │  └─ index.js
 │  ├─ store
 │  │  ├─ modules
-│  │  │  └─ task.js
 │  │  └─ index.js
 │  ├─ view
 │  │  ├─ ai
