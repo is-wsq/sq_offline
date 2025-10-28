@@ -14,7 +14,6 @@
                        title="编辑店铺信息"></el-button>
             <el-button size="mini" circle icon="el-icon-delete" type="danger" @click="handleDeleteShop(shop.id)"
                        title="删除店铺"></el-button>
-            <!--            <el-button size="mini" circle icon="el-icon-folder-add" type="info" @click="handleAddPackage(shop)" title="添加产品套餐"></el-button>-->
           </div>
         </div>
         <div class="card-body">
@@ -80,22 +79,6 @@
         <el-button type="primary" @click="submitForm" size="small">确 定</el-button>
       </span>
     </el-dialog>
-
-    <el-dialog :title="packageTitle" :visible.sync="packageDialogVisible" width="650px" @close="beforeClose">
-      <el-form ref="packageForm" :model="currentPackage" label-width="80px" :rules="packageRules">
-        <el-form-item label="套餐名称" prop="name">
-          <el-input v-model="currentPackage.name" placeholder="请输入套餐名称"></el-input>
-        </el-form-item>
-        <el-form-item label="套餐详情" prop="desc">
-          <el-input type="textarea" :autosize="{ minRows: 4, maxRows: 6 }" placeholder="请输入套餐详情"
-                    v-model="currentPackage.desc" resize="none"></el-input>
-        </el-form-item>
-      </el-form>
-      <span slot="footer" class="dialog-footer">
-        <el-button @click="packageDialogVisible = false" size="small">取 消</el-button>
-        <el-button type="primary" @click="submitPackageForm" size="small">确 定</el-button>
-      </span>
-    </el-dialog>
   </div>
 </template>
 
@@ -108,7 +91,6 @@ export default {
     return {
       shops: [],
       dialogVisible: false,
-      packageDialogVisible: false,
       isEdit: false,
       currentShop: {
         name: '',
@@ -123,29 +105,12 @@ export default {
           {required: true, message: '请输入店铺名称', trigger: 'blur'}
         ]
       },
-      currentPackage: {
-        name: '',
-        desc: ''
-      },
-      selectedShop: {},
-      packageIndex: null,
-      packageRules: {
-        name: [
-          {required: true, message: '请输入套餐名称', trigger: 'blur'}
-        ],
-        desc: [
-          {required: true, message: '请输入套餐详情', trigger: 'blur'}
-        ],
-      },
     }
   },
   computed: {
     dialogTitle() {
       return this.isEdit ? '编辑店铺' : '添加新店铺'
     },
-    packageTitle() {
-      return this.packageIndex ? '编辑套餐' : '添加新套餐'
-    }
   },
   mounted() {
     this.queryShops()
@@ -253,55 +218,6 @@ export default {
         this.$message.error(msg + '失败！')
       })
     },
-    handleAddPackage(shop) {
-      this.selectedShop = shop
-      this.packageIndex = null
-      this.currentPackage = {name: '', desc: ''}
-      this.packageDialogVisible = true
-    },
-    handleEditPackage(shop, index) {
-      this.selectedShop = shop
-      this.packageIndex = index
-      this.currentPackage = {...this.selectedShop.productPackages[index]}
-      this.packageDialogVisible = true
-    },
-    handleDeletePackage(shop, index) {
-      this.selectedShop = shop
-      this.$confirm('此操作将永久删除该套餐, 是否继续?', '提示', {
-        confirmButtonText: '确定',
-        cancelButtonText: '取消',
-        type: 'warning'
-      }).then(() => {
-        let packages = this.selectedShop.productPackages || []
-        packages.splice(index, 1)
-        let shopData = {...this.selectedShop, productPackages: packages}
-        this.editShop(shopData, '删除店铺套餐')
-      }).catch(() => {
-        this.$message.info('已取消删除')
-      })
-    },
-    beforeClose() {
-      this.$refs.packageForm.clearValidate()
-    },
-    submitPackageForm() {
-      this.$refs.packageForm.validate(valid => {
-        if (valid) {
-          let packages = this.selectedShop.productPackages || []
-          if (this.packageIndex === null) {
-            packages.push(this.currentPackage)
-          } else {
-            packages[this.packageIndex] = this.currentPackage
-          }
-          let shop = {...this.selectedShop, productPackages: packages}
-              `套餐${!this.packageIndex ? '添加' : '编辑'}成功！`
-          let msg = `套餐${!this.packageIndex ? '添加' : '编辑'}`
-          this.editShop(shop, msg)
-          this.packageDialogVisible = false
-        } else {
-          return false
-        }
-      })
-    }
   }
 }
 </script>
