@@ -1,9 +1,5 @@
 <template>
-  <div class="re-writing"
-       v-loading="loading"
-       element-loading-text="图片洗稿制作中..."
-       element-loading-spinner="el-icon-loading"
-       element-loading-background="rgba(0, 0, 0, 0.8)">
+  <div class="re-writing">
     <div class="flex-center">
       <el-button type="text" class="back-btn" @click="back">
         <i class="el-icon-arrow-left" style="font-size: 20px;"></i>
@@ -20,7 +16,11 @@
         </div>
       </div>
     </div>
-    <div class="re-writing-content">
+    <div class="re-writing-content"
+         v-loading="loading"
+         element-loading-text="图片洗稿制作中..."
+         element-loading-spinner="el-icon-loading"
+         element-loading-background="rgba(0, 0, 0, 0.8)">
       <div class="work-setting-area">
         <div class="flex-center">
           <div style="flex: 1;">
@@ -412,7 +412,7 @@ export default {
       link.click();
     },
     back() {
-      this.clearCache()
+      // this.clearCache()
       sessionStorage.setItem('chest_path', '/chest')
       this.$router.push({ path: '/chest'})
     }

@@ -1,9 +1,5 @@
 <template>
-  <div class="multiple-pose"
-       v-loading="loading"
-       element-loading-text="多姿势图生成中..."
-       element-loading-spinner="el-icon-loading"
-       element-loading-background="rgba(0, 0, 0, 0.8)">
+  <div class="multiple-pose">
     <div class="flex-center">
       <el-button type="text" class="back-btn" @click="back">
         <i class="el-icon-arrow-left" style="font-size: 20px;"></i>
@@ -11,7 +7,11 @@
       <div class="c-page-header">多姿势图生成</div>
       <div style="width: 36px"></div>
     </div>
-    <div class="multiple-pose-content">
+    <div class="multiple-pose-content"
+         v-loading="loading"
+         element-loading-text="多姿势图生成中..."
+         element-loading-spinner="el-icon-loading"
+         element-loading-background="rgba(0, 0, 0, 0.8)">
       <div class="work-setting-area">
         <div class="font-weight">工作台</div>
         <div style="flex: 1;overflow-y: auto">
@@ -162,7 +162,7 @@ export default {
       })
     },
     back() {
-      this.clearCache()
+      // this.clearCache()
       sessionStorage.setItem('chest_path', '/chest')
       this.$router.push({ path: '/chest'})
     }

@@ -1,9 +1,5 @@
 <template>
-  <div class="action-imitation"
-       v-loading="loading"
-       element-loading-text="姿势+动作模仿中..."
-       element-loading-spinner="el-icon-loading"
-       element-loading-background="rgba(0, 0, 0, 0.8)">
+  <div class="action-imitation">
     <div class="flex-center">
       <el-button type="text" class="back-btn" @click="back">
         <i class="el-icon-arrow-left" style="font-size: 20px;"></i>
@@ -11,7 +7,11 @@
       <div class="c-page-header">一键模仿姿势 + 动作</div>
       <div style="width: 36px"></div>
     </div>
-    <div class="action-imitation-content">
+    <div class="action-imitation-content"
+         v-loading="loading"
+         element-loading-text="姿势+动作模仿中..."
+         element-loading-spinner="el-icon-loading"
+         element-loading-background="rgba(0, 0, 0, 0.8)">
       <div class="work-setting-area">
         <div class="font-weight">工作台</div>
         <div style="flex: 1;overflow-y: auto">
@@ -196,7 +196,7 @@ export default {
       })
     },
     back() {
-      this.clearCache()
+      // this.clearCache()
       sessionStorage.setItem('chest_path', '/chest')
       this.$router.push({ path: '/chest'})
     }

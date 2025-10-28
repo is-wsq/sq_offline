@@ -1,9 +1,5 @@
 <template>
-  <div class="e-commerce"
-       v-loading="loading"
-       element-loading-text="带货视频制作中..."
-       element-loading-spinner="el-icon-loading"
-       element-loading-background="rgba(0, 0, 0, 0.8)">
+  <div class="e-commerce">
     <div class="flex-center">
       <el-button type="text" class="back-btn" @click="back">
         <i class="el-icon-arrow-left" style="font-size: 20px;"></i>
@@ -11,7 +7,11 @@
       <div class="e-commerce-header">电商带货短视频制作</div>
       <div style="width: 36px"></div>
     </div>
-    <div class="e-commerce-body">
+    <div class="e-commerce-body"
+         v-loading="loading"
+         element-loading-text="带货视频制作中..."
+         element-loading-spinner="el-icon-loading"
+         element-loading-background="rgba(0, 0, 0, 0.8)">
       <div class="e-commerce-card">
         <div style="font-weight: bold">工作台</div>
         <div style="flex: 1;overflow-y: auto;overflow-x: hidden">
@@ -270,7 +270,7 @@ export default {
       })
     },
     back() {
-      this.clearCache()
+      // this.clearCache()
       this.stopAudio()
       sessionStorage.setItem('chest_path', '/chest')
       this.$router.push({ path: '/chest'})

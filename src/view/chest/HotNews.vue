@@ -1,10 +1,6 @@
 <template>
   <div class="hot-news"
-       @click="searchBlur"
-       v-loading="loading"
-       :element-loading-text="loading_text"
-       element-loading-spinner="el-icon-loading"
-       element-loading-background="rgba(0, 0, 0, 0.8)">
+       @click="searchBlur">
     <div class="flex-center">
       <el-button type="text" class="back-btn" @click="back">
         <i class="el-icon-arrow-left" style="font-size: 20px;"></i>
@@ -38,7 +34,11 @@
       </div>
       <div style="width: 36px"></div>
     </div>
-    <div class="hot-news-body">
+    <div class="hot-news-body"
+         v-loading="loading"
+         :element-loading-text="loading_text"
+         element-loading-spinner="el-icon-loading"
+         element-loading-background="rgba(0, 0, 0, 0.8)">
       <div style="flex: 1">
         <el-row style="height: 100%;" :gutter="20">
           <el-col :span="12" :md="10" :lg="8" style="height: 100%">
@@ -389,6 +389,9 @@ export default {
       this.search_result = null;
     },
     selectNews(item) {
+      if (this.loading) {
+        return;
+      }
       if (this.hot_news_info && item.id === this.hot_news_info.id) {
         return;
       }
@@ -627,7 +630,7 @@ export default {
       })
     },
     back() {
-      this.clearCache()
+      // this.clearCache()
       sessionStorage.setItem('chest_path', '/chest')
       this.$router.push({ path: '/chest'})
     }
