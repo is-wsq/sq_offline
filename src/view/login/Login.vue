@@ -202,6 +202,10 @@ export default {
           const baseUrl = window.location.origin;
           const targetUrl = `${baseUrl}/#/ai`;
           window.history.replaceState(null, null, targetUrl);
+          console.log(this.$route)
+          if (this.$route.path !== '/ai') {
+            this.$router.push({path: '/ai'});
+          }
         } else {
           this.$alert('登陆失败：' + res.data.message, '提示');
         }
