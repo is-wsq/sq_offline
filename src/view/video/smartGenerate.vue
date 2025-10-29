@@ -561,15 +561,6 @@ export default {
         this.$alert('文案要求不能为空，请先填写文案要求', '提示')
         return
       }
-      let url = ''
-      switch (this.ai_model) {
-        case 'local_model':
-          url = '/api/generate_script'
-          break
-        case 'deepseek_v3':
-          url = '/api/generate_script'
-          break
-      }
       this.isNewChat = false
       this.script_chat.push({
         type: 'userMessage',
@@ -588,7 +579,7 @@ export default {
         script_count: parseInt(this.script_num),
         store_id: store_id,
       }
-      postAction(url, params).then(res => {
+      postAction('/api/generate_script', params).then(res => {
         if (res.data.status === "success") {
           this.isGenerating = false
           this.lastGenerateScripts = res.data.data

@@ -445,7 +445,7 @@ export default {
       let params = {
         news_id: this.hot_news_info.id
       }
-      getAction('/copywriting_history/query', {params: params}, 60000, 5008).then(res => {
+      getAction('/copywriting_history/query', params, 60000, 5008).then(res => {
         if (res.data.status === 'success') {
           this.copy_history = res.data.data
         } else {
@@ -466,7 +466,7 @@ export default {
       let params = {
         keyword: this.search_text
       }
-      getAction('/news/online_search', { params: params }, 1800000, 5008).then(res => {
+      getAction('/news/online_search', params, 1800000, 5008).then(res => {
         if (res.data.status === 'success') {
           this.search_loading = false;
           this.search_result = res.data.data

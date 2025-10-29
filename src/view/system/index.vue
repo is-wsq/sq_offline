@@ -215,11 +215,8 @@ export default {
     },
   },
   methods: {
-    getInfo(payer_total) {
-      let params = {
-        add_total: payer_total? payer_total * 10 : 0,
-      }
-      getAction("/get_remaining_tokens", {params: params}, 60000, 9669).then((res) => {
+    getInfo() {
+      getAction("/get_remaining_tokens", {}, 60000, 9669).then((res) => {
         if (res.data.status === 'success') {
           this.info = res.data.data
           const remainingTokensRatio = this.info.remaining_tokens / this.info.total_tokens;
@@ -242,7 +239,7 @@ export default {
         pageSize: this.iPagination.pageSize,
         currentPage: this.iPagination.currentPage,
       }
-      getAction('/get_api_call_log',{ params: params }, 60000, 9669).then(res => {
+      getAction('/get_api_call_log', params, 60000, 9669).then(res => {
         if (res.data.status === 'success') {
           this.bills = res.data.data.api_call_log_list || []
           this.iPagination.total = res.data.data.total || 0
