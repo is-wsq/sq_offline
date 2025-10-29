@@ -196,7 +196,11 @@ export default {
       getAction('/user/wx/auth', { code: code }).then(res => {
         if (res.data.status === 'success') {
           this.$message.success('登录成功');
-          this.$router.replace('/ai');
+          // this.$router.replace('/ai');
+          this.$router.replace({
+            path: '/ai',
+            query: {}
+          });
           sessionStorage.setItem('user_id', res.data.data.id);
           sessionStorage.setItem("userInfo", JSON.stringify(res.data.data))
         } else {
