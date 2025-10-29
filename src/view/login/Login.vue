@@ -55,11 +55,16 @@
         <span style="color: #409eff;cursor: pointer;" @click="createAccount">立即注册</span>
       </div>
     </div>
+    <el-dialog class="qrcode-dialog" :visible.sync="wxLoginVisible" width="420px" :before-close="beforeWxLoginClose">
+      <div class="qrcode-dialog-body">
+        <div id="qrcode" style="width: 100%;text-align: center;"></div>
+      </div>
+    </el-dialog>
   </div>
 </template>
 
 <script>
-import {postAction} from "@/api/api";
+import {getAction, postAction} from "@/api/api";
 
 export default {
   data() {
@@ -87,6 +92,8 @@ export default {
       thirdLogins: [
         {code: 'wx', name: "微信", icon: 'wx'}
       ],
+      wxLoginVisible: false,
+      wxLoginInstance: null,
     };
   },
   computed: {
@@ -101,7 +108,16 @@ export default {
       }
     },
   },
+  mounted() {
+    this.handleWechatCallback()
+  },
   methods: {
+    beforeWxLoginClose() {
+      if (this.wxLoginInstance) {
+        this.wxLoginInstance.destroy();
+      }
+      this.wxLoginVisible = false;
+    },
     validatePhone(rule, value, callback) {
       let checkPhone = new RegExp(/^[1]([3-9])[0-9]{9}$/);
 
@@ -151,14 +167,45 @@ export default {
       }, 1000);
     },
     onThirdLogin(code) {
-      const appId = 'wx48d2e02bf10f849c'
-      const redirectUri = encodeURIComponent('https://tellai.tech/#/pages/login/login')
-      // const redirectUri = encodeURIComponent('https://tellai.tech/#/pages/login/login')
-      // const redirectUri = encodeURIComponent(`${this.getCurrentUrl()}#/pages/login/auth-callback`)
-      const scope = 'snsapi_login'
-      const state = 'xyz123'
-      const authUrl = `https://open.weixin.qq.com/connect/oauth2/authorize?appid=${appId}&redirect_uri=${redirectUri}&response_type=code&scope=${scope}&state=${state}&forcePopup=true#wechat_redirect`;
-      window.location.replace(authUrl)
+      this.wxLoginVisible = true
+      this.$nextTick(() => {
+        if (this.wxLoginInstance) {
+          this.wxLoginInstance.destroy();
+        }
+        this.wxLoginInstance = new WxLogin({
+          id: "qrcode", // 二维码挂载的DOM节点ID
+          appid: "wx7d381dcacd3804cf", // 替换为你申请的APPID
+          scope: "snsapi_login",
+          redirect_uri: encodeURIComponent("https://live.tellai.tech/"),
+          state: "randomState123", // 随机字符串，用于防止CSRF攻击
+          style: "black", // 二维码样式（black/white）
+          href: ""
+        });
+      })
+    },
+    getQueryParam(name) {
+      const reg = new RegExp(`(^|&)${name}=([^&]*)(&|$)`);
+      const r = window.location.search.substr(1).match(reg);
+      return r ? decodeURIComponent(r[2]) : null;
+    },
+    async handleWechatCallback() {
+      const code = this.getQueryParam('code');
+      if (!code) {
+        return;
+      }
+
+      getAction('/user/wx/auth', { code: code }).then(res => {
+        if (res.data.status === 'success') {
+          this.$message.success('登录成功');
+          this.$router.push({path: '/ai'});
+          sessionStorage.setItem('user_id', res.data.data.id);
+          sessionStorage.setItem("userInfo", JSON.stringify(res.data.data))
+        } else {
+          this.$alert('登陆失败：' + res.data.message, '提示');
+        }
+      }).catch(err => {
+        console.log('登陆错误：' + err);
+      })
     },
     handleLogin() {
       this.$refs.form.validate((valid) => {
@@ -309,5 +356,28 @@ export default {
 .login >>> .el-divider__text {
   font-size: 12px;
   color: #80838A;
+}
+
+.qrcode-dialog >>> .el-dialog {
+  border-radius: 10px;
+}
+
+.qrcode-dialog-body {
+  padding: 10px 20px;
+  max-height: calc(70vh - 120px);
+  overflow-y: auto;
+}
+
+.guide-dialog >>> .el-dialog__header {
+  padding: 0;
+}
+
+.guide-dialog >>> .el-dialog__close {
+  color: #9ca3af;
+  font-size: 24px;
+}
+
+.guide-dialog >>> .el-dialog__body {
+  padding: 0;
 }
 </style>
