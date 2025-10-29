@@ -2942,102 +2942,159 @@ methods: {
 
 ```javascript
 methods: {
-   /* 
-    * 正则表达式校验手机号合法性方法
-    */
-   validatePhone(rule, value, callback) {
-      let checkPhone = new RegExp(/^[1]([3-9])[0-9]{9}$/);
+  /* 
+   * 正则表达式校验手机号合法性方法
+   */
+  validatePhone(rule, value, callback) {
+    let checkPhone = new RegExp(/^[1]([3-9])[0-9]{9}$/);
 
-      if (value === '') {
-        callback(new Error('请填写手机号'));
-      } else if (!checkPhone.test(this.form.phone)) {
-        callback(new Error('手机号格式不正确'));
+    if (value === '') {
+      callback(new Error('请填写手机号'));
+    } else if (!checkPhone.test(this.form.phone)) {
+      callback(new Error('手机号格式不正确'));
+    } else {
+      callback();
+    }
+  },
+  /*
+   * 发送手机验证码的方法
+   */
+  onSMSSend() {
+    if (!this.isSendSMSEnable) {
+      return;
+    }
+    let checkPhone = new RegExp(/^[1]([3-9])[0-9]{9}$/);
+    if (!this.form.phone || this.form.phone.length === 0) {
+      this.$alert('请填写手机号', '提示');
+      return
+    }
+    if (!checkPhone.test(this.form.phone)) {
+      this.$alert('手机号输入错误，请修正后重试', '提示');
+      return
+    }
+    let params = {
+      phone: this.form.phone,
+      usage: 'login',
+    }
+    postAction('/sms/send', params).then(res => {
+      if (res.data.status === 'success') {
+        this.smsCountDown = 60;
+        this.startSMSTimer();
+        this.$alert('短信验证码发送成功', '提示');
       } else {
-        callback();
+        this.$alert('短信验证码发送失败：' + res.data.message, '提示');
       }
-   },
-   /*
-    * 发送手机验证码的方法
-    */
-   onSMSSend() {
-      if (!this.isSendSMSEnable) {
-        return;
+    }).catch(err => {
+      console.log('短信验证码发送错误：' + err);
+    })
+  },
+  /*
+   * 短信验证码登录
+   */
+  handleSMSLogin() {
+    let params = {
+      phone: this.form.phone,
+      code: this.form.sms,
+      usage: 'login',
+    }
+    postAction('/sms/verify', params).then(res => {
+      if (res.data.status === 'success') {
+        this.message.success('登录成功');
+        this.$router.push({path: '/ai'});
+        sessionStorage.setItem('user_id', res.data.data.id);
+        sessionStorage.setItem("userInfo", JSON.stringify(res.data.data))
+      } else {
+        this.$alert('登陆失败：' + res.data.message, '提示');
       }
-      let checkPhone = new RegExp(/^[1]([3-9])[0-9]{9}$/);
-      if (!this.form.phone || this.form.phone.length === 0) {
-        this.$alert('请填写手机号', '提示');
-        return
+    }).catch(err => {
+      console.log('登陆错误：' + err);
+    })
+  },
+  /*
+   * 账号密码登录
+   */
+  handlePwdLogin() {
+    let params = {
+      phone: this.form.phone,
+      password: this.form.password,
+      usage: 'login',
+    }
+    postAction('/user/login', params).then(res => {
+      if (res.data.status === 'success') {
+        this.$message.success('登录成功');
+        this.$router.push({path: '/ai'});
+        sessionStorage.setItem('user_id', res.data.data.id);
+        sessionStorage.setItem("userInfo", JSON.stringify(res.data.data))
+      } else {
+        this.$alert('登陆失败：' + res.data.message, '提示');
       }
-      if (!checkPhone.test(this.form.phone)) {
-        this.$alert('手机号输入错误，请修正后重试', '提示');
-        return
-      }
-      let params = {
-        phone: this.form.phone,
-        usage: 'login',
-      }
-      postAction('/sms/send', params).then(res => {
-        if (res.data.status === 'success') {
-          this.smsCountDown = 60;
-          this.startSMSTimer();
-          this.$alert('短信验证码发送成功', '提示');
-        } else {
-          this.$alert('短信验证码发送失败：' + res.data.message, '提示');
-        }
-      }).catch(err => {
-        console.log('短信验证码发送错误：' + err);
-      })
-   },
-   /*
-    * 短信验证码登录
-    */
-   handleSMSLogin() {
-      let params = {
-        phone: this.form.phone,
-        code: this.form.sms,
-        usage: 'login',
-      }
-      postAction('/sms/verify', params).then(res => {
-        if (res.data.status === 'success') {
-          this.message.success('登录成功');
+    }).catch(err => {
+      console.log('登陆错误：' + err);
+    })
+  },
+  /*
+   * 获取微信登录二维码方法
+   * 注意，需要在public/index.html中引入微信登录依赖，才能使用new WxLogin()方法
+   * <script src="https://res.wx.qq.com/connect/zh_CN/htmledition/js/wxLogin.js"></script>
+   */
+  getWxQrcode() {
+    this.wxLoginVisible = true
+    this.$nextTick(() => {
+      this.wxLoginInstance = new WxLogin({
+        id: "qrcode", // 二维码挂载的DOM节点ID
+        appid: "wx7d381dcacd3804cf", // 替换为你申请的APPID
+        scope: "snsapi_login",  // 微信登陆固定使用这个
+        redirect_uri: encodeURIComponent("https://live.tellai.tech/"),  //扫码成功确认后的回调地址
+        state: "randomState123", // 随机字符串，用于防止CSRF攻击
+        style: "black", // 二维码样式（black/white）
+        href: ""
+      });
+    })
+  },
+  /*
+   * 获取链接中指定名称的参数
+   */
+  getQueryParam(name) {
+    const reg = new RegExp(`(^|&)${name}=([^&]*)(&|$)`);
+    const r = window.location.search.substr(1).match(reg);
+    return r ? decodeURIComponent(r[2]) : null;
+  },
+  /*
+   * 扫码成功后的回调方法(实际执行微信登陆的方法)
+   * 需要在mounted生命周期中调用这个方法
+   */
+  async handleWechatCallback() {
+    const code = this.getQueryParam('code');
+    if (!code) {
+      return;
+    }
+
+    getAction('/user/wx/auth', { code: code }).then(res => {
+      if (res.data.status === 'success') {
+        this.$message.success('登录成功');
+        sessionStorage.setItem('user_id', res.data.data.id);
+        sessionStorage.setItem("userInfo", JSON.stringify(res.data.data))
+
+        // 处理登录成功后浏览器链接地址依旧携带code参数问题
+        const baseUrl = window.location.origin;
+        const targetUrl = `${baseUrl}/#/ai`;
+        window.history.replaceState(null, null, targetUrl);
+        if (this.$route.path !== '/ai') {
           this.$router.push({path: '/ai'});
-          sessionStorage.setItem('user_id', res.data.data.id);
-          sessionStorage.setItem("userInfo", JSON.stringify(res.data.data))
-        } else {
-          this.$alert('登陆失败：' + res.data.message, '提示');
         }
-      }).catch(err => {
-        console.log('登陆错误：' + err);
-      })
-   },
-   /*
-    * 账号密码登录
-    */
-   handlePwdLogin() {
-      let params = {
-        phone: this.form.phone,
-        password: this.form.password,
-        usage: 'login',
+      } else {
+        this.$alert('登陆失败：' + res.data.message, '提示');
       }
-      postAction('/user/login', params).then(res => {
-        if (res.data.status === 'success') {
-          this.$message.success('登录成功');
-          this.$router.push({path: '/ai'});
-          sessionStorage.setItem('user_id', res.data.data.id);
-          sessionStorage.setItem("userInfo", JSON.stringify(res.data.data))
-        } else {
-          this.$alert('登陆失败：' + res.data.message, '提示');
-        }
-      }).catch(err => {
-        console.log('登陆错误：' + err);
-      })
-   },
-   /*
-    * 跳转到注册页面
-    */
-   createAccount() {
-      this.$router.push({path: '/register'})
-   }
+    }).catch(err => {
+      console.log('登陆错误：' + err);
+    })
+  },
+  /*
+   * 跳转到注册页面
+   */
+  createAccount() {
+    this.$router.push({path: '/register'})
+  }
 }
 ```
 
