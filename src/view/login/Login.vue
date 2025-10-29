@@ -112,12 +112,6 @@ export default {
     this.handleWechatCallback()
   },
   methods: {
-    beforeWxLoginClose() {
-      if (this.wxLoginInstance) {
-        this.wxLoginInstance.destroy();
-      }
-      this.wxLoginVisible = false;
-    },
     validatePhone(rule, value, callback) {
       let checkPhone = new RegExp(/^[1]([3-9])[0-9]{9}$/);
 
@@ -167,11 +161,13 @@ export default {
       }, 1000);
     },
     onThirdLogin(code) {
+      if (code === 'wx') {
+        this.getWxQrcode();
+      }
+    },
+    getWxQrcode() {
       this.wxLoginVisible = true
       this.$nextTick(() => {
-        if (this.wxLoginInstance) {
-          this.wxLoginInstance.destroy();
-        }
         this.wxLoginInstance = new WxLogin({
           id: "qrcode", // 二维码挂载的DOM节点ID
           appid: "wx7d381dcacd3804cf", // 替换为你申请的APPID
@@ -182,6 +178,9 @@ export default {
           href: ""
         });
       })
+    },
+    beforeWxLoginClose() {
+      this.wxLoginVisible = false;
     },
     getQueryParam(name) {
       const reg = new RegExp(`(^|&)${name}=([^&]*)(&|$)`);
@@ -197,7 +196,7 @@ export default {
       getAction('/user/wx/auth', { code: code }).then(res => {
         if (res.data.status === 'success') {
           this.$message.success('登录成功');
-          this.$router.push({path: '/ai'});
+          this.$router.replace('/ai');
           sessionStorage.setItem('user_id', res.data.data.id);
           sessionStorage.setItem("userInfo", JSON.stringify(res.data.data))
         } else {
@@ -363,21 +362,21 @@ export default {
 }
 
 .qrcode-dialog-body {
-  padding: 10px 20px;
+  padding: 20px;
   max-height: calc(70vh - 120px);
   overflow-y: auto;
 }
 
-.guide-dialog >>> .el-dialog__header {
+.qrcode-dialog >>> .el-dialog__header {
   padding: 0;
 }
 
-.guide-dialog >>> .el-dialog__close {
+.qrcode-dialog >>> .el-dialog__close {
   color: #9ca3af;
   font-size: 24px;
 }
 
-.guide-dialog >>> .el-dialog__body {
+.qrcode-dialog >>> .el-dialog__body {
   padding: 0;
 }
 </style>
