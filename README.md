@@ -5360,7 +5360,7 @@ methods: {
         "nsis",
         "portable"
       ],
-      "icon": "public/logo.ico", // 图标
+      "icon": "public/favicon.ico", // 图标
       "artifactName": "offline-deployment.${ext}" // 名称
     }
   },
@@ -5408,7 +5408,7 @@ if (!gotTheLock) {
             height: 800,
             frame: true,
             show: false,
-            icon: path.join(__dirname, 'public/logo.ico'),
+            icon: path.join(__dirname, 'public/favicon.ico'),
             webPreferences: {
                 preload: path.join(__dirname, 'preload.js'), // 如果需要
                 contextIsolation: true,
