@@ -282,145 +282,148 @@ async pollVideoTasks({ state, commit }) {
 - 封装 Axios 请求文件
 - 统一处理 `user_id` ，避免在每个接口中重复编写
 - 端口说明`6006`（核心API）、`9669`（充值/账单）、`11434`（Ollama/模型服务）、`8080`（WebUI）、`5008`（新闻热榜相关服务）
-
+- autoDL分支与此有些许差异，无端口区分(均使用8443端口)
+- 
 ```javascript
 import axios from 'axios';
 
 // 创建一个 Axios 实例
 const baseURL = 'http://127.0.0.1';
-// const baseURL = 'http://192.168.1.25:6006';
-// const baseURL = 'http://120.86.188.249:6006';
+// autoDl分支使用以下baseURL
+//const baseURL = 'https://u480621-b9f9-9c9c601b.cqa1.seetacloud.com:8443';
 
-const default_port = 6006;  
+
+// 以下有关port的在autoDL分支中均不需要
+const default_port = 6006;
 const default_timeout = 60000
 
 const createInstance = (timeout, port) => {
-    return axios.create({
-        baseURL: baseURL + ':' + port,
-        timeout: timeout,
-        headers: {'Content-Type': 'application/json'}
-    })
+  return axios.create({
+    baseURL: baseURL + ':' + port,
+    timeout: timeout,
+    headers: {'Content-Type': 'application/json'}
+  })
 }
 
 let instance = createInstance();
 
 // 请求拦截器
 instance.interceptors.request.use(
-    config => {
-        // 这里可以添加请求头等配置
-        // config.headers.Authorization = `Bearer ${token}`;
-        return config;
-    },
-    error => {
-        return Promise.reject(error);
-    }
+        config => {
+          // 这里可以添加请求头等配置
+          // config.headers.Authorization = `Bearer ${token}`;
+          return config;
+        },
+        error => {
+          return Promise.reject(error);
+        }
 );
 
 // 响应拦截器
 instance.interceptors.response.use(
-    response => {
-        return {
+        response => {
+          return {
             status: response.status,
             data: response.data
-        };
-    },
-    error => {
-        // 这里可以处理响应错误
-        console.log(error);
-        return Promise.reject(error);
-    }
+          };
+        },
+        error => {
+          // 这里可以处理响应错误
+          console.log(error);
+          return Promise.reject(error);
+        }
 );
 
 // get请求
 const getAction =
-    (
-        url,
-        params = {},
-        timeout = default_timeout,
-        port = default_port
-    ) => {
-        instance = createInstance(timeout, port);
-        params.user_id = sessionStorage.getItem('user_id');
-        return instance.get(
-            url,
-            {params}
-        );
-    };
+        (
+                url,
+                params = {},
+                timeout = default_timeout,
+                port = default_port
+        ) => {
+          instance = createInstance(timeout, port);
+          params.user_id = sessionStorage.getItem('user_id');
+          return instance.get(
+                  url,
+                  {params}
+          );
+        };
 
 // post请求
 const postAction =
-    (
-        url,
-        data = {},
-        timeout = default_timeout,
-        port = default_port
-    ) => {
-        instance = createInstance(timeout, port);
-        data.user_id = sessionStorage.getItem('user_id');
-        return instance.post(
-            url,
-            data
-        );
-    };
+        (
+                url,
+                data = {},
+                timeout = default_timeout,
+                port = default_port
+        ) => {
+          instance = createInstance(timeout, port);
+          data.user_id = sessionStorage.getItem('user_id');
+          return instance.post(
+                  url,
+                  data
+          );
+        };
 
 // put请求
 const putAction =
-    (
-        url,
-        data = {},
-        timeout = default_timeout,
-        port = default_port
-    ) => {
-        instance = createInstance(timeout, port);
-        data.user_id = sessionStorage.getItem('user_id');
-        return instance.put(
-            url,
-            data
-        );
-    };
+        (
+                url,
+                data = {},
+                timeout = default_timeout,
+                port = default_port
+        ) => {
+          instance = createInstance(timeout, port);
+          data.user_id = sessionStorage.getItem('user_id');
+          return instance.put(
+                  url,
+                  data
+          );
+        };
 
 // delete请求
 const delAction =
-    (
-        url,
-        params = {},
-        timeout = default_timeout,
-        port = default_port
-    ) => {
-        instance = createInstance(timeout, port);
-        params.user_id = sessionStorage.getItem('user_id');
-        return instance.delete(
-            url,
-            {params}
-        );
-    };
+        (
+                url,
+                params = {},
+                timeout = default_timeout,
+                port = default_port
+        ) => {
+          instance = createInstance(timeout, port);
+          params.user_id = sessionStorage.getItem('user_id');
+          return instance.delete(
+                  url,
+                  {params}
+          );
+        };
 
 //针对需要上传文件的post请求
 const filePostAction =
-    (
-        url,
-        formData,
-        timeout = default_timeout,
-        port = default_port
-    ) => {
-        instance = createInstance(timeout, port);
-        formData.append('user_id', sessionStorage.getItem('user_id'));
-        return instance.post(
-            url,
-            formData,
-            {
-                headers:
-                    {'Content-Type': 'multipart/form-data'}
-            }
-        );
-    };
+        (
+                url,
+                formData,
+                timeout = default_timeout,
+                port = default_port
+        ) => {
+          instance = createInstance(timeout, port);
+          formData.append('user_id', sessionStorage.getItem('user_id'));
+          return instance.post(
+                  url,
+                  formData,
+                  {
+                    headers:
+                            {'Content-Type': 'multipart/form-data'}
+                  }
+          );
+        };
 
 export {
-    getAction,
-    postAction,
-    putAction,
-    delAction,
-    filePostAction
+  getAction,
+  postAction,
+  putAction,
+  delAction,
+  filePostAction
 };
 ```
 
