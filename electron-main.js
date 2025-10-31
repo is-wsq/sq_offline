@@ -1,8 +1,8 @@
-const {app, BrowserWindow, ipcMain,dialog,ipcRenderer, screen  } = require('electron');
+const { app, BrowserWindow, ipcMain, dialog, screen, session, ipcRenderer } = require('electron');
 const path = require('path');
 const fs = require('fs');
 const http = require('http');
-const { spawn  } = require('child_process')
+const { spawn } = require('child_process')
 
 let mainWindow;
 let isMainInstance = false; // 新增标志位，标识是否为主实例
@@ -28,8 +28,11 @@ if (!gotTheLock) {
     });
 
     app.on('ready', () => {
+        // 配置微信登录所需的跨域和安全策略
+        configureWechatLoginSecurity();
+
         const primaryDisplay = screen.getPrimaryDisplay();
-        const {width, height} = primaryDisplay.workAreaSize;
+        const { width, height } = primaryDisplay.workAreaSize;
         mainWindow = new BrowserWindow({
             width: 1200,
             height: 800,
@@ -40,10 +43,14 @@ if (!gotTheLock) {
                 preload: path.join(__dirname, 'preload.js'), // 如果需要
                 contextIsolation: true,
                 enableRemoteModule: false,
+                webSecurity: false, // 临时关闭web安全以解决微信登录跨域问题
             }
         });
 
-        // mainWindow.removeMenu();
+        // 监听微信登录请求
+        ipcMain.on('open-weixin-login', (event, loginUrl) => {
+            openWechatLoginWindow(loginUrl);
+        });
 
         // 加载 Vue 项目生成的 HTML 文件
         const indexPath = path.join(__dirname, 'dist', 'index.html');
@@ -62,12 +69,12 @@ if (!gotTheLock) {
 
             e.preventDefault();
 
-            const {execSync} = require('child_process');
+            const { execSync } = require('child_process');
             let batPath;
 
             try {
                 // 尝试访问D盘根目录
-                execSync('dir D:\\', {stdio: 'ignore'});
+                execSync('dir D:\\', { stdio: 'ignore' });
                 batPath = "D:\\offline\\stop_backend.bat";
             } catch (error) {
                 batPath = "C:\\offline\\stop_backend.bat";
@@ -91,6 +98,112 @@ if (!gotTheLock) {
                 mainWindow.close();
             });
         });
+    });
+}
+
+// 配置微信登录的安全策略和跨域设置
+function configureWechatLoginSecurity() {
+    // 允许微信相关域名的跨域请求
+    session.defaultSession.webRequest.onBeforeSendHeaders((details, callback) => {
+        // 微信登录相关域名
+        const wechatDomains = [
+            'https://open.weixin.qq.com',
+            'https://api.weixin.qq.com',
+            'https://localhost.weixin.qq.com'
+        ];
+
+        const isWechatDomain = wechatDomains.some(domain =>
+            details.url.startsWith(domain)
+        );
+
+        if (isWechatDomain) {
+            details.requestHeaders['Origin'] = 'https://open.weixin.qq.com';
+            details.requestHeaders['Referer'] = 'https://open.weixin.qq.com';
+        }
+
+        callback({ cancel: false, requestHeaders: details.requestHeaders });
+    });
+
+    // 处理响应头，允许跨域
+    session.defaultSession.webRequest.onHeadersReceived((details, callback) => {
+        callback({
+            responseHeaders: {
+                ...details.responseHeaders,
+                'Access-Control-Allow-Origin': ['*'],
+                'Access-Control-Allow-Methods': ['GET, POST, OPTIONS'],
+                'Access-Control-Allow-Headers': ['Content-Type']
+            }
+        });
+    });
+
+    // 允许必要的权限请求
+    session.defaultSession.setPermissionRequestHandler((webContents, permission, callback) => {
+        // 允许与微信登录相关的权限
+        if (['webNavigation', 'webRequest', 'media', 'notifications'].includes(permission)) {
+            callback(true);
+        } else {
+            callback(false);
+        }
+    });
+}
+
+// 创建微信登录窗口
+function openWechatLoginWindow(loginUrl) {
+    const loginWindow = new BrowserWindow({
+        width: 400,
+        height: 500,
+        title: '微信登录',
+        modal: true,
+        parent: mainWindow,
+        webPreferences: {
+            contextIsolation: true,
+            webSecurity: false,
+            nodeIntegration: false
+        }
+    });
+
+    // 加载微信登录链接
+    loginWindow.loadURL(loginUrl);
+
+    // 监听窗口导航事件，获取回调信息
+    loginWindow.webContents.on('will-navigate', (event, navigationUrl) => {
+        // 这里替换为你的微信登录回调域名或本地回调地址
+        if (navigationUrl.includes('your-callback-domain.com') ||
+            navigationUrl.includes('localhost') ||
+            navigationUrl.includes('127.0.0.1')) {
+
+            event.preventDefault();
+
+            // 解析回调参数
+            const urlParams = new URL(navigationUrl).searchParams;
+            const code = urlParams.get('code');
+            const state = urlParams.get('state');
+
+            // 将登录结果发送给主窗口
+            if (mainWindow && code) {
+                mainWindow.webContents.send('weixin-login-success', { code, state });
+            }
+
+            // 关闭登录窗口
+            loginWindow.close();
+        }
+    });
+
+    // 监听页面内跳转（如果微信登录使用iframe或页面内跳转）
+    loginWindow.webContents.on('did-navigate-in-page', (event, url) => {
+        if (url.includes('your-callback-domain.com') ||
+            url.includes('localhost') ||
+            url.includes('127.0.0.1')) {
+
+            const urlParams = new URL(url).searchParams;
+            const code = urlParams.get('code');
+            const state = urlParams.get('state');
+
+            if (mainWindow && code) {
+                mainWindow.webContents.send('weixin-login-success', { code, state });
+                loginWindow.close();
+            }
+        }
     });
 }
 
@@ -133,7 +246,7 @@ ipcMain.handle('save-file', async (event, fileInfo) => {
         const targetDirectory = path.join('C:\\Program Files (x86)\\SingAI', 'files')
 
         if (!fs.existsSync(targetDirectory)) {
-            fs.mkdirSync(targetDirectory, {recursive: true});
+            fs.mkdirSync(targetDirectory, { recursive: true });
         }
 
         if (fileInfo.clear) {
@@ -150,9 +263,9 @@ ipcMain.handle('save-file', async (event, fileInfo) => {
         const buffer = Buffer.from(fileInfo.buffer);
         fs.writeFileSync(targetPath, buffer);
 
-        return {success: true, path: targetPath};
+        return { success: true, path: targetPath };
     } catch (error) {
         console.error('保存文件失败：', error);
-        return {success: false, error: error.message};
+        return { success: false, error: error.message };
     }
 });
